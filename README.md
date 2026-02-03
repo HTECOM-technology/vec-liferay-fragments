@@ -1,0 +1,1 @@
+# vec-liferay-fragments
