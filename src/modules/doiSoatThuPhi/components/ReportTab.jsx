@@ -1,7 +1,8 @@
 import React from "react";
+import PropTypes from "prop-types";
+import { CTablePagination } from "../../../components/common";
 import ReportFilter from "./ReportFilter";
 import ReportTable from "./ReportTable";
-import TablePagination from "./TablePagination";
 
 function ReportTab({
   initialValues,
@@ -15,7 +16,7 @@ function ReportTab({
     <>
       <ReportFilter initialValues={initialValues} onSearch={onSearch} />
       <ReportTable dataSource={dataSource} />
-      <TablePagination
+      <CTablePagination
         current={current}
         pageSize={pageSize}
         total={total}
@@ -24,5 +25,13 @@ function ReportTab({
     </>
   );
 }
+
+
+ReportTab.propTypes = {
+  initialValues: PropTypes.object,
+  onSearch: PropTypes.func,
+  dataSource: PropTypes.array,
+  pagination: PropTypes.object,
+};
 
 export default ReportTab;
