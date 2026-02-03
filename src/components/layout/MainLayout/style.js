@@ -19,6 +19,7 @@ export const StyledContent = styled(Layout.Content)`
   min-height: 280px;
   background: #fff;
   border-radius: 8px;
+  border: 1px solid #0090CF33;
 `;
 
 export const StyledLeftMenu = styled.div`
