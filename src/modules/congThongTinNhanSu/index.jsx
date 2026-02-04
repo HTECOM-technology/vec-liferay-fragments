@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
-import { KPITab } from "./components";
+import { KPITab, NhanSuTab, SalaryTab } from "./components";
 
 function CongThongTinNhanSuPage() {
-  const [activeTab, setActiveTab] = useState("kpi");
+  const [activeTab, setActiveTab] = useState("nhanSu");
 
   return (
     <PageWrap>
@@ -15,7 +15,7 @@ function CongThongTinNhanSuPage() {
           {
             key: "nhanSu",
             label: "NHÂN SỰ",
-            children: <div style={{ padding: 16 }}>Module Nhân sự đang phát triển</div>,
+            children: <NhanSuTab />,
           },
           {
             key: "kpi",
@@ -35,7 +35,7 @@ function CongThongTinNhanSuPage() {
           {
             key: "luong",
             label: "LƯƠNG",
-            children: <div style={{ padding: 16 }}>Module Lương đang phát triển</div>,
+            children: <SalaryTab />,
           },
         ]}
       />
