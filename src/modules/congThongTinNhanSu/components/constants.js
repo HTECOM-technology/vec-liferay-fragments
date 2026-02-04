@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 
 export const KPI_STATUS_OPTIONS = [
     { label: "Chưa đánh giá", value: "chua_danh_gia", color: "default" },
