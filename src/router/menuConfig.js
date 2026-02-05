@@ -11,6 +11,7 @@ export const paths = {
   bieuMauTaiLieu: "/web/intranet/bieu-mau-tai-lieu",
   soTayNhanVien: "/web/intranet/so-tay-nhan-vien",
   khaoSatBieuQuyet: "/web/intranet/khao-sat-va-bieu-quyet-noi-bo",
+  quyTrinhHoTro: "/web/intranet/quy-trinh-yeu-cau-ho-tro",
 };
 
 /**
@@ -21,6 +22,8 @@ export const menuItems = [
   { key: paths.vanPhongDienTu, label: "Văn phòng điện tử" },
   { key: paths.doiSoatThuPhi, label: "Đối soát thu phí" },
   { key: paths.congThongTinNhanSu, label: "Cổng thông tin nhân sự" },
+  { key: paths.quyTrinhHoTro, label: "Quy trình - Yêu cầu hỗ trợ" },
+  { key: paths.khaoSatBieuQuyet, label: "Khảo sát & biểu quyết nội bộ" },
 ];
 
 /**
@@ -46,7 +49,6 @@ export const menuSections = [
       { key: paths.tinTucSuKien, label: "Tin tức - Sự kiện", icon: "calendar" },
       { key: paths.bieuMauTaiLieu, label: "Biểu mẫu tài liệu", icon: "books" },
       { key: paths.soTayNhanVien, label: "Sổ tay nhân viên", icon: "document" },
-      { key: paths.khaoSatBieuQuyet, label: "Khảo sát & Biểu quyết", icon: "survey" },
       { key: "logout", label: "Đăng xuất", icon: "logout" },
     ],
   },

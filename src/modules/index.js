@@ -3,3 +3,5 @@ export { default as DoiSoatThuPhiPage } from "./doiSoatThuPhi";
 export { default as CongThongTinNhanSuPage } from "./congThongTinNhanSu";
 export { default as KhaoSatBieuQuyetPage } from "./khaoSatBieuQuyet";
 export { default as SoTayNhanVienPage } from "./soTayNhanVien";
+export { default as HomePage } from "./homePage";
+export { default as QuyTrinhHoTroPage } from "./quyTrinhHoTro";
