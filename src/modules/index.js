@@ -6,3 +6,4 @@ export { default as SoTayNhanVienPage } from "./soTayNhanVien";
 export { default as HomePage } from "./homePage";
 export { default as QuyTrinhHoTroPage } from "./quyTrinhHoTro";
 export { default as DaoTaoPage } from "./daoTao";
+export { default as BieuMauTaiLieuPage } from "./bieuMauTaiLieu";

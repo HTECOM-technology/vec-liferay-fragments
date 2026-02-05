@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { memo } from "react";
 import { MainLayout } from "../components/layout";
-import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage } from "../modules";
+import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage, BieuMauTaiLieuPage } from "../modules";
 import { paths } from "./menuConfig";
 
 function PlaceholderPage({ title }) {
@@ -24,7 +24,7 @@ function AppRouter() {
           <Route path={paths.congThongTinNhanSu} element={<CongThongTinNhanSuPage />} />
           <Route path={paths.giamSatGiaoThong} element={<PlaceholderPage title="Giám sát giao thông" />} />
           <Route path={paths.tinTucSuKien} element={<PlaceholderPage title="Tin tức - Sự kiện" />} />
-          <Route path={paths.bieuMauTaiLieu} element={<PlaceholderPage title="Biểu mẫu tài liệu" />} />
+          <Route path={paths.bieuMauTaiLieu} element={<BieuMauTaiLieuPage />} />
           <Route path={paths.soTayNhanVien} element={<SoTayNhanVienPage />} />
           <Route path={paths.khaoSatBieuQuyet} element={<KhaoSatBieuQuyetPage />} />
           <Route path={paths.quyTrinhHoTro} element={<QuyTrinhHoTroPage />} />
