@@ -8,7 +8,7 @@ import {
     PaginationInfo,
     PaginationNav,
     GoToPage,
-} from "../style";
+} from "./styleNhanSu";
 
 function NhanSuTable({
     data,
@@ -229,9 +229,9 @@ NhanSuTable.defaultProps = {
     data: [],
     loading: false,
     pagination: { current: 1, pageSize: 16, total: 0 },
-    onPaginationChange: () => {},
-    onPageSizeChange: () => {},
-    onEmployeeClick: () => {},
+    onPaginationChange: () => { },
+    onPageSizeChange: () => { },
+    onEmployeeClick: () => { },
 };
 
 export default NhanSuTable;

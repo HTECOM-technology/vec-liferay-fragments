@@ -10,7 +10,7 @@ import {
     SearchInput,
     FilterSelect,
     SearchButton,
-} from "../style";
+} from "./styleNhanSu";
 
 const chucVuOptions = [
     { value: "", label: "Chức vụ" },
@@ -128,8 +128,8 @@ NhanSuFilter.propTypes = {
 NhanSuFilter.defaultProps = {
     totalCount: 0,
     filters: {},
-    onFilterChange: () => {},
-    onSearch: () => {},
+    onFilterChange: () => { },
+    onSearch: () => { },
 };
 
 export default NhanSuFilter;

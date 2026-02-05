@@ -3,7 +3,7 @@ import NhanSuFilter from "./NhanSuFilter";
 import NhanSuTable from "./NhanSuTable";
 import BirthdayTable from "./BirthdayTable";
 import EmployeeDetailModal from "./EmployeeDetailModal";
-import { FilterTagsContainer, FilterTag } from "../style";
+import { FilterTagsContainer, FilterTag } from "./styleNhanSu";
 import { mockNhanSuData } from "./nhanSuConstants";
 
 const DEFAULT_PAGE_SIZE = 16;
