@@ -1,20 +1,27 @@
 import React, { useMemo } from "react";
+import { UserOutlined } from "@ant-design/icons";
+import { Space } from "antd";
 import styled from "styled-components";
 import { CTable, CTag } from "../../../../components/common";
+import { WorkTableSection, WorkSectionTitle } from "../../style";
 import { WORK_STATUS_MAP } from "./constants";
 
-const SectionWrap = styled.div`
-  margin-bottom: 24px;
+const LinkButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1890ff;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
 `;
 
-const SectionTitle = styled.h3`
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: rgba(0, 0, 0, 0.85);
-`;
-
-function WorkTables({ primaryData, supportData, assignedData, followData }) {
+function WorkTables({ primaryData, supportData, assignedData, followData, onWorkClick }) {
   const primaryColumns = useMemo(
     () => [
       {
@@ -30,20 +37,23 @@ function WorkTables({ primaryData, supportData, assignedData, followData }) {
         key: "nguoiGiaoViec",
         width: 150,
         render: (text) => (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 16 }}>👤</span>
+          <Space size={6}>
+            <UserOutlined />
             <span>{text}</span>
-          </div>
+          </Space>
         ),
       },
       {
         title: "Công việc",
         dataIndex: "congViec",
         key: "congViec",
-        render: (text) => (
-          <a href="#" style={{ color: "#1890ff" }}>
+        render: (text, record) => (
+          <LinkButton
+            type="button"
+            onClick={() => onWorkClick?.(record)}
+          >
             {text}
-          </a>
+          </LinkButton>
         ),
       },
       {
@@ -67,7 +77,7 @@ function WorkTables({ primaryData, supportData, assignedData, followData }) {
         align: "center",
       },
     ],
-    []
+    [onWorkClick]
   );
 
   const supportColumns = useMemo(
@@ -85,20 +95,23 @@ function WorkTables({ primaryData, supportData, assignedData, followData }) {
         key: "nguoiXuLyChinh",
         width: 150,
         render: (text) => (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 16 }}>👤</span>
+          <Space size={6}>
+            <UserOutlined />
             <span>{text}</span>
-          </div>
+          </Space>
         ),
       },
       {
         title: "Công việc",
         dataIndex: "congViec",
         key: "congViec",
-        render: (text) => (
-          <a href="#" style={{ color: "#1890ff" }}>
+        render: (text, record) => (
+          <LinkButton
+            type="button"
+            onClick={() => onWorkClick?.(record)}
+          >
             {text}
-          </a>
+          </LinkButton>
         ),
       },
       {
@@ -122,57 +135,53 @@ function WorkTables({ primaryData, supportData, assignedData, followData }) {
         align: "center",
       },
     ],
-    []
+    [onWorkClick]
   );
 
   return (
     <>
       {primaryData && primaryData.length > 0 && (
-        <SectionWrap>
-          <SectionTitle>Công việc tôi xử lý chính ({primaryData.length})</SectionTitle>
+        <WorkTableSection>
+          <WorkSectionTitle>Công việc tôi xử lý chính ({primaryData.length})</WorkSectionTitle>
           <CTable
             columns={primaryColumns}
             dataSource={primaryData}
             pagination={false}
-            size="small"
           />
-        </SectionWrap>
+        </WorkTableSection>
       )}
 
       {supportData && supportData.length > 0 && (
-        <SectionWrap>
-          <SectionTitle>Công việc tôi phối hợp thực hiện ({supportData.length})</SectionTitle>
+        <WorkTableSection>
+          <WorkSectionTitle>Công việc tôi phối hợp thực hiện ({supportData.length})</WorkSectionTitle>
           <CTable
             columns={supportColumns}
             dataSource={supportData}
             pagination={false}
-            size="small"
           />
-        </SectionWrap>
+        </WorkTableSection>
       )}
 
       {(!assignedData || assignedData.length === 0) && (
-        <SectionWrap>
-          <SectionTitle>Công việc tôi giao và quản lý (0)</SectionTitle>
+        <WorkTableSection>
+          <WorkSectionTitle>Công việc tôi giao và quản lý (0)</WorkSectionTitle>
           <CTable
             columns={primaryColumns}
             dataSource={[]}
             pagination={false}
-            size="small"
           />
-        </SectionWrap>
+        </WorkTableSection>
       )}
 
       {(!followData || followData.length === 0) && (
-        <SectionWrap>
-          <SectionTitle>Công việc tôi theo dõi (0)</SectionTitle>
+        <WorkTableSection>
+          <WorkSectionTitle>Công việc tôi theo dõi (0)</WorkSectionTitle>
           <CTable
             columns={primaryColumns}
             dataSource={[]}
             pagination={false}
-            size="small"
           />
-        </SectionWrap>
+        </WorkTableSection>
       )}
     </>
   );

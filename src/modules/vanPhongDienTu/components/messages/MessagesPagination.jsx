@@ -1,35 +1,20 @@
 import React from "react";
-import { CPagination } from "../../../../components/common";
-import { PaginationWrap } from "../../style";
-
-const defaultPageSizeOptions = ["10", "16", "20", "50"];
-const defaultLocale = { jump_to: "Tới trang", page: "Trang" };
+import { CTablePagination } from "../../../../components/common";
 
 function MessagesPagination({
   current = 1,
   pageSize = 16,
-  total = 0,
+  total = 5709,
   onChange,
-  pageSizeOptions = defaultPageSizeOptions,
-  locale = defaultLocale,
 }) {
-  const config = {
-    current,
-    pageSize,
-    total,
-    showSizeChanger: true,
-    showQuickJumper: true,
-    pageSizeOptions,
-    onChange: (p, size) => onChange?.(p, size || 16),
-    showTotal: (t) => `Hiển thị ${pageSize} / ${t}`,
-    locale,
-    size: 'small',
-  };
-
   return (
-    <PaginationWrap>
-      <CPagination {...config} />
-    </PaginationWrap>
+    <CTablePagination
+      current={current}
+      pageSize={pageSize}
+      total={total}
+      onChange={onChange}
+      pageSizeOptions={["10", "16", "20", "50"]}
+    />
   );
 }
 

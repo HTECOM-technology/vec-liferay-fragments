@@ -1,11 +1,9 @@
 export const MAILBOX_ITEMS = [
-  { key: "inbox-urgent", label: "Hộp thư đến", count: 2 },
   { key: "inbox", label: "Hộp thư đến", count: 10 },
   { key: "draft", label: "Thư nhập", count: 0 },
   { key: "sent", label: "Thư đã gửi", count: null },
   { key: "deleted", label: "Thư đã xóa", count: null },
-  { key: "notification-1", label: "Thư thông báo", count: 0 },
-  { key: "notification-2", label: "Thư thông báo", count: 0 },
+  { key: "notification", label: "Thư thông báo", count: 0 },
 ];
 
 export const TITLE_OPTIONS = [

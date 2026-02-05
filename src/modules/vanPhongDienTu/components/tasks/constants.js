@@ -43,6 +43,9 @@ export const mockTasksData = [
     trangThai: "completed",
     xuLyChinh: "Ban CNTT",
     xuLyChinh2: "Trần Xuân Trí, Mai Hồng Quang",
+    nhom: "Báo cáo",
+    mucDoUuTien: "Bình thường",
+    ngayHoanThanh: "26/04/2023",
   },
   {
     key: 2,
@@ -53,6 +56,8 @@ export const mockTasksData = [
     trangThai: "in-progress",
     xuLyChinh: "Ban Quản lý khai thác",
     xuLyChinh2: "Trần Xuân Trí, Mai Hồng Quang",
+    nhom: "Dự án",
+    mucDoUuTien: "Cao",
   },
   {
     key: 3,
@@ -63,6 +68,8 @@ export const mockTasksData = [
     trangThai: "not-started",
     xuLyChinh: "Ban CNTT",
     xuLyChinh2: "-",
+    nhom: "Quy trình",
+    mucDoUuTien: "Bình thường",
   },
   {
     key: 4,
@@ -73,6 +80,8 @@ export const mockTasksData = [
     trangThai: "in-progress",
     xuLyChinh: "Ban CNTT",
     xuLyChinh2: "Trần Xuân Trí, Bùi Đình Tuấn, Lưu Đức Thành, Đạm Thị Lục",
+    nhom: "Nghiên cứu",
+    mucDoUuTien: "Cao",
   },
   {
     key: 5,
@@ -83,6 +92,8 @@ export const mockTasksData = [
     trangThai: "in-progress",
     xuLyChinh: "Ban CNTT",
     xuLyChinh2: "Trần Xuân Trí, Hàn Mai Nga, Nguyễn Ngọc Đức",
+    nhom: "Số hóa",
+    mucDoUuTien: "Bình thường",
   },
   {
     key: 6,
@@ -93,6 +104,8 @@ export const mockTasksData = [
     trangThai: "in-progress",
     xuLyChinh: "Ban CNTT",
     xuLyChinh2: "Trần Xuân Trí, Nguyễn Công Hùng",
+    nhom: "Nghiên cứu",
+    mucDoUuTien: "Thấp",
   },
   {
     key: 7,

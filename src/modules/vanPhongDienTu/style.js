@@ -1,6 +1,7 @@
 import styled from "styled-components";
-import { Row } from "antd";
+import { Form } from "antd";
 
+// === LAYOUT COMPONENTS === //
 export const PageWrap = styled.div`
   padding: 0;
 `;
@@ -9,110 +10,285 @@ export const ContentWrap = styled.div`
   display: flex;
   gap: 0;
   height: 100%;
+  overflow: hidden;
+  max-width: 100%;
 `;
 
 export const LeftSidebar = styled.div`
-  width: 180px;
+  width: 200px;
   flex-shrink: 0;
-  border-right: 1px solid #f0f0f0;
-  padding: 16px 8px;
-  background: #fff;
+  padding: 12px;
 `;
 
 export const MainContent = styled.div`
   flex: 1;
   min-width: 0;
-  padding: 16px;
+  padding: 20px 24px;
   background: #fff;
-`;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
 
-export const FilterSection = styled.div`
-  margin-bottom: 16px;
-
-  .ant-form-inline {
-    .ant-form-item {
-      margin-right: 12px;
-      margin-bottom: 12px;
-    }
-    .ant-form-item-label > label {
-      font-size: 13px;
-      color: rgba(0, 0, 0, 0.65);
-    }
+  .content-title {
+    margin: 0;
+    font-weight: 600;
+    font-style: Semi Bold;
+    font-size: 16px;
+    line-height: 100%;
+    letter-spacing: 0px;
+    vertical-align: middle;
   }
 `;
 
-export const FilterRow = styled(Row)`
+// === HEADER SECTION === //
+export const HeaderSection = styled.div`
+  border-bottom: 1px solid #0090cf33;
+  padding-bottom: 12px;
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: center;
-  margin-bottom: ${(p) => (p.$last ? 0 : "12px")};
 `;
 
-export const TableWrap = styled.div`
+export const FilterSection = styled.div`
+  .ant-form-item {
+    with: 100%;
+    margin: 0;
+  }
+`;
+
+export const TableContainer = styled.div`
   margin-top: 16px;
+  
+  .ant-table-tbody > tr {
+    cursor: pointer;
+  }
+
+  .ant-table-thead > tr:last-child > th {
+    display: none;
+  }
 `;
 
-export const PaginationWrap = styled.div`
+export const EventsHeaderTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  padding: 0;
+  margin: 0;
+`;
+
+export const EventsHeaderRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 16px;
+  gap: 12px;
 `;
 
+export const EventsCheckboxGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+`;
+
+export const EventsActionGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  .add-event-button {
+    background: #E4F7FF;
+    color: #0090CF;
+    border: 1px solid #0090CF33;
+  }
+`;
+
+export const EventsFilterRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  
+  .ant-form-item {
+    margin-bottom: 0;
+  }
+`;
+
+export const EventsFilterCol = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`
+
+// === SIDEBAR COMPONENTS === //
 export const MailboxItem = styled.div`
-  padding: 8px 12px;
+  width: 180px;
+  height: 40px;
+  padding: 0 12px;
   margin-bottom: 2px;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${(props) => (props.$active ? "#e6f7ff" : "transparent")};
-  color: ${(props) => (props.$active ? "#1890ff" : "rgba(0, 0, 0, 0.85)")};
+  background: ${(props) => (props.$active ? "#E5F7FF" : "#fff")};
+  color: ${(props) => (props.$active ? "#0090CF" : "#6A7282")};
   font-size: 14px;
-  border-radius: 4px;
+  border-radius: 6px;
+  border: 1px solid ${(props) => (props.$active ? "#0090CF33" : "#e5e7eb")};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
   &:hover {
-    background: ${(props) => (props.$active ? "#e6f7ff" : "#f5f5f5")};
+    background: ${(props) => (props.$active ? "#d9f2ff" : "#f5f5f5")};
+    border-color: ${(props) => (props.$active ? "#0090cf" : "#0090cf80")};
   }
 
   .count {
-    float: right;
-    color: ${(props) => (props.$active ? "#1890ff" : "rgba(0, 0, 0, 0.45)")};
+    color: ${(props) => (props.$active ? "#0090cf" : "rgba(0, 0, 0, 0.45)")};
+    font-size: 14px;
   }
 `;
 
-export const ActionIconBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: #0090cf26;
-  color: #0090cf;
+export const SidebarItem = styled(MailboxItem)``;
+
+// === CALENDAR SIDEBAR === //
+export const CalendarSidebarWrap = styled.div`
+  .month-picker {
+    margin-bottom: 16px;
+  }
+
+  .year-select {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+`;
+
+export const CalendarGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+`;
+
+export const MonthButton = styled.button`
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: 1px solid ${(props) => (props.$active ? "#0090cf" : "#d9d9d9")};
+  background: ${(props) => (props.$active ? "#d9f2ff" : "#fff")};
+  color: ${(props) => (props.$active ? "#0090cf" : "rgba(0, 0, 0, 0.85)")};
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  font-size: 13px;
+  transition: all 0.2s;
 
   &:hover {
-    background: #0090cf;
-    color: #fff;
+    background: ${(props) => (props.$active ? "#d9f2ff" : "#f5f5f5")};
+    border-color: #0090cf;
   }
 `;
 
-export const AttachmentTag = styled.div`
-  display: inline-flex;
-  align-items: center;
+// === Message  === //
+export const MessageContentHeader = styled.div`
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+`;
+
+// === Events Table === //
+export const DateCell = styled.div`
+  line-height: 1.5;
+  font-weight: 500;
+`;
+
+export const SessionCell = styled.div`
+  font-weight: 500;
+`;
+
+export const EventContent = styled.div`
+  display: flex;
+  flex-direction: column;
   gap: 4px;
-  padding: 4px 8px;
-  background: ${(props) => {
-    if (props.$type === "word") return "#e6f7ff";
-    if (props.$type === "pdf") return "#fff1f0";
-    if (props.$type === "excel") return "#f0f5ff";
-    return "#f5f5f5";
-  }};
-  border-radius: 2px;
-  font-size: 12px;
+`;
+
+export const EventTitle = styled.div`
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+`;
+
+export const EventLink = styled.a`
+  color: #1890ff;
+  font-size: 13px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+export const TableText = styled.div`
   color: rgba(0, 0, 0, 0.65);
+  line-height: 1.5;
+`;
+
+export const CenterText = styled.div`
+  text-align: center;
+`;
+
+export const MultiLineText = styled.div`
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.5;
+`;
+
+// === WORK TAB COMPONENTS === //
+export const WorkHeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+`;
+
+export const WorkSectionTitle = styled.h2`
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  margin: 0;
+`;
+
+export const WorkFilterWrap = styled.div`
+  padding: 16px 0;
+  border-bottom: 1px solid #0090cf33;
+  margin-bottom: 16px;
+`;
+
+export const WorkFilterForm = styled(Form)`
+  .ant-form-item {
+    margin-bottom: 0;
+    margin-right: 8px;
+  }
+
+  .ant-input,
+  .ant-select {
+    min-width: 140px;
+  }
+`;
+
+export const WorkTableSection = styled.div`
+  margin-bottom: 24px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .ant-table-wrapper {
+    margin-top: 12px;
+  }
+
+  ${WorkSectionTitle} {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.85);
+    margin-bottom: 8px;
+  }
 `;

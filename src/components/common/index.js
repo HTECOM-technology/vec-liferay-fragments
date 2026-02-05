@@ -8,3 +8,4 @@ export { default as CPagination } from "./Pagination";
 export { default as CTabs } from "./Tabs";
 export { default as CTag } from "./Tag";
 export { default as CTablePagination } from "./TablePagination";
+export { CModal } from "./Modal";

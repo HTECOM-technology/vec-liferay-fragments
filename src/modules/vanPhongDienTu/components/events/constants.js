@@ -41,10 +41,26 @@ export const YEARS = [
   { value: 2027, label: "2027" },
 ];
 
+export const HOST_OPTIONS = [
+  { value: "ct-hdtv", label: "Chủ tịch HĐTV" },
+  { value: "tgd", label: "TGĐ" },
+  { value: "ptgd-nam", label: "PTGĐ - Đảng Hoài Nam" },
+  { value: "ptgd-hung", label: "PTGĐ - Kiều Hưng" },
+  { value: "ct-cd", label: "CT CĐ" },
+];
+
+export const NOTIFICATION_OPTIONS = [
+  { value: "all", label: "Tất cả" },
+  { value: "leader", label: "Ban lãnh đạo" },
+  { value: "department", label: "Các phòng ban" },
+];
+
 export const mockEventsData = [
+  // Hôm nay 06/01 - Sáng (2 events)
   {
     key: 1,
-    ngayThang: "Sáng",
+    ngay: "Hôm nay\n06/01",
+    buoi: "Sáng",
     noiDungCongViec: "Chủ tịch HĐTV - Trương Việt Dũng",
     time: "08:00 AM",
     detail: "Dự Hội nghị Người lao động VEC",
@@ -55,7 +71,8 @@ export const mockEventsData = [
   },
   {
     key: 2,
-    ngayThang: "",
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "PTGĐ - Đảng Hoài Nam",
     time: "08:00 AM",
     detail: "Làm việc với Vụ KHTC và Cục KT QLXD Bộ XD",
@@ -64,9 +81,12 @@ export const mockEventsData = [
     diaDiem: "Bộ XD",
     chuTri: "-",
   },
+  
+  // Hôm nay 06/01 - Chiều (3 events)
   {
     key: 3,
-    ngayThang: "Hôm nay\n06/01",
+    ngay: "",
+    buoi: "Chiều",
     noiDungCongViec: "Chủ tịch HĐTV - Trương Việt Dũng",
     time: "01:00 PM",
     detail: "Họp BTV ĐUVEC",
@@ -77,7 +97,8 @@ export const mockEventsData = [
   },
   {
     key: 4,
-    ngayThang: "Chiều",
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "TGĐ - Phạm Hồng Quang",
     time: "01:00 PM",
     detail: "Họp BTV ĐUVEC",
@@ -88,7 +109,8 @@ export const mockEventsData = [
   },
   {
     key: 5,
-    ngayThang: "",
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "TGĐ - Phạm Hồng Quang",
     time: "02:00 AM",
     detail: "Dự Hội nghị tổng kết công tác 2025, nhiệm vụ 2026 VEC",
@@ -97,64 +119,86 @@ export const mockEventsData = [
     diaDiem: "Hội trường T5",
     chuTri: "CT HĐTV, TGĐ",
   },
+  
+  // Thứ 2 05/01 - Sáng (3 events)
   {
     key: 6,
-    ngayThang: "",
+    ngay: "Thứ 2\n05/01",
+    buoi: "Sáng",
     noiDungCongViec: "Chủ tịch HĐTV - Trương Việt Dũng",
     time: "08:00 AM",
     detail: "Dự Hội nghị Người lao động VEC",
     chuanBi: "-",
     thanhPhanThamGia: "CT HĐTV và TGĐ",
     diaDiem: "Phòng làm việc của CT HĐTV",
-    chuTri: "Chủ tịch HĐTV",
+    chuTri: "Đ/c Trương Việt Dũng\nChủ tịch HĐTV",
   },
   {
     key: 7,
-    ngayThang: "Sáng",
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "PTGĐ - Đảng Hoài Nam",
     time: "08:00 AM",
     detail: "Làm việc với Vụ KHTC và Cục KT QLXD Bộ XD",
-    chuanBi: "Ban TCKT",
+    chuanBi: "Ban TCKT, Ban TD",
     thanhPhanThamGia: "Ban TCKT, TD, Đt, PC, Tổ 20E4, tư vấn",
     diaDiem: "Bộ XD",
     chuTri: "-",
   },
   {
     key: 8,
-    ngayThang: "Thứ 2\n05/01",
+    ngay: "",
+    buoi: "",
+    noiDungCongViec: "TGĐ - Phạm Hồng Quang",
+    time: "08:00 AM",
+    detail: "Họp Tổ 20-E4",
+    chuanBi: "Ban TCKT",
+    thanhPhanThamGia: "Ban TCKT, TD, Đt, PC, Tổ 20E4, tư vấn",
+    diaDiem: "Phòng họp trực tuyến tầng 2",
+    chuTri: "PTGĐ Kiều Hưng",
+  },
+  
+  // Thứ 2 05/01 - Chiều (2 events)
+  {
+    key: 9,
+    ngay: "",
+    buoi: "Chiều",
     noiDungCongViec: "PTGĐ - Kiều Hưng",
     time: "08:00 AM",
     detail: "Dự hội nghị BCH Đảng bộ VEC",
     chuanBi: "Ban TCKT",
     thanhPhanThamGia: "Ban TCKT, TD, Đt, PC, Tổ 20E4, tư vấn",
-    diaDiem: "Phòng họp trục tuyến tầng 2",
+    diaDiem: "Phòng họp trực tuyến tầng 2",
     chuTri: "PTGĐ Kiều Hưng",
   },
   {
-    key: 9,
-    ngayThang: "",
+    key: 10,
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "Chủ tịch HĐTV - Trương Việt Dũng",
     time: "01:00 PM",
     detail: "Họp BTV ĐUVEC",
     chuanBi: "TCNS, VP Đảng Đoàn",
     thanhPhanThamGia: "Kinh mời các d/c UV BTV",
-    diaDiem: "Phòng họp trục tuyến tầng 2 - Trụ sở VEC",
+    diaDiem: "Phòng họp trực tuyến tầng 2 - Trụ sở VEC",
     chuTri: "Đ/c Trương Việt Dũng\nBí thư Đảng ủy VEC",
   },
   {
-    key: 10,
-    ngayThang: "Chiều",
+    key: 11,
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "TGĐ - Phạm Hồng Quang",
     time: "01:00 PM",
     detail: "Họp BTV ĐUVEC",
     chuanBi: "TCNS, VP Đảng Đoàn",
     thanhPhanThamGia: "Kinh mời các d/c UV BTV",
-    diaDiem: "Phòng họp trục tuyến tầng 2 - Trụ sở VEC",
+    diaDiem: "Phòng họp trực tuyến tầng 2 - Trụ sở VEC",
     chuTri: "Đ/c Trương Việt Dũng\nBí thư Đảng ủy VEC",
   },
   {
-    key: 11,
-    ngayThang: "",
+    key: 12,
+    ngay: "",
+    buoi: "",
     noiDungCongViec: "TGĐ - Phạm Hồng Quang",
     time: "02:00 AM",
     detail: "Dự Hội nghị tổng kết công tác 2025, nhiệm vụ 2026 VEC",

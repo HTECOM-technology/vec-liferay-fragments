@@ -1,10 +1,11 @@
-import React from "react";
-import { Button, Space } from "antd";
+import React, { useState } from "react";
 import { EyeOutlined } from "@ant-design/icons";
+import { CButton } from "../../../../components/common";
 import styled from "styled-components";
 import TasksFilter from "./TasksFilter";
 import TasksTable from "./TasksTable";
 import TasksPagination from "./TasksPagination";
+import TaskDetailModal from "./TaskDetailModal";
 import { TASK_TABS } from "./constants";
 
 const TasksContent = styled.div`
@@ -51,7 +52,7 @@ const TabButtons = styled.div`
   gap: 8px;
 `;
 
-const TabButton = styled(Button)`
+const TabButton = styled(CButton)`
   ${props => props.$active && `
     background: #1890ff;
     color: #fff;
@@ -69,6 +70,18 @@ function TasksTab({
   stats = { total: 8, processing: 2, completed: 4, overdue: 0 },
 }) {
   const { current = 1, pageSize = 12, total = 0, onChange } = pagination;
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedTask(null);
+  };
 
   return (
     <TasksContent>
@@ -103,18 +116,23 @@ function TasksTab({
             </TabButton>
           ))}
         </TabButtons>
-        <Button type="primary" icon={<EyeOutlined />}>
+        <CButton type="primary" icon={<EyeOutlined />}>
           Xem đầy đủ nhiệm vụ
-        </Button>
+        </CButton>
       </TabRow>
 
       <TasksFilter initialValues={initialValues} onSearch={onSearch} />
-      <TasksTable dataSource={dataSource} />
+      <TasksTable dataSource={dataSource} onTaskClick={handleTaskClick} />
       <TasksPagination
         current={current}
         pageSize={pageSize}
         total={total}
         onChange={onChange}
+      />
+      <TaskDetailModal
+        visible={isModalVisible}
+        task={selectedTask}
+        onClose={handleCloseModal}
       />
     </TasksContent>
   );

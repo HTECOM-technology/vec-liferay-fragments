@@ -1,10 +1,11 @@
-import React from "react";
-import { Button, Space } from "antd";
+import React, { useState } from "react";
 import { EyeOutlined } from "@ant-design/icons";
+import { CButton } from "../../../../components/common";
 import styled from "styled-components";
 import DocumentsFilter from "./DocumentsFilter";
 import DocumentsTable from "./DocumentsTable";
 import DocumentsPagination from "./DocumentsPagination";
+import DocumentDetailModal from "./DocumentDetailModal";
 import { DOCUMENT_TABS } from "./constants";
 
 const DocumentsContent = styled.div`
@@ -51,12 +52,16 @@ const TabButtons = styled.div`
   gap: 8px;
 `;
 
-const TabButton = styled(Button)`
+const TabButton = styled(CButton)`
   ${props => props.$active && `
     background: #1890ff;
     color: #fff;
     border-color: #1890ff;
   `}
+
+  span:first-child {
+    margin-right: 4px;
+  }
 `;
 
 function DocumentsTab({
@@ -69,6 +74,18 @@ function DocumentsTab({
   stats = { incoming: 5, outgoing: 12, pending: 2, approved: 0 },
 }) {
   const { current = 1, pageSize = 12, total = 0, onChange } = pagination;
+  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleDocumentClick = (document) => {
+    setSelectedDocument(document);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedDocument(null);
+  };
 
   return (
     <DocumentsContent>
@@ -99,23 +116,28 @@ function DocumentsTab({
               $active={activeSubTab === tab.key}
               onClick={() => onSubTabChange(tab.key)}
             >
-              {tab.icon && <span style={{ marginRight: 4 }}>{tab.icon}</span>}
+              {tab.icon && <span>{tab.icon}</span>}
               {tab.label}
             </TabButton>
           ))}
         </TabButtons>
-        <Button type="primary" icon={<EyeOutlined />}>
+        <CButton type="primary" icon={<EyeOutlined />}>
           Xem đầy đủ văn bản
-        </Button>
+        </CButton>
       </TabRow>
 
       <DocumentsFilter initialValues={initialValues} onSearch={onSearch} />
-      <DocumentsTable dataSource={dataSource} />
+      <DocumentsTable dataSource={dataSource} onDocumentClick={handleDocumentClick} />
       <DocumentsPagination
         current={current}
         pageSize={pageSize}
         total={total}
         onChange={onChange}
+      />
+      <DocumentDetailModal
+        visible={isModalVisible}
+        document={selectedDocument}
+        onClose={handleCloseModal}
       />
     </DocumentsContent>
   );

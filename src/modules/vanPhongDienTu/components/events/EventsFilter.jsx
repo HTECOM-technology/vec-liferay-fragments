@@ -1,11 +1,33 @@
 import React from "react";
-import { Form, Col, Checkbox, Space, Button } from "antd";
-import { PlusOutlined, EyeOutlined } from "@ant-design/icons";
+import { Form, Checkbox, Space } from "antd";
+import { PlusOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import { CInput, CSelect, CButton } from "../../../../components/common";
-import { FilterSection, FilterRow } from "../../style";
-import { EVENT_FILTER_OPTIONS, PARTICIPANT_FILTER_OPTIONS, MONTHS, YEARS } from "./constants";
+import {
+  HeaderSection,
+  EventsHeaderTitle,
+  EventsHeaderRow,
+  EventsCheckboxGroup,
+  EventsActionGroup,
+  EventsFilterRow,
+  EventsFilterCol,
+} from "../../style";
+import {
+  EVENT_FILTER_OPTIONS,
+  PARTICIPANT_FILTER_OPTIONS,
+  MONTHS,
+  YEARS,
+} from "./constants";
 
-function EventsFilter({ initialValues, onSearch, selectedMonth, selectedYear, onMonthChange, onYearChange }) {
+function EventsFilter({
+  contentTitle,
+  initialValues,
+  onSearch,
+  selectedMonth,
+  selectedYear,
+  onMonthChange,
+  onYearChange,
+  onAddEvent,
+}) {
   const [form] = Form.useForm();
 
   const onFinish = (values) => {
@@ -13,89 +35,85 @@ function EventsFilter({ initialValues, onSearch, selectedMonth, selectedYear, on
   };
 
   return (
-    <FilterSection>
-      <Form
-        form={form}
-        layout="inline"
-        onFinish={onFinish}
-        initialValues={initialValues}
-        style={{ display: "block" }}
-      >
-        <FilterRow style={{ marginBottom: 16 }}>
-          <Col>
-            <Space>
-              <Checkbox>Sự kiện tôi tham gia</Checkbox>
-              <Checkbox>Hiện sự kiện thuộc nhóm con</Checkbox>
+    <>
+      <HeaderSection>
+        <EventsHeaderTitle>{contentTitle}</EventsHeaderTitle>
+        <EventsHeaderRow>
+          <EventsCheckboxGroup>
+            <Space size={12}>
+              <Checkbox defaultChecked>Sự kiện tôi tham gia</Checkbox>
+              <Checkbox defaultChecked>Hiển sự kiện trước nhóm con</Checkbox>
             </Space>
-          </Col>
-          <Col style={{ marginLeft: "auto" }}>
-            <Space>
-              <CButton type="primary" icon={<PlusOutlined />}>
-                Thêm sự kiện
-              </CButton>
-              <CButton icon={<EyeOutlined />}>
-                Xem đầy đủ lịch
-              </CButton>
-            </Space>
-          </Col>
-        </FilterRow>
+          </EventsCheckboxGroup>
+          <EventsActionGroup>
+            <CButton
+              className="add-event-button"
+              icon={<PlusOutlined />}
+              onClick={onAddEvent}
+            >
+              Thêm sự kiện
+            </CButton>
+            <CButton type="primary" icon={<EyeOutlined />}>
+              Xem đầy đủ lịch
+            </CButton>
+          </EventsActionGroup>
+        </EventsHeaderRow>
+      </HeaderSection>
 
-        <FilterRow>
-          <Col>
-            <Form.Item style={{ marginBottom: 0, marginRight: 8 }}>
+      <Form form={form} onFinish={onFinish} initialValues={initialValues}>
+        <EventsFilterRow>
+          <EventsFilterCol>
+            <Form.Item>
               <CSelect
                 value={selectedMonth}
                 onChange={onMonthChange}
                 options={MONTHS}
-                style={{ width: 120 }}
+                style={{ width: 110 }}
               />
             </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item style={{ marginBottom: 0, marginRight: 12 }}>
+
+            <Form.Item>
               <CSelect
                 value={selectedYear}
                 onChange={onYearChange}
                 options={YEARS}
-                style={{ width: 100 }}
+                style={{ width: 90 }}
               />
             </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item name="search">
-              <CInput placeholder="Tìm kiếm" style={{ width: 200 }} />
+          </EventsFilterCol>
+
+          <EventsFilterCol>
+            <Form.Item name="search" style={{ flex: 1, minWidth: 200 }}>
+              <CInput placeholder="Tìm kiếm" prefix={<SearchOutlined />} />
             </Form.Item>
-          </Col>
-          <Col>
+
             <Form.Item name="lanhDao">
               <CSelect
                 placeholder="Tất cả lãnh đạo"
                 options={EVENT_FILTER_OPTIONS}
                 allowClear
-                style={{ width: 180 }}
+                style={{ width: 170 }}
               />
             </Form.Item>
-          </Col>
-          <Col>
+
             <Form.Item name="nguoiThamGia">
               <CSelect
                 placeholder="Tất cả người tham gia"
                 options={PARTICIPANT_FILTER_OPTIONS}
                 allowClear
-                style={{ width: 200 }}
+                style={{ width: 170 }}
               />
             </Form.Item>
-          </Col>
-          <Col>
+
             <Form.Item>
               <CButton type="primary" htmlType="submit">
                 Tìm kiếm
               </CButton>
             </Form.Item>
-          </Col>
-        </FilterRow>
+          </EventsFilterCol>
+        </EventsFilterRow>
       </Form>
-    </FilterSection>
+    </>
   );
 }
 

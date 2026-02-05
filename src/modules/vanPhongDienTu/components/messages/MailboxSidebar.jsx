@@ -11,7 +11,7 @@ function MailboxSidebar({ activeMailbox, onMailboxChange }) {
           $active={activeMailbox === item.key}
           onClick={() => onMailboxChange(item.key)}
         >
-          {item.label}
+          <span>{item.label}</span>
           {item.count !== null && <span className="count">({item.count})</span>}
         </MailboxItem>
       ))}

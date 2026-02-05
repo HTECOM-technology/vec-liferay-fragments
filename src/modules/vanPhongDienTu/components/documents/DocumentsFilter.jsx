@@ -1,7 +1,6 @@
 import React from "react";
-import { Form, Col } from "antd";
+import { Form, Space } from "antd";
 import { CInput, CSelect, CButton } from "../../../../components/common";
-import { FilterSection, FilterRow } from "../../style";
 import {
   UNIT_OPTIONS,
   DOCUMENT_TYPE_OPTIONS,
@@ -18,80 +17,65 @@ function DocumentsFilter({ initialValues, onSearch }) {
   };
 
   return (
-    <FilterSection>
+    <div style={{ padding: "12px 0", borderBottom: "1px solid #0090cf33" }}>
       <Form
         form={form}
         layout="inline"
         onFinish={onFinish}
         initialValues={initialValues}
-        style={{ display: "block" }}
       >
-        <FilterRow>
-          <Col>
-            <Form.Item name="search">
-              <CInput placeholder="Tìm kiếm" style={{ width: 200 }} />
-            </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item name="donVi">
-              <CSelect
-                placeholder="Chọn đơn vị"
-                options={UNIT_OPTIONS}
-                allowClear
-                style={{ width: 150 }}
-              />
-            </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item name="loaiVanBan">
-              <CSelect
-                placeholder="Loại văn bản"
-                options={DOCUMENT_TYPE_OPTIONS}
-                allowClear
-                style={{ width: 150 }}
-              />
-            </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item name="nhomSo">
-              <CSelect
-                placeholder="Nhóm số"
-                options={GROUP_NUMBER_OPTIONS}
-                allowClear
-                style={{ width: 140 }}
-              />
-            </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item name="donViBanHanh">
-              <CSelect
-                placeholder="Đơn vị ban hành"
-                options={ISSUING_UNIT_OPTIONS}
-                allowClear
-                style={{ width: 180 }}
-              />
-            </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item name="trangThai">
-              <CSelect
-                placeholder="Trạng thái"
-                options={DOCUMENT_STATUS_OPTIONS}
-                allowClear
-                style={{ width: 140 }}
-              />
-            </Form.Item>
-          </Col>
-          <Col>
-            <Form.Item>
-              <CButton type="primary" htmlType="submit">
-                Tìm kiếm
-              </CButton>
-            </Form.Item>
-          </Col>
-        </FilterRow>
+        <Space wrap size={9}>
+          <Form.Item name="search" style={{ marginBottom: 0 }}>
+            <CInput placeholder="Tìm kiếm" style={{ width: 200 }} />
+          </Form.Item>
+          <Form.Item name="donVi" style={{ marginBottom: 0 }}>
+            <CSelect
+              placeholder="Chọn đơn vị"
+              options={UNIT_OPTIONS}
+              allowClear
+              style={{ width: 150 }}
+            />
+          </Form.Item>
+          <Form.Item name="loaiVanBan" style={{ marginBottom: 0 }}>
+            <CSelect
+              placeholder="Loại văn bản"
+              options={DOCUMENT_TYPE_OPTIONS}
+              allowClear
+              style={{ width: 150 }}
+            />
+          </Form.Item>
+          <Form.Item name="nhomSo" style={{ marginBottom: 0 }}>
+            <CSelect
+              placeholder="Nhóm số"
+              options={GROUP_NUMBER_OPTIONS}
+              allowClear
+              style={{ width: 150 }}
+            />
+          </Form.Item>
+          <Form.Item name="donViBanHanh" style={{ marginBottom: 0 }}>
+            <CSelect
+              placeholder="Đơn vị ban hành"
+              options={ISSUING_UNIT_OPTIONS}
+              allowClear
+              style={{ width: 180 }}
+            />
+          </Form.Item>
+          <Form.Item name="trangThai" style={{ marginBottom: 0 }}>
+            <CSelect
+              placeholder="Trạng thái"
+              options={DOCUMENT_STATUS_OPTIONS}
+              allowClear
+              style={{ width: 150 }}
+            />
+          </Form.Item>
+          <Form.Item style={{ marginBottom: 0 }}>
+            <CButton type="primary" htmlType="submit">
+              Tìm kiếm
+            </CButton>
+          </Form.Item>
+        </Space>
       </Form>
-    </FilterSection>
+    </div>
   );
 }
 

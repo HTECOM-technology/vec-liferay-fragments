@@ -2,18 +2,27 @@ import React, { useState } from "react";
 import dayjs from "dayjs";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
-import { MessagesTab, mockMessagesData } from "./components/messages";
-import { EventsTab, mockEventsData } from "./components/events";
-import { TasksTab, mockTasksData } from "./components/tasks";
-import { WorkTab, mockWorkPrimaryData, mockWorkSupportData } from "./components/work";
-import { DocumentsTab, mockDocumentsData } from "./components/documents";
+import {
+  TabLabel,
+  MessagesTab,
+  mockMessagesData,
+  EventsTab,
+  mockEventsData,
+  TasksTab,
+  mockTasksData,
+  WorkTab,
+  mockWorkPrimaryData,
+  mockWorkSupportData,
+  DocumentsTab,
+  mockDocumentsData,
+} from "./components";
 
 const defaultDateFrom = dayjs("2025-12-01");
 const defaultDateTo = dayjs("2025-12-30");
 
 function VanPhongDienTuPage() {
   const [activeTab, setActiveTab] = useState("messages");
-  const [activeMailbox, setActiveMailbox] = useState("inbox-urgent");
+  const [activeMailbox, setActiveMailbox] = useState("inbox");
   const [activeEventsGroup, setActiveEventsGroup] = useState("ban-lanh-dao");
   const [activeTaskSubTab, setActiveTaskSubTab] = useState("all");
   const [activeWorkItem, setActiveWorkItem] = useState("all");
@@ -100,7 +109,7 @@ function VanPhongDienTuPage() {
         items={[
           {
             key: "messages",
-            label: "TIN NHẮN",
+            label: <TabLabel label="TIN NHẮN" count={activeMailbox === "inbox" ? 2 : 0} />,
             children: (
               <MessagesTab
                 activeMailbox={activeMailbox}
@@ -114,7 +123,7 @@ function VanPhongDienTuPage() {
           },
           {
             key: "events",
-            label: "LỊCH CƠ QUAN",
+            label: <TabLabel label="LỊCH CƠ QUAN" count={totalEvents} />,
             children: (
               <EventsTab
                 activeGroup={activeEventsGroup}
@@ -156,7 +165,7 @@ function VanPhongDienTuPage() {
           },
           {
             key: "tasks",
-            label: "NHIỆM VỤ",
+            label: <TabLabel label="NHIỆM VỤ" count={totalTasks} />,
             children: (
               <TasksTab
                 initialValues={filterInitialValues}
@@ -179,7 +188,7 @@ function VanPhongDienTuPage() {
           },
           {
             key: "documents",
-            label: "VĂN BẢN",
+            label: <TabLabel label="VĂN BẢN" count={totalDocuments} />,
             children: (
               <DocumentsTab
                 initialValues={filterInitialValues}

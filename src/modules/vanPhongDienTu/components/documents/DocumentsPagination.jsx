@@ -1,6 +1,5 @@
 import React from "react";
 import { CPagination } from "../../../../components/common";
-import { PaginationWrap } from "../../style";
 
 const defaultPageSizeOptions = ["10", "12", "20", "50"];
 const defaultLocale = { jump_to: "Tới trang", page: "Trang" };
@@ -27,9 +26,9 @@ function DocumentsPagination({
   };
 
   return (
-    <PaginationWrap>
+    <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <CPagination {...config} />
-    </PaginationWrap>
+    </div>
   );
 }
 
