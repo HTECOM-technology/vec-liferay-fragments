@@ -6,7 +6,7 @@ import {
     BirthdayHeaderRow,
     BirthdayTitle,
     BirthdayFilterSelect,
-} from "../style";
+} from "./styleNhanSu";
 
 const MONTH_OPTIONS = [
     { value: 1, label: "Tháng 1" },
@@ -123,8 +123,8 @@ BirthdayTable.defaultProps = {
     data: [],
     loading: false,
     selectedMonth: 1,
-    onMonthChange: () => {},
-    onEmployeeClick: () => {},
+    onMonthChange: () => { },
+    onEmployeeClick: () => { },
 };
 
 export default BirthdayTable;

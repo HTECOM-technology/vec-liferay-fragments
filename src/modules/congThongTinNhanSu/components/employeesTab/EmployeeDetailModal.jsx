@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import { Modal } from "antd";
 import { EyeOutlined, CloseOutlined } from "@ant-design/icons";
 import styled from "styled-components";
-import iconHeader from "../../../assets/icon-header.png";
-import avaProfileDefault from "../../../assets/ava-profile-default.png";
+import iconHeader from "../../../../assets/icon-header.png";
+import avaProfileDefault from "../../../../assets/ava-profile-default.png";
 
 const ModalHeader = styled.div`
     display: flex;
