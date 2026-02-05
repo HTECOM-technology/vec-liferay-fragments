@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
 import { KPITab, NhanSuTab, SalaryTab } from "./components";
+import DaoTaoPage from "../daoTao";
 
 function CongThongTinNhanSuPage() {
   const [activeTab, setActiveTab] = useState("nhanSu");
@@ -25,7 +26,7 @@ function CongThongTinNhanSuPage() {
           {
             key: "daoTao",
             label: "ĐÀO TẠO",
-            children: <div style={{ padding: 16 }}>Module Đào tạo đang phát triển</div>,
+            children: <DaoTaoPage />,
           },
           {
             key: "chamCong",
