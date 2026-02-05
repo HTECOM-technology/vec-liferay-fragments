@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
-import { EyeOutlined } from "@ant-design/icons";
 import { CTable, CTag } from "../../../components/common";
-import { TableWrap, ActionIconBtn } from "../style";
+import { TableWrap } from "../style";
 import { STATUS_MAP, mockDataReconciliation } from "./constants";
 
 function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }) {
@@ -14,8 +13,7 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
         dataIndex: "etag",
         key: "etag",
         width: 140,
-        render: (val) =>
-          val === "-" ? val : val.split("\n").map((l, i) => <div key={i}>{l}</div>),
+        render: (val) => (val === "-" ? val : val.split("\n").map((l, i) => <div key={i}>{l}</div>)),
       },
       { title: "BKSND", dataIndex: "bksnd", key: "bksnd", width: 90 },
       { title: "BKSDK", dataIndex: "bksdk", key: "bksdk", width: 90 },
@@ -31,8 +29,7 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
         dataIndex: "tgRa",
         key: "tgRa",
         width: 120,
-        render: (val) =>
-          val === "-" ? val : val.split(" ").map((l, i) => <div key={i}>{l}</div>),
+        render: (val) => (val === "-" ? val : val.split(" ").map((l, i) => <div key={i}>{l}</div>)),
       },
       { title: "Trạm ra", dataIndex: "tramRa", key: "tramRa", width: 90 },
       { title: "Làn ra", dataIndex: "lanRa", key: "lanRa", width: 70, align: "center" },
@@ -61,13 +58,15 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
         align: "center",
         fixed: "right",
         render: (_, record) => (
-          <ActionIconBtn
-            type="button"
-            onClick={() => (onView ? onView(record) : console.log("View", record))}
-            aria-label="Xem"
-          >
-            <EyeOutlined />
-          </ActionIconBtn>
+          <svg style={{ cursor: "pointer" }} onClick={() => (onView ? onView(record) : console.log("View", record))} width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8.12533 10.0002C8.12533 8.96463 8.96479 8.12516 10.0003 8.12516C11.0359 8.12516 11.8753 8.96463 11.8753 10.0002C11.8753 11.0357 11.0359 11.8752 10.0003 11.8752C8.96479 11.8752 8.12533 11.0357 8.12533 10.0002Z" fill="#0090CF" />
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M1.66699 10.0002C1.66699 11.3663 2.02113 11.8264 2.7294 12.7466C4.14363 14.5839 6.51542 16.6668 10.0003 16.6668C13.4852 16.6668 15.857 14.5839 17.2712 12.7466C17.9795 11.8264 18.3337 11.3663 18.3337 10.0002C18.3337 8.63402 17.9795 8.17393 17.2712 7.25377C15.857 5.41646 13.4852 3.3335 10.0003 3.3335C6.51542 3.3335 4.14363 5.41646 2.7294 7.25377C2.02113 8.17394 1.66699 8.63402 1.66699 10.0002ZM10.0003 6.87516C8.27444 6.87516 6.87533 8.27427 6.87533 10.0002C6.87533 11.7261 8.27444 13.1252 10.0003 13.1252C11.7262 13.1252 13.1253 11.7261 13.1253 10.0002C13.1253 8.27427 11.7262 6.87516 10.0003 6.87516Z"
+              fill="#0090CF"
+            />
+          </svg>
         ),
       },
     ],
@@ -76,13 +75,7 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
 
   return (
     <TableWrap>
-      <CTable
-        columns={columns}
-        dataSource={dataSource}
-        scroll={{ x: 1800, y: 480 }}
-        pagination={false}
-        size="small"
-      />
+      <CTable columns={columns} dataSource={dataSource} scroll={{ x: 1500, y: 470 }} pagination={false} size="small" />
     </TableWrap>
   );
 }
