@@ -3,7 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { Avatar, Badge, Button, Layout, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter } from "./style";
 import LeftMenu from "./components/LeftMenu";
-import { menuSections } from "../../../router/menuConfig";
+import { menuSections, menuItems } from "../../../router/menuConfig";
 import { CInput } from "../../common";
 import { SearchOutlined } from "@ant-design/icons";
 
@@ -15,8 +15,7 @@ function MainLayout() {
     token: { colorBgContainer },
   } = theme.useToken();
   const pathname = useLocation().pathname;
-  const listFlatMenu = menuSections.flatMap((section) => section.items);
-  const currentMenu = listFlatMenu.find((item) => item.key === pathname);
+  const currentMenu = menuItems.find((item) => item.key === pathname);
 
   return (
     <StyledLayout>
