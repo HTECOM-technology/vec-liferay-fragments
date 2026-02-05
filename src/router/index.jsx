@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { memo } from "react";
 import { MainLayout } from "../components/layout";
-import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage } from "../modules";
+import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage } from "../modules";
 import { paths } from "./menuConfig";
 
 function HomePlaceholder() {
@@ -34,7 +34,8 @@ function AppRouter() {
           <Route path={paths.giamSatGiaoThong} element={<PlaceholderPage title="Giám sát giao thông" />} />
           <Route path={paths.tinTucSuKien} element={<PlaceholderPage title="Tin tức - Sự kiện" />} />
           <Route path={paths.bieuMauTaiLieu} element={<PlaceholderPage title="Biểu mẫu tài liệu" />} />
-          <Route path={paths.soTayNhanVien} element={<PlaceholderPage title="Sổ tay nhân viên" />} />
+          <Route path={paths.soTayNhanVien} element={<SoTayNhanVienPage />} />
+          <Route path={paths.khaoSatBieuQuyet} element={<KhaoSatBieuQuyetPage />} />
         </Route>
         <Route path="*" element={<Navigate to={paths.trangChu} replace />} />
       </Routes>
