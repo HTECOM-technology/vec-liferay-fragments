@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com');
 @import url('antd/dist/reset.css');
-
 :root {
   --antd-font-family: 'Inter', sans-serif;
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Col, Select } from "antd";
-import { CSelect, CButton, CDatePicker } from "../../../components/common";
+import { CSelect, CButton, CDatePicker, CRangePicker } from "../../../components/common";
 import { FilterSection, FilterRow } from "../style";
 
 const { Option: SelectOption } = Select;
@@ -14,13 +14,7 @@ function ReportFilter({ initialValues, onSearch }) {
 
   return (
     <FilterSection>
-      <Form
-        form={form}
-        layout="inline"
-        onFinish={onFinish}
-        initialValues={initialValues}
-        style={{ display: "block" }}
-      >
+      <Form form={form} layout="inline" onFinish={onFinish} initialValues={initialValues} style={{ display: "block" }}>
         <FilterRow $last>
           <Col span={6}>
             <Form.Item name="tuyen">
@@ -37,13 +31,8 @@ function ReportFilter({ initialValues, onSearch }) {
             </Form.Item>
           </Col>
           <Col span={6}>
-            <Form.Item name="tu">
-              <CDatePicker placeholder="Từ" format="DD/MM/YYYY" style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col span={6}>
-            <Form.Item name="den">
-              <CDatePicker placeholder="Đến" format="DD/MM/YYYY" style={{ width: "100%" }} />
+            <Form.Item name="date">
+              <CRangePicker style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col span={3}>

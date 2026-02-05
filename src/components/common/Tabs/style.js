@@ -7,28 +7,29 @@ export const StyledTabs = styled(Tabs)`
 
   .ant-tabs-nav {
     margin-bottom: 16px;
-    border-bottom: 1px solid #0090CF33 !important;
+    border-bottom: 1px solid #0090cf33 !important;
     margin-left: -12px;
     margin-right: -12px;
     padding-left: 12px;
     padding-right: 12px;
-    
+
     &::before {
       display: none !important;
     }
 
     .ant-tabs-nav-wrap {
-       .ant-tabs-nav-list {
-          .ant-tabs-ink-bar {
-             bottom: -1px !important;
-          }
-       }
+      .ant-tabs-nav-list {
+        .ant-tabs-ink-bar {
+          bottom: -1px !important;
+        }
+      }
     }
   }
 
   .ant-tabs-tab {
     font-weight: 600;
     font-size: 14px;
+    padding-top: 0;
   }
 
   .ant-tabs-ink-bar {
