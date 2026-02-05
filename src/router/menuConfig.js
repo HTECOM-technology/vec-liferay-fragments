@@ -10,6 +10,7 @@ export const paths = {
   tinTucSuKien: "/web/intranet/tin-tuc-su-kien",
   bieuMauTaiLieu: "/web/intranet/bieu-mau-tai-lieu",
   soTayNhanVien: "/web/intranet/so-tay-nhan-vien",
+  khaoSatBieuQuyet: "/web/intranet/khao-sat-va-bieu-quyet-noi-bo",
 };
 
 /**
@@ -45,6 +46,7 @@ export const menuSections = [
       { key: paths.tinTucSuKien, label: "Tin tức - Sự kiện", icon: "calendar" },
       { key: paths.bieuMauTaiLieu, label: "Biểu mẫu tài liệu", icon: "books" },
       { key: paths.soTayNhanVien, label: "Sổ tay nhân viên", icon: "document" },
+      { key: paths.khaoSatBieuQuyet, label: "Khảo sát & Biểu quyết", icon: "survey" },
       { key: "logout", label: "Đăng xuất", icon: "logout" },
     ],
   },
