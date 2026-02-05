@@ -2,6 +2,7 @@
  * Cấu hình path và menu cho MainLayout
  */
 export const paths = {
+  dangNhap: "/web/intranet/login",
   trangChu: "/web/intranet/",
   vanPhongDienTu: "/web/intranet/van-phong-dien-tu",
   doiSoatThuPhi: "/web/intranet/doi-soat-thu-phi",
