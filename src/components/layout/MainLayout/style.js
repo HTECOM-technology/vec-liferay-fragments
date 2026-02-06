@@ -1,5 +1,6 @@
-import { Layout } from "antd";
+import { Button, Drawer, Layout } from "antd";
 import styled from "styled-components";
+const { Sider } = Layout;
 
 export const StyledLayout = styled(Layout)`
   min-height: 100vh;
@@ -7,9 +8,28 @@ export const StyledLayout = styled(Layout)`
 
 export const StyledHeader = styled(Layout.Header)`
   padding: 7px 24px 7px 14px !important;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  height: 70px;
+
+  @media (max-width: 768px) {
+    padding: 17px 20px !important;
+    .menu-toggle-btn {
+      display: none;
+    }
+
+    .search-input {
+      width: 210px !important;
+      max-width: 60%;
+      display: flex !important;
+    }
+  }
+
+  @media (max-width: 1270px) {
+    height: fit-content;
+
+    .ant-flex .search-input {
+      display: none;
+    }
+  }
 
 `;
 
@@ -56,6 +76,10 @@ export const StyledLeftMenu = styled.div`
     text-transform: uppercase;
     color: #0090cf;
   }
+
+  @media (max-width: 768px) {
+    padding: 26px 14px;
+  }
 `;
 
 export const StyledBgMenu = styled.img`
@@ -69,6 +93,8 @@ export const StyledBgMenu = styled.img`
 export const MenuWrap = styled.nav`
   padding: 7px;
   margin-top: 12px;
+  z-index: 1;
+  position: relative;
 `;
 
 export const SectionTitle = styled.div`
@@ -132,6 +158,9 @@ export const StyledTitle = styled.p`
 export const AccountWrap = styled.div`
   display: flex;
   align-items: center;
+  @media (max-width: 768px) {
+    display: none;
+  }
 `
 
 export const StyledFooter = styled(Layout.Footer)`
@@ -141,3 +170,73 @@ export const StyledFooter = styled(Layout.Footer)`
   line-height: 29px;
   color: #fff;
 `;
+
+export const StyledSider = styled(Sider)`
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+export const StyledHeaderMobile = styled.div`
+  display: none;
+  padding: 7px 20px;
+  background: linear-gradient(180deg, #E5F7FF 0%, #88CDEB 258.57%);
+  .menu-toggle-btn-mobile {
+    height: 28px;
+    width: 28px;
+    background: #0090CF26 !important;
+    border: none !important;
+
+  }
+
+  @media (max-width: 768px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+`;
+
+export const StyledDrawer = styled(Drawer)`
+.ant-drawer-header{
+  display: none;
+}
+.ant-drawer-body{
+  padding: 0;
+}
+.ant-drawer-content-wrapper{
+  width: 300px !important;
+}
+.ant-drawer-content{
+  background: linear-gradient(180deg, #E5F7FF 0%, #88CDEB 258.57%);
+}
+ 
+`;
+
+export const StyledBtnVEC = styled(Button)`
+  width: 184px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 6px;
+  background-color: #E31C2A !important; 
+  color: #FFFFFF !important;
+  position: absolute;
+  bottom: 102px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  border: none !important;
+
+`
+
+export const WrapSubHeader = styled.div`
+ display: none;
+ @media (max-width: 1270px) {
+   display: block;
+ }
+ @media (max-width: 768px) {
+  display: none;
+ }
+`

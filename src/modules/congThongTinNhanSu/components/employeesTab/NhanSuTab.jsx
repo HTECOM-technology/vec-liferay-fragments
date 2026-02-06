@@ -5,6 +5,7 @@ import BirthdayTable from "./BirthdayTable";
 import EmployeeDetailModal from "./EmployeeDetailModal";
 import { FilterTagsContainer, FilterTag } from "./styleNhanSu";
 import { mockNhanSuData } from "./nhanSuConstants";
+import soDoToChuc from '../../../../assets/nhanSu/soDoToChuc.png'
 
 const DEFAULT_PAGE_SIZE = 16;
 
@@ -182,29 +183,35 @@ function NhanSuTab() {
                     onMonthChange={handleMonthChange}
                     onEmployeeClick={handleEmployeeClick}
                 />
-            ) : (
-                <>
-                    <NhanSuFilter
-                        totalCount={dataSource.length}
-                        filters={filters}
-                        onFilterChange={handleFilterChange}
-                        onSearch={handleSearch}
-                    />
+            ) : activeTag === 'organization' ?
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <img src={soDoToChuc} alt=""></img>
 
-                    <NhanSuTable
-                        data={paginatedData}
-                        loading={loading}
-                        pagination={{
-                            current: currentPage,
-                            pageSize: pageSize,
-                            total: dataSource.length,
-                        }}
-                        onPaginationChange={handlePaginationChange}
-                        onPageSizeChange={handlePageSizeChange}
-                        onEmployeeClick={handleEmployeeClick}
-                    />
-                </>
-            )}
+                </div>
+                :
+                (
+                    <>
+                        <NhanSuFilter
+                            totalCount={dataSource.length}
+                            filters={filters}
+                            onFilterChange={handleFilterChange}
+                            onSearch={handleSearch}
+                        />
+
+                        <NhanSuTable
+                            data={paginatedData}
+                            loading={loading}
+                            pagination={{
+                                current: currentPage,
+                                pageSize: pageSize,
+                                total: dataSource.length,
+                            }}
+                            onPaginationChange={handlePaginationChange}
+                            onPageSizeChange={handlePageSizeChange}
+                            onEmployeeClick={handleEmployeeClick}
+                        />
+                    </>
+                )}
 
             <EmployeeDetailModal
                 visible={isModalVisible}
