@@ -1,19 +1,22 @@
 import React, { useMemo } from "react";
+import { Grid } from "antd";
 import { CTable } from "../../../../components/common";
 import { mockEventsData } from "./constants";
+import { TableContainer, TableText, CenterText, MultiLineText } from "../../style";
 import {
-  TableContainer,
   DateCell,
   SessionCell,
   EventContent,
   EventTitle,
   EventLink,
-  TableText,
-  CenterText,
-  MultiLineText,
-} from "../../style";
+} from "./styles";
+
+const { useBreakpoint } = Grid;
 
 function EventsTable({ dataSource = mockEventsData, onEventClick }) {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   // Tính toán rowSpan cho cột "Ngày"
   const calculateNgayRowSpans = useMemo(() => {
     const rowSpans = [];
@@ -78,45 +81,114 @@ function EventsTable({ dataSource = mockEventsData, onEventClick }) {
     return rowSpans;
   }, [dataSource]);
 
-  const columns = useMemo(
+  const mobileColumns = useMemo(
     () => [
       {
         title: "Ngày tháng",
-        children: [
-          {
-            dataIndex: "ngay",
-            key: "ngay",
-            width: 80,
-            align: "center",
-            onCell: (_, index) => ({
-              rowSpan: calculateNgayRowSpans[index] || 0,
-            }),
-            render: (text) => {
-              if (!text) return null;
-              return text
-                .split("\n")
-                .map((line, i) => <DateCell key={i}>{line}</DateCell>);
-            },
-          },
-          {
-            dataIndex: "buoi",
-            key: "buoi",
-            width: 60,
-            align: "center",
-            onCell: (_, index) => ({
-              rowSpan: calculateBuoiRowSpans[index] || 0,
-            }),
-            render: (text) => {
-              if (!text) return null;
-              return <SessionCell>{text}</SessionCell>;
-            },
-          },
-        ],
+        dataIndex: "ngay",
+        key: "ngay",
+        width: 80,
+        align: "center",
+        onHeaderCell: () => ({
+          colSpan: 2,
+        }),
+        onCell: (_, index) => ({
+          rowSpan: calculateNgayRowSpans[index] || 0,
+        }),
+        render: (text, record) => {
+          if (!text) return null;
+          return (
+            <div>
+              {text.split("\n").map((line, i) => (
+                <DateCell key={i}>{line}</DateCell>
+              ))}
+            </div>
+          );
+        },
+      },
+      {
+        title: "",
+        dataIndex: "buoi",
+        key: "buoi",
+        width: 60,
+        align: "center",
+        onHeaderCell: () => ({
+          colSpan: 0,
+        }),
+        onCell: (_, index) => ({
+          rowSpan: calculateBuoiRowSpans[index] || 0,
+        }),
+        render: (text) => {
+          if (!text) return null;
+          return <SessionCell>{text}</SessionCell>;
+        },
+      },
+      {
+        title: "Nội dung công việc",
+        key: "noiDungCongViec",
+        align: "left",
+        onHeaderCell: () => ({
+          style: { textAlign: "center" },
+        }),
+        render: (_, record) => (
+          <EventContent>
+            <EventTitle>
+              {record.noiDungCongViec} | {record.time}
+            </EventTitle>
+            <EventLink href="#">{record.detail}</EventLink>
+          </EventContent>
+        ),
+      },
+    ],
+    [calculateNgayRowSpans, calculateBuoiRowSpans],
+  );
+
+  const desktopColumns = useMemo(
+    () => [
+      {
+        title: "Ngày tháng",
+        dataIndex: "ngay",
+        key: "ngay",
+        width: 80,
+        align: "center",
+        onHeaderCell: () => ({
+          colSpan: 2,
+        }),
+        onCell: (_, index) => ({
+          rowSpan: calculateNgayRowSpans[index] || 0,
+        }),
+        render: (text) => {
+          if (!text) return null;
+          return text
+            .split("\n")
+            .map((line, i) => <DateCell key={i}>{line}</DateCell>);
+        },
+      },
+      {
+        title: "",
+        dataIndex: "buoi",
+        key: "buoi",
+        width: 60,
+        align: "center",
+        onHeaderCell: () => ({
+          colSpan: 0,
+        }),
+        onCell: (_, index) => ({
+          rowSpan: calculateBuoiRowSpans[index] || 0,
+        }),
+        render: (text) => {
+          if (!text) return null;
+          return <SessionCell>{text}</SessionCell>;
+        },
       },
       {
         title: "Nội dung công việc",
         key: "noiDungCongViec",
         width: 350,
+        align: "left",
+        onHeaderCell: () => ({
+          style: { textAlign: "center" },
+        }),
         render: (_, record) => (
           <EventContent>
             <EventTitle>
@@ -131,6 +203,7 @@ function EventsTable({ dataSource = mockEventsData, onEventClick }) {
         dataIndex: "chuanBi",
         key: "chuanBi",
         width: 150,
+        align: "center",
         render: (text) => <TableText>{text}</TableText>,
       },
       {
@@ -138,6 +211,7 @@ function EventsTable({ dataSource = mockEventsData, onEventClick }) {
         dataIndex: "thanhPhanThamGia",
         key: "thanhPhanThamGia",
         width: 200,
+        align: "center",
         render: (text) => <TableText>{text}</TableText>,
       },
       {
@@ -145,6 +219,7 @@ function EventsTable({ dataSource = mockEventsData, onEventClick }) {
         dataIndex: "diaDiem",
         key: "diaDiem",
         width: 220,
+        align: "center",
         render: (text) => <TableText>{text}</TableText>,
       },
       {
@@ -152,6 +227,7 @@ function EventsTable({ dataSource = mockEventsData, onEventClick }) {
         dataIndex: "chuTri",
         key: "chuTri",
         width: 200,
+        align: "center",
         render: (text) => {
           if (text === "-") return <CenterText>{text}</CenterText>;
           return (
@@ -167,14 +243,17 @@ function EventsTable({ dataSource = mockEventsData, onEventClick }) {
     [calculateNgayRowSpans, calculateBuoiRowSpans],
   );
 
+  const columns = isMobile ? mobileColumns : desktopColumns;
+
   return (
     <TableContainer>
       <CTable
         columns={columns}
         dataSource={dataSource}
-        scroll={{ x: 1400, y: "calc(100vh - 490px)" }}
+        scroll={isMobile ? { x: 'max-content' } : { x: 1400, y: "calc(100vh - 430px)" }}
         pagination={false}
         size="middle"
+        bordered
         onRow={(record) => ({
           onClick: () => onEventClick?.(record),
         })}

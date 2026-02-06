@@ -11,12 +11,14 @@ const StatsRow = styled.div`
 const StatCard = styled.div`
   flex: 1;
   min-width: 200px;
-  padding: 16px 20px;
+  height: 68px;
+  padding: 12px 20px;
   background: #ffffff;
-  border: 1px solid #e8e8e8;
+  border: 1px solid #0090cf33;
   border-radius: 8px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   transition: all 0.3s;
 
@@ -39,7 +41,7 @@ const StatCard = styled.div`
 
   .stat-label {
     font-size: 14px;
-    color: rgba(0, 0, 0, 0.65);
+    color: #000000;
     line-height: 1.4;
   }
 
@@ -47,6 +49,7 @@ const StatCard = styled.div`
     font-size: 32px;
     font-weight: 600;
     line-height: 1;
+    color: #000000;
   }
 `;
 
@@ -76,40 +79,40 @@ function WorkStatsCards({ primaryData, supportData, assignedData, followData }) 
   return (
     <StatsRow>
       <StatCard>
-        <div className="stat-icon" style={{ color: "#9254de" }}>📋</div>
         <div className="stat-content">
           <div className="stat-label">Tổng số công việc</div>
-          <div className="stat-value" style={{ color: "#9254de" }}>
+          <div className="stat-value">
             {String(stats.total).padStart(2, '0')}
           </div>
         </div>
+        <div className="stat-icon" style={{ color: "#9254de" }}>📋</div>
       </StatCard>
       <StatCard>
-        <div className="stat-icon" style={{ color: "#1890ff" }}>⚙️</div>
         <div className="stat-content">
           <div className="stat-label">Đang xử lý</div>
-          <div className="stat-value" style={{ color: "#1890ff" }}>
+          <div className="stat-value">
             {String(stats.processing).padStart(2, '0')}
           </div>
         </div>
+        <div className="stat-icon" style={{ color: "#1890ff" }}>⚙️</div>
       </StatCard>
       <StatCard>
-        <div className="stat-icon" style={{ color: "#52c41a" }}>✅</div>
         <div className="stat-content">
           <div className="stat-label">Đã hoàn thành</div>
-          <div className="stat-value" style={{ color: "#52c41a" }}>
+          <div className="stat-value">
             {String(stats.completed).padStart(2, '0')}
           </div>
         </div>
+        <div className="stat-icon" style={{ color: "#52c41a" }}>✅</div>
       </StatCard>
       <StatCard>
-        <div className="stat-icon" style={{ color: "#ff4d4f" }}>⚠️</div>
         <div className="stat-content">
           <div className="stat-label">Quá hạn</div>
-          <div className="stat-value" style={{ color: "#ff4d4f" }}>
+          <div className="stat-value">
             {String(stats.overdue).padStart(2, '0')}
           </div>
         </div>
+        <div className="stat-icon" style={{ color: "#ff4d4f" }}>⚠️</div>
       </StatCard>
     </StatsRow>
   );

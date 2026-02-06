@@ -1,9 +1,40 @@
 import styled from "styled-components";
-import { Form } from "antd";
-
-// === LAYOUT COMPONENTS === //
+import { Button } from "antd";
 export const PageWrap = styled.div`
   padding: 0;
+
+  @media (max-width: 767px) {
+    .ant-tabs-nav {
+      .ant-tabs-nav-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        .ant-tabs-nav-list {
+          flex-wrap: nowrap;
+          padding-right: 20px;
+
+          .ant-tabs-tab {
+            flex-shrink: 0;
+            white-space: nowrap;
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: fit-content;
+          }
+        }
+      }
+    }
+
+    .ant-tabs-content-holder {
+      overflow-x: hidden;
+    }
+  }
 `;
 
 export const ContentWrap = styled.div`
@@ -12,12 +43,24 @@ export const ContentWrap = styled.div`
   height: 100%;
   overflow: hidden;
   max-width: 100%;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+  }
 `;
 
 export const LeftSidebar = styled.div`
   width: 200px;
   flex-shrink: 0;
   padding: 12px;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    padding: 12px 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 export const MainContent = styled.div`
@@ -38,15 +81,39 @@ export const MainContent = styled.div`
     letter-spacing: 0px;
     vertical-align: middle;
   }
+
+  @media (max-width: 767px) {
+    padding: 0 12px 12px;
+
+    .content-title {
+      font-size: 14px;
+    }
+  }
 `;
 
-// === HEADER SECTION === //
 export const HeaderSection = styled.div`
   border-bottom: 1px solid #0090cf33;
   padding-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  @media (max-width: 1550px) {
+    flex-wrap: wrap;
+    gap: 12px;
+    
+    .content-title {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 767px) {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 0;
+    border: none;
+  }
 `;
 
 export const FilterSection = styled.div`
@@ -56,74 +123,97 @@ export const FilterSection = styled.div`
   }
 `;
 
+export const MobileFilterButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+
+  &:hover {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  &:focus {
+    background: transparent !important;
+    border: none !important;
+  }
+`;
+
 export const TableContainer = styled.div`
   margin-top: 16px;
-  
+
   .ant-table-tbody > tr {
     cursor: pointer;
   }
 
-  .ant-table-thead > tr:last-child > th {
-    display: none;
+  .ant-table-thead > tr > th {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-container {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-bordered > .ant-table-container {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-bordered
+    > .ant-table-container
+    > .ant-table-content
+    > table
+    > thead
+    > tr
+    > th,
+  .ant-table-bordered
+    > .ant-table-container
+    > .ant-table-content
+    > table
+    > tbody
+    > tr
+    > td {
+    border-color: #0090cf33 !important;
+  }
+
+  @media (max-width: 767px) {
+    margin-top: 0;
+
+    .ant-table {
+      font-size: 12px;
+    }
+
+    .ant-table-thead > tr > th {
+      padding: 8px 6px;
+      font-size: 12px;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    .ant-table-tbody > tr > td {
+      padding: 8px 6px;
+      font-size: 12px;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
   }
 `;
 
-export const EventsHeaderTitle = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
-  padding: 0;
-  margin: 0;
-`;
-
-export const EventsHeaderRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-`;
-
-export const EventsCheckboxGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-`;
-
-export const EventsActionGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  .add-event-button {
-    background: #E4F7FF;
-    color: #0090CF;
-    border: 1px solid #0090CF33;
-  }
-`;
-
-export const EventsFilterRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-  
-  .ant-form-item {
-    margin-bottom: 0;
-  }
-`;
-
-export const EventsFilterCol = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`
-
-// === SIDEBAR COMPONENTS === //
-export const MailboxItem = styled.div`
+export const SidebarItem = styled.div`
   width: 180px;
   height: 40px;
   padding: 0 12px;
@@ -148,80 +238,20 @@ export const MailboxItem = styled.div`
     color: ${(props) => (props.$active ? "#0090cf" : "rgba(0, 0, 0, 0.45)")};
     font-size: 14px;
   }
-`;
 
-export const SidebarItem = styled(MailboxItem)``;
+  @media (max-width: 767px) {
+    width: calc(50% - 4px);
+    flex: 0 0 calc(50% - 4px);
+    height: 36px;
+    padding: 0 12px;
+    margin-bottom: 0;
+    font-size: 13px;
+    justify-content: space-between;
 
-// === CALENDAR SIDEBAR === //
-export const CalendarSidebarWrap = styled.div`
-  .month-picker {
-    margin-bottom: 16px;
-  }
-
-  .year-select {
-    width: 100%;
-    margin-bottom: 16px;
-  }
-`;
-
-export const CalendarGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-`;
-
-export const MonthButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  border: 1px solid ${(props) => (props.$active ? "#0090cf" : "#d9d9d9")};
-  background: ${(props) => (props.$active ? "#d9f2ff" : "#fff")};
-  color: ${(props) => (props.$active ? "#0090cf" : "rgba(0, 0, 0, 0.85)")};
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
-
-  &:hover {
-    background: ${(props) => (props.$active ? "#d9f2ff" : "#f5f5f5")};
-    border-color: #0090cf;
-  }
-`;
-
-// === Message  === //
-export const MessageContentHeader = styled.div`
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-`;
-
-// === Events Table === //
-export const DateCell = styled.div`
-  line-height: 1.5;
-  font-weight: 500;
-`;
-
-export const SessionCell = styled.div`
-  font-weight: 500;
-`;
-
-export const EventContent = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
-
-export const EventTitle = styled.div`
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.85);
-`;
-
-export const EventLink = styled.a`
-  color: #1890ff;
-  font-size: 13px;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
+    .count {
+      font-size: 13px;
+      margin-left: 4px;
+    }
   }
 `;
 
@@ -239,56 +269,8 @@ export const MultiLineText = styled.div`
   line-height: 1.5;
 `;
 
-// === WORK TAB COMPONENTS === //
-export const WorkHeaderRow = styled.div`
+export const MobileMenuWrap = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
   flex-wrap: wrap;
-  gap: 12px;
-`;
-
-export const WorkSectionTitle = styled.h2`
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.85);
-  margin: 0;
-`;
-
-export const WorkFilterWrap = styled.div`
-  padding: 16px 0;
-  border-bottom: 1px solid #0090cf33;
-  margin-bottom: 16px;
-`;
-
-export const WorkFilterForm = styled(Form)`
-  .ant-form-item {
-    margin-bottom: 0;
-    margin-right: 8px;
-  }
-
-  .ant-input,
-  .ant-select {
-    min-width: 140px;
-  }
-`;
-
-export const WorkTableSection = styled.div`
-  margin-bottom: 24px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  .ant-table-wrapper {
-    margin-top: 12px;
-  }
-
-  ${WorkSectionTitle} {
-    font-size: 14px;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.85);
-    margin-bottom: 8px;
-  }
+  gap: 8px;
 `;

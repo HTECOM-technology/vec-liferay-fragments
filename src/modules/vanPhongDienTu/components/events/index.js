@@ -6,3 +6,4 @@ export { default as EventsPagination } from "./EventsPagination";
 export { default as EventDetailModal } from "./EventDetailModal";
 export { default as AddEventModal } from "./AddEventModal";
 export * from "./constants";
+export * from "./styles";

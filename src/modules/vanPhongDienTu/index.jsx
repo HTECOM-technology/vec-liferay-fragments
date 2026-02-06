@@ -16,6 +16,7 @@ import {
   DocumentsTab,
   mockDocumentsData,
 } from "./components";
+import { MAILBOX_ITEMS } from "./components/messages/constants";
 
 const defaultDateFrom = dayjs("2025-12-01");
 const defaultDateTo = dayjs("2025-12-30");
@@ -31,10 +32,6 @@ function VanPhongDienTuPage() {
   const [selectedYear, setSelectedYear] = useState(2026);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(16);
-  const totalMessages = 5709;
-  const totalEvents = 432;
-  const totalTasks = 28;
-  const totalDocuments = 266;
 
   const filterInitialValues = {
     dateFrom: defaultDateFrom,
@@ -42,7 +39,6 @@ function VanPhongDienTuPage() {
   };
 
   const handleSearchMessages = (values) => {
-    console.log("Tìm kiếm tin nhắn - filter:", values);
     setPage(1);
   };
 
@@ -52,7 +48,6 @@ function VanPhongDienTuPage() {
   };
 
   const handleSearchEvents = (values) => {
-    console.log("Tìm kiếm lịch - filter:", values);
     setPage(1);
   };
 
@@ -72,12 +67,10 @@ function VanPhongDienTuPage() {
   };
 
   const handleSearchTasks = (values) => {
-    console.log("Tìm kiếm nhiệm vụ - filter:", values);
     setPage(1);
   };
 
   const handleSearchWork = (values) => {
-    console.log("Tìm kiếm công việc - filter:", values);
     setPage(1);
   };
 
@@ -87,19 +80,10 @@ function VanPhongDienTuPage() {
   };
 
   const handleSearchDocuments = (values) => {
-    console.log("Tìm kiếm văn bản - filter:", values);
     setPage(1);
   };
 
-  const paginationConfig = {
-    current: page,
-    pageSize,
-    total: totalMessages,
-    onChange: (p, size) => {
-      setPage(p);
-      setPageSize(size || 16);
-    },
-  };
+  const messageCount = MAILBOX_ITEMS.find(item => item.key === activeMailbox)?.count || 0;
 
   return (
     <PageWrap>
@@ -109,7 +93,7 @@ function VanPhongDienTuPage() {
         items={[
           {
             key: "messages",
-            label: <TabLabel label="TIN NHẮN" count={activeMailbox === "inbox" ? 2 : 0} />,
+            label: <TabLabel label="TIN NHẮN" count={messageCount} />,
             children: (
               <MessagesTab
                 activeMailbox={activeMailbox}
@@ -117,13 +101,18 @@ function VanPhongDienTuPage() {
                 initialValues={filterInitialValues}
                 onSearch={handleSearchMessages}
                 dataSource={mockMessagesData}
-                pagination={paginationConfig}
+                pagination={{
+                  current: page,
+                  pageSize: pageSize,
+                  total: 500,
+                  onChange: (p) => setPage(p)
+                }}
               />
             ),
           },
           {
             key: "events",
-            label: <TabLabel label="LỊCH CƠ QUAN" count={totalEvents} />,
+            label: <TabLabel label="LỊCH CƠ QUAN" />,
             children: (
               <EventsTab
                 activeGroup={activeEventsGroup}
@@ -131,15 +120,6 @@ function VanPhongDienTuPage() {
                 initialValues={filterInitialValues}
                 onSearch={handleSearchEvents}
                 dataSource={mockEventsData}
-                pagination={{
-                  current: page,
-                  pageSize,
-                  total: totalEvents,
-                  onChange: (p, size) => {
-                    setPage(p);
-                    setPageSize(size || 16);
-                  },
-                }}
                 selectedMonth={selectedMonth}
                 selectedYear={selectedYear}
                 onMonthChange={handleMonthChange}
@@ -165,7 +145,7 @@ function VanPhongDienTuPage() {
           },
           {
             key: "tasks",
-            label: <TabLabel label="NHIỆM VỤ" count={totalTasks} />,
+            label: <TabLabel label="NHIỆM VỤ" />,
             children: (
               <TasksTab
                 initialValues={filterInitialValues}
@@ -174,7 +154,7 @@ function VanPhongDienTuPage() {
                 pagination={{
                   current: page,
                   pageSize: 12,
-                  total: totalTasks,
+                  total: 550,
                   onChange: (p, size) => {
                     setPage(p);
                     setPageSize(size || 12);
@@ -188,7 +168,7 @@ function VanPhongDienTuPage() {
           },
           {
             key: "documents",
-            label: <TabLabel label="VĂN BẢN" count={totalDocuments} />,
+            label: <TabLabel label="VĂN BẢN"/>,
             children: (
               <DocumentsTab
                 initialValues={filterInitialValues}
@@ -196,8 +176,8 @@ function VanPhongDienTuPage() {
                 dataSource={mockDocumentsData}
                 pagination={{
                   current: page,
-                  pageSize: 12,
-                  total: totalDocuments,
+                  pageSize: pageSize,
+                  total: 500,
                   onChange: (p, size) => {
                     setPage(p);
                     setPageSize(size || 12);

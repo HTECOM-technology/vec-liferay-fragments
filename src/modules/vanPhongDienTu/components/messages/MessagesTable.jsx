@@ -7,12 +7,16 @@ import {
   PaperClipOutlined,
   MailOutlined,
 } from "@ant-design/icons";
-import { Space, Tag } from "antd";
+import { Space, Tag, Grid } from "antd";
 import { CTable } from "../../../../components/common";
 import { TableContainer } from "../../style";
 import { mockMessagesData } from "./constants";
 
+const { useBreakpoint } = Grid;
+
 function MessagesTable({ dataSource = mockMessagesData, onMessageClick }) {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const renderAttachment = (attachment) => {
     if (!attachment) return "-";
 
@@ -60,7 +64,43 @@ function MessagesTable({ dataSource = mockMessagesData, onMessageClick }) {
     );
   };
 
-  const columns = useMemo(
+  const mobileColumns = useMemo(
+    () => [
+      {
+        title: "Tiêu đề",
+        dataIndex: "tieuDe",
+        key: "tieuDe",
+        align: "left",
+        render: (text, record) => (
+          <button
+            onClick={() => onMessageClick && onMessageClick(record)}
+            style={{ 
+              color: "#1890ff", 
+              cursor: "pointer",
+              background: "none",
+              border: "none",
+              padding: 0,
+              font: "inherit",
+              textDecoration: "none",
+              textAlign: "left"
+            }}
+            type="button"
+          >
+            {text}
+          </button>
+        ),
+      },
+      {
+        title: "Ngày",
+        dataIndex: "ngay",
+        key: "ngay",
+        align: "center",
+      },
+    ],
+    [onMessageClick]
+  );
+
+  const desktopColumns = useMemo(
     () => [
       {
         title: "Người gửi",
@@ -82,19 +122,21 @@ function MessagesTable({ dataSource = mockMessagesData, onMessageClick }) {
         minWidth: 400,
         align: "center",
         render: (text, record) => (
-          <a
+          <button
             onClick={() => onMessageClick && onMessageClick(record)}
-            style={{ color: "#1890ff", cursor: "pointer" }}
-            role="button"
-            tabIndex={0}
-            onKeyPress={(e) => {
-              if (e.key === "Enter" && onMessageClick) {
-                onMessageClick(record);
-              }
+            style={{ 
+              color: "#1890ff", 
+              cursor: "pointer",
+              background: "none",
+              border: "none",
+              padding: 0,
+              font: "inherit",
+              textDecoration: "none"
             }}
+            type="button"
           >
             {text}
-          </a>
+          </button>
         ),
       },
       {
@@ -116,12 +158,14 @@ function MessagesTable({ dataSource = mockMessagesData, onMessageClick }) {
     [onMessageClick]
   );
 
+  const columns = isMobile ? mobileColumns : desktopColumns;
+
   return (
     <TableContainer>
       <CTable
         columns={columns}
         dataSource={dataSource}
-        scroll={{ x: 1200, y: 'calc(100vh - 440px)' }}
+        scroll={isMobile ? undefined : { x: 1200, y: 'calc(100vh - 440px)' }}
         pagination={false}
         size="small"
       />

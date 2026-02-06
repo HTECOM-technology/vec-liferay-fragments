@@ -5,3 +5,4 @@ export { default as MessagesTable } from "./MessagesTable";
 export { default as MessagesPagination } from "./MessagesPagination";
 export { default as MessageDetailModal } from "./MessageDetailModal";
 export * from "./constants";
+export * from "./styles";

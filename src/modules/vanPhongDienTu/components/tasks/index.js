@@ -4,3 +4,4 @@ export { default as TasksTable } from "./TasksTable";
 export { default as TasksPagination } from "./TasksPagination";
 export { default as TaskDetailModal } from "./TaskDetailModal";
 export * from "./constants";
+export * from "./styles";

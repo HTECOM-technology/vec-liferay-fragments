@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { EyeOutlined } from "@ant-design/icons";
-import { ContentWrap, LeftSidebar, MainContent } from "../../style";
-import { CButton } from "../../../../components/common";
+import { Grid } from "antd";
+import { ContentWrap, LeftSidebar, MainContent, MobileMenuWrap } from "../../style";
 import WorkSidebar from "./WorkSidebar";
 import WorkFilter from "./WorkFilter";
 import WorkTables from "./WorkTables";
 import WorkDetailModal from "./WorkDetailModal";
 import WorkStatsCards from "./WorkStatsCards";
-import { WorkHeaderRow, WorkSectionTitle } from "../../style";
+import { WorkHeaderRow, WorkSectionTitle } from "./styles";
+
+const { useBreakpoint } = Grid;
 
 function WorkTab({
   activeItem,
@@ -21,6 +22,8 @@ function WorkTab({
 }) {
   const [selectedWork, setSelectedWork] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const screens = useBreakpoint();
+  const isMobile = !screens.lg;
 
   const handleWorkClick = (work) => {
     setSelectedWork(work);
@@ -32,15 +35,13 @@ function WorkTab({
     setSelectedWork(null);
   };
 
-  const handleViewAll = () => {
-    console.log("Xem đầy đủ công việc");
-  };
-
   return (
     <ContentWrap>
-      <LeftSidebar>
-        <WorkSidebar activeItem={activeItem} onItemChange={onItemChange} />
-      </LeftSidebar>
+      {!isMobile && (
+        <LeftSidebar>
+          <WorkSidebar activeItem={activeItem} onItemChange={onItemChange} />
+        </LeftSidebar>
+      )}
       <MainContent>
         <WorkStatsCards
           primaryData={primaryData}
@@ -49,14 +50,20 @@ function WorkTab({
           followData={followData}
         />
 
+        {isMobile && (
+          <MobileMenuWrap style={{ marginBottom: 12 }}>
+            <WorkSidebar activeItem={activeItem} onItemChange={onItemChange} />
+          </MobileMenuWrap>
+        )}
+
         <WorkHeaderRow>
           <WorkSectionTitle>Tất cả công việc của tôi</WorkSectionTitle>
-          <CButton type="primary" icon={<EyeOutlined />} onClick={handleViewAll}>
-            Xem đầy đủ công việc
-          </CButton>
+          {isMobile && (
+            <WorkFilter initialValues={initialValues} onSearch={onSearch} isIconOnly />
+          )}
         </WorkHeaderRow>
 
-        <WorkFilter initialValues={initialValues} onSearch={onSearch} />
+        {!isMobile && <WorkFilter initialValues={initialValues} onSearch={onSearch} />}
         <WorkTables
           primaryData={primaryData}
           supportData={supportData}

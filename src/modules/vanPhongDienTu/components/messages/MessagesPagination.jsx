@@ -4,7 +4,7 @@ import { CTablePagination } from "../../../../components/common";
 function MessagesPagination({
   current = 1,
   pageSize = 16,
-  total = 5709,
+  total = 0,
   onChange,
 }) {
   return (

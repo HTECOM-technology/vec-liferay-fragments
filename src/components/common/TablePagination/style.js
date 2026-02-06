@@ -6,4 +6,9 @@ export const PaginationWrap = styled.div`
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+  
+  @media (max-width: 767px) {
+    gap: 12px;
+    justify-content: center;
+  }
 `;

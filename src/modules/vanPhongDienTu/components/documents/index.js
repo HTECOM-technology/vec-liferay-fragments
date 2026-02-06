@@ -4,3 +4,4 @@ export { default as DocumentsTable } from "./DocumentsTable";
 export { default as DocumentsPagination } from "./DocumentsPagination";
 export { default as DocumentDetailModal } from "./DocumentDetailModal";
 export * from "./constants";
+export * from "./styles";

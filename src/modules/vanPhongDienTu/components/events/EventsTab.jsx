@@ -3,7 +3,6 @@ import { ContentWrap, LeftSidebar, MainContent } from "../../style";
 import CalendarSidebar from "./CalendarSidebar";
 import EventsFilter from "./EventsFilter";
 import EventsTable from "./EventsTable";
-import EventsPagination from "./EventsPagination";
 import EventDetailModal from "./EventDetailModal";
 import AddEventModal from "./AddEventModal";
 import { CALENDAR_GROUPS } from "./constants";
@@ -14,13 +13,11 @@ function EventsTab({
   initialValues,
   onSearch,
   dataSource,
-  pagination = {},
   selectedMonth,
   selectedYear,
   onMonthChange,
   onYearChange,
 }) {
-  const { current = 1, pageSize = 16, total = 0, onChange } = pagination;
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
@@ -69,12 +66,6 @@ function EventsTab({
           onAddEvent={handleAddEvent}
         />
         <EventsTable dataSource={dataSource} onEventClick={handleEventClick} />
-        <EventsPagination
-          current={current}
-          pageSize={pageSize}
-          total={total}
-          onChange={onChange}
-        />
       </MainContent>
       <EventDetailModal
         visible={isDetailModalVisible}

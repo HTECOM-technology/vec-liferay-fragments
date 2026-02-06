@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import { UserOutlined } from "@ant-design/icons";
-import { Space } from "antd";
+import { Space, Grid } from "antd";
 import styled from "styled-components";
 import { CTable, CTag } from "../../../../components/common";
-import { WorkTableSection, WorkSectionTitle } from "../../style";
+import { WorkTableSection, WorkSectionTitle } from "./styles";
 import { WORK_STATUS_MAP } from "./constants";
 
 const LinkButton = styled.button`
@@ -15,133 +15,140 @@ const LinkButton = styled.button`
   text-decoration: none;
   font-family: inherit;
   font-size: inherit;
+  text-align: left;
+  display: inline-block;
 
   &:hover {
     text-decoration: underline;
   }
 `;
 
+const { useBreakpoint } = Grid;
+
 function WorkTables({ primaryData, supportData, assignedData, followData, onWorkClick }) {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   const primaryColumns = useMemo(
     () => [
-      {
-        title: "STT",
-        dataIndex: "stt",
-        key: "stt",
-        width: 60,
-        align: "center",
-      },
-      {
-        title: "Người giao việc",
-        dataIndex: "nguoiGiaoViec",
-        key: "nguoiGiaoViec",
-        width: 150,
-        render: (text) => (
-          <Space size={6}>
-            <UserOutlined />
-            <span>{text}</span>
-          </Space>
-        ),
-      },
+      ...(isMobile
+        ? []
+        : [
+            {
+              title: "STT",
+              dataIndex: "stt",
+              key: "stt",
+              width: 60,
+              align: "center",
+            },
+            {
+              title: "Người giao việc",
+              dataIndex: "nguoiGiaoViec",
+              key: "nguoiGiaoViec",
+              width: 150,
+              render: (text) => (
+                <Space size={6}>
+                  <UserOutlined />
+                  <span>{text}</span>
+                </Space>
+              ),
+            },
+          ]),
       {
         title: "Công việc",
         dataIndex: "congViec",
         key: "congViec",
-        render: (text, record) => (
-          <LinkButton
-            type="button"
-            onClick={() => onWorkClick?.(record)}
-          >
-            {text}
-          </LinkButton>
-        ),
-      },
-      {
-        title: "Trạng thái",
-        dataIndex: "trangThai",
-        key: "trangThai",
-        width: 140,
-        align: "center",
-        render: (status) => {
-          const statusConfig = WORK_STATUS_MAP[status];
-          return statusConfig ? (
-            <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
-          ) : null;
+        align: "left",
+        render: (text, record) => {
+          const statusConfig = WORK_STATUS_MAP[record.trangThai];
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}>
+              <LinkButton
+                type="button"
+                onClick={() => onWorkClick?.(record)}
+              >
+                {text}
+              </LinkButton>
+              {statusConfig && (
+                <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
+              )}
+            </div>
+          );
         },
       },
       {
         title: "Ngày bắt đầu - Hạn HT",
         dataIndex: "ngayBatDau",
         key: "ngayBatDau",
-        width: 200,
+        width: isMobile ? 130 : 200,
         align: "center",
       },
     ],
-    [onWorkClick]
+    [isMobile, onWorkClick]
   );
 
   const supportColumns = useMemo(
     () => [
-      {
-        title: "STT",
-        dataIndex: "stt",
-        key: "stt",
-        width: 60,
-        align: "center",
-      },
-      {
-        title: "Người xử lý chính",
-        dataIndex: "nguoiXuLyChinh",
-        key: "nguoiXuLyChinh",
-        width: 150,
-        render: (text) => (
-          <Space size={6}>
-            <UserOutlined />
-            <span>{text}</span>
-          </Space>
-        ),
-      },
+      ...(isMobile
+        ? []
+        : [
+            {
+              title: "STT",
+              dataIndex: "stt",
+              key: "stt",
+              width: 60,
+              align: "center",
+            },
+            {
+              title: "Người xử lý chính",
+              dataIndex: "nguoiXuLyChinh",
+              key: "nguoiXuLyChinh",
+              width: 150,
+              render: (text) => (
+                <Space size={6}>
+                  <UserOutlined />
+                  <span>{text}</span>
+                </Space>
+              ),
+            },
+          ]),
       {
         title: "Công việc",
         dataIndex: "congViec",
         key: "congViec",
-        render: (text, record) => (
-          <LinkButton
-            type="button"
-            onClick={() => onWorkClick?.(record)}
-          >
-            {text}
-          </LinkButton>
-        ),
-      },
-      {
-        title: "Trạng thái",
-        dataIndex: "trangThai",
-        key: "trangThai",
-        width: 140,
-        align: "center",
-        render: (status) => {
-          const statusConfig = WORK_STATUS_MAP[status];
-          return statusConfig ? (
-            <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
-          ) : null;
+        align: "left",
+        render: (text, record) => {
+          const statusConfig = WORK_STATUS_MAP[record.trangThai];
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}>
+              <LinkButton
+                type="button"
+                onClick={() => onWorkClick?.(record)}
+              >
+                {text}
+              </LinkButton>
+              {statusConfig && (
+                <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
+              )}
+            </div>
+          );
         },
       },
       {
         title: "Ngày bắt đầu - Hạn HT",
         dataIndex: "ngayBatDau",
         key: "ngayBatDau",
-        width: 200,
+        width: isMobile ? 130 : 200,
         align: "center",
       },
     ],
-    [onWorkClick]
+    [isMobile, onWorkClick]
   );
 
   return (
     <>
       {primaryData && primaryData.length > 0 && (
-        <WorkTableSection>
+        <WorkTableSection className="work-table-section">
           <WorkSectionTitle>Công việc tôi xử lý chính ({primaryData.length})</WorkSectionTitle>
           <CTable
             columns={primaryColumns}
@@ -152,7 +159,7 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
       )}
 
       {supportData && supportData.length > 0 && (
-        <WorkTableSection>
+        <WorkTableSection className="work-table-section">
           <WorkSectionTitle>Công việc tôi phối hợp thực hiện ({supportData.length})</WorkSectionTitle>
           <CTable
             columns={supportColumns}
@@ -163,7 +170,7 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
       )}
 
       {(!assignedData || assignedData.length === 0) && (
-        <WorkTableSection>
+        <WorkTableSection className="work-table-section">
           <WorkSectionTitle>Công việc tôi giao và quản lý (0)</WorkSectionTitle>
           <CTable
             columns={primaryColumns}
@@ -174,7 +181,7 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
       )}
 
       {(!followData || followData.length === 0) && (
-        <WorkTableSection>
+        <WorkTableSection className="work-table-section">
           <WorkSectionTitle>Công việc tôi theo dõi (0)</WorkSectionTitle>
           <CTable
             columns={primaryColumns}

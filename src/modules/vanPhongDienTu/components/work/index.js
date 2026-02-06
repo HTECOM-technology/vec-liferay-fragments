@@ -5,3 +5,4 @@ export { default as WorkTables } from "./WorkTables";
 export { default as WorkStatsCards } from "./WorkStatsCards";
 export { default as WorkDetailModal } from "./WorkDetailModal";
 export * from "./constants";
+export * from "./styles";

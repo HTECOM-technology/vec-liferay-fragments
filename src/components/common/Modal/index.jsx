@@ -2,9 +2,13 @@ import React from "react";
 import { CloseOutlined } from "@ant-design/icons";
 import { StyledModal } from "./style";
 
-export const CModal = React.memo(({ id, children, onBlur, ...rest }) => {
+export const CModal = React.memo(({ id, children, onBlur, closable = true, closeIcon, ...rest }) => {
   return (
-    <StyledModal {...rest} closable closeIcon={rest.closeIcon || <CloseOutlined style={{ color: "#1E1E1E !important" }} />}>
+    <StyledModal 
+      {...rest} 
+      closable={closable} 
+      closeIcon={closable ? (closeIcon || <CloseOutlined style={{ color: "#1E1E1E !important" }} />) : null}
+    >
       {children}
     </StyledModal>
   );

@@ -15,7 +15,6 @@ export { default as EventsTab } from "./events/EventsTab";
 export { default as CalendarSidebar } from "./events/CalendarSidebar";
 export { default as EventsFilter } from "./events/EventsFilter";
 export { default as EventsTable } from "./events/EventsTable";
-export { default as EventsPagination } from "./events/EventsPagination";
 export { default as EventDetailModal } from "./events/EventDetailModal";
 export { default as AddEventModal } from "./events/AddEventModal";
 export * from "./events/constants";
