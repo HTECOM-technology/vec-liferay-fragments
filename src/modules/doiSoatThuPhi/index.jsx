@@ -2,12 +2,7 @@ import React, { useState } from "react";
 import dayjs from "dayjs";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
-import {
-  DataReconciliationTab,
-  ReportTab,
-  mockDataReconciliation,
-  mockDataReport,
-} from "./components";
+import { DataReconciliationTab, ReportTab, DataDetailModal, mockDataReconciliation, mockDataReport } from "./components";
 
 const defaultDateFrom = dayjs("2025-12-01");
 const defaultDateTo = dayjs("2025-12-30");
@@ -17,6 +12,8 @@ function DoiSoatThuPhiPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const totalData = 5709;
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
   const filterInitialValues = {
     tu: defaultDateFrom,
@@ -31,6 +28,16 @@ function DoiSoatThuPhiPage() {
   const handleSearchReport = (values) => {
     console.log("Báo cáo đối soát - filter:", values);
     setPage(1);
+  };
+
+  const handleView = (record) => {
+    setSelectedRecord(record);
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setSelectedRecord(null);
   };
 
   const paginationConfig = {
@@ -52,30 +59,16 @@ function DoiSoatThuPhiPage() {
           {
             key: "data",
             label: "ĐỐI SOÁT DỮ LIỆU",
-            children: (
-              <DataReconciliationTab
-                initialValues={filterInitialValues}
-                onSearch={handleSearchData}
-                dataSource={mockDataReconciliation}
-                onView={(record) => console.log("View", record)}
-                pagination={paginationConfig}
-              />
-            ),
+            children: <DataReconciliationTab initialValues={filterInitialValues} onSearch={handleSearchData} dataSource={mockDataReconciliation} onView={handleView} pagination={paginationConfig} />,
           },
           {
             key: "report",
             label: "BÁO CÁO ĐỐI SOÁT",
-            children: (
-              <ReportTab
-                initialValues={filterInitialValues}
-                onSearch={handleSearchReport}
-                dataSource={mockDataReport}
-                pagination={paginationConfig}
-              />
-            ),
+            children: <ReportTab initialValues={filterInitialValues} onSearch={handleSearchReport} dataSource={mockDataReport} pagination={paginationConfig} />,
           },
         ]}
       />
+      <DataDetailModal visible={isModalVisible} record={selectedRecord} onClose={handleCloseModal} />
     </PageWrap>
   );
 }

@@ -10,6 +10,8 @@ export const paths = {
   tinTucSuKien: "/web/intranet/tin-tuc-su-kien",
   bieuMauTaiLieu: "/web/intranet/bieu-mau-tai-lieu",
   soTayNhanVien: "/web/intranet/so-tay-nhan-vien",
+  khaoSatBieuQuyet: "/web/intranet/khao-sat-va-bieu-quyet-noi-bo",
+  quyTrinhHoTro: "/web/intranet/quy-trinh-yeu-cau-ho-tro",
 };
 
 /**
@@ -20,6 +22,8 @@ export const menuItems = [
   { key: paths.vanPhongDienTu, label: "Văn phòng điện tử" },
   { key: paths.doiSoatThuPhi, label: "Đối soát thu phí" },
   { key: paths.congThongTinNhanSu, label: "Cổng thông tin nhân sự" },
+  { key: paths.quyTrinhHoTro, label: "Quy trình - Yêu cầu hỗ trợ" },
+  { key: paths.khaoSatBieuQuyet, label: "Khảo sát & biểu quyết nội bộ" },
 ];
 
 /**

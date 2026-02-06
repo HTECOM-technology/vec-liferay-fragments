@@ -1,17 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { memo } from "react";
 import { MainLayout } from "../components/layout";
-import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage } from "../modules";
+import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage } from "../modules";
 import { paths } from "./menuConfig";
-
-function HomePlaceholder() {
-  return (
-    <div>
-      <h1>Trang chủ</h1>
-      <p>Nội dung trang chủ.</p>
-    </div>
-  );
-}
 
 function PlaceholderPage({ title }) {
   return (
@@ -27,14 +18,16 @@ function AppRouter() {
     <Router>
       <Routes>
         <Route path={paths.trangChu} element={<MainLayout />}>
-          <Route index element={<HomePlaceholder />} />
+          <Route index element={<HomePage />} />
           <Route path={paths.vanPhongDienTu} element={<VanPhongDienTuPage />} />
           <Route path={paths.doiSoatThuPhi} element={<DoiSoatThuPhiPage />} />
           <Route path={paths.congThongTinNhanSu} element={<CongThongTinNhanSuPage />} />
           <Route path={paths.giamSatGiaoThong} element={<PlaceholderPage title="Giám sát giao thông" />} />
           <Route path={paths.tinTucSuKien} element={<PlaceholderPage title="Tin tức - Sự kiện" />} />
           <Route path={paths.bieuMauTaiLieu} element={<PlaceholderPage title="Biểu mẫu tài liệu" />} />
-          <Route path={paths.soTayNhanVien} element={<PlaceholderPage title="Sổ tay nhân viên" />} />
+          <Route path={paths.soTayNhanVien} element={<SoTayNhanVienPage />} />
+          <Route path={paths.khaoSatBieuQuyet} element={<KhaoSatBieuQuyetPage />} />
+          <Route path={paths.quyTrinhHoTro} element={<QuyTrinhHoTroPage />} />
         </Route>
         <Route path="*" element={<Navigate to={paths.trangChu} replace />} />
       </Routes>
