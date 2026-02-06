@@ -6,4 +6,6 @@ export const StyledTag = styled(Tag)`
   line-height: 20px;
   border-radius: 4px;
   margin: 0;
+  align-self: flex-start;
+  white-space: nowrap;
 `;

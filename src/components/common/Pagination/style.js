@@ -21,21 +21,47 @@ export const PaginationWrap = styled.div`
   .pagination-total {
     margin-left: 2px;
   }
+  
+  @media (max-width: 767px) {
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .pagination-label {
+      font-size: 12px;
+    }
+  }
 `;
 
 export const LeftSection = styled.div`
   display: flex;
   align-items: center;
+  
+  @media (max-width: 767px) {
+    font-size: 12px;
+    width: 100%;
+  }
 `;
 
 export const CenterSection = styled.div`
   display: flex;
   align-items: center;
+  
+  @media (max-width: 767px) {
+    font-size: 12px;
+    width: 100%;
+  }
 `;
 
 export const RightSection = styled.div`
   display: flex;
   align-items: center;
+  
+  @media (max-width: 767px) {
+    display: none;
+  }
 `;
 
 export const StyledPagination = styled(Pagination)`
@@ -94,6 +120,28 @@ export const StyledPagination = styled(Pagination)`
 
   .ant-pagination-ellipsis {
     color: #9ca3af;
+  }
+  
+  @media (max-width: 767px) {
+    font-size: 12px;
+    
+    .ant-pagination-item {
+      min-width: 28px;
+      height: 28px;
+      line-height: 26px;
+      font-size: 12px;
+    }
+    
+    .ant-pagination-item-ellipsis {
+      font-size: 12px;
+    }
+    
+    .ant-pagination-prev,
+    .ant-pagination-next {
+      min-width: 28px;
+      height: 28px;
+      line-height: 26px;
+    }
   }
 `;
 

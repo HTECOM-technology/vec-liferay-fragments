@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
+import { Space } from "antd";
 import { CTable, CTag } from "../../../../components/common";
-import { TableWrap } from "../../style";
 import { mockDocumentsData, DOCUMENT_STATUS_MAP } from "./constants";
 
-function DocumentsTable({ dataSource = mockDocumentsData }) {
+function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
   const columns = useMemo(
     () => [
       {
@@ -30,8 +30,15 @@ function DocumentsTable({ dataSource = mockDocumentsData }) {
         title: "Trích yếu",
         dataIndex: "trichYeu",
         key: "trichYeu",
-        render: (text) => (
-          <a href="#" style={{ color: "#1890ff" }}>
+        render: (text, record) => (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onDocumentClick?.(record);
+            }}
+            style={{ color: "#1890ff", textDecoration: "none" }}
+          >
             {text}
           </a>
         ),
@@ -42,10 +49,10 @@ function DocumentsTable({ dataSource = mockDocumentsData }) {
         key: "nguoiTao",
         width: 150,
         render: (text) => (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Space size={6}>
             <span style={{ fontSize: 16 }}>👤</span>
             <span>{text}</span>
-          </div>
+          </Space>
         ),
       },
       {
@@ -68,11 +75,11 @@ function DocumentsTable({ dataSource = mockDocumentsData }) {
         },
       },
     ],
-    []
+    [onDocumentClick]
   );
 
   return (
-    <TableWrap>
+    <div style={{ marginTop: 16 }}>
       <CTable
         columns={columns}
         dataSource={dataSource}
@@ -80,7 +87,7 @@ function DocumentsTable({ dataSource = mockDocumentsData }) {
         pagination={false}
         size="small"
       />
-    </TableWrap>
+    </div>
   );
 }
 

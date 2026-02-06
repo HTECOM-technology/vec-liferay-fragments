@@ -1,118 +1,276 @@
 import styled from "styled-components";
-import { Row } from "antd";
-
+import { Button } from "antd";
 export const PageWrap = styled.div`
   padding: 0;
+
+  @media (max-width: 767px) {
+    .ant-tabs-nav {
+      .ant-tabs-nav-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        .ant-tabs-nav-list {
+          flex-wrap: nowrap;
+          padding-right: 20px;
+
+          .ant-tabs-tab {
+            flex-shrink: 0;
+            white-space: nowrap;
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: fit-content;
+          }
+        }
+      }
+    }
+
+    .ant-tabs-content-holder {
+      overflow-x: hidden;
+    }
+  }
 `;
 
 export const ContentWrap = styled.div`
   display: flex;
   gap: 0;
   height: 100%;
+  overflow: hidden;
+  max-width: 100%;
+
+  @media (max-width: 767px) {
+    flex-direction: column;
+  }
 `;
 
 export const LeftSidebar = styled.div`
-  width: 180px;
+  width: 200px;
   flex-shrink: 0;
-  border-right: 1px solid #f0f0f0;
-  padding: 16px 8px;
-  background: #fff;
+  padding: 12px;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    padding: 12px 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 `;
 
 export const MainContent = styled.div`
   flex: 1;
   min-width: 0;
-  padding: 16px;
+  padding: 20px 24px;
   background: #fff;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+
+  .content-title {
+    margin: 0;
+    font-weight: 600;
+    font-style: Semi Bold;
+    font-size: 16px;
+    line-height: 100%;
+    letter-spacing: 0px;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 767px) {
+    padding: 0 12px 12px;
+
+    .content-title {
+      font-size: 14px;
+    }
+  }
+`;
+
+export const HeaderSection = styled.div`
+  border-bottom: 1px solid #0090cf33;
+  padding-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: 1550px) {
+    flex-wrap: wrap;
+    gap: 12px;
+    
+    .content-title {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 767px) {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding-bottom: 8px;
+    margin-bottom: 0;
+    border: none;
+  }
 `;
 
 export const FilterSection = styled.div`
-  margin-bottom: 16px;
+  .ant-form-item {
+    with: 100%;
+    margin: 0;
+  }
+`;
 
-  .ant-form-inline {
-    .ant-form-item {
-      margin-right: 12px;
-      margin-bottom: 12px;
+export const MobileFilterButton = styled(Button)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+
+  &:hover {
+    background: transparent !important;
+    border: none !important;
+  }
+
+  &:focus {
+    background: transparent !important;
+    border: none !important;
+  }
+`;
+
+export const TableContainer = styled.div`
+  margin-top: 16px;
+
+  .ant-table-tbody > tr {
+    cursor: pointer;
+  }
+
+  .ant-table-thead > tr > th {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-tbody > tr > td {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-container {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-bordered > .ant-table-container {
+    border-color: #0090cf33 !important;
+  }
+
+  .ant-table-bordered
+    > .ant-table-container
+    > .ant-table-content
+    > table
+    > thead
+    > tr
+    > th,
+  .ant-table-bordered
+    > .ant-table-container
+    > .ant-table-content
+    > table
+    > tbody
+    > tr
+    > td {
+    border-color: #0090cf33 !important;
+  }
+
+  @media (max-width: 767px) {
+    margin-top: 0;
+
+    .ant-table {
+      font-size: 12px;
     }
-    .ant-form-item-label > label {
-      font-size: 13px;
-      color: rgba(0, 0, 0, 0.65);
+
+    .ant-table-thead > tr > th {
+      padding: 8px 6px;
+      font-size: 12px;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+
+    .ant-table-tbody > tr > td {
+      padding: 8px 6px;
+      font-size: 12px;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
   }
 `;
 
-export const FilterRow = styled(Row)`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: ${(p) => (p.$last ? 0 : "12px")};
-`;
-
-export const TableWrap = styled.div`
-  margin-top: 16px;
-`;
-
-export const PaginationWrap = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 16px;
-`;
-
-export const MailboxItem = styled.div`
-  padding: 8px 12px;
+export const SidebarItem = styled.div`
+  width: 180px;
+  height: 40px;
+  padding: 0 12px;
   margin-bottom: 2px;
   cursor: pointer;
   transition: all 0.2s;
-  background: ${(props) => (props.$active ? "#e6f7ff" : "transparent")};
-  color: ${(props) => (props.$active ? "#1890ff" : "rgba(0, 0, 0, 0.85)")};
+  background: ${(props) => (props.$active ? "#E5F7FF" : "#fff")};
+  color: ${(props) => (props.$active ? "#0090CF" : "#6A7282")};
   font-size: 14px;
-  border-radius: 4px;
+  border-radius: 6px;
+  border: 1px solid ${(props) => (props.$active ? "#0090CF33" : "#e5e7eb")};
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
   &:hover {
-    background: ${(props) => (props.$active ? "#e6f7ff" : "#f5f5f5")};
+    background: ${(props) => (props.$active ? "#d9f2ff" : "#f5f5f5")};
+    border-color: ${(props) => (props.$active ? "#0090cf" : "#0090cf80")};
   }
 
   .count {
-    float: right;
-    color: ${(props) => (props.$active ? "#1890ff" : "rgba(0, 0, 0, 0.45)")};
+    color: ${(props) => (props.$active ? "#0090cf" : "rgba(0, 0, 0, 0.45)")};
+    font-size: 14px;
+  }
+
+  @media (max-width: 767px) {
+    width: calc(50% - 4px);
+    flex: 0 0 calc(50% - 4px);
+    height: 36px;
+    padding: 0 12px;
+    margin-bottom: 0;
+    font-size: 13px;
+    justify-content: space-between;
+
+    .count {
+      font-size: 13px;
+      margin-left: 4px;
+    }
   }
 `;
 
-export const ActionIconBtn = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: #0090cf26;
-  color: #0090cf;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-
-  &:hover {
-    background: #0090cf;
-    color: #fff;
-  }
-`;
-
-export const AttachmentTag = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  background: ${(props) => {
-    if (props.$type === "word") return "#e6f7ff";
-    if (props.$type === "pdf") return "#fff1f0";
-    if (props.$type === "excel") return "#f0f5ff";
-    return "#f5f5f5";
-  }};
-  border-radius: 2px;
-  font-size: 12px;
+export const TableText = styled.div`
   color: rgba(0, 0, 0, 0.65);
+  line-height: 1.5;
+`;
+
+export const CenterText = styled.div`
+  text-align: center;
+`;
+
+export const MultiLineText = styled.div`
+  color: rgba(0, 0, 0, 0.65);
+  line-height: 1.5;
+`;
+
+export const MobileMenuWrap = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 `;

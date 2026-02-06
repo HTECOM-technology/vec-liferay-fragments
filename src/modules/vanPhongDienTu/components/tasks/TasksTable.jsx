@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
+import { Space } from "antd";
 import { CTable, CTag } from "../../../../components/common";
-import { TableWrap } from "../../style";
 import { mockTasksData, TASK_STATUS_MAP } from "./constants";
 
-function TasksTable({ dataSource = mockTasksData }) {
+function TasksTable({ dataSource = mockTasksData, onTaskClick }) {
   const columns = useMemo(
     () => [
       {
@@ -18,8 +18,15 @@ function TasksTable({ dataSource = mockTasksData }) {
         dataIndex: "nhiemVu",
         key: "nhiemVu",
         width: 350,
-        render: (text) => (
-          <a href="#" style={{ color: "#1890ff" }}>
+        render: (text, record) => (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onTaskClick?.(record);
+            }}
+            style={{ color: "#1890ff", textDecoration: "none" }}
+          >
             {text}
           </a>
         ),
@@ -30,10 +37,10 @@ function TasksTable({ dataSource = mockTasksData }) {
         key: "giaoViec",
         width: 150,
         render: (text) => (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Space size={6}>
             <span style={{ fontSize: 16 }}>👤</span>
             <span>{text}</span>
-          </div>
+          </Space>
         ),
       },
       {
@@ -69,11 +76,11 @@ function TasksTable({ dataSource = mockTasksData }) {
         width: 250,
       },
     ],
-    []
+    [onTaskClick]
   );
 
   return (
-    <TableWrap>
+    <div style={{ marginTop: 16 }}>
       <CTable
         columns={columns}
         dataSource={dataSource}
@@ -81,7 +88,7 @@ function TasksTable({ dataSource = mockTasksData }) {
         pagination={false}
         size="small"
       />
-    </TableWrap>
+    </div>
   );
 }
 

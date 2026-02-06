@@ -1,21 +1,21 @@
 import React from "react";
-import { MailboxItem } from "../../style";
+import { MailboxItem } from "./styles";
 import { MAILBOX_ITEMS } from "./constants";
 
 function MailboxSidebar({ activeMailbox, onMailboxChange }) {
   return (
-    <div>
+    <>
       {MAILBOX_ITEMS.map((item) => (
         <MailboxItem
           key={item.key}
           $active={activeMailbox === item.key}
           onClick={() => onMailboxChange(item.key)}
         >
-          {item.label}
+          <span>{item.label}</span>
           {item.count !== null && <span className="count">({item.count})</span>}
         </MailboxItem>
       ))}
-    </div>
+    </>
   );
 }
 
