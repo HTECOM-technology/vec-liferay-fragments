@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Row } from "antd";
+import { Col, Row } from "antd";
 
 export const PageWrap = styled.div`
   padding: 0;
@@ -51,7 +51,9 @@ export const ActionIconBtn = styled.button`
   background: #0090cf26;
   color: #0090cf;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 
   &:hover {
     background: #0090cf;
@@ -67,7 +69,6 @@ export const Panel = styled.div`
   border: 1px solid rgba(0, 144, 207, 0.1);
   border-radius: 6px;
   overflow: hidden;
-  width: 558px;
 `;
 
 export const PanelHeader = styled.div`
@@ -137,5 +138,13 @@ export const DetailButton = styled.button`
 
   &:hover {
     background: #007bb5;
+  }
+`;
+
+export const ColumnButton = styled(Col)`
+  text-align: right;
+  @media (max-width: 480px) {
+    text-align: center;
+    margin: 20px 0;
   }
 `;

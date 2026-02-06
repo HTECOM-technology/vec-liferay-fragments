@@ -7,12 +7,12 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
   const columns = useMemo(
     () => [
       { title: "STT", dataIndex: "stt", key: "stt", width: 60, align: "center" },
-      { title: "Loại giao dịch lệch", dataIndex: "loaiGDLech", key: "loaiGDLech", width: 120 },
+      { title: "Loại giao dịch lệch", dataIndex: "loaiGDLech", key: "loaiGDLech", width: 80 },
       {
         title: "Etag",
         dataIndex: "etag",
         key: "etag",
-        width: 140,
+        width: 100,
         render: (val) => (val === "-" ? val : val.split("\n").map((l, i) => <div key={i}>{l}</div>)),
       },
       { title: "BKSND", dataIndex: "bksnd", key: "bksnd", width: 90 },
@@ -56,7 +56,6 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
         key: "action",
         width: 80,
         align: "center",
-        fixed: "right",
         render: (_, record) => (
           <svg style={{ cursor: "pointer" }} onClick={() => (onView ? onView(record) : console.log("View", record))} width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.12533 10.0002C8.12533 8.96463 8.96479 8.12516 10.0003 8.12516C11.0359 8.12516 11.8753 8.96463 11.8753 10.0002C11.8753 11.0357 11.0359 11.8752 10.0003 11.8752C8.96479 11.8752 8.12533 11.0357 8.12533 10.0002Z" fill="#0090CF" />
@@ -70,7 +69,7 @@ function DataReconciliationTable({ dataSource = mockDataReconciliation, onView }
         ),
       },
     ],
-    [onView]
+    [onView],
   );
 
   return (

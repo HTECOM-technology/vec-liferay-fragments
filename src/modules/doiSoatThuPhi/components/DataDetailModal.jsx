@@ -4,7 +4,7 @@ import { EyeOutlined, CloseOutlined } from "@ant-design/icons";
 import { CButton, CTable } from "../../../components/common";
 import { CModal } from "../../../components/common/Modal";
 import { Col, Flex, Row } from "antd";
-import { PanelsContainer, Panel, PanelHeader, PanelContent, InfoRow, StatusBadge, DetailButton } from "../style";
+import { Panel, PanelHeader, PanelContent, InfoRow, StatusBadge, ColumnButton } from "../style";
 export const IconView = () => {
   return (
     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,7 +30,6 @@ function DataDetailModal({ visible, record, onClose }) {
       dataIndex: "source",
       key: "source",
       width: 180,
-      fixed: "left",
       render: (text) => <strong>{text}</strong>,
     },
     {
@@ -135,8 +134,8 @@ function DataDetailModal({ visible, record, onClose }) {
     >
       <CTable columns={comparisonColumns} dataSource={comparisonData} pagination={false} style={{ margin: "10px 0" }} size="small" scroll={{ x: 1600, y: 200 }} rowKey="key" showHeader={true} />
 
-      <Flex gap={16} justify="space-between" align="flex-end">
-        <Flex gap={16}>
+      <Row gutter={[16, 16]} align="bottom">
+        <Col xl={10} md={12} sm={24} xs={24}>
           <Panel>
             <PanelHeader>Giải trình</PanelHeader>
             <PanelContent>
@@ -154,7 +153,8 @@ function DataDetailModal({ visible, record, onClose }) {
               </InfoRow>
             </PanelContent>
           </Panel>
-
+        </Col>
+        <Col xl={10} md={12} sm={24} xs={24}>
           <Panel>
             <PanelHeader>Kết quả giải trình</PanelHeader>
             <Row style={{ padding: "18px 12px" }}>
@@ -176,12 +176,15 @@ function DataDetailModal({ visible, record, onClose }) {
               </Col>
             </Row>
           </Panel>
-        </Flex>
-        <CButton type="primary" onClick={() => {}}>
-          <EyeOutlined />
-          Chi tiết giao dịch
-        </CButton>
-      </Flex>
+        </Col>
+
+        <ColumnButton xl={4} md={24} sm={24} xs={24} className="column-button">
+          <CButton type="primary" onClick={() => {}}>
+            <EyeOutlined />
+            Chi tiết giao dịch
+          </CButton>
+        </ColumnButton>
+      </Row>
     </CModal>
   );
 }
