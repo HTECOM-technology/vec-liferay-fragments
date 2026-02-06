@@ -5,7 +5,7 @@ import BirthdayTable from "./BirthdayTable";
 import EmployeeDetailModal from "./EmployeeDetailModal";
 import { FilterTagsContainer, FilterTag } from "./styleNhanSu";
 import { mockNhanSuData } from "./nhanSuConstants";
-import soDoToChuc from '../../../assets/nhanSu/soDoToChuc.png'
+import soDoToChuc from '../../../../assets/nhanSu/soDoToChuc.png'
 
 const DEFAULT_PAGE_SIZE = 16;
 
