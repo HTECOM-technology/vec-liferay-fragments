@@ -4,7 +4,7 @@ const path = require('path');
 // Cấu hình đường dẫn
 const BUILD_DIR = path.join(__dirname, 'build');
 const LIFERAY_PROJECT_DIR = path.join(__dirname, 'liferay-build');
-const COLLECTION_DIR = path.join(LIFERAY_PROJECT_DIR, 'src', 'liferay-fragment');
+const COLLECTION_DIR = path.join(LIFERAY_PROJECT_DIR, 'src', 'intranet-fragment');
 const FRAGMENT_DIR = path.join(COLLECTION_DIR, 'fragments', 'react-hello-world');
 
 console.log('🚀 Syncing React build to Liferay Fragment...\n');
