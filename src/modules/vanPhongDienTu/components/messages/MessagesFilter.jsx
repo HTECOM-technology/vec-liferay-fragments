@@ -14,40 +14,44 @@ import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
 
 const { useBreakpoint } = Grid;
 
+const FILTER_ICON_STYLE = { width: 18, height: 18 };
+
 function MessagesFilter({ initialValues, onSearch }) {
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const screens = useBreakpoint();
-  
-  // Detect mobile: screens smaller than md (768px)
   const isMobile = !screens.md;
+
+  const handleOpenModal = () => setIsModalVisible(true);
+  const handleCloseModal = () => setIsModalVisible(false);
 
   const onFinish = (values) => {
     onSearch?.(values);
     if (isMobile) {
-      setIsModalVisible(false);
+      handleCloseModal();
     }
   };
 
-  const handleShowModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
-  };
+  const formItemStyle = isMobile
+    ? { width: "100%", marginBottom: 8 }
+    : { width: "auto", marginBottom: 0 };
 
   const filterFormContent = (
-    <Space wrap size={9} direction={isMobile ? "vertical" : "horizontal"} style={{ width: isMobile ? '100%' : 'auto' }}>
-      <Form.Item name="search" style={{ width: isMobile ? '100%' : 'auto', marginBottom: isMobile ? 8 : 0 }}>
+    <Space
+      wrap
+      size={9}
+      direction={isMobile ? "vertical" : "horizontal"}
+      style={{ width: isMobile ? "100%" : "auto" }}
+    >
+      <Form.Item name="search" style={formItemStyle}>
         <CInput placeholder="Tìm kiếm" suffix={<SearchOutlined />} />
       </Form.Item>
 
-      <Form.Item name="tieuDe" style={{ width: isMobile ? '100%' : 'auto', marginBottom: isMobile ? 8 : 0 }}>
+      <Form.Item name="tieuDe" style={formItemStyle}>
         <CSelect options={TITLE_OPTIONS} placeholder="Tiêu đề" allowClear />
       </Form.Item>
 
-      <Form.Item name="nguoiGui" style={{ width: isMobile ? '100%' : 'auto', marginBottom: isMobile ? 8 : 0 }}>
+      <Form.Item name="nguoiGui" style={formItemStyle}>
         <CSelect
           options={SENDER_OPTIONS}
           placeholder="Tất cả người gửi"
@@ -56,27 +60,43 @@ function MessagesFilter({ initialValues, onSearch }) {
       </Form.Item>
 
       {isMobile ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', marginBottom: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            width: "100%",
+            marginBottom: 8,
+          }}
+        >
           <Form.Item name="dateFrom" style={{ flex: 1, marginBottom: 0 }}>
-            <CDatePicker format="DD/MM/YYYY" placeholder="Từ ngày" style={{ width: '100%' }} />
+            <CDatePicker
+              format="DD/MM/YYYY"
+              placeholder="Từ ngày"
+              style={{ width: "100%" }}
+            />
           </Form.Item>
-          <span style={{ color: '#666', flexShrink: 0 }}>Đến</span>
+          <span style={{ color: "#666", flexShrink: 0 }}>Đến</span>
           <Form.Item name="dateTo" style={{ flex: 1, marginBottom: 0 }}>
-            <CDatePicker format="DD/MM/YYYY" placeholder="Đến ngày" style={{ width: '100%' }} />
+            <CDatePicker
+              format="DD/MM/YYYY"
+              placeholder="Đến ngày"
+              style={{ width: "100%" }}
+            />
           </Form.Item>
         </div>
       ) : (
-        <Form.Item name="dateRange" style={{ width: 'auto' }}>
+        <Form.Item name="dateRange" style={{ width: "auto" }}>
           <Space>
             <CDatePicker format="DD/MM/YYYY" placeholder="Từ ngày" />
-            <span style={{ color: '#666' }}>Đến</span>
+            <span style={{ color: "#666" }}>Đến</span>
             <CDatePicker format="DD/MM/YYYY" placeholder="Đến ngày" />
           </Space>
         </Form.Item>
       )}
 
-      <Form.Item style={{ width: isMobile ? '100%' : 'auto', marginBottom: 0 }}>
-        <div style={{ textAlign: 'center' }}>
+      <Form.Item style={{ ...formItemStyle, marginBottom: 0 }}>
+        <div style={{ textAlign: "center" }}>
           <CButton type="primary" htmlType="submit">
             Tìm kiếm
           </CButton>
@@ -85,31 +105,35 @@ function MessagesFilter({ initialValues, onSearch }) {
     </Space>
   );
 
+  const filterIcon = (
+    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
+  );
+
+  const filterModal = (
+    <CModal
+      open={isModalVisible}
+      onCancel={handleCloseModal}
+      footer={null}
+      width={372}
+      closable={false}
+      title={null}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={initialValues}
+      >
+        {filterFormContent}
+      </Form>
+    </CModal>
+  );
+
   if (isMobile) {
     return (
       <FilterSection>
-        <MobileFilterButton
-          icon={<img src={MenuFilterIcon} alt="filter" style={{ width: 18, height: 18 }} />}
-          onClick={handleShowModal}
-        />
-        <CModal
-          open={isModalVisible}
-          onCancel={handleCloseModal}
-          footer={null}
-          width={372}
-          closable={false}
-          closeIcon={null}
-          title={null}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={initialValues}
-          >
-            {filterFormContent}
-          </Form>
-        </CModal>
+        <MobileFilterButton icon={filterIcon} onClick={handleOpenModal} />
+        {filterModal}
       </FilterSection>
     );
   }

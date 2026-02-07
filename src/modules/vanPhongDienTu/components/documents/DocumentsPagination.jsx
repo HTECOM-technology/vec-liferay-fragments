@@ -1,5 +1,5 @@
 import React from "react";
-import { CPagination } from "../../../../components/common";
+import { CPagination, CSelect } from "../../../../components/common";
 
 const defaultPageSizeOptions = ["10", "12", "20", "50"];
 const defaultLocale = { jump_to: "Tới trang", page: "Trang" };
@@ -22,12 +22,29 @@ function DocumentsPagination({
     onChange: (p, size) => onChange?.(p, size || 12),
     showTotal: (t) => `Hiển thị ${pageSize} / ${t}`,
     locale,
-    size: 'small',
+    size: "small",
   };
 
+  const sortOptions = [{ label: "Ngày tạo", value: "createdDate" }];
+
+  const sortControl = (
+    <div
+      style={{ display: "flex", alignItems: "center", gap: 8, marginRight: 16 }}
+    >
+      <span style={{ whiteSpace: "nowrap", color: "rgba(0,0,0,0.45)" }}>
+        Sắp xếp theo
+      </span>
+      <CSelect
+        defaultValue="createdDate"
+        options={sortOptions}
+        style={{ width: 120 }}
+      />
+    </div>
+  );
+
   return (
-    <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <CPagination {...config} />
+    <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+      <CPagination {...config} renderBeforeQuickJumper={sortControl} />
     </div>
   );
 }

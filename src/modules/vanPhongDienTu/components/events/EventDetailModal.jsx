@@ -1,18 +1,28 @@
 import React from "react";
-import { Descriptions } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
-import { CButton, CModal } from "../../../../components/common";
+import { CalendarOutlined, EyeOutlined } from "@ant-design/icons";
+import { CButton } from "../../../../components/common";
+import {
+  StyledDetailModal,
+  InfoSection,
+  DetailModalTitle,
+  DetailModalFooter,
+} from "../common/DetailModalStyles";
 
 function EventDetailModal({ visible, event, onClose }) {
   if (!event) return null;
 
   return (
-    <CModal
-      title={event.detail || "Chi tiết sự kiện"}
+    <StyledDetailModal
+      title={
+        <DetailModalTitle>
+          <CalendarOutlined />
+          <span>{event.detail || "Chi tiết sự kiện"}</span>
+        </DetailModalTitle>
+      }
       open={visible}
       onCancel={onClose}
       footer={
-        <div style={{ textAlign: "center" }}>
+        <DetailModalFooter>
           <CButton
             type="primary"
             icon={<EyeOutlined />}
@@ -20,49 +30,56 @@ function EventDetailModal({ visible, event, onClose }) {
           >
             Chi tiết sự kiện
           </CButton>
-        </div>
+        </DetailModalFooter>
       }
-      width={700}
-      centered
+      width="90%"
     >
-      <Descriptions
-        title="Thông tin chung"
-        bordered
-        column={1}
-        size="middle"
-      >
-        <Descriptions.Item label="Nhóm lịch">
-          {event.nhomLich || "3. PTGĐ - Đảng Hoài Nam"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Ngày thực hiện">
-          {event.ngayThucHien || `Thứ ba, 30/12/2025 vào lúc ${event.time || "08:00 AM"}`}
-        </Descriptions.Item>
-        <Descriptions.Item label="Địa điểm">
-          {event.diaDiem || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Chủ trì">
-          {event.chuTri || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Thành phần tham gia">
-          {event.thanhPhanThamGia || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Chuẩn bị">
-          {event.chuanBi || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Tài nguyên">
-          {event.taiNguyen || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Nội dung sự kiện">
-          {event.noiDungSuKien || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Tài liệu kèm">
-          {event.taiLieuKem || "–"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Danh sách thông báo">
-          {event.danhSachThongBao || "–"}
-        </Descriptions.Item>
-      </Descriptions>
-    </CModal>
+      <InfoSection>
+        <div className="info-title">Thông tin sự kiện</div>
+        <div className="info-row">
+          <span className="info-label">Nhóm lịch</span>
+          <span className="info-value">{event.nhomLich || "3. PTGĐ - Đảng Hoài Nam"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Ngày thực hiện</span>
+          <span className="info-value">
+            {event.ngayThucHien || `Thứ ba, 30/12/2025 vào lúc ${event.time || "08:00 AM"}`}
+          </span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Địa điểm</span>
+          <span className="info-value">{event.diaDiem || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Chủ trì</span>
+          <span className="info-value">{event.chuTri || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Thành phần tham gia</span>
+          <span className="info-value">{event.thanhPhanThamGia || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Chuẩn bị</span>
+          <span className="info-value">{event.chuanBi || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Tài nguyên</span>
+          <span className="info-value">{event.taiNguyen || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Nội dung sự kiện</span>
+          <span className="info-value">{event.noiDungSuKien || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Tài liệu kèm</span>
+          <span className="info-value">{event.taiLieuKem || "–"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Danh sách thông báo</span>
+          <span className="info-value">{event.danhSachThongBao || "–"}</span>
+        </div>
+      </InfoSection>
+    </StyledDetailModal>
   );
 }
 

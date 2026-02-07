@@ -1,10 +1,43 @@
+import FileImportIcon from "../../../../assets/icon/file-import.svg";
+import FileExportIcon from "../../../../assets/icon/file-export.svg";
+import FileVerifiedIcon from "../../../../assets/icon/file-verified.svg";
+import FileSecurityIcon from "../../../../assets/icon/file-security.svg";
+import FolderSecurityIcon from "../../../../assets/icon/folder-security.svg";
+import CatalogueIcon from "../../../../assets/icon/catalogue.svg";
+
+const ICON_STYLE = { width: 16, height: 16 };
+
 export const DOCUMENT_TABS = [
-  { key: "incoming", label: "Văn bản đến", icon: "📄" },
-  { key: "outgoing", label: "Văn bản đi", icon: "📤" },
-  { key: "approved", label: "VB đã phê", icon: "✓" },
-  { key: "draft", label: "Dự thảo", icon: "✎" },
-  { key: "internal", label: "VB nội bộ", icon: "📋" },
-  { key: "internal-dept", label: "VB nội bộ phòng", icon: "📋" },
+  {
+    key: "incoming",
+    label: "Văn bản đến",
+    icon: <img src={FileImportIcon} alt="" style={ICON_STYLE} />,
+  },
+  {
+    key: "outgoing",
+    label: "Văn bản đi",
+    icon: <img src={FileExportIcon} alt="" style={ICON_STYLE} />,
+  },
+  {
+    key: "approved",
+    label: "VB đã phê",
+    icon: <img src={FileVerifiedIcon} alt="" style={ICON_STYLE} />,
+  },
+  {
+    key: "draft",
+    label: "Dự thảo",
+    icon: <img src={FileSecurityIcon} alt="" style={ICON_STYLE} />,
+  },
+  {
+    key: "internal",
+    label: "VB nội bộ",
+    icon: <img src={FolderSecurityIcon} alt="" style={ICON_STYLE} />,
+  },
+  {
+    key: "internal-dept",
+    label: "VB nội bộ phòng",
+    icon: <img src={CatalogueIcon} alt="" style={ICON_STYLE} />,
+  },
 ];
 
 export const UNIT_OPTIONS = [

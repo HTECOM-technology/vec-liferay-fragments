@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { Grid } from "antd";
-import { ContentWrap, LeftSidebar, MainContent, MobileMenuWrap } from "../../style";
+import { EyeOutlined } from "@ant-design/icons";
+import { CButton } from "../../../../components/common";
+import {
+  ContentWrap,
+  LeftSidebar,
+  MainContent,
+  MobileMenuWrap,
+} from "../../style";
 import WorkSidebar from "./WorkSidebar";
 import WorkFilter from "./WorkFilter";
 import WorkTables from "./WorkTables";
@@ -23,7 +30,7 @@ function WorkTab({
   const [selectedWork, setSelectedWork] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const screens = useBreakpoint();
-  const isMobile = !screens.lg;
+  const isMobile = !screens.md;
 
   const handleWorkClick = (work) => {
     setSelectedWork(work);
@@ -59,11 +66,18 @@ function WorkTab({
         <WorkHeaderRow>
           <WorkSectionTitle>Tất cả công việc của tôi</WorkSectionTitle>
           {isMobile && (
-            <WorkFilter initialValues={initialValues} onSearch={onSearch} isIconOnly />
+            <WorkFilter initialValues={initialValues} onSearch={onSearch} />
+          )}
+          {!isMobile && (
+            <CButton type="primary" icon={<EyeOutlined />}>
+              Xem đầy đủ công việc
+            </CButton>
           )}
         </WorkHeaderRow>
 
-        {!isMobile && <WorkFilter initialValues={initialValues} onSearch={onSearch} />}
+        {!isMobile && (
+          <WorkFilter initialValues={initialValues} onSearch={onSearch} />
+        )}
         <WorkTables
           primaryData={primaryData}
           supportData={supportData}

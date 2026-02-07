@@ -1,43 +1,18 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { StatsRow, StatCard } from "../../style";
 import ValidationIcon from "../../../../assets/icon/validation.svg";
 import AlertIcon from "../../../../assets/icon/alert-02.svg";
 import HourglassIcon from "../../../../assets/icon/hourglass.svg";
 import FileShredderIcon from "../../../../assets/icon/file-shredder.svg";
 
-function WorkStatsCards({
-  primaryData,
-  supportData,
-  assignedData,
-  followData,
+function TasksStatsCards({
+  stats = { total: 0, processing: 0, completed: 0, overdue: 0 },
 }) {
-  const stats = useMemo(() => {
-    const allData = [
-      ...(primaryData || []),
-      ...(supportData || []),
-      ...(assignedData || []),
-      ...(followData || []),
-    ];
-
-    const total = allData.length;
-    const processing = allData.filter((item) =>
-      ["processing", "in-progress"].includes(item.trangThai),
-    ).length;
-    const completed = allData.filter(
-      (item) => item.trangThai === "completed",
-    ).length;
-    const overdue = allData.filter(
-      (item) => item.trangThai === "overdue",
-    ).length;
-
-    return { total, processing, completed, overdue };
-  }, [primaryData, supportData, assignedData, followData]);
-
   return (
     <StatsRow>
       <StatCard>
         <div className="stat-content">
-          <div className="stat-label">Tổng số công việc</div>
+          <div className="stat-label">Tổng số nhiệm vụ</div>
           <div className="stat-value">
             {String(stats.total).padStart(2, "0")}
           </div>
@@ -75,4 +50,4 @@ function WorkStatsCards({
   );
 }
 
-export default WorkStatsCards;
+export default TasksStatsCards;

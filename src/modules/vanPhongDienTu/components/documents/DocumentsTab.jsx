@@ -1,67 +1,45 @@
 import React, { useState } from "react";
 import { EyeOutlined } from "@ant-design/icons";
+import { Grid } from "antd";
 import { CButton } from "../../../../components/common";
 import styled from "styled-components";
 import DocumentsFilter from "./DocumentsFilter";
 import DocumentsTable from "./DocumentsTable";
 import DocumentsPagination from "./DocumentsPagination";
 import DocumentDetailModal from "./DocumentDetailModal";
+import DocumentsStatsCards from "./DocumentsStatsCards";
+import {
+  HeaderRow,
+  SectionTitle,
+  TabRow,
+  TabButtons,
+  TabButton,
+  MobileFilterButton,
+} from "../../style";
 import { DOCUMENT_TABS } from "./constants";
+import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
+
+const { useBreakpoint } = Grid;
+
+const FILTER_ICON_STYLE = { width: 18, height: 18 };
+
+const DocumentsMobileFilterButton = styled(MobileFilterButton)`
+  width: 32px;
+  height: 32px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+`;
 
 const DocumentsContent = styled.div`
   padding: 16px;
   background: #fff;
-`;
-
-const StatsRow = styled.div`
-  display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: #f5f5f5;
-  border-radius: 4px;
-`;
-
-const StatItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-
-  .stat-label {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.65);
-  }
-
-  .stat-value {
-    font-size: 24px;
-    font-weight: 600;
-    color: ${props => props.$color || "#1890ff"};
-  }
-`;
-
-const TabRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const TabButtons = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const TabButton = styled(CButton)`
-  ${props => props.$active && `
-    background: #1890ff;
-    color: #fff;
-    border-color: #1890ff;
-  `}
-
-  span:first-child {
-    margin-right: 4px;
-  }
 `;
 
 function DocumentsTab({
@@ -76,6 +54,8 @@ function DocumentsTab({
   const { current = 1, pageSize = 12, total = 0, onChange } = pagination;
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   const handleDocumentClick = (document) => {
     setSelectedDocument(document);
@@ -89,45 +69,58 @@ function DocumentsTab({
 
   return (
     <DocumentsContent>
-      <StatsRow>
-        <StatItem $color="#1890ff">
-          <span className="stat-label">Số văn bản đến mới</span>
-          <span className="stat-value">{String(stats.incoming).padStart(2, '0')}</span>
-        </StatItem>
-        <StatItem $color="#52c41a">
-          <span className="stat-label">Số văn bản đi mới</span>
-          <span className="stat-value">{String(stats.outgoing).padStart(2, '0')}</span>
-        </StatItem>
-        <StatItem $color="#faad14">
-          <span className="stat-label">Số văn bản chờ xử lý</span>
-          <span className="stat-value">{String(stats.pending).padStart(2, '0')}</span>
-        </StatItem>
-        <StatItem $color="#ff4d4f">
-          <span className="stat-label">Số văn bản chờ duyệt</span>
-          <span className="stat-value">{String(stats.approved).padStart(2, '0')}</span>
-        </StatItem>
-      </StatsRow>
+      <DocumentsStatsCards stats={stats} />
+
+      <HeaderRow>
+        <SectionTitle>Quản lý văn bản</SectionTitle>
+        {isMobile ? (
+          <DocumentsFilter
+            initialValues={initialValues}
+            onSearch={onSearch}
+            renderMobileButton={(props) => (
+              <DocumentsMobileFilterButton
+                icon={
+                  <img
+                    src={MenuFilterIcon}
+                    alt="filter"
+                    style={FILTER_ICON_STYLE}
+                  />
+                }
+                {...props}
+              />
+            )}
+            isMobileView={true}
+          />
+        ) : (
+          <CButton type="primary" icon={<EyeOutlined />}>
+            Xem đầy đủ văn bản
+          </CButton>
+        )}
+      </HeaderRow>
 
       <TabRow>
-        <TabButtons>
-          {DOCUMENT_TABS.map(tab => (
+        <TabButtons style={{ flexWrap: isMobile ? "wrap" : "nowrap" }}>
+          {DOCUMENT_TABS.map((tab) => (
             <TabButton
               key={tab.key}
               $active={activeSubTab === tab.key}
               onClick={() => onSubTabChange(tab.key)}
+              style={isMobile ? { marginBottom: 8 } : {}}
             >
               {tab.icon && <span>{tab.icon}</span>}
               {tab.label}
             </TabButton>
           ))}
         </TabButtons>
-        <CButton type="primary" icon={<EyeOutlined />}>
-          Xem đầy đủ văn bản
-        </CButton>
       </TabRow>
 
-      <DocumentsFilter initialValues={initialValues} onSearch={onSearch} />
-      <DocumentsTable dataSource={dataSource} onDocumentClick={handleDocumentClick} />
+      {!isMobile && (
+        <DocumentsFilter initialValues={initialValues} onSearch={onSearch} />
+      )}
+      <DocumentsTable
+        dataSource={dataSource}
+        onDocumentClick={handleDocumentClick}
+      />
       <DocumentsPagination
         current={current}
         pageSize={pageSize}

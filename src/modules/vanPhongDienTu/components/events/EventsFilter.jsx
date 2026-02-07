@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { Form, Checkbox, Space, Grid } from "antd";
-import { PlusOutlined, EyeOutlined, SearchOutlined, MenuOutlined } from "@ant-design/icons";
-import { CInput, CSelect, CButton, CModal } from "../../../../components/common";
+import { PlusOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  CInput,
+  CSelect,
+  CButton,
+  CModal,
+} from "../../../../components/common";
 import { HeaderSection, MobileFilterButton } from "../../style";
+import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
 import {
   EventsHeaderTitle,
   EventsHeaderRow,
@@ -10,6 +16,7 @@ import {
   EventsActionGroup,
   EventsFilterRow,
   EventsFilterCol,
+  ButtonWrapper,
 } from "./styles";
 import {
   EVENT_FILTER_OPTIONS,
@@ -19,6 +26,8 @@ import {
 } from "./constants";
 
 const { useBreakpoint } = Grid;
+
+const FILTER_ICON_STYLE = { width: 18, height: 18 };
 
 function EventsFilter({
   contentTitle,
@@ -35,20 +44,23 @@ function EventsFilter({
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
+  const handleOpenModal = () => setIsModalVisible(true);
+  const handleCloseModal = () => setIsModalVisible(false);
+
   const onFinish = (values) => {
     onSearch?.(values);
     if (isMobile) {
-      setIsModalVisible(false);
+      handleCloseModal();
     }
   };
 
   const filterFormContent = (
-    <Space direction="vertical" size={12} style={{ width: '100%' }}>
-      <Form.Item name="search" style={{ marginBottom: 0, width: '100%' }}>
+    <Space direction="vertical" size={12} style={{ width: "100%" }}>
+      <Form.Item name="search" style={{ marginBottom: 0, width: "100%" }}>
         <CInput placeholder="Tìm kiếm" prefix={<SearchOutlined />} />
       </Form.Item>
 
-      <Form.Item name="lanhDao" style={{ marginBottom: 0, width: '100%' }}>
+      <Form.Item name="lanhDao" style={{ marginBottom: 0, width: "100%" }}>
         <CSelect
           placeholder="Tất cả lãnh đạo"
           options={EVENT_FILTER_OPTIONS}
@@ -56,7 +68,7 @@ function EventsFilter({
         />
       </Form.Item>
 
-      <Form.Item name="nguoiThamGia" style={{ marginBottom: 0, width: '100%' }}>
+      <Form.Item name="nguoiThamGia" style={{ marginBottom: 0, width: "100%" }}>
         <CSelect
           placeholder="Tất cả người tham gia"
           options={PARTICIPANT_FILTER_OPTIONS}
@@ -65,11 +77,37 @@ function EventsFilter({
       </Form.Item>
 
       <Form.Item style={{ marginBottom: 0 }}>
-        <CButton type="primary" htmlType="submit" block>
-          Tìm kiếm
-        </CButton>
+        <ButtonWrapper>
+          <CButton type="primary" htmlType="submit">
+            Tìm kiếm
+          </CButton>
+        </ButtonWrapper>
       </Form.Item>
     </Space>
+  );
+
+  const filterIcon = (
+    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
+  );
+
+  const filterModal = (
+    <CModal
+      open={isModalVisible}
+      onCancel={handleCloseModal}
+      footer={null}
+      width={372}
+      closable={false}
+      title={null}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={initialValues}
+      >
+        {filterFormContent}
+      </Form>
+    </CModal>
   );
 
   return (
@@ -99,10 +137,7 @@ function EventsFilter({
           </EventsHeaderRow>
         )}
         {isMobile && (
-          <MobileFilterButton
-            icon={<MenuOutlined />}
-            onClick={() => setIsModalVisible(true)}
-          />
+          <MobileFilterButton icon={filterIcon} onClick={handleOpenModal} />
         )}
       </HeaderSection>
 
@@ -130,23 +165,7 @@ function EventsFilter({
               />
             </Space>
           </EventsFilterRow>
-          <CModal
-            open={isModalVisible}
-            onCancel={() => setIsModalVisible(false)}
-            footer={null}
-            width="90%"
-            closable={false}
-            title={null}
-          >
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-              initialValues={initialValues}
-            >
-              {filterFormContent}
-            </Form>
-          </CModal>
+          {filterModal}
         </>
       )}
 

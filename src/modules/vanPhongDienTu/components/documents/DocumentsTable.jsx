@@ -1,11 +1,72 @@
 import React, { useMemo } from "react";
-import { Space } from "antd";
+import { Space, Grid } from "antd";
 import { CTable, CTag } from "../../../../components/common";
 import { mockDocumentsData, DOCUMENT_STATUS_MAP } from "./constants";
 
+const { useBreakpoint } = Grid;
+
 function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
-  const columns = useMemo(
-    () => [
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
+  const columns = useMemo(() => {
+    const baseColumns = [
+      {
+        title: "Trích yếu",
+        dataIndex: "trichYeu",
+        key: "trichYeu",
+        render: (text, record) => (
+          <div style={{ wordBreak: "break-word" }}>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onDocumentClick?.(record);
+              }}
+              style={{
+                color: "#1890ff",
+                textDecoration: "none",
+                fontSize: isMobile ? 13 : 14,
+                display: "block",
+                marginBottom: 4,
+              }}
+            >
+              {text}
+            </a>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+              {isMobile && record.soHieu && (
+                <span style={{ fontSize: 12, color: "#666" }}>
+                  {record.soHieu}
+                </span>
+              )}
+              {isMobile && record.trangThai && (
+                <CTag
+                  color={DOCUMENT_STATUS_MAP[record.trangThai]?.color}
+                  style={{ marginRight: 0 }}
+                >
+                  {DOCUMENT_STATUS_MAP[record.trangThai]?.label}
+                </CTag>
+              )}
+            </div>
+          </div>
+        ),
+      },
+      {
+        title: "Đơn vị ban hành",
+        dataIndex: "donViBanHanh",
+        key: "donViBanHanh",
+        width: isMobile ? 120 : 180,
+        render: (text) => (
+          <span style={{ fontSize: isMobile ? 12 : 14 }}>{text}</span>
+        ),
+      },
+    ];
+
+    if (isMobile) {
+      return baseColumns;
+    }
+
+    return [
       {
         title: "Ngày ban hành",
         dataIndex: "ngayBanHanh",
@@ -26,23 +87,7 @@ function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
         width: 80,
         align: "center",
       },
-      {
-        title: "Trích yếu",
-        dataIndex: "trichYeu",
-        key: "trichYeu",
-        render: (text, record) => (
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onDocumentClick?.(record);
-            }}
-            style={{ color: "#1890ff", textDecoration: "none" }}
-          >
-            {text}
-          </a>
-        ),
-      },
+      ...baseColumns,
       {
         title: "Người tạo",
         dataIndex: "nguoiTao",
@@ -54,12 +99,6 @@ function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
             <span>{text}</span>
           </Space>
         ),
-      },
-      {
-        title: "Đơn vị ban hành",
-        dataIndex: "donViBanHanh",
-        key: "donViBanHanh",
-        width: 180,
       },
       {
         title: "Trạng thái",
@@ -74,16 +113,15 @@ function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
           ) : null;
         },
       },
-    ],
-    [onDocumentClick]
-  );
+    ];
+  }, [onDocumentClick, isMobile]);
 
   return (
     <div style={{ marginTop: 16 }}>
       <CTable
         columns={columns}
         dataSource={dataSource}
-        scroll={{ x: 1400, y: 400 }}
+        scroll={{ x: isMobile ? undefined : 1400, y: 400 }}
         pagination={false}
         size="small"
       />
