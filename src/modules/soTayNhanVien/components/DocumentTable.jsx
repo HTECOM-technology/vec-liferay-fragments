@@ -1,16 +1,20 @@
 import React from "react";
-import { Table } from "antd";
+import { Table, Grid } from "antd";
 import { TableContainer, ActionButton, ActionsCell } from "../style";
 import { ReactComponent as EyeIcon } from "../../../assets/icon/eye-icon.svg";
 import { ReactComponent as DownloadIcon } from "../../../assets/icon/download-icon.svg";
 
+const { useBreakpoint } = Grid;
+
 const DocumentTable = () => {
+    const screens = useBreakpoint();
+
     const columns = [
         {
             title: "STT",
             dataIndex: "stt",
             key: "stt",
-            width: 60,
+            width: screens.md ? 60 : 50,
             align: "center",
         },
         {
@@ -21,13 +25,15 @@ const DocumentTable = () => {
         {
             title: "Hành động",
             key: "action",
-            width: 340,
+            width: screens.md ? 340 : 80,
             align: "center",
             render: (_, record) => (
                 <ActionsCell>
-                    <ActionButton className="view-btn" title="Xem">
-                        <EyeIcon />
-                    </ActionButton>
+                    {screens.md && (
+                        <ActionButton className="view-btn" title="Xem">
+                            <EyeIcon />
+                        </ActionButton>
+                    )}
                     <ActionButton className="download-btn" title="Tải xuống">
                         <DownloadIcon />
                     </ActionButton>

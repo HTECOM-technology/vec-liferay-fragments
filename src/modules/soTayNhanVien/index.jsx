@@ -1,12 +1,15 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
+import { Grid } from "antd";
 import Sidebar from "../../components/common/Sidebar";
-import {DocumentTable} from "./components";
-import {ContentArea, Header, LayoutContainer, PageWrap} from "./style";
-import {ReactComponent as NotebookIcon} from "../../assets/icon/notebook-icon.svg";
+import { DocumentTable } from "./components";
+import { ContentArea, Header, LayoutContainer, PageWrap, MobileTabContainer, MobileTabItem } from "./style";
+import { ReactComponent as NotebookIcon } from "../../assets/icon/notebook-icon.svg";
 
+const { useBreakpoint } = Grid;
 
 const SoTayNhanVienPage = () => {
     const [activeTab, setActiveTab] = useState("taiLieu");
+    const screens = useBreakpoint();
 
     const sidebarItems = [
         { key: "taiLieu", label: "TÀI LIỆU HƯỚNG DẪN", icon: <NotebookIcon /> },
@@ -18,11 +21,27 @@ const SoTayNhanVienPage = () => {
     return (
         <PageWrap>
             <LayoutContainer>
-                <Sidebar
-                    items={sidebarItems}
-                    activeKey={activeTab}
-                    onChange={setActiveTab}
-                />
+                {screens.md ? (
+                    <Sidebar
+                        items={sidebarItems}
+                        activeKey={activeTab}
+                        onChange={setActiveTab}
+                    />
+                ) : (
+                    <MobileTabContainer>
+                        {sidebarItems.map(item => (
+                            <MobileTabItem
+                                key={item.key}
+                                $active={activeTab === item.key}
+                                onClick={() => setActiveTab(item.key)}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </MobileTabItem>
+                        ))}
+                    </MobileTabContainer>
+                )}
+
                 <ContentArea>
                     <Header>
                         <NotebookIcon />
