@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { Button } from "antd";
+import { CButton } from "../../components/common";
 export const PageWrap = styled.div`
   padding: 0;
 
@@ -118,7 +119,7 @@ export const HeaderSection = styled.div`
 
 export const FilterSection = styled.div`
   .ant-form-item {
-    with: 100%;
+    width: 100%;
     margin: 0;
   }
 `;
@@ -273,4 +274,128 @@ export const MobileMenuWrap = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+`;
+
+export const StatsRow = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+`;
+
+export const StatCard = styled.div`
+  flex: 1;
+  min-width: 200px;
+  height: 68px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border: 1px solid #0090cf33;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.3s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: #0090cf80;
+  }
+
+  .stat-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #000000;
+    line-height: 1.4;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1;
+    color: #000000;
+  }
+`;
+
+export const HeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #0090cf33;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+`;
+
+export const SectionTitle = styled.h2`
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.85);
+  margin: 0;
+`;
+
+export const TabRow = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+
+  @media (max-width: 767px) {
+    border-bottom: none;
+    padding-bottom: 8px;
+  }
+`;
+
+export const TabButtons = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+export const TabButton = styled(CButton)`
+  && {
+    height: 28px;
+    padding: 0 12px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    box-shadow: none;
+    color: rgba(0, 0, 0, 0.65);
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.2s;
+
+    ${(props) =>
+      props.$active &&
+      `
+      background: #0090cf;
+      color: #fff;
+      border-color: #0090cf;
+    `}
+
+    &:hover {
+      background: ${(props) => (props.$active ? "#0090cf" : "#e9ecef")};
+      color: ${(props) => (props.$active ? "#fff" : "rgba(0, 0, 0, 0.85)")};
+      border-color: ${(props) => (props.$active ? "#0090cf" : "#e5e7eb")};
+    }
+  }
+`;
+
+export const PaginationWrapper = styled.div`
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;

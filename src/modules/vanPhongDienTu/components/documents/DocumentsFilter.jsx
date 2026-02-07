@@ -1,8 +1,15 @@
 import React, { useState } from "react";
 import { Form, Space, Grid } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
-import { CInput, CSelect, CButton, CModal } from "../../../../components/common";
-import { MobileFilterButton } from "../../style";
+import { SearchOutlined } from "@ant-design/icons";
+import {
+  CInput,
+  CSelect,
+  CButton,
+  CModal,
+} from "../../../../components/common";
+import { MobileFilterButton, FilterSection } from "../../style";
+import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
+import { ButtonWrapper } from "./styles";
 import {
   UNIT_OPTIONS,
   DOCUMENT_TYPE_OPTIONS,
@@ -13,102 +20,136 @@ import {
 
 const { useBreakpoint } = Grid;
 
-function DocumentsFilter({ initialValues, onSearch }) {
+const FILTER_ICON_STYLE = { width: 18, height: 18 };
+
+function DocumentsFilter({
+  initialValues,
+  onSearch,
+  renderMobileButton,
+  isMobileView,
+}) {
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
+  const handleOpenModal = () => setIsModalVisible(true);
+  const handleCloseModal = () => setIsModalVisible(false);
+
   const onFinish = (values) => {
     onSearch?.(values);
     if (isMobile) {
-      setIsModalVisible(false);
+      handleCloseModal();
     }
   };
 
+  const formItemStyle = isMobile ? { width: "100%" } : { width: "auto" };
+
   const filterFormContent = (
-    <Space wrap size={9} direction={isMobile ? "vertical" : "horizontal"} style={{ width: isMobile ? '100%' : 'auto' }}>
-      <Form.Item name="search" style={{ marginBottom: 0, width: isMobile ? '100%' : 200 }}>
-        <CInput placeholder="Tìm kiếm" style={{ width: '100%' }} />
-      </Form.Item>
-      <Form.Item name="donVi" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Chọn đơn vị"
-          options={UNIT_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="loaiVanBan" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Loại văn bản"
-          options={DOCUMENT_TYPE_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="nhomSo" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Nhóm số"
-          options={GROUP_NUMBER_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="donViBanHanh" style={{ marginBottom: 0, width: isMobile ? '100%' : 180 }}>
-        <CSelect
-          placeholder="Đơn vị ban hành"
-          options={ISSUING_UNIT_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="trangThai" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Trạng thái"
-          options={DOCUMENT_STATUS_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item style={{ marginBottom: 0, width: isMobile ? '100%' : 'auto' }}>
-        <CButton type="primary" htmlType="submit" block={isMobile}>
-          Tìm kiếm
-        </CButton>
-      </Form.Item>
-    </Space>
+    <FilterSection>
+      <Space
+        wrap
+        size={9}
+        direction={isMobile ? "vertical" : "horizontal"}
+        style={formItemStyle}
+      >
+        <Form.Item name="search" style={formItemStyle}>
+          <CInput placeholder="Tìm kiếm" suffix={<SearchOutlined />} />
+        </Form.Item>
+        <Form.Item name="donVi" style={formItemStyle}>
+          <CSelect
+            placeholder="Chọn đơn vị"
+            options={UNIT_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="loaiVanBan" style={formItemStyle}>
+          <CSelect
+            placeholder="Loại văn bản"
+            options={DOCUMENT_TYPE_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="nhomSo" style={formItemStyle}>
+          <CSelect
+            placeholder="Nhóm số"
+            options={GROUP_NUMBER_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="donViBanHanh" style={formItemStyle}>
+          <CSelect
+            placeholder="Đơn vị ban hành"
+            options={ISSUING_UNIT_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="trangThai" style={formItemStyle}>
+          <CSelect
+            placeholder="Trạng thái"
+            options={DOCUMENT_STATUS_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item style={formItemStyle}>
+          <ButtonWrapper>
+            <CButton type="primary" htmlType="submit">
+              Tìm kiếm
+            </CButton>
+          </ButtonWrapper>
+        </Form.Item>
+      </Space>
+    </FilterSection>
   );
 
+  const filterIcon = (
+    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
+  );
+
+  const filterModal = (
+    <CModal
+      open={isModalVisible}
+      onCancel={handleCloseModal}
+      footer={null}
+      width={372}
+      closable={false}
+      title={null}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={initialValues}
+      >
+        {filterFormContent}
+      </Form>
+    </CModal>
+  );
+
+  const wrapperStyle = {
+    padding: "12px 0",
+    borderBottom: "1px solid #0090cf33",
+  };
+
   if (isMobile) {
-    return (
-      <div style={{ padding: "12px 0", borderBottom: "1px solid #0090cf33" }}>
-        <MobileFilterButton
-          icon={<MenuOutlined />}
-          onClick={() => setIsModalVisible(true)}
-        />
-        <CModal
-          open={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
-          footer={null}
-          width="90%"
-          closable={false}
-          title={null}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={initialValues}
-          >
-            {filterFormContent}
-          </Form>
-        </CModal>
+    const mobileButton = renderMobileButton ? (
+      renderMobileButton({ onClick: handleOpenModal })
+    ) : (
+      <div style={wrapperStyle}>
+        <MobileFilterButton icon={filterIcon} onClick={handleOpenModal} />
       </div>
+    );
+
+    return (
+      <>
+        {mobileButton}
+        {filterModal}
+      </>
     );
   }
 
   return (
-    <div style={{ padding: "12px 0", borderBottom: "1px solid #0090cf33" }}>
+    <div style={wrapperStyle}>
       <Form
         form={form}
         layout="inline"

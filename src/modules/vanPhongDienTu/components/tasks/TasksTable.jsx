@@ -1,11 +1,57 @@
 import React, { useMemo } from "react";
-import { Space } from "antd";
+import { Space, Grid } from "antd";
 import { CTable, CTag } from "../../../../components/common";
 import { mockTasksData, TASK_STATUS_MAP } from "./constants";
 
+const { useBreakpoint } = Grid;
+
 function TasksTable({ dataSource = mockTasksData, onTaskClick }) {
-  const columns = useMemo(
-    () => [
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
+  const columns = useMemo(() => {
+    const baseColumns = [
+      {
+        title: "Nhiệm vụ",
+        dataIndex: "nhiemVu",
+        key: "nhiemVu",
+        width: isMobile ? undefined : 350,
+        render: (text, record) => (
+          <div>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onTaskClick?.(record);
+              }}
+              style={{ color: "#1890ff", textDecoration: "none" }}
+            >
+              {text}
+            </a>
+            {isMobile && record.trangThai && (
+              <div style={{ marginTop: 4 }}>
+                <CTag color={TASK_STATUS_MAP[record.trangThai]?.color}>
+                  {TASK_STATUS_MAP[record.trangThai]?.label}
+                </CTag>
+              </div>
+            )}
+          </div>
+        ),
+      },
+      {
+        title: "Hạn xử lý",
+        dataIndex: "hanXuLy",
+        key: "hanXuLy",
+        width: isMobile ? 100 : 180,
+        align: "center",
+      },
+    ];
+
+    if (isMobile) {
+      return baseColumns;
+    }
+
+    return [
       {
         title: "Ngày",
         dataIndex: "ngay",
@@ -13,24 +59,7 @@ function TasksTable({ dataSource = mockTasksData, onTaskClick }) {
         width: 110,
         align: "center",
       },
-      {
-        title: "Nhiệm vụ",
-        dataIndex: "nhiemVu",
-        key: "nhiemVu",
-        width: 350,
-        render: (text, record) => (
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onTaskClick?.(record);
-            }}
-            style={{ color: "#1890ff", textDecoration: "none" }}
-          >
-            {text}
-          </a>
-        ),
-      },
+      baseColumns[0],
       {
         title: "Giao việc",
         dataIndex: "giaoViec",
@@ -43,13 +72,7 @@ function TasksTable({ dataSource = mockTasksData, onTaskClick }) {
           </Space>
         ),
       },
-      {
-        title: "Hạn xử lý",
-        dataIndex: "hanXuLy",
-        key: "hanXuLy",
-        width: 180,
-        align: "center",
-      },
+      baseColumns[1],
       {
         title: "Trạng thái",
         dataIndex: "trangThai",
@@ -75,16 +98,15 @@ function TasksTable({ dataSource = mockTasksData, onTaskClick }) {
         key: "xuLyChinh2",
         width: 250,
       },
-    ],
-    [onTaskClick]
-  );
+    ];
+  }, [onTaskClick, isMobile]);
 
   return (
     <div style={{ marginTop: 16 }}>
       <CTable
         columns={columns}
         dataSource={dataSource}
-        scroll={{ x: 1500, y: 400 }}
+        scroll={isMobile ? undefined : { x: 1500, y: 400 }}
         pagination={false}
         size="small"
       />

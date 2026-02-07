@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Grid } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
 import { CButton } from "../../../../components/common";
 import styled from "styled-components";
@@ -6,58 +7,21 @@ import TasksFilter from "./TasksFilter";
 import TasksTable from "./TasksTable";
 import TasksPagination from "./TasksPagination";
 import TaskDetailModal from "./TaskDetailModal";
+import TasksStatsCards from "./TasksStatsCards";
+import {
+  HeaderRow,
+  SectionTitle,
+  TabRow,
+  TabButtons,
+  TabButton,
+} from "../../style";
 import { TASK_TABS } from "./constants";
+
+const { useBreakpoint } = Grid;
 
 const TasksContent = styled.div`
   padding: 16px;
   background: #fff;
-`;
-
-const StatsRow = styled.div`
-  display: flex;
-  gap: 24px;
-  margin-bottom: 16px;
-  padding: 16px;
-  background: #f5f5f5;
-  border-radius: 4px;
-`;
-
-const StatItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-
-  .stat-label {
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.65);
-  }
-
-  .stat-value {
-    font-size: 24px;
-    font-weight: 600;
-    color: ${props => props.$color || "#1890ff"};
-  }
-`;
-
-const TabRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const TabButtons = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const TabButton = styled(CButton)`
-  ${props => props.$active && `
-    background: #1890ff;
-    color: #fff;
-    border-color: #1890ff;
-  `}
 `;
 
 function TasksTab({
@@ -72,6 +36,8 @@ function TasksTab({
   const { current = 1, pageSize = 12, total = 0, onChange } = pagination;
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
@@ -85,43 +51,37 @@ function TasksTab({
 
   return (
     <TasksContent>
-      <StatsRow>
-        <StatItem>
-          <span className="stat-label">Tổng số nhiệm vụ</span>
-          <span className="stat-value">{String(stats.total).padStart(2, '0')}</span>
-        </StatItem>
-        <StatItem $color="#9254de">
-          <span className="stat-label">Đang xử lý</span>
-          <span className="stat-value">{String(stats.processing).padStart(2, '0')}</span>
-        </StatItem>
-        <StatItem $color="#52c41a">
-          <span className="stat-label">Đã hoàn thành</span>
-          <span className="stat-value">{String(stats.completed).padStart(2, '0')}</span>
-        </StatItem>
-        <StatItem $color="#ff4d4f">
-          <span className="stat-label">Quá hạn</span>
-          <span className="stat-value">{String(stats.overdue).padStart(2, '0')}</span>
-        </StatItem>
-      </StatsRow>
+      <TasksStatsCards stats={stats} />
+
+      <HeaderRow>
+        <SectionTitle>Nhiệm vụ thực hiện</SectionTitle>
+        {isMobile ? (
+          <TasksFilter initialValues={initialValues} onSearch={onSearch} />
+        ) : (
+          <CButton type="primary" icon={<EyeOutlined />}>
+            Xem đầy đủ nhiệm vụ
+          </CButton>
+        )}
+      </HeaderRow>
 
       <TabRow>
-        <TabButtons>
-          {TASK_TABS.map(tab => (
+        <TabButtons style={{ flexWrap: isMobile ? "wrap" : "nowrap" }}>
+          {TASK_TABS.map((tab) => (
             <TabButton
               key={tab.key}
               $active={activeSubTab === tab.key}
               onClick={() => onSubTabChange(tab.key)}
+              style={isMobile ? { marginBottom: 8 } : {}}
             >
               {tab.label}
             </TabButton>
           ))}
         </TabButtons>
-        <CButton type="primary" icon={<EyeOutlined />}>
-          Xem đầy đủ nhiệm vụ
-        </CButton>
       </TabRow>
 
-      <TasksFilter initialValues={initialValues} onSearch={onSearch} />
+      {!isMobile && (
+        <TasksFilter initialValues={initialValues} onSearch={onSearch} />
+      )}
       <TasksTable dataSource={dataSource} onTaskClick={handleTaskClick} />
       <TasksPagination
         current={current}

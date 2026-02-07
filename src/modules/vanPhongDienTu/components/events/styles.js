@@ -93,6 +93,10 @@ export const EventsFilterCol = styled.div`
   gap: 8px;
 `;
 
+export const ButtonWrapper = styled.div`
+  text-align: center;
+`;
+
 export const CalendarSidebarWrap = styled.div`
   .month-picker {
     margin-bottom: 16px;

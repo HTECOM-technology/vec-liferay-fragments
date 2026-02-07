@@ -57,7 +57,10 @@ const CPagination = React.memo(
     const options =
       typeof pageSizeOptions[0] === "object"
         ? pageSizeOptions
-        : pageSizeOptions.map((opt) => ({ value: Number(opt), label: String(opt) + `/ ${total}` }));
+        : pageSizeOptions.map((opt) => ({
+            value: Number(opt),
+            label: String(opt) + `/ ${total}`,
+          }));
 
     return (
       <PaginationWrap {...rest}>
@@ -68,9 +71,7 @@ const CPagination = React.memo(
               value={pageSize}
               onChange={handleSizeChange}
               options={options}
-
               style={{ width: 134, marginLeft: 8, marginRight: 4 }}
-
             />
           </LeftSection>
         )}
@@ -89,6 +90,7 @@ const CPagination = React.memo(
         </CenterSection>
         {showQuickJumper && (
           <RightSection>
+            {rest.renderBeforeQuickJumper}
             <span className="pagination-label">Tới trang</span>
             <StyledInput
               min={1}
@@ -99,13 +101,12 @@ const CPagination = React.memo(
               placeholder={current}
               onKeyDown={handleJumpKeyDown}
               style={{ width: 56, marginLeft: 8 }}
-
             />
           </RightSection>
         )}
       </PaginationWrap>
     );
-  }
+  },
 );
 
 CPagination.displayName = "CPagination";

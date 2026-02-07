@@ -1,10 +1,16 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { MailOutlined, SendOutlined } from "@ant-design/icons";
-import { CButton, CModal } from "../../../../components/common";
+import { CButton } from "../../../../components/common";
 import styled from "styled-components";
+import {
+  StyledDetailModal,
+  InfoSection,
+  DetailModalTitle,
+  DetailModalFooter,
+} from "../common/DetailModalStyles";
 
-// Custom styling for modal content
+// Custom styling for modal content (unique to MessageDetailModal)
 const ContentBody = styled.div`
   text-align: center;
   padding: 16px 0;
@@ -33,81 +39,9 @@ const ContentBody = styled.div`
   }
 `;
 
-// Custom styled CModal for this component
-const StyledCModal = styled(CModal)`
-  &.ant-modal {
-    max-width: 800px;
-  }
-
-  .ant-modal-title {
-    width: 95%;
-    overflow: hidden;
-  }
-
-  .ant-modal-body {
-    margin: 16px 0;
-    padding: 16px 0;
-    border: 1px solid #0090cf33;
-    border-radius: 8px;
-  }
-
-  .ant-modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid #f0f0f0;
-  }
-`;
-
-const InfoSection = styled.div`
+// Styled InfoSection with border-bottom for message layout
+const MessageInfoSection = styled(InfoSection)`
   border-bottom: 1px solid #0090cf33;
-
-  .info-title {
-    font-weight: 600;
-    font-size: 15px;
-    color: #1e1e1e;
-    padding: 0 16px 12px;
-    border-bottom: 1px solid #0090cf33;
-    margin-bottom: 8px;
-  }
-
-  .info-row {
-    display: flex;
-    padding: 6px 16px;
-  }
-
-  .info-label {
-    font-weight: 600;
-    color: #1e1e1e;
-    min-width: 140px;
-    flex-shrink: 0;
-  }
-
-  .info-value {
-    color: #333;
-  }
-`;
-
-const ModalTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: 100%;
-  min-width: 0;
-
-  .anticon-mail {
-    color: #0090cf;
-    flex-shrink: 0;
-  }
-
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 0;
-  }
-`;
-
-const ModalFooter = styled.div`
-  text-align: center;
 `;
 
 function MessageDetailModal({ visible, message, onClose, onReply }) {
@@ -171,25 +105,25 @@ function MessageDetailModal({ visible, message, onClose, onReply }) {
   };
 
   return (
-    <StyledCModal
+    <StyledDetailModal
       title={
-        <ModalTitle>
+        <DetailModalTitle>
           <MailOutlined />
           <span>{message.tieuDe}</span>
-        </ModalTitle>
+        </DetailModalTitle>
       }
       open={visible}
       onCancel={onClose}
       footer={
-        <ModalFooter>
+        <DetailModalFooter>
           <CButton type="primary" icon={<SendOutlined />} onClick={handleReply}>
             Trả lời
           </CButton>
-        </ModalFooter>
+        </DetailModalFooter>
       }
       width="90%"
     >
-      <InfoSection>
+      <MessageInfoSection>
         <div className="info-title">Thông tin chung</div>
         <div className="info-row">
           <span className="info-label">Người gửi</span>
@@ -207,10 +141,10 @@ function MessageDetailModal({ visible, message, onClose, onReply }) {
             {message.ngayGuiFull || `Thứ sáu, ${message.ngay} - 09:02 AM`}
           </span>
         </div>
-      </InfoSection>
+      </MessageInfoSection>
 
       <ContentBody>{renderContent()}</ContentBody>
-    </StyledCModal>
+    </StyledDetailModal>
   );
 }
 

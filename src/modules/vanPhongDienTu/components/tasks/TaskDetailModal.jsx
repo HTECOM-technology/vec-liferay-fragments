@@ -1,8 +1,13 @@
 import React from "react";
-import { Descriptions } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
-import { CButton, CModal, CTag } from "../../../../components/common";
+import { CheckSquareOutlined, EyeOutlined } from "@ant-design/icons";
+import { CButton, CTag } from "../../../../components/common";
 import { TASK_STATUS_MAP } from "./constants";
+import {
+  StyledDetailModal,
+  InfoSection,
+  DetailModalTitle,
+  DetailModalFooter,
+} from "../common/DetailModalStyles";
 
 function TaskDetailModal({ visible, task, onClose }) {
   if (!task) return null;
@@ -20,12 +25,17 @@ function TaskDetailModal({ visible, task, onClose }) {
   };
 
   return (
-    <CModal
-      title={task.nhiemVu || "Chi tiết nhiệm vụ"}
+    <StyledDetailModal
+      title={
+        <DetailModalTitle>
+          <CheckSquareOutlined />
+          <span>{task.nhiemVu || "Chi tiết nhiệm vụ"}</span>
+        </DetailModalTitle>
+      }
       open={visible}
       onCancel={onClose}
       footer={
-        <div style={{ textAlign: "center" }}>
+        <DetailModalFooter>
           <CButton
             type="primary"
             icon={<EyeOutlined />}
@@ -33,50 +43,61 @@ function TaskDetailModal({ visible, task, onClose }) {
           >
             Chi tiết nhiệm vụ
           </CButton>
-        </div>
+        </DetailModalFooter>
       }
-      width={700}
-      centered
+      width="90%"
     >
-      <Descriptions
-        title="Thông tin chung"
-        bordered
-        column={1}
-        size="middle"
-      >
-        <Descriptions.Item label="Nhóm">
-          {task.nhom || "Báo cáo"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Mức độ ưu tiên">
-          <CTag color={getPriorityColor(task.mucDoUuTien || "Bình thường")}>
-            {task.mucDoUuTien || "Bình thường"}
-          </CTag>
-        </Descriptions.Item>
-        <Descriptions.Item label="Trạng thái">
-          <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
-          {task.ngayHoanThanh && (
-            <span style={{ marginLeft: 8, color: "rgba(0, 0, 0, 0.45)" }}>
-              ({task.ngayHoanThanh})
-            </span>
-          )}
-        </Descriptions.Item>
-        <Descriptions.Item label="Hạn xử lý">
-          {task.hanXuLy || "04/01/2026 - 09/01/2026"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Người giao việc">
-          {task.giaoViec || "Nguyễn Văn A"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Đơn vị xử lý chính">
-          {task.xuLyChinh || "Ban CNTT"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Người xử lý chính">
-          {task.giaoViec || "Nguyễn Văn A"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Phối hợp xử lý">
-          {task.xuLyChinh2 || "Trần Xuân Trí, Mai Hồng Quang"}
-        </Descriptions.Item>
-      </Descriptions>
-    </CModal>
+      <InfoSection>
+        <div className="info-title">Thông tin nhiệm vụ</div>
+        <div className="info-row">
+          <span className="info-label">Nhóm</span>
+          <span className="info-value">{task.nhom || "Báo cáo"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Mức độ ưu tiên</span>
+          <span className="info-value">
+            <CTag color={getPriorityColor(task.mucDoUuTien || "Bình thường")}>
+              {task.mucDoUuTien || "Bình thường"}
+            </CTag>
+          </span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Trạng thái</span>
+          <span className="info-value">
+            <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
+            {task.ngayHoanThanh && (
+              <span style={{ marginLeft: 8, color: "rgba(0, 0, 0, 0.45)" }}>
+                ({task.ngayHoanThanh})
+              </span>
+            )}
+          </span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Hạn xử lý</span>
+          <span className="info-value">
+            {task.hanXuLy || "04/01/2026 - 09/01/2026"}
+          </span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Người giao việc</span>
+          <span className="info-value">{task.giaoViec || "Nguyễn Văn A"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Đơn vị xử lý chính</span>
+          <span className="info-value">{task.xuLyChinh || "Ban CNTT"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Người xử lý chính</span>
+          <span className="info-value">{task.giaoViec || "Nguyễn Văn A"}</span>
+        </div>
+        <div className="info-row">
+          <span className="info-label">Phối hợp xử lý</span>
+          <span className="info-value">
+            {task.xuLyChinh2 || "Trần Xuân Trí, Mai Hồng Quang"}
+          </span>
+        </div>
+      </InfoSection>
+    </StyledDetailModal>
   );
 }
 

@@ -36,6 +36,10 @@ export const WorkFilterForm = styled(Form)`
   }
 `;
 
+export const ButtonWrapper = styled.div`
+  text-align: center;
+`;
+
 export const WorkTableSection = styled.div`
   margin-bottom: 24px;
 

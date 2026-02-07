@@ -1,11 +1,25 @@
 import React, { useState } from "react";
 import { Form, Space, Grid } from "antd";
-import { MenuOutlined } from "@ant-design/icons";
-import { CInput, CSelect, CButton, CModal } from "../../../../components/common";
-import { MobileFilterButton } from "../../style";
-import { ASSIGNOR_OPTIONS, PROCESSOR_OPTIONS, COOPERATOR_OPTIONS, TASK_STATUS_OPTIONS } from "./constants";
+import { SearchOutlined } from "@ant-design/icons";
+import {
+  CInput,
+  CSelect,
+  CButton,
+  CModal,
+} from "../../../../components/common";
+import { MobileFilterButton, FilterSection } from "../../style";
+import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
+import { ButtonWrapper } from "./styles";
+import {
+  ASSIGNOR_OPTIONS,
+  PROCESSOR_OPTIONS,
+  COOPERATOR_OPTIONS,
+  TASK_STATUS_OPTIONS,
+} from "./constants";
 
 const { useBreakpoint } = Grid;
+
+const FILTER_ICON_STYLE = { width: 18, height: 18 };
 
 function TasksFilter({ initialValues, onSearch }) {
   const [form] = Form.useForm();
@@ -13,88 +27,108 @@ function TasksFilter({ initialValues, onSearch }) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
+  const handleOpenModal = () => setIsModalVisible(true);
+  const handleCloseModal = () => setIsModalVisible(false);
+
   const onFinish = (values) => {
     onSearch?.(values);
     if (isMobile) {
-      setIsModalVisible(false);
+      handleCloseModal();
     }
   };
 
+  const formItemStyle = isMobile ? { width: "100%" } : { width: "auto" };
+
   const filterFormContent = (
-    <Space wrap size={9} direction={isMobile ? "vertical" : "horizontal"} style={{ width: isMobile ? '100%' : 'auto' }}>
-      <Form.Item name="search" style={{ marginBottom: 0, width: isMobile ? '100%' : 200 }}>
-        <CInput placeholder="Tìm kiếm" style={{ width: '100%' }} />
-      </Form.Item>
-      <Form.Item name="nguoiGiaoViec" style={{ marginBottom: 0, width: isMobile ? '100%' : 180 }}>
-        <CSelect
-          placeholder="Người giao việc"
-          options={ASSIGNOR_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="xuLyChinh" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Xử lý chính"
-          options={PROCESSOR_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="phoiHop" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Phối hợp"
-          options={COOPERATOR_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item name="trangThai" style={{ marginBottom: 0, width: isMobile ? '100%' : 150 }}>
-        <CSelect
-          placeholder="Trạng thái"
-          options={TASK_STATUS_OPTIONS}
-          allowClear
-          style={{ width: '100%' }}
-        />
-      </Form.Item>
-      <Form.Item style={{ marginBottom: 0, width: isMobile ? '100%' : 'auto' }}>
-        <CButton type="primary" htmlType="submit" block={isMobile}>
-          Tìm kiếm
-        </CButton>
-      </Form.Item>
-    </Space>
+    <FilterSection>
+      <Space
+        wrap
+        size={9}
+        direction={isMobile ? "vertical" : "horizontal"}
+        style={formItemStyle}
+      >
+        <Form.Item name="search" style={formItemStyle}>
+          <CInput placeholder="Tìm kiếm" suffix={<SearchOutlined />} />
+        </Form.Item>
+        <Form.Item name="nguoiGiaoViec" style={formItemStyle}>
+          <CSelect
+            placeholder="Người giao việc"
+            options={ASSIGNOR_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="xuLyChinh" style={formItemStyle}>
+          <CSelect
+            placeholder="Xử lý chính"
+            options={PROCESSOR_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="phoiHop" style={formItemStyle}>
+          <CSelect
+            placeholder="Phối hợp"
+            options={COOPERATOR_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item name="trangThai" style={formItemStyle}>
+          <CSelect
+            placeholder="Trạng thái"
+            options={TASK_STATUS_OPTIONS}
+            allowClear
+          />
+        </Form.Item>
+        <Form.Item style={formItemStyle}>
+          <ButtonWrapper>
+            <CButton type="primary" htmlType="submit">
+              Tìm kiếm
+            </CButton>
+          </ButtonWrapper>
+        </Form.Item>
+      </Space>
+    </FilterSection>
   );
+
+  const filterIcon = (
+    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
+  );
+
+  const filterModal = (
+    <CModal
+      open={isModalVisible}
+      onCancel={handleCloseModal}
+      footer={null}
+      width={372}
+      closable={false}
+      title={null}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        initialValues={initialValues}
+      >
+        {filterFormContent}
+      </Form>
+    </CModal>
+  );
+
+  const wrapperStyle = {
+    padding: "12px 0",
+    borderBottom: "1px solid #0090cf33",
+  };
 
   if (isMobile) {
     return (
-      <div style={{ padding: "12px 0", borderBottom: "1px solid #0090cf33" }}>
-        <MobileFilterButton
-          icon={<MenuOutlined />}
-          onClick={() => setIsModalVisible(true)}
-        />
-        <CModal
-          open={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
-          footer={null}
-          width="90%"
-          closable={false}
-          title={null}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={onFinish}
-            initialValues={initialValues}
-          >
-            {filterFormContent}
-          </Form>
-        </CModal>
-      </div>
+      <>
+        <MobileFilterButton icon={filterIcon} onClick={handleOpenModal} />
+        {filterModal}
+      </>
     );
   }
 
   return (
-    <div style={{ padding: "12px 0", borderBottom: "1px solid #0090cf33" }}>
+    <div style={wrapperStyle}>
       <Form
         form={form}
         layout="inline"
