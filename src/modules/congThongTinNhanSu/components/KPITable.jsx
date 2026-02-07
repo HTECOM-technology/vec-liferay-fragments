@@ -5,6 +5,7 @@ import { TableWrap } from "../style";
 import { mockKPIData, KPI_STATUS_OPTIONS } from "./constants";
 
 function KPITable({ dataSource = mockKPIData, onView }) {
+
     const columns = useMemo(
         () => [
             { title: "Kỳ", dataIndex: "ky", key: "ky", width: 100 },

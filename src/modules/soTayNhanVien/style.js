@@ -8,6 +8,64 @@ export const LayoutContainer = styled.div`
   display: flex;
   gap: 16px;
   align-items: flex-start;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0;
+  }
+`;
+
+export const MobileTabContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: white;
+  margin-bottom: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  
+  /* Remove sticky as grid takes too much space */
+  /* position: sticky; */
+  /* top: 0; */
+  /* z-index: 100; */
+`;
+
+export const MobileTabItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid ${props => props.$active ? '#0090cf' : '#e5e7eb'};
+  border-radius: 6px;
+  background: ${props => props.$active ? '#fff' : '#fff'};
+  color: ${props => props.$active ? '#0090cf' : '#374151'};
+  
+  /* Font styling */
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  min-height: 48px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  /* Box shadow for card feel? Design seems flat/border */
+  
+  &:hover {
+    border-color: #0090cf;
+    color: #0090cf;
+  }
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    color: inherit;
+    flex-shrink: 0;
+  }
+  
+  span {
+      line-height: 1.3;
+  }
 `;
 
 export const ContentArea = styled.div`
@@ -16,6 +74,11 @@ export const ContentArea = styled.div`
   border-radius: 4px;
   border: 1px solid #E5E7EB;
   min-height: 400px;
+  
+  @media (max-width: 768px) {
+    border: none;
+    background: transparent;
+  }
 `;
 
 export const Header = styled.div`
@@ -25,6 +88,7 @@ export const Header = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  border-radius: 4px 4px 0 0;
 
   h3 {
     margin: 0;
@@ -41,6 +105,12 @@ export const Header = styled.div`
 
 export const TableContainer = styled.div`
   padding: 16px;
+  
+  @media (max-width: 768px) {
+    padding: 0;
+    background: #fff;
+    margin-top: 17px;
+  }
 
   .ant-table-wrapper .ant-table-container {
     border: 1px solid #0090CF33 !important;
@@ -68,12 +138,14 @@ export const ActionButton = styled.button`
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
   transition: all 0.2s;
+  width: 32px;
+  height: 32px;
   
   &:hover {
     background: rgba(0, 0, 0, 0.05);
