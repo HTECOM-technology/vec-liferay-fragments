@@ -112,7 +112,7 @@ function MainLayout() {
         <StyledFooter>© 2026. Bản quyền thuộc về VEC</StyledFooter>
       </Layout>
       <StyledDrawer width={"90vw"} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
-        <LeftMenu collapsed={false} isMobile={true} showDrawer={showDrawer} />
+        <LeftMenu collapsed={false} setShowDrawer={setShowDrawer} isMobile={true} showDrawer={showDrawer} />
       </StyledDrawer>
     </StyledLayout>
   );

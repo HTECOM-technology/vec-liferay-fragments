@@ -5,7 +5,7 @@ import { getMenuIcon } from "./MenuIcons";
 import { MenuWrap, SectionTitle, ItemWrap, MenuItem } from "../style";
 import { Tooltip } from "antd";
 
-const Menu = ({ collapsed }) => {
+const Menu = ({ collapsed, setShowDrawer }) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -16,6 +16,7 @@ const Menu = ({ collapsed }) => {
       return;
     }
     navigate(item.key);
+    setShowDrawer && setShowDrawer(false);
   };
 
   const isActive = (key) => {
