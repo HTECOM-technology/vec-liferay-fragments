@@ -32,7 +32,7 @@ const FormFilter = () => {
       </Col>
       <Col xl={3} md={6} sm={8} xs={8}>
         <Form.Item style={{ textAlign: "center" }}>
-          <CButton type="primary" htmlType="submit" style={{ width: "100%" }}>
+          <CButton type="primary" htmlType="submit" style={{ width: "100%", fontSize: "14px", fontWeight: "500" }}>
             Tìm kiếm
           </CButton>
         </Form.Item>

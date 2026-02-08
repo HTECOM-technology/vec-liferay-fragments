@@ -37,31 +37,8 @@ function ChamCongPage() {
     return (
         <PageWrap>
             <HeaderActions>
-                <h3>Xem sổ liệu chấm công</h3>
-                <div className="button-group">
-                    <CheckboxLabel className="action-buttons">
-                        <Checkbox checked={showMyDataOnly} onChange={(e) => setShowMyDataOnly(e.target.checked)}>
-                            Chỉ dữ liệu chấm công của tôi
-                        </Checkbox>
-                    </CheckboxLabel>
-                    <CButton
-                        type="default"
-                        className="action-buttons register-button"
-                        onClick={handleRegister}
-                        icon={<EditOutlined />}
-                        size="small"
-                    >
-                        Đăng ký
-                    </CButton>
-                    <CButton
-                        type="primary"
-                        className="action-buttons approve-button"
-                        onClick={handleApprove}
-                        icon={<EditOutlined />}
-                        size="small"
-                    >
-                        Phê duyệt
-                    </CButton>
+                <div className="heading-group">
+                    <h3>Xem số liệu chấm công</h3>
                     <Popover
                         content={
                             <FilterForm>
@@ -79,6 +56,33 @@ function ChamCongPage() {
                             <IconFilter style={{ cursor: "pointer" }} />
                         </FilterButton>
                     </Popover>
+                </div>
+                <div className="button-group">
+                    <CheckboxLabel className="action-buttons">
+                        <Checkbox checked={showMyDataOnly} onChange={(e) => setShowMyDataOnly(e.target.checked)}>
+                            Chỉ dữ liệu chấm công của tôi
+                        </Checkbox>
+                    </CheckboxLabel>
+                    <div className="button-pair">
+                        <CButton
+                            type="default"
+                            className="action-buttons register-button"
+                            onClick={handleRegister}
+                            icon={<EditOutlined />}
+                            size="small"
+                        >
+                            Đăng ký
+                        </CButton>
+                        <CButton
+                            type="primary"
+                            className="action-buttons approve-button"
+                            onClick={handleApprove}
+                            icon={<EditOutlined />}
+                            size="small"
+                        >
+                            Phê duyệt
+                        </CButton>
+                    </div>
                 </div>
             </HeaderActions>
 
