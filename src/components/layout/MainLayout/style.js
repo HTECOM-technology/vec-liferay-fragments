@@ -30,7 +30,6 @@ export const StyledHeader = styled(Layout.Header)`
       display: none;
     }
   }
-
 `;
 
 export const StyledContent = styled(Layout.Content)`
@@ -39,7 +38,8 @@ export const StyledContent = styled(Layout.Content)`
   min-height: 280px;
   background: #fff;
   border-radius: 8px;
-  border: 1px solid #0090CF33;
+  border: 1px solid #0090cf33;
+  overflow-x: scroll;
 `;
 
 export const StyledLeftMenu = styled.div`
@@ -128,7 +128,9 @@ export const MenuItem = styled.button`
   background: ${(p) => (p.$active ? "#0090cf" : "transparent")};
   color: ${(p) => (p.$active ? "#fff" : "#333")};
   border-radius: 6px !important;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   border-left: 3px solid transparent;
   border-color: ${(p) => (p.$active ? "#e31c2a" : "transparent")};
 
@@ -161,12 +163,12 @@ export const AccountWrap = styled.div`
   @media (max-width: 768px) {
     display: none;
   }
-`
+`;
 
 export const StyledFooter = styled(Layout.Footer)`
   text-align: center;
   padding: 12px;
-  background: #0090CF;
+  background: #0090cf;
   line-height: 29px;
   color: #fff;
 `;
@@ -180,13 +182,12 @@ export const StyledSider = styled(Sider)`
 export const StyledHeaderMobile = styled.div`
   display: none;
   padding: 7px 20px;
-  background: linear-gradient(180deg, #E5F7FF 0%, #88CDEB 258.57%);
+  background: linear-gradient(180deg, #e5f7ff 0%, #88cdeb 258.57%);
   .menu-toggle-btn-mobile {
     height: 28px;
     width: 28px;
-    background: #0090CF26 !important;
+    background: #0090cf26 !important;
     border: none !important;
-
   }
 
   @media (max-width: 768px) {
@@ -197,19 +198,18 @@ export const StyledHeaderMobile = styled.div`
 `;
 
 export const StyledDrawer = styled(Drawer)`
-.ant-drawer-header{
-  display: none;
-}
-.ant-drawer-body{
-  padding: 0;
-}
-.ant-drawer-content-wrapper{
-  width: 300px !important;
-}
-.ant-drawer-content{
-  background: linear-gradient(180deg, #E5F7FF 0%, #88CDEB 258.57%);
-}
- 
+  .ant-drawer-header {
+    display: none;
+  }
+  .ant-drawer-body {
+    padding: 0;
+  }
+  .ant-drawer-content-wrapper {
+    width: 300px !important;
+  }
+  .ant-drawer-content {
+    background: linear-gradient(180deg, #e5f7ff 0%, #88cdeb 258.57%);
+  }
 `;
 
 export const StyledBtnVEC = styled(Button)`
@@ -220,23 +220,22 @@ export const StyledBtnVEC = styled(Button)`
   justify-content: center;
   gap: 4px;
   border-radius: 6px;
-  background-color: #E31C2A !important; 
-  color: #FFFFFF !important;
+  background-color: #e31c2a !important;
+  color: #ffffff !important;
   position: absolute;
   bottom: 102px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
   border: none !important;
-
-`
+`;
 
 export const WrapSubHeader = styled.div`
- display: none;
- @media (max-width: 1270px) {
-   display: block;
- }
- @media (max-width: 768px) {
   display: none;
- }
-`
+  @media (max-width: 1270px) {
+    display: block;
+  }
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
