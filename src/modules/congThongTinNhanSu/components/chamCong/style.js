@@ -69,7 +69,7 @@ export const HeaderActions = styled.div`
     align-items: center;
     gap: 8px;
     justify-content: space-between;
-    @media (max-width: 768px) {
+    @media (max-width: 1200px) {
       width: 100%;
     }
   }
@@ -79,6 +79,11 @@ export const HeaderActions = styled.div`
     gap: 8px;
     align-items: center;
     flex-wrap: wrap;
+    justify-content: space-between;
+
+    @media (max-width: 1200px) {
+      width: 100%;
+    }
   }
 
   .button-pair {
