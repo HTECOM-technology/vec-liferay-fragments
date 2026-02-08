@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { CTable, CTag } from "../../../components/common";
+import { CTable, CTag } from "../../../../../components/common";
 import { TableWrap } from "../style";
 import { ATTENDANCE_STATUS_MAP, mockAttendanceRecords } from "./constants";
 

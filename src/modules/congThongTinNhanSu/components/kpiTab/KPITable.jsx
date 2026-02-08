@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { CTable, CTag } from "../../../components/common";
-import { TableWrap } from "../style";
-import { mockKPIData, KPI_STATUS_OPTIONS } from "./constants";
+import { CTable, CTag } from "../../../../components/common";
+import { TableWrap } from "../../style";
+import { mockKPIData, KPI_STATUS_OPTIONS } from "../constants";
 
 function KPITable({ dataSource = mockKPIData, onView }) {
 

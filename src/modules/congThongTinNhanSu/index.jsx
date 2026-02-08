@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
-import { KPITab, NhanSuTab, SalaryTab } from "./components";
-import DaoTaoPage from "../daoTao";
-import ChamCongPage from "../chamCong";
+import { KPITab, NhanSuTab, SalaryTab, DaoTaoPage, ChamCongPage } from "./components";
 
 function CongThongTinNhanSuPage() {
   const [activeTab, setActiveTab] = useState("nhanSu");

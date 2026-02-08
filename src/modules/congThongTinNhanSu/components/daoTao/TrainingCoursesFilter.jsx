@@ -1,6 +1,6 @@
 import React from "react";
 import { Form } from "antd";
-import { FilterSection, FilterRow } from "../style";
+import { FilterSection, FilterRow } from "./style";
 import FormFilter from "./FormFilter";
 
 function TrainingCoursesFilter({ initialValues, onSearch }) {

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { CRangePicker, CInput, CSelect, CButton } from "../../../components/common";
+import { CRangePicker, CInput, CSelect, CButton } from "../../../../components/common";
 import { Col, Form } from "antd";
 const FormFilter = () => {
   return (
