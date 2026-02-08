@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "./styles/App2.css"
 import {
     DocumentWidget,
     TaskWidget,
@@ -9,6 +10,7 @@ import {
     KhaoSatBieuQuyetLink,
     QuyTrinhHoTroLink,
     SoTayNhanVienLink,
+    Dashboard,
 } from "./components";
 import {
     PageWrap,
@@ -70,25 +72,28 @@ function HomePage() {
     };
 
     return (
-        <PageWrap>
-            <DashboardContainer>
-                <LeftSection>
-                    <CardsRow>
-                        <DocumentWidget data={documentData} />
-                        <TaskWidget data={taskData} />
-                        <MissionWidget data={missionData} />
-                        <TrafficWidget data={trafficData} />
-                    </CardsRow>
-                </LeftSection>
+        // <PageWrap>
+        //     <DashboardContainer>
+        //         <LeftSection>
+        //             <CardsRow>
+        //                 <DocumentWidget data={documentData} />
+        //                 <TaskWidget data={taskData} />
+        //                 <MissionWidget data={missionData} />
+        //                 <TrafficWidget data={trafficData} />
+        //             </CardsRow>
+        //         </LeftSection>
 
-                <RightSection>
-                    <GopYSangKienLink onClick={handleGopYSangKien} />
-                    <KhaoSatBieuQuyetLink onClick={handleKhaoSatBieuQuyet} />
-                    <QuyTrinhHoTroLink onClick={handleQuyTrinhHoTro} />
-                    <SoTayNhanVienLink onClick={handleSoTayNhanVien} />
-                </RightSection>
-            </DashboardContainer>
-        </PageWrap>
+        //         <RightSection>
+        //             <GopYSangKienLink onClick={handleGopYSangKien} />
+        //             <KhaoSatBieuQuyetLink onClick={handleKhaoSatBieuQuyet} />
+        //             <QuyTrinhHoTroLink onClick={handleQuyTrinhHoTro} />
+        //             <SoTayNhanVienLink onClick={handleSoTayNhanVien} />
+        //         </RightSection>
+        //     </DashboardContainer>
+        // </PageWrap>
+        <>
+        <Dashboard/>
+        </>
     );
 }
 
