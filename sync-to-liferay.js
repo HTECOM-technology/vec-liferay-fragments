@@ -3,8 +3,8 @@ const path = require('path');
 
 // Cấu hình đường dẫn
 const BUILD_DIR = path.join(__dirname, 'build');
-const LIFERAY_PROJECT_DIR = path.join(__dirname, 'liferay-test');
-const COLLECTION_DIR = path.join(LIFERAY_PROJECT_DIR, 'src', 'liferay-fragment');
+const LIFERAY_PROJECT_DIR = path.join(__dirname, 'liferay-build');
+const COLLECTION_DIR = path.join(LIFERAY_PROJECT_DIR, 'src', 'intranet-fragment');
 const FRAGMENT_DIR = path.join(COLLECTION_DIR, 'fragments', 'react-hello-world');
 
 console.log('🚀 Syncing React build to Liferay Fragment...\n');
@@ -25,11 +25,11 @@ try {
   }
   console.log('✅ Build folder found');
 
-  // 2. Kiểm tra/Tạo liferay-test project structure
+  // 2. Kiểm tra/Tạo liferay-build project structure
   if (!fs.existsSync(LIFERAY_PROJECT_DIR)) {
     console.error('❌ Liferay project not found!');
     console.error('   Expected at:', LIFERAY_PROJECT_DIR);
-    console.error('   Make sure liferay-test folder exists.');
+    console.error('   Make sure liferay-build folder exists.');
     process.exit(1);
   }
   console.log('✅ Liferay project found');
@@ -160,7 +160,7 @@ console.log('✅ Created index.js');
     cssPath: 'index.css',
     htmlPath: 'index.html',
     jsPath: 'index.js',
-    name: 'React Hello World Slider',
+    name: 'intranet-fragment',
     type: 'component'
   };
 
@@ -185,7 +185,7 @@ console.log('✅ Created index.js');
   console.log(`               │   └── ${mainJs}`);
   console.log('               └── media/\n');
   console.log('📝 Next steps:');
-  console.log('   1. cd liferay-test');
+  console.log('   1. cd liferay-build');
   console.log('   2. npm run compress');
   console.log('   3. Answer "No" to deployment descriptor');
   console.log('   4. Import the generated ZIP to Liferay Portal\n');

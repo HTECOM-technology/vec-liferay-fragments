@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { memo } from "react";
 import { MainLayout } from "../components/layout";
-import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage, BieuMauTaiLieuPage } from "../modules";
+import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage, BieuMauTaiLieuPage, LoginPage } from "../modules";
 import { paths } from "./menuConfig";
 
 function PlaceholderPage({ title }) {
@@ -17,6 +17,7 @@ function AppRouter() {
   return (
     <Router>
       <Routes>
+        <Route path={paths.dangNhap} element={<LoginPage />} />
         <Route path={paths.trangChu} element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path={paths.vanPhongDienTu} element={<VanPhongDienTuPage />} />
