@@ -4,21 +4,15 @@ import { Button, Form, Row } from "antd";
 export const PageWrap = styled.div`
   padding: 0;
 
-  @media (max-width: 768px) {
-    .action-buttons {
-      display: none;
-    }
-  }
-
   .register-button {
     background-color: #e3f5ff !important;
     border-color: #0090cf !important;
     color: #0090cf !important;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 14px;
     height: 36px;
     padding: 8px 24px;
-    border-radius: 8px;
+    border-radius: 4px;
 
     &:hover {
       background-color: #d1efff !important;
@@ -36,10 +30,10 @@ export const PageWrap = styled.div`
     border-color: #0090cf !important;
     color: white !important;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 14px;
     height: 36px;
     padding: 8px 24px;
-    border-radius: 8px;
+    border-radius: 4px;
 
     &:hover {
       background-color: #007ab8 !important;
@@ -59,6 +53,8 @@ export const HeaderActions = styled.div`
   margin-bottom: 16px;
   border-bottom: 1px solid #0090cf33;
   padding-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
 
   h3 {
     margin: 0;
@@ -67,7 +63,30 @@ export const HeaderActions = styled.div`
     color: #1e1e1e;
   }
 
+  .heading-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+    @media (max-width: 1200px) {
+      width: 100%;
+    }
+  }
+
   .button-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    @media (max-width: 1200px) {
+      width: 100%;
+    }
+  }
+
+  .button-pair {
     display: flex;
     gap: 8px;
     align-items: center;
@@ -111,7 +130,8 @@ export const FilterButton = styled(Button)`
   display: none;
   border: none !important;
   padding: 0;
-
+  font-size: 14px;
+  font-weight: 500;
   @media (max-width: 768px) {
     display: block;
   }

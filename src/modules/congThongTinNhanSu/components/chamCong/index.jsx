@@ -3,8 +3,8 @@ import dayjs from "dayjs";
 import { CButton } from "../../../../components/common";
 import { PageWrap, HeaderActions, FilterButton, FilterForm, CheckboxLabel } from "./style";
 import { AttendanceFilter, AttendanceTable, mockAttendanceRecords } from "./components";
-import { Popover, Row, Checkbox } from "antd";
-import { EditOutlined } from "@ant-design/icons";
+import { Popover, Row, Checkbox, Dropdown } from "antd";
+import { EditOutlined, DownOutlined } from "@ant-design/icons";
 import { IconFilter } from "../../../../assets/icon/IconFilter";
 import FormFilter from "./components/FormFilter";
 
@@ -24,10 +24,38 @@ function ChamCongPage() {
         console.log("Tìm kiếm chấm công:", values);
     };
 
-    const handleRegister = () => {
+    const handleRegisterOvertime = () => {
         // TODO: thay thế bằng URL thực tế khi có
-        window.location.href = "#/dang-ky-cham-cong";
+        window.location.href = "#/dang-ky-lam-them-gio";
     };
+
+    const handleRegisterLeave = () => {
+        // TODO: thay thế bằng URL thực tế khi có
+        window.location.href = "#/dang-ky-nghi-vang-mat-cong-tac";
+    };
+
+    const handleRegisterConfirmWork = () => {
+        // TODO: thay thế bằng URL thực tế khi có
+        window.location.href = "#/dang-ky-xac-nhan-cong";
+    };
+
+    const registerMenuItems = [
+        {
+            key: "overtime",
+            label: "Đăng ký làm thêm giờ",
+            onClick: handleRegisterOvertime,
+        },
+        {
+            key: "leave",
+            label: "Đăng ký nghỉ, vắng mặt, công tác",
+            onClick: handleRegisterLeave,
+        },
+        {
+            key: "confirm",
+            label: "Đăng ký xác nhận công",
+            onClick: handleRegisterConfirmWork,
+        },
+    ];
 
     const handleApprove = () => {
         // TODO: thay thế bằng URL thực tế khi có
@@ -37,31 +65,8 @@ function ChamCongPage() {
     return (
         <PageWrap>
             <HeaderActions>
-                <h3>Xem sổ liệu chấm công</h3>
-                <div className="button-group">
-                    <CheckboxLabel className="action-buttons">
-                        <Checkbox checked={showMyDataOnly} onChange={(e) => setShowMyDataOnly(e.target.checked)}>
-                            Chỉ dữ liệu chấm công của tôi
-                        </Checkbox>
-                    </CheckboxLabel>
-                    <CButton
-                        type="default"
-                        className="action-buttons register-button"
-                        onClick={handleRegister}
-                        icon={<EditOutlined />}
-                        size="small"
-                    >
-                        Đăng ký
-                    </CButton>
-                    <CButton
-                        type="primary"
-                        className="action-buttons approve-button"
-                        onClick={handleApprove}
-                        icon={<EditOutlined />}
-                        size="small"
-                    >
-                        Phê duyệt
-                    </CButton>
+                <div className="heading-group">
+                    <h3>Xem số liệu chấm công</h3>
                     <Popover
                         content={
                             <FilterForm>
@@ -79,6 +84,34 @@ function ChamCongPage() {
                             <IconFilter style={{ cursor: "pointer" }} />
                         </FilterButton>
                     </Popover>
+                </div>
+                <div className="button-group">
+                    <CheckboxLabel className="action-buttons">
+                        <Checkbox checked={showMyDataOnly} onChange={(e) => setShowMyDataOnly(e.target.checked)}>
+                            Chỉ dữ liệu chấm công của tôi
+                        </Checkbox>
+                    </CheckboxLabel>
+                    <div className="button-pair">
+                        <Dropdown menu={{ items: registerMenuItems }} trigger={["click"]}>
+                            <CButton
+                                type="default"
+                                className="action-buttons register-button"
+                                icon={<EditOutlined />}
+                                size="small"
+                            >
+                                Đăng ký <DownOutlined style={{ fontSize: 14 }} />
+                            </CButton>
+                        </Dropdown>
+                        <CButton
+                            type="primary"
+                            className="action-buttons approve-button"
+                            onClick={handleApprove}
+                            icon={<EditOutlined />}
+                            size="small"
+                        >
+                            Phê duyệt
+                        </CButton>
+                    </div>
                 </div>
             </HeaderActions>
 
