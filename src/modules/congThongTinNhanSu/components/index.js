@@ -10,4 +10,5 @@ export { default as BirthdayTable } from "./employeesTab/BirthdayTable";
 export { default as EmployeeDetailModal } from "./employeesTab/EmployeeDetailModal";
 export { default as SalaryTab } from "./SalaryTab";
 export { default as DaoTaoPage } from "./daoTao";
+export { default as ChamCongPage } from "./chamCong";
 export * from "./employeesTab/nhanSuConstants";
