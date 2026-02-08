@@ -227,3 +227,12 @@
 .right-panel {
   flex: 1;                /* ~35% */
 }
+
+
+/* Css for filter popover */
+.filter-popover{
+  .ant-popover-container{
+    padding: 27px 21px;
+    margin-left: 48px;
+  }
+}

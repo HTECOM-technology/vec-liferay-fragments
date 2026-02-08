@@ -1,5 +1,63 @@
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { Row } from "antd";
+
+export const MobileDateRangeGlobalStyle = createGlobalStyle`
+  .mobile-range-picker-dropdown {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    display: flex;
+    justify-content: center;
+    
+    .ant-picker-panel-container {
+      width: 100% !important;
+      max-width: 350px !important;
+      overflow: hidden;
+      margin: 0 auto;
+      box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
+
+    .ant-picker-panels {
+      display: flex;
+      justify-content: center;
+    }
+    
+    /* Hide the second panel to show only one calendar at a time on mobile */
+    .ant-picker-panel:nth-child(2) {
+        display: none;
+    }
+    
+    /* Ensure header and content fit */
+    .ant-picker-header {
+        padding: 0 8px;
+    }
+    .ant-picker-content {
+        width: 100% !important;
+    }
+    
+    /* Make the single panel full width */
+    .ant-picker-panel {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .ant-picker-date-panel {
+        width: 100%;
+    }
+    
+    .ant-picker-body {
+        width: 100%;
+        padding: 8px 16px;
+    }
+    
+    .ant-picker-content {
+        width: 100%;
+        table-layout: fixed;
+    }
+  }
+`;
 
 export const PageWrap = styled.div`
   padding: 0;
