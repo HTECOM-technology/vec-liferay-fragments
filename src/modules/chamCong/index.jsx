@@ -1,0 +1,91 @@
+import React, { useState } from "react";
+import dayjs from "dayjs";
+import { CButton } from "../../components/common";
+import { PageWrap, HeaderActions, FilterButton, FilterForm, CheckboxLabel } from "./style";
+import { AttendanceFilter, AttendanceTable, mockAttendanceRecords } from "./components";
+import { Popover, Row, Checkbox } from "antd";
+import { EditOutlined } from "@ant-design/icons";
+import { IconFilter } from "../../assets/icon/IconFilter";
+import FormFilter from "./components/FormFilter";
+
+const defaultDateFrom = dayjs("2026-12-01");
+const defaultDateTo = dayjs("2026-12-31");
+
+function ChamCongPage() {
+    const [showMyDataOnly, setShowMyDataOnly] = useState(false);
+
+    const filterInitialValues = {
+        dateRange: [defaultDateFrom, defaultDateTo],
+    };
+
+    const handleSearch = (values) => {
+        // TODO: tích hợp API tìm kiếm chấm công khi có backend
+        // eslint-disable-next-line no-console
+        console.log("Tìm kiếm chấm công:", values);
+    };
+
+    const handleRegister = () => {
+        // TODO: thay thế bằng URL thực tế khi có
+        window.location.href = "#/dang-ky-cham-cong";
+    };
+
+    const handleApprove = () => {
+        // TODO: thay thế bằng URL thực tế khi có
+        window.location.href = "#/phe-duyet-cham-cong";
+    };
+
+    return (
+        <PageWrap>
+            <HeaderActions>
+                <h3>Xem sổ liệu chấm công</h3>
+                <div className="button-group">
+                    <CheckboxLabel className="action-buttons">
+                        <Checkbox checked={showMyDataOnly} onChange={(e) => setShowMyDataOnly(e.target.checked)}>
+                            Chỉ dữ liệu chấm công của tôi
+                        </Checkbox>
+                    </CheckboxLabel>
+                    <CButton
+                        type="default"
+                        className="action-buttons register-button"
+                        onClick={handleRegister}
+                        icon={<EditOutlined />}
+                        size="small"
+                    >
+                        Đăng ký
+                    </CButton>
+                    <CButton
+                        type="primary"
+                        className="action-buttons approve-button"
+                        onClick={handleApprove}
+                        icon={<EditOutlined />}
+                        size="small"
+                    >
+                        Phê duyệt
+                    </CButton>
+                    <Popover
+                        content={
+                            <FilterForm>
+                                <Row justify="center">
+                                    <FormFilter />
+                                </Row>
+                            </FilterForm>
+                        }
+                        trigger="click"
+                        placement="bottomRight"
+                        overlayClassName="filter-popover"
+                        arrow={false}
+                    >
+                        <FilterButton>
+                            <IconFilter style={{ cursor: "pointer" }} />
+                        </FilterButton>
+                    </Popover>
+                </div>
+            </HeaderActions>
+
+            <AttendanceFilter initialValues={filterInitialValues} onSearch={handleSearch} />
+            <AttendanceTable dataSource={mockAttendanceRecords} />
+        </PageWrap>
+    );
+}
+
+export default ChamCongPage;
