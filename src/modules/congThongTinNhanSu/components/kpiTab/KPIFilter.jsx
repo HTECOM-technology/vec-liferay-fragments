@@ -1,14 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Form, Col, Grid, Modal } from "antd";
-import { CSelect, CButton, CRangePicker } from "../../../components/common";
-import { FilterSection, FilterRow, MobileDateRangeGlobalStyle } from "../style";
+import { CSelect, CButton, CRangePicker } from "../../../../components/common";
+import { FilterSection, FilterRow, MobileDateRangeGlobalStyle } from "../../style";
 import {
     KY_DANH_GIA_OPTIONS,
     KPI_STATUS_OPTIONS,
     PHONG_BAN_OPTIONS,
     DON_VI_OPTIONS,
-} from "./constants";
+} from "../constants";
 
 const { useBreakpoint } = Grid;
 
@@ -123,6 +123,7 @@ KPIFilter.propTypes = {
     onSearch: PropTypes.func,
     open: PropTypes.bool,
     onClose: PropTypes.func,
+    dataSource: PropTypes.array, // Added to fix potential lint error, though not used in original
 };
 
 export default KPIFilter;

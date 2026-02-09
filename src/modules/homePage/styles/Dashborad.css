@@ -1,0 +1,267 @@
+.dashboard {
+    
+    overflow: hidden;
+}
+
+body {
+  background: #f5f6fa;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* Card */
+.doc-card {
+  width: 300px;
+  background: #ffffff;
+  border: 1px solid #cfeeff;
+  border-radius: 8px;
+  overflow: hidden;
+
+}
+.checkbox-custom {
+    width: 15px;
+    height: 15px;
+}
+.gap-8 {
+    gap: 8px !important;
+}
+
+/* Header */
+.doc-card-header {
+  background: #eaf8ff;
+  padding: 10px 12px;
+  font-weight: 600;
+  color: #1E1E1E;
+  font-size: 16px;
+  gap: 8px;
+}
+
+.doc-card-header img {
+  width: 20px;
+}
+
+/* Body */
+.doc-card-body {
+  padding: 8px;
+}
+
+.doc-item {
+  padding: 8px;
+}
+
+.doc-item > div {
+  border: 1px solid #e5f1ff;
+  border-radius: 6px;
+  padding: 10px;
+}
+.doc-card-icon-div {
+    padding: 7px;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    background-color: #0090CF;
+}
+.doc-item p {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.doc-item h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+.mobile-d-block {
+    display: none !important;
+}   
+.dashboard-upper-cards {
+    display: flex;
+    gap: 10px;
+    /* flex-wrap: wrap; */
+   overflow-x: scroll;
+   scrollbar-width: thin;
+   /* width: 77vw; */
+   width: calc( 100vw - 370px);
+}
+.doc-card.doc-single-card  {
+    padding: 0;
+}
+.doc-card.doc-single-card .doc-card-icon-div  {
+  padding: 10px ;
+}
+.doc-card.doc-single-card .span  {
+  padding: 10px ;
+}
+/* .dashboard-upper-cards .dashboard-upper-card {
+    width:310px;
+} */
+.doc-item img {
+  width: 26px;
+}
+.doc-item-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    justify-content: center;
+    background-color: #F8F9FA;
+}
+.card-body-list {
+    padding: 10px 12px;
+}
+
+.card-body-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+.card-body-list ul img {
+    margin-right: 10px;
+}
+.card-body-list p {
+    font-size: 14px;
+    color: #1E1E1E;
+    line-height: 20px;
+}
+.card-body-list ul li {
+    list-style: none;
+}
+.card-body-list li  {
+    font-size: 12px;
+    color: #848380;
+}
+.card-body-list li .red-text {
+    color: #E31C2A !important;
+    font-weight: 500;
+}
+.card-body-list li {
+    border-bottom: 0.5px solid #0090CF1A;
+}
+.card-body-list li:last-child {
+    border-bottom: none;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+.primary-color {
+    color: #0090CF;
+}
+.image-w-50 img {
+    width: 50px;
+}
+.overflow-y {
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.height-290 {
+    height: 290px;
+}
+.p-8 {
+    padding: 8px  !important;
+}
+.card-files {
+    padding: 10px 7px;
+    gap: 8px;
+    border-radius: 5px;
+    border: 1px solid #0090CF33;
+    width: 100%;
+}
+.card-files p {
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 500;
+}
+p:last-child {
+    margin-bottom: 0;
+}
+
+.text-14 {
+    font-size: 14px;
+    font-weight: 500;
+}
+.px-12 {
+    padding-left:12px !important;
+    padding-right: 12px !important;
+}
+.border-bottom {
+    border-bottom: 1px solid #ddd;
+}
+.py-10 {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+.dashboard-upper-cards.bottom-area {
+    gap: 0 !important;
+    width: 100% !important;
+}
+
+.height-500 {
+    height: 500px;
+    overflow-y: scroll;
+}
+
+.list-icon {
+    padding-left: 20px !important;
+}
+
+.list-icon li {
+    list-style: disc !important;
+}
+.list-icon li::marker {
+    color:red;
+    font-size: 16px;
+}
+
+
+@media  (min-width: 992px) and (max-width: 1199px) {
+    
+   .traffic-camera-monitor__grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+   }
+   .traffic-search-div {
+    flex-direction: column  !important;
+   }
+   .traffic-select-input {
+    width: 100% !important;
+   }
+    .traffic-date-input {
+        width: 100%  !important;
+    }
+}
+@media  (min-width: 992px) and (max-width: 1099px) {
+    
+  .news-list {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+  .bottom-area .col-lg-8 {
+            max-width: calc(7 / 12 * 100%) !important;
+  }
+    .bottom-area .col-lg-4 {
+                    flex: 0 0 calc(5 / 12 * 100%) !important;
+        max-width: calc(5 / 12 * 100%) !important;
+  }
+      .dashboard-upper-cards {
+        width: calc(100vw - 350px) !important;
+    }
+
+}
+
+
+
+@media screen and (min-width:1921px) {
+    .dashboard-upper-card {
+    width: 20%;
+}
+.doc-card {
+    width: 100%;
+}
+}
+
+
+@media screen and (max-width:576px) {
+   .news-list{
+            grid-template-columns: repeat(1, 1fr) !important;
+    }
+}

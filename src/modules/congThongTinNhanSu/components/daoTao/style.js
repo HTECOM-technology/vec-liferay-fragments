@@ -1,8 +1,14 @@
 import styled from "styled-components";
-import { Row } from "antd";
+import { Button, Form, Row } from "antd";
 
 export const PageWrap = styled.div`
   padding: 0;
+
+  @media (max-width: 768px) {
+    .register-button {
+      display: none;
+    }
+  }
 `;
 
 export const HeaderActions = styled.div`
@@ -37,8 +43,28 @@ export const FilterRow = styled(Row)`
   flex-wrap: wrap;
   align-items: center;
   margin-bottom: ${(p) => (p.$last ? 0 : "12px")};
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 export const TableWrap = styled.div`
   margin-top: 16px;
+`;
+
+export const FilterButton = styled(Button)`
+  display: none;
+  border: none !important;
+  padding: 0;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+`;
+
+export const FilterForm = styled(Form)`
+  .ant-form-item {
+    margin-bottom: 9px;
+  }
 `;

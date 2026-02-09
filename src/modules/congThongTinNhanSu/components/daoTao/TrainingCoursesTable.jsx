@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { CTable, CTag } from "../../../components/common";
-import { TableWrap } from "../style";
+import { CTable, CTag } from "../../../../components/common";
+import { TableWrap } from "./style";
 import { TRAINING_STATUS_MAP, mockTrainingCourses } from "./constants";
 
 function TrainingCoursesTable({ dataSource = mockTrainingCourses }) {

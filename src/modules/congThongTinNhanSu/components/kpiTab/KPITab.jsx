@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { EditOutlined, FilterOutlined } from "@ant-design/icons";
 import { Grid } from "antd";
-import { CButton, CTablePagination } from "../../../components/common";
+import { CButton, CTablePagination } from "../../../../components/common";
 import KPIFilter from "./KPIFilter";
 import KPITable from "./KPITable";
-import { HeaderActions } from "../style";
-import { mockKPIData } from "./constants";
+import { HeaderActions } from "../../style";
+import { mockKPIData } from "../constants";
 
 function KPITab() {
     const [dataSource] = useState(mockKPIData);

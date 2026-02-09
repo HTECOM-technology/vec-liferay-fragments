@@ -15,3 +15,13 @@ export {
     MissionIcon,
     TrafficIcon,
 } from "./Icons";
+
+
+export {
+   default as Dashboard 
+}  from './Dashboard'
+
+export {
+   default as News 
+}  from './News'
+

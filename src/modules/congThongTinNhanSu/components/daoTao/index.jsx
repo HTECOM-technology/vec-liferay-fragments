@@ -1,9 +1,13 @@
 import React from "react";
 import dayjs from "dayjs";
-import { CButton } from "../../components/common";
-import { PageWrap, HeaderActions } from "./style";
-import { TrainingCoursesFilter, TrainingCoursesTable, mockTrainingCourses } from "./components";
-
+import { CButton } from "../../../../components/common";
+import { PageWrap, HeaderActions, FilterButton, FilterForm } from "./style";
+import TrainingCoursesFilter from "./TrainingCoursesFilter";
+import TrainingCoursesTable from "./TrainingCoursesTable";
+import { mockTrainingCourses } from "./constants";
+import { Popover, Row } from "antd";
+import { IconFilter } from "../../../../assets/icon/IconFilter";
+import FormFilter from "./FormFilter";
 const defaultDateFrom = dayjs("2026-12-01");
 const defaultDateTo = dayjs("2026-12-31");
 
@@ -54,9 +58,27 @@ function DaoTaoPage() {
               </defs>
             </svg>
           }
+          className="register-button"
         >
           Đăng ký đào tạo
         </CButton>
+        <Popover
+          content={
+            <FilterForm>
+              <Row justify="center">
+                <FormFilter />
+              </Row>
+            </FilterForm>
+          }
+          trigger="click"
+          placement="bottomRight"
+          overlayClassName="filter-popover"
+          arrow={false}
+        >
+          <FilterButton>
+            <IconFilter style={{ cursor: "pointer" }} />
+          </FilterButton>
+        </Popover>
       </HeaderActions>
 
       <TrainingCoursesFilter initialValues={filterInitialValues} onSearch={handleSearch} />
