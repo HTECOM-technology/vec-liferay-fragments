@@ -1,0 +1,127 @@
+.news-container {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #dbeafe;
+  /* padding: 16px; */
+  font-family: Arial, sans-serif;
+}
+
+.news-header {
+  background: #eaf4ff;
+  padding: 10px;
+  font-weight: bold;
+  display: flex;
+  gap: 8px;
+  border-radius: 6px;
+}
+
+.news-icon {
+  background: #2563eb;
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+/* Tabs */
+.news-tabs {
+  display: flex;
+  gap: 15px;
+   
+  list-style: none;
+  padding: 0;
+  /* border-bottom: 1px solid #e5e7eb; */
+}
+ul.news-tabs {
+  margin-bottom: 0 !important;
+}
+
+.news-tabs li {
+  cursor: pointer;
+  padding-bottom:0px;
+  font-size: 14px;
+}
+
+.news-tabs li.active {
+  color: red;
+  /* border-bottom: 2px solid red; */
+  font-weight: 600;
+}
+.news-container.doc-card {
+  width: 100% !important;
+}
+.traffic-camera-monitor__controls {
+  flex-wrap: nowrap  !important;
+}
+/* Articles */
+.news-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  height: 400px;
+  overflow-y: auto;
+ scrollbar-width: thin;
+}
+
+.news-item {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.news-item img {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.news-info h3 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.news-info p {
+  font-size: 13px;
+  color: #555;
+  margin: 6px 0;
+}
+
+.news-date {
+  font-size: 12px;
+  color: #888;
+}
+.news-date-div {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  margin-top: 8px;
+}
+.red-text {
+  font-size: 12px;
+  color: #E31C2A !important;
+  font-weight: 500;
+}
+.dot-custom {
+  width: 4px;
+  height: 4px;
+  background-color: #888;
+  border-radius: 50%;
+  display: inline-block;}
+
+  .news-tabs-div {
+        display: flex;
+    align-items: center;
+    max-width: 70%;
+    gap: 6px;
+  
+    overflow-x: auto;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .news-tabs {
+    display: flex;
+    gap: 12px;
+   
+  }

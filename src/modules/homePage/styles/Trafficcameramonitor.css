@@ -1,0 +1,581 @@
+/* Traffic Camera Monitor Component Styles */
+/* Using BEM naming convention for Liferay compatibility */
+
+.traffic-camera-monitor {
+  /* max-width: 1400px; */
+  margin: 0 auto;
+  
+
+  background-color: #f5f5f5;
+}
+.traffic-select-input {
+  width: 70%;
+}
+.traffic-date-input {
+  width: 30%;
+}
+
+
+/* Header Styles */
+.traffic-camera-monitor__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  padding: 16px 20px;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.traffic-camera-monitor.doc-card {
+  width: 100% !important;
+  height: 100% !important;
+  background-color: #fff;
+}
+.traffic-camera-monitor__header-icon {
+  width: 40px;
+  height: 40px;
+  background-color: transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.traffic-camera-monitor__header-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.traffic-camera-monitor__header-title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.3px;
+}
+
+/* Controls Section */
+.traffic-camera-monitor__controls {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.traffic-camera-monitor__controls-select-wrapper,
+.traffic-camera-monitor__controls-date-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.traffic-camera-monitor__controls-select {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  color: #374151;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.traffic-camera-monitor__controls-select:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.traffic-camera-monitor__controls-select:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+.traffic-camera-monitor__controls-select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6b7280;
+  display: block;
+  object-fit: contain;
+}
+
+.traffic-camera-monitor__controls-date-input {
+  width: 100%;
+  padding: 12px 40px 12px 16px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #374151;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+}
+
+.traffic-camera-monitor__controls-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 12px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+}
+
+.traffic-camera-monitor__controls-date-input:hover {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+.traffic-camera-monitor__controls-date-input:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+.traffic-camera-monitor__controls-date-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6b7280;
+  z-index: 1;
+}
+
+.traffic-camera-monitor__controls-refresh {
+  padding: 12px 16px;
+  background-color: #0ea5e9;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 48px;
+}
+
+.traffic-camera-monitor__controls-refresh:hover:not(:disabled) {
+  background-color: #0284c7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+}
+
+.traffic-camera-monitor__controls-refresh:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.traffic-camera-monitor__controls-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.traffic-camera-monitor__controls-refresh svg {
+  animation: traffic-camera-monitor-refresh-spin 2s linear infinite paused;
+}
+
+.traffic-camera-monitor__controls-refresh:disabled svg {
+  animation-play-state: running;
+}
+
+@keyframes traffic-camera-monitor-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Camera Grid */
+.traffic-camera-inner-div {
+  height: 320px;
+  overflow-y: scroll;
+  padding:10px;
+    background-color: #ffffff;
+    scrollbar-width: thin;
+
+}
+.traffic-camera-monitor__grid {
+  display: grid;
+ grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  
+
+  border-radius: 0 0 8px 8px;
+  
+}
+@media (max-width: 1400px) {
+  .traffic-camera-monitor__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .traffic-camera-monitor__grid {
+    grid-template-columns: repeat(2, 1fr);
+  
+  }
+}
+
+/* Camera Card */
+.traffic-camera-monitor__camera-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.traffic-camera-monitor__camera-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.traffic-camera-monitor__camera-card-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 65%;
+  overflow: hidden;
+  background-color: #1f2937;
+}
+
+.traffic-camera-monitor__camera-card-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.traffic-camera-monitor__camera-card:hover .traffic-camera-monitor__camera-card-image {
+  transform: scale(1.05);
+}
+
+.traffic-camera-monitor__camera-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.traffic-camera-monitor__camera-card:hover .traffic-camera-monitor__camera-card-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}
+
+.traffic-camera-monitor__camera-card-play-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: none;
+  padding: 0;
+}
+
+.traffic-camera-monitor__camera-card-play-button:hover {
+  background-color: transparent;
+  transform: scale(1.15);
+  box-shadow: none;
+}
+
+.traffic-camera-monitor__camera-card-play-button:active {
+  transform: scale(0.95);
+}
+
+.traffic-camera-monitor__camera-card-play-icon {
+  display: block;
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.traffic-camera-monitor__camera-card-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  border-radius: 12px 0 8px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+/* Loading State */
+.traffic-camera-monitor__loading {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.traffic-camera-monitor__loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #0ea5e9;
+  border-radius: 50%;
+  animation: traffic-camera-monitor-spinner-rotate 0.8s linear infinite;
+}
+
+.traffic-camera-monitor__loading p {
+  color: #6b7280;
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+
+@keyframes traffic-camera-monitor-spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error State */
+.traffic-camera-monitor__error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 20px;
+}
+
+.traffic-camera-monitor__error svg {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+/* Empty State */
+.traffic-camera-monitor__empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: #9ca3af;
+}
+
+.traffic-camera-monitor__empty svg {
+  opacity: 0.5;
+}
+
+.traffic-camera-monitor__empty p {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+}
+@media screen and (max-width:580px) {
+  .traffic-select-input {
+  width: 100%;
+}
+.traffic-date-input {
+  width: 100%;
+}
+}
+/* Responsive Design */
+@media (max-width: 480px) {
+ 
+
+  .traffic-camera-monitor__header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .traffic-camera-monitor__header-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .traffic-camera-monitor__header-logo {
+    padding: 2px;
+  }
+
+  .traffic-camera-monitor__header-title {
+    font-size: 14px;
+  }
+
+  .traffic-camera-monitor__controls {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .traffic-camera-monitor__controls-select,
+  .traffic-camera-monitor__controls-date-input {
+    padding: 10px 36px 10px 12px;
+    font-size: 14px;
+  }
+
+  .traffic-camera-monitor__grid {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .traffic-camera-monitor__camera-card-label {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .traffic-camera-monitor__camera-card-play-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 767px) {
+ 
+
+  .traffic-camera-monitor__header {
+    padding: 12px 16px;
+  }
+
+  .traffic-camera-monitor__header-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .traffic-camera-monitor__header-logo {
+    padding: 3px;
+  }
+
+  .traffic-camera-monitor__header-title {
+    font-size: 16px;
+  }
+
+  .traffic-camera-monitor__controls {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .traffic-camera-monitor__controls-select-wrapper,
+  .traffic-camera-monitor__controls-date-wrapper {
+    min-width: 100%;
+  }
+
+  .traffic-camera-monitor__grid {
+  
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .traffic-camera-monitor__camera-card-label {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .traffic-camera-monitor__camera-card-play-button {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .traffic-camera-monitor__header-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .traffic-camera-monitor__header-title {
+    font-size: 20px;
+  }
+
+  /* .traffic-camera-monitor__grid {
+    grid-template-columns: repeat(2, 1fr);
+  } */
+
+  .traffic-camera-monitor__camera-card-label {
+    font-size: 14px;
+    padding: 7px 13px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .traffic-camera-monitor__controls {
+    display: none;
+  }
+
+  .traffic-camera-monitor__camera-card-overlay,
+  .traffic-camera-monitor__camera-card-play-button {
+    display: none;
+  }
+}
+
+/* Touch device optimization */
+@media (hover: none) and (pointer: coarse) {
+  .traffic-camera-monitor__camera-card {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .traffic-camera-monitor__camera-card-play-button {
+    width: 56px;
+    height: 56px;
+  }
+
+  .traffic-camera-monitor__controls-select,
+  .traffic-camera-monitor__controls-date-input {
+    min-height: 44px;
+  }
+
+  .traffic-camera-monitor__controls-refresh {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

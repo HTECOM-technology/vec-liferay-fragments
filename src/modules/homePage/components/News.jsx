@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import {
   getVocabulariesBySite,
   getCategoriesByVocabulary,
@@ -113,14 +113,17 @@ const News = () => {
   if (loading) return <div className="news-loading">Loading...</div>;
 
   return (
-    <div className="news-container">
+    <div className="news-container doc-card">
       {/* Header */}
-      <div className="news-header">
-        <span className="news-icon">📰</span>
-        <span>Tin tức - Sự kiện</span>
-      </div>
-
-      {/* Category Tabs */}
+      <div className="doc-card-header d-flex align-items-center justify-content-between">
+        <div className="d-flex align-items-center gap-8">
+                <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
+                      <img src={'/documents/d/guest/news-icon'} alt="icon" />
+                </div>
+                <span>Tin tức - Sự kiện</span>
+        </div>
+        <div className="news-tabs-div">
+            
       <ul className="news-tabs">
         {categories.map((cat) => (
           <li
@@ -132,9 +135,14 @@ const News = () => {
           </li>
         ))}
       </ul>
+        </div>
+              </div>
+    
+
+    
 
       {/* News Articles */}
-      <div className="news-list">
+      <div className="news-list p-8">
         {filteredArticles.map((item) => {
           const title = item.title;
           const fields = item.contentFields;
@@ -153,15 +161,20 @@ const News = () => {
 
           return (
             <div key={item.id} className="news-item">
+              <div className="news-info">
+                <h3>{title}</h3>
+                {/* <p className="line-2">{shortDescription}</p> */}
+                <div className="news-date-div">
+                <span className="red-text">Tin chuyên ngành</span>
+                <span className="dot-custom"></span>
+                <span className="news-date">{date}</span>
+                </div>
+              </div>
               <img
                 src={`${window.location.origin}${image}`}
                 alt={title}
               />
-              <div className="news-info">
-                <h3>{title}</h3>
-                <p>{shortDescription}</p>
-                <span className="news-date">{date}</span>
-              </div>
+              
             </div>
           );
         })}

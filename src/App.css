@@ -236,3 +236,142 @@
     margin-left: 48px;
   }
 }
+
+.d-flex {
+  display: flex;
+}
+.align-items-center {
+  align-items: center;
+}
+.justify-content-center {
+  justify-content: center;
+}
+.justify-content-end {
+  justify-content: end;
+}
+.justify-content-start {
+  justify-content: start;
+}
+.col-6 {
+    flex: 0 0 calc(6 / 12 * 100%);
+    max-width: calc(6 / 12 * 100%);
+}
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -12px;
+    margin-right: -12px;
+}
+.no-gutters {
+    margin-left: 0;
+    margin-right: 0;
+}
+.mt-4, .my-4 {
+    margin-top: var(--spacer-4, 1.5rem) !important;
+}
+.mb-2, .my-2 {
+    margin-bottom: var(--spacer-2, 0.5rem) !important;
+}
+.pt-2, .py-2 {
+    padding-top: var(--spacer-2, 0.5rem) !important;
+}
+.pb-2, .py-2 {
+    padding-bottom: var(--spacer-2, 0.5rem) !important;
+}
+.custom-date {
+    border: 1px solid #0090CF33;
+    width: 100px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 10px;
+}
+
+.checkbox-custom {
+    width: 15px;
+    height: 15px;
+}
+.custom-select-cls {
+    border: 1px solid #0090CF33;
+    width: 85px;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+.justify-content-between {
+  justify-content: space-between;
+}
+.doc-item > div{
+  height: 100%;
+}
+.min-hight-30 {
+    min-height: 30px;
+}
+
+.light-border-bottom {
+    border-bottom: .5px solid #0090cf1a;
+}
+.font-medium {
+    font-weight: 500;
+}
+.mb-1, .my-1 {
+    margin-bottom: var(--spacer-1, 0.25rem) !important;
+}
+.h-100 {
+  height: 100%;
+}
+.custom-select-1 {
+        padding: 10px 11px;
+    border: 1px solid #D1D5DC;
+    border-radius: 4px;
+    width: 100%;
+}
+.custom-date-1 {
+        padding: 8px 11px;
+    border: 1px solid #D1D5DC;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.doc-card {
+  height: 100%;
+}
+.doc-card.doc-single-card {
+  height: auto  !important;
+}
+.padding-right-8 {
+  padding-right: 8px !important;
+}
+.doc-card-header span {
+  font-size: 14px;
+}
+@media (min-width: 992px) {
+    .mt-lg-0, .my-lg-0 {
+        margin-top: var(--spacer-0, 0) !important;
+    }
+  }
+
+  .load-button {
+    padding: 10px;
+    color:#fff;
+    border-radius: 6px;
+    display: block;
+    background-color: #0090CF;
+}
+
+.extra-load-btn {
+    display: none;
+}
+
+@media screen and (max-width:768px) {
+  .extra-load-btn {
+    display: block !important;
+}
+}
+.font-bold {
+    font-weight: 600;
+}
+
+.container-fluid:has(> .dashboard) {
+    padding-right: 0 !important;
+    padding-left: 0  !important;
+}
