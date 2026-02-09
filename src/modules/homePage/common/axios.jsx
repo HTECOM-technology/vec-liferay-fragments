@@ -16,6 +16,6 @@ export const axiosPrivate = axios.create({
   baseURL: window.location.origin,
   headers: {
     "Content-Type": "application/json",
-    "x-csrf-token": window.Liferay.authToken,
+    "x-csrf-token": window.Liferay?.authToken || "",
   },
 });

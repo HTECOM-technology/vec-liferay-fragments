@@ -38,7 +38,7 @@ const News = () => {
   const [loading, setLoading] = useState(true);
 
   /** Liferay site (group) ID */
-  const SITE_ID = themeDisplay.getSiteGroupId();
+  const SITE_ID = window.Liferay?.ThemeDisplay.getSiteGroupId?.() || "20121";
 
   /** Target taxonomy vocabulary name */
   const VOCABULARY_NAME = "News Article Types";
