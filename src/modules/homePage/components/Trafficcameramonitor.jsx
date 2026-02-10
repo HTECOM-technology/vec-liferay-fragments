@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/Trafficcameramonitor.css';
+// import one from "../assets/camera/1.png";
+import one from "../../../assets/camera/1.png";
+import two from "../../../assets/camera/2.png";
+import three from "../../../assets/camera/3.png";
+import four from "../../../assets/camera/4.png";
+import five from "../../../assets/camera/5.png";
+import six from "../../../assets/camera/6.png";
+import seven from "../../../assets/camera/7.png";
+import eight from "../../../assets/camera/8.png";
+import nine from "../../../assets/camera/9.png";
+import container from "../../../assets/camera/Container.svg";
 
 const TrafficCameraMonitor = () => {
   const [selectedRoute, setSelectedRoute] = useState('cao-toc-hcm-long-thanh-dau-giay');
@@ -12,63 +23,63 @@ const TrafficCameraMonitor = () => {
     {
       id: 1,
       name: 'Cam 1',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/d7536992e4b7afce1e2426e1fc3475e2c45e3340',
+      thumbnail: one ,
       videoUrl: '#',
       location: 'Intersection A'
     },
     {
       id: 2,
       name: 'Cam 2',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/b9a7340e006d955b7cbd8867d0a0d14f3fdf1c3d',
+      thumbnail: two,
       videoUrl: '#',
       location: 'Highway Section B'
     },
     {
       id: 3,
       name: 'Cam 3',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/b8c7ab75a5005190f0cb595450b73c8f9ee5c2b3',
+      thumbnail: three,
       videoUrl: '#',
       location: 'City Center'
     },
     {
       id: 4,
       name: 'Cam 4',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/9891561172b8c0bd94fdc4507a269c4e0da17bd6',
+      thumbnail: four,
       videoUrl: '#',
       location: 'Downtown Area'
     },
     {
       id: 5,
       name: 'Cam 5',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/429da88e8e6eb9ac9152fafe3a917cc33f216b0f',
+      thumbnail: five,
       videoUrl: '#',
       location: 'Express Lane'
     },
     {
       id: 6,
       name: 'Cam 6',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/83ce94347bf61926720963008c61d4a8ae570e0b',
+      thumbnail: six,
       videoUrl: '#',
       location: 'Junction C'
     },
     {
       id: 7,
       name: 'Cam 7',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/8e1aac44fccc3e55934ca897c7fb2be204dc6ff6',
+      thumbnail: seven,
       videoUrl: '#',
       location: 'Bridge Overpass'
     },
     {
       id: 8,
       name: 'Cam 8',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/5b65b612e31e1a6171d3c883e8a6d818f78dfded',
+      thumbnail: eight,
       videoUrl: '#',
       location: 'Tunnel Entrance'
     },
     {
       id: 9,
       name: 'Cam 9',
-      thumbnail: 'http://45.77.240.85:8080/documents/d/vec/02eedf4acdd1f86a3c48ba4c07b8241d2540e6a0',
+      thumbnail: nine,
       videoUrl: '#',
       location: 'Exit Ramp'
     }
@@ -123,7 +134,7 @@ const TrafficCameraMonitor = () => {
     <div className="traffic-camera-monitor doc-card">
       <div className="doc-card-header d-flex align-items-center">
                 <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
-                <img src={'/documents/d/guest/traffic-light-1'} alt="icon" />
+                <img src={container} alt="icon" />
                 </div>
                 <span>Camera giao thông</span>
               </div>
