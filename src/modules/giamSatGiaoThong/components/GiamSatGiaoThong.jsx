@@ -1,14 +1,15 @@
-// src/modules/giamSatGiaoThong/components/GiamSatGiaoThong.jsx
-
 import React, { useState, useEffect } from 'react';
 import HeaderSection from './HeaderSection';
+import AnalyticsSection from './AnalyticsSection';
 import MapSection from './MapSection';
-import CameraSection from './CameraSection';
+import DetailSection from './DetailSection';
 import CameraModal from './CameraModal';
 import IncidentModal from './IncidentModal';
+import ViolationModal from './ViolationModal';
 import { Container, TabContainer, ContentTable } from '../style';
 
-// Mock data cho testing
+// ============ MOCK DATA ============
+
 const MOCK_ROUTES = [
   {
     id: 1,
@@ -129,6 +130,74 @@ const MOCK_CAMERAS = [
     lng: 106.850,
     video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
   },
+  {
+    live_camera_id: "cam_006",
+    highway_id: 1,
+    name: "Cam 6",
+    lat: 10.910,
+    lng: 107.000,
+    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
+  },
+];
+
+const MOCK_VIOLATIONS = [
+  {
+    id: "violation_001",
+    highway_id: 1,
+    title: "Xe ô tô vượt quá tốc độ cho phép 20km/h",
+    type: "Vượt tốc độ",
+    image: "https://placehold.co/280x180",
+    severity: "high",
+    timestamp: "10 phút trước",
+    location: "Km 15+200",
+    speed: 140,
+    maxSpeed: 120,
+    licensePlate: "51A-12345",
+  },
+  {
+    id: "violation_002",
+    highway_id: 1,
+    title: "Xe tải chạy sai làn đường",
+    type: "Sai làn",
+    image: "https://placehold.co/280x180",
+    severity: "medium",
+    timestamp: "25 phút trước",
+    location: "Km 18+500",
+    licensePlate: "50C-67890",
+  },
+  {
+    id: "violation_003",
+    highway_id: 1,
+    title: "Xe máy đi vào cao tốc",
+    type: "Phương tiện không phép",
+    image: "https://placehold.co/280x180",
+    severity: "high",
+    timestamp: "1 giờ trước",
+    location: "Km 20+100",
+    licensePlate: "59H1-23456",
+  },
+  {
+    id: "violation_004",
+    highway_id: 1,
+    title: "Xe container vượt quá tải trọng",
+    type: "Quá tải",
+    image: "https://placehold.co/280x180",
+    severity: "medium",
+    timestamp: "2 giờ trước",
+    location: "Km 22+800",
+    licensePlate: "79B-98765",
+  },
+  {
+    id: "violation_005",
+    highway_id: 1,
+    title: "Xe ô tô không giữ khoảng cách an toàn",
+    type: "Khoảng cách",
+    image: "https://placehold.co/280x180",
+    severity: "low",
+    timestamp: "3 giờ trước",
+    location: "Km 25+600",
+    licensePlate: "51F-11111",
+  },
 ];
 
 const MOCK_INCIDENTS = [
@@ -136,7 +205,7 @@ const MOCK_INCIDENTS = [
     id: "incident_001",
     highway_id: 1,
     title: "Ôtô 5 chỗ bị vỡ nát sau tai nạn liên hoàn trên đường cao tốc",
-    description: "Ôtô 5 chỗ do anh N.Q.D lái trên quốc lộ 1 bị hai xe tải chạy cùng chiều đâm va liên tiếp, tạm nắt vùn, sáng 8/11. Khoảng 6h30, tài ôtô Kia 5 chỗ chạy trên quốc lộ 1, khi đến phương Tam Điệp, ôtô va chạm với xe tải do anh N.V.S điều khiển.",
+    description: "Ôtô 5 chỗ do anh N.Q.D lái trên quốc lộ 1 bị hai xe tải chạy cùng chiều đâm va liên tiếp, tạm nắt vùn, sáng 8/11. Khoảng 6h30, tài ôtô Kia 5 chỗ chạy trên quốc lộ 1, khi đến phương Tam Điệp, ôtô va chạm với xe tải do anh N.V.S điều khiển. Cùng thời điểm, xe dầu kéo do anh Nguyễn Văn Quân lái lao tới, đâm trúng khiến chiếc Kia 5 chỗ bị chèn ép mạnh, bánh sau gãy rời, nhiều bộ phận vỡ vụn rơi vãi trên đường.",
     image: "https://i.vietgiaitri.com/2024/11/8/o-to-5-cho-bi-vo-nat-sau-tai-nan-lien-hoan-tren-duong-cao-toc-0ad-7203535.jpg",
     lat: 10.865,
     lng: 106.780,
@@ -146,7 +215,31 @@ const MOCK_INCIDENTS = [
   },
 ];
 
+const MOCK_ANALYTICS = {
+  1: {
+    violations: 24,
+    avgSpeed: 120,
+    animals: 0,
+    brokenCameras: 0,
+  },
+  2: {
+    violations: 15,
+    avgSpeed: 110,
+    animals: 2,
+    brokenCameras: 1,
+  },
+  3: {
+    violations: 8,
+    avgSpeed: 105,
+    animals: 0,
+    brokenCameras: 0,
+  },
+};
+
+// ============ MAIN COMPONENT ============
+
 const GiamSatGiaoThong = () => {
+  // State management
   const [routes, setRoutes] = useState(MOCK_ROUTES);
   const [filteredRoutes, setFilteredRoutes] = useState(MOCK_ROUTES);
   const [selectedRoute, setSelectedRoute] = useState(null);
@@ -154,9 +247,12 @@ const GiamSatGiaoThong = () => {
   const [selectedRouteFilter, setSelectedRouteFilter] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [cameras, setCameras] = useState([]);
+  const [violations, setViolations] = useState([]);
   const [incidents, setIncidents] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [cameraModalData, setCameraModalData] = useState(null);
   const [incidentModalData, setIncidentModalData] = useState(null);
+  const [violationModalData, setViolationModalData] = useState(null);
 
   // Default map options - camera and incident visible
   const [mapOptions] = useState({
@@ -164,8 +260,8 @@ const GiamSatGiaoThong = () => {
     toll: true,
     stop: false,
     construction: false,
-    incident: true, // ← Default visible
-    camera: true,   // ← Default visible
+    incident: true,
+    camera: true,
   });
 
   /**
@@ -182,46 +278,32 @@ const GiamSatGiaoThong = () => {
   }, []);
 
   /**
-   * Load cameras and incidents for selected route
+   * Load cameras, violations, incidents, and analytics for selected route
    */
   const loadDataForRoute = (routeId) => {
+    // Load cameras
     const camerasData = MOCK_CAMERAS.filter(cam => cam.highway_id === routeId);
-    const incidentsData = MOCK_INCIDENTS.filter(inc => inc.highway_id === routeId);
-
     setCameras(camerasData);
+
+    // Load violations
+    const violationsData = MOCK_VIOLATIONS.filter(v => v.highway_id === routeId);
+    setViolations(violationsData);
+
+    // Load incidents
+    const incidentsData = MOCK_INCIDENTS.filter(inc => inc.highway_id === routeId);
     setIncidents(incidentsData);
 
-    // Update route with camera and incident locations
-    setRoutes((prevRoutes) =>
-      prevRoutes.map((route) => {
-        if (route.id === routeId) {
-          return {
-            ...route,
-            mapData: {
-              ...route.mapData,
-              cameraLocations: camerasData.map((cam) => ({
-                lat: cam.lat,
-                lng: cam.lng,
-                name: cam.name,
-                id: cam.live_camera_id,
-                videoUrl: cam.video_url,
-              })),
-              incidentLocations: incidentsData.map((inc) => ({
-                lat: inc.lat,
-                lng: inc.lng,
-                id: inc.id,
-                title: inc.title,
-                severity: inc.severity,
-                timestamp: inc.timestamp,
-              })),
-            },
-          };
-        }
-        return route;
-      })
-    );
+    // Load analytics
+    const analyticsData = MOCK_ANALYTICS[routeId] || {
+      violations: 0,
+      avgSpeed: 0,
+      animals: 0,
+      brokenCameras: 0,
+    };
+    setAnalytics(analyticsData);
 
-    setFilteredRoutes((prevRoutes) =>
+    // Update route with camera and incident locations
+    const updateRouteData = (prevRoutes) =>
       prevRoutes.map((route) => {
         if (route.id === routeId) {
           return {
@@ -247,8 +329,10 @@ const GiamSatGiaoThong = () => {
           };
         }
         return route;
-      })
-    );
+      });
+
+    setRoutes(updateRouteData);
+    setFilteredRoutes(updateRouteData);
   };
 
   /**
@@ -257,6 +341,7 @@ const GiamSatGiaoThong = () => {
   const handleFilterChange = (filterType, value) => {
     if (filterType === 'route') {
       setSelectedRouteFilter(value);
+      
       if (value !== '') {
         const selectedRouteData = routes.find(r => r.id === parseInt(value));
         if (selectedRouteData) {
@@ -278,6 +363,10 @@ const GiamSatGiaoThong = () => {
       
       if (value.trim() === '') {
         setFilteredRoutes(routes);
+        if (routes.length > 0) {
+          setSelectedRoute(routes[0]);
+          loadDataForRoute(routes[0].id);
+        }
       } else {
         const filtered = routes.filter(route =>
           route.title.toLowerCase().includes(value.toLowerCase()) ||
@@ -288,22 +377,50 @@ const GiamSatGiaoThong = () => {
         if (filtered.length > 0) {
           setSelectedRoute(filtered[0]);
           loadDataForRoute(filtered[0].id);
+        } else {
+          setSelectedRoute(null);
+          setCameras([]);
+          setViolations([]);
+          setIncidents([]);
+          setAnalytics(null);
         }
       }
     }
   };
 
+  /**
+   * Handle search button click
+   */
+  const handleSearch = () => {
+    console.log('Search triggered with:', {
+      route: selectedRouteFilter,
+      date: selectedDate,
+      keyword: searchKeyword,
+    });
+    
+    // TODO: Add API call here when ready
+  };
+
   return (
     <Container>
       <TabContainer>
+        {/* Header with search and filters */}
         <HeaderSection
           routes={filteredRoutes}
           selectedRoute={selectedRouteFilter}
           selectedDate={selectedDate}
           searchKeyword={searchKeyword}
           onFilterChange={handleFilterChange}
+          onSearch={handleSearch}
         />
 
+        {/* Analytics cards */}
+        <AnalyticsSection 
+          routeId={selectedRoute?.id}
+          analytics={analytics}
+        />
+
+        {/* Map and Detail sections */}
         <ContentTable>
           <MapSection
             route={selectedRoute}
@@ -317,16 +434,21 @@ const GiamSatGiaoThong = () => {
             }}
           />
 
-          <CameraSection
+          <DetailSection
             route={selectedRoute}
             cameras={cameras}
+            violations={violations}
             onCameraClick={(camera) => 
               setCameraModalData({ name: camera.name, videoUrl: camera.video_url })
             }
+            onViolationClick={(violation) => {
+              setViolationModalData(violation);
+            }}
           />
         </ContentTable>
       </TabContainer>
 
+      {/* Camera Modal */}
       {cameraModalData && (
         <CameraModal
           cameraName={cameraModalData.name}
@@ -335,10 +457,19 @@ const GiamSatGiaoThong = () => {
         />
       )}
 
+      {/* Incident Modal */}
       {incidentModalData && (
         <IncidentModal
           incident={incidentModalData}
           onClose={() => setIncidentModalData(null)}
+        />
+      )}
+
+      {/* Violation Modal */}
+      {violationModalData && (
+        <ViolationModal
+          violation={violationModalData}
+          onClose={() => setViolationModalData(null)}
         />
       )}
     </Container>

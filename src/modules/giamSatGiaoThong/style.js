@@ -10,6 +10,12 @@ export const Container = styled.div`
   padding: 20px;
 `;
 
+export const TabSelect = styled.div`
+  display: flex;
+  padding: 10px 15px;
+  gap: 3px;
+`;
+
 export const TabContainer = styled.div`
   max-width: 1400px;
   width: 100%;
@@ -99,7 +105,6 @@ export const DetailContainer = styled.div`
   border-radius: 8px;
   padding: 5px;
   border: 1px solid #e4e4e4;
-  max-height: calc(100vh - 250px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -140,33 +145,6 @@ export const Divider = styled.div`
   height: 1px;
   background: #e4e4e4;
   margin: 15px 0;
-`;
-
-export const CameraContent = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 10px;
-  max-height: calc(100vh - 450px);
-  overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  }
 `;
 
 export const CameraBox = styled.div`
@@ -224,5 +202,147 @@ export const PlayButton = styled.button`
   img {
     width: 45px;
     height: 45px;
+  }
+`;
+
+export const Tab = styled.button`
+  padding: 7px 5px;
+  background: ${props => props.active ? '#0090CF' : '#F8F9FA'};
+  color: ${props => props.active ? 'white' : '#6B7280'};
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+`;
+
+export const TabContent = styled.div`
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+`;
+
+export const ViolationList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  max-height: calc(100vh - 480px);
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+`;
+
+export const ViolationItem = styled.div`
+  display: flex;
+  gap: 12px;
+  background: white;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+`;
+
+export const ViolationImage = styled.img`
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+`;
+
+export const ViolationInfo = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+export const ViolationType = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  background: ${props => {
+    switch(props.severity) {
+      case 'high': return '#d32f2f';
+      case 'medium': return '#f57c00';
+      case 'low': return '#388e3c';
+      default: return '#666';
+    }
+  }};
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+`;
+
+export const ViolationTitle = styled.h4`
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e1e1e;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+export const ViolationTime = styled.span`
+  font-size: 12px;
+  color: #666;
+`;
+
+// Update CameraContent height
+export const CameraContent = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #555;
   }
 `;
