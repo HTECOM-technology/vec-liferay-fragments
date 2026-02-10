@@ -34,26 +34,26 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
       ...(isMobile
         ? []
         : [
-            {
-              title: "STT",
-              dataIndex: "stt",
-              key: "stt",
-              width: 60,
-              align: "center",
-            },
-            {
-              title: "Người giao việc",
-              dataIndex: "nguoiGiaoViec",
-              key: "nguoiGiaoViec",
-              width: 150,
-              render: (text) => (
-                <Space size={6}>
-                  <UserOutlined />
-                  <span>{text}</span>
-                </Space>
-              ),
-            },
-          ]),
+          {
+            title: "STT",
+            dataIndex: "stt",
+            key: "stt",
+            width: 60,
+            align: "center",
+          },
+          {
+            title: "Người giao việc",
+            dataIndex: "nguoiGiaoViec",
+            key: "nguoiGiaoViec",
+            width: 150,
+            render: (text) => (
+              <Space size={6}>
+                <UserOutlined />
+                <span>{text}</span>
+              </Space>
+            ),
+          },
+        ]),
       {
         title: "Công việc",
         dataIndex: "congViec",
@@ -69,13 +69,30 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
               >
                 {text}
               </LinkButton>
-              {statusConfig && (
+              {isMobile && statusConfig && (
                 <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
               )}
             </div>
           );
         },
       },
+      ...(isMobile
+        ? []
+        : [
+          {
+            title: "Trạng thái",
+            dataIndex: "trangThai",
+            key: "trangThai",
+            width: 140,
+            align: "center",
+            render: (status) => {
+              const statusConfig = WORK_STATUS_MAP[status];
+              return statusConfig ? (
+                <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
+              ) : null;
+            },
+          },
+        ]),
       {
         title: "Ngày bắt đầu - Hạn HT",
         dataIndex: "ngayBatDau",
@@ -92,26 +109,26 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
       ...(isMobile
         ? []
         : [
-            {
-              title: "STT",
-              dataIndex: "stt",
-              key: "stt",
-              width: 60,
-              align: "center",
-            },
-            {
-              title: "Người xử lý chính",
-              dataIndex: "nguoiXuLyChinh",
-              key: "nguoiXuLyChinh",
-              width: 150,
-              render: (text) => (
-                <Space size={6}>
-                  <UserOutlined />
-                  <span>{text}</span>
-                </Space>
-              ),
-            },
-          ]),
+          {
+            title: "STT",
+            dataIndex: "stt",
+            key: "stt",
+            width: 60,
+            align: "center",
+          },
+          {
+            title: "Người xử lý chính",
+            dataIndex: "nguoiXuLyChinh",
+            key: "nguoiXuLyChinh",
+            width: 150,
+            render: (text) => (
+              <Space size={6}>
+                <UserOutlined />
+                <span>{text}</span>
+              </Space>
+            ),
+          },
+        ]),
       {
         title: "Công việc",
         dataIndex: "congViec",
@@ -127,13 +144,30 @@ function WorkTables({ primaryData, supportData, assignedData, followData, onWork
               >
                 {text}
               </LinkButton>
-              {statusConfig && (
+              {isMobile && statusConfig && (
                 <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
               )}
             </div>
           );
         },
       },
+      ...(isMobile
+        ? []
+        : [
+          {
+            title: "Trạng thái",
+            dataIndex: "trangThai",
+            key: "trangThai",
+            width: 140,
+            align: "center",
+            render: (status) => {
+              const statusConfig = WORK_STATUS_MAP[status];
+              return statusConfig ? (
+                <CTag color={statusConfig.color}>{statusConfig.label}</CTag>
+              ) : null;
+            },
+          },
+        ]),
       {
         title: "Ngày bắt đầu - Hạn HT",
         dataIndex: "ngayBatDau",
