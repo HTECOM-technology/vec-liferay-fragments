@@ -1,9 +1,5 @@
 import React, { useMemo } from "react";
 import { StatsRow, StatCard } from "../../style";
-import ValidationIcon from "../../../../assets/icon/validation.svg";
-import AlertIcon from "../../../../assets/icon/alert-02.svg";
-import HourglassIcon from "../../../../assets/icon/hourglass.svg";
-import FileShredderIcon from "../../../../assets/icon/file-shredder.svg";
 
 function WorkStatsCards({
   primaryData,
@@ -42,7 +38,7 @@ function WorkStatsCards({
             {String(stats.total).padStart(2, "0")}
           </div>
         </div>
-        <img src={FileShredderIcon} alt="total" className="stat-icon" />
+        <img src="/assets/icon/file-shredder.svg" alt="total" className="stat-icon" />
       </StatCard>
       <StatCard>
         <div className="stat-content">
@@ -51,7 +47,7 @@ function WorkStatsCards({
             {String(stats.processing).padStart(2, "0")}
           </div>
         </div>
-        <img src={HourglassIcon} alt="processing" className="stat-icon" />
+        <img src="/assets/icon/hourglass.svg" alt="processing" className="stat-icon" />
       </StatCard>
       <StatCard>
         <div className="stat-content">
@@ -60,7 +56,7 @@ function WorkStatsCards({
             {String(stats.completed).padStart(2, "0")}
           </div>
         </div>
-        <img src={ValidationIcon} alt="completed" className="stat-icon" />
+        <img src="/assets/icon/validation.svg" alt="completed" className="stat-icon" />
       </StatCard>
       <StatCard>
         <div className="stat-content">
@@ -69,7 +65,7 @@ function WorkStatsCards({
             {String(stats.overdue).padStart(2, "0")}
           </div>
         </div>
-        <img src={AlertIcon} alt="overdue" className="stat-icon" />
+        <img src="/assets/icon/alert-02.svg" alt="overdue" className="stat-icon" />
       </StatCard>
     </StatsRow>
   );
