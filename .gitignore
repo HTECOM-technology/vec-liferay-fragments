@@ -42,3 +42,4 @@ liferay-test/.cache/
 
 # =========================
 debug.log
+/liferay-build
