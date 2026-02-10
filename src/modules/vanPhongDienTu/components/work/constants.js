@@ -25,7 +25,7 @@ export const WORK_STATUS_OPTIONS = [
   { value: "processing", label: "Chờ xử lý" },
   { value: "in-progress", label: "Đang thực hiện" },
   { value: "completed", label: "Đã hoàn thành" },
-  { value: "pending", label: "Đang tem dùng" },
+  { value: "pending", label: "Đang tạm dừng" },
   { value: "rejected", label: "Đã hủy bỏ" },
   { value: "overdue", label: "Quá hạn" },
 ];
@@ -34,7 +34,7 @@ export const WORK_STATUS_MAP = {
   "processing": { label: "Chưa bắt đầu", color: "default" },
   "in-progress": { label: "Đang thực hiện", color: "blue" },
   "completed": { label: "Đã hoàn thành", color: "green" },
-  "pending": { label: "Đang tem dùng", color: "orange" },
+  "pending": { label: "Đang tạm dừng", color: "orange" },
   "rejected": { label: "Đã hủy bỏ", color: "red" },
   "overdue": { label: "Quá hạn", color: "red" },
 };
