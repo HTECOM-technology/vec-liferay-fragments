@@ -149,7 +149,7 @@ const News = () => {
       <div className="doc-card-header d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center gap-8">
           <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
-            <img src={tintukIcon} alt="News Icon" />
+            <img src={'/documents/d/intranet/container-2-'} alt="News Icon" />
           </div>
           <span>Tin tức - Sự kiện</span>
         </div>
