@@ -1,14 +1,23 @@
-import React from "react";
+import React,{useState} from "react";
 import "../styles/Dashborad.css";
 import '../styles/responsive.css';
-
+import FeedbackModal from "./FeedbackModal";
 
 // component
 import News from './News'
 import TrafficCameraMonitor from './Trafficcameramonitor';
 
 export default function Dashboard() {
-  
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+
+      const handleOpenFeedbackModal = () => {
+    setIsFeedbackModalOpen(true);
+  };
+
+  const handleCloseFeedbackModal = () => {
+    setIsFeedbackModalOpen(false);
+  };
+
   return (
     <div className="container-fluid">
       <div className="dashboard">
@@ -325,9 +334,10 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-           <div className="dashboard-upper-card mobile-d-none">
+          <div className="dashboard-upper-card mobile-d-none">
 
-            <div className="doc-card doc-single-card mb-2">
+            <div className="doc-card doc-single-card mb-2"  onClick={handleOpenFeedbackModal}
+            style={{ cursor: 'pointer' }}>
             
               <div className="doc-card-header d-flex align-items-center p-0">
                 <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
@@ -375,6 +385,10 @@ export default function Dashboard() {
               
               
              </div>
+                 <FeedbackModal 
+        isOpen={isFeedbackModalOpen} 
+        onClose={handleCloseFeedbackModal} 
+      />
           </div>
         </div>
 
