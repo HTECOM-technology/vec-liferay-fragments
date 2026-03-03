@@ -118,7 +118,7 @@ const LoginForm = ({
           </CheckboxLabel>
         </div>
         
-        <ForgotPasswordLink href="/forgot-password">
+        <ForgotPasswordLink href="/c/portal/forgot_password" target="_self">
           Quên mật khẩu?
         </ForgotPasswordLink>
       </CheckboxWrapper>
