@@ -1,15 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getVocabulariesBySite,
   getCategoriesByVocabulary,
 } from "../services/taxonomyService";
-import {
-  getContentStructures,
-  getStructuredContents,
-} from "../services/contentService";
 import "../styles/News.css";
 import { getFieldValue } from "../utils/contentFieldUtils";
-import tintukIcon from "../assets/camera/tintukIcon.svg";
+import { getAllBlogBySiteId } from "../services/blogService";
+
 /**
  * News Component
  *
@@ -36,25 +33,16 @@ const News = () => {
   const [activeCategoryId, setActiveCategoryId] = useState(null);
 
   /** List of fetched news articles */
-  const [articles, setArticles] = useState([]);
+  const [blogs, setBlogs] = useState([]);
 
   /** Loading indicator */
   const [loading, setLoading] = useState(true);
 
-  /** Content structure ID used to fetch articles */
-  const [structureId, setStructureId] = useState(null);
-
-
   /** Liferay Site (Group) ID */
-  // const SITE_ID = window.Liferay.ThemeDisplay.getSiteGroupId();
-  const SITE_ID = 20117; // This is site Id of internet site to fetch tin tuk from that site
+  const SITE_ID = 1029373;
 
   /** Target taxonomy vocabulary name */
-  const VOCABULARY_NAME = "News Article Types";
-
-  /** Target content structure name */
-  const STRUCTURE_NAME = "NEWS_ARTICLES";
-
+  const VOCABULARY_NAME = "tin bài";
 
   /**
    * Load all initial data on component mount:
@@ -65,28 +53,6 @@ const News = () => {
   useEffect(() => {
     loadInitialData();
   }, []);
-
-  /**
-   * Reload articles when:
-   * - Active category changes
-   * - Structure ID becomes available
-   */
-  useEffect(() => {
-    if (!structureId || !activeCategoryId) return;
-
-    const loadByCategory = async () => {
-      setLoading(true);
-      const contents = await getStructuredContents(
-        structureId,
-        activeCategoryId
-      );
-      setArticles(contents);
-      setLoading(false);
-    };
-
-    loadByCategory();
-  }, [activeCategoryId, structureId]);
-
 
   /**
    * Loads all required data for the News component.
@@ -114,22 +80,8 @@ const News = () => {
       const defaultCategoryId = cats[0]?.id;
       setActiveCategoryId(defaultCategoryId);
 
-      /* 2. Load content structure */
-      const structures = await getContentStructures(SITE_ID);
-      const newsStructure = structures.find(
-        (s) => s.name === STRUCTURE_NAME
-      );
-
-      if (!newsStructure) return;
-
-      setStructureId(newsStructure.id);
-
-      /* 3. Load articles for default category */
-      const contents = await getStructuredContents(
-        newsStructure.id,
-        defaultCategoryId
-      );
-      setArticles(contents);
+      const blogsResponse = await getAllBlogBySiteId(SITE_ID);
+      setBlogs(blogsResponse);
     } catch (error) {
       console.error("Error loading news data:", error);
     } finally {
@@ -137,11 +89,21 @@ const News = () => {
     }
   };
 
+  const currentBlogs = useMemo(() => {
+    if (!activeCategoryId) {
+      return [];
+    }
+    return blogs.filter((blog) => {
+      return blog.taxonomyCategoryBriefs
+        .filter((brief) => String(brief.taxonomyCategoryId) === String(activeCategoryId))
+        .length > 0;
+    });
+  }, [blogs, activeCategoryId]);
+
   /** Show loader while data is being fetched */
   if (loading) {
     return <div className="news-loading">Loading...</div>;
   }
-
 
   return (
     <div className="news-container doc-card">
@@ -170,37 +132,26 @@ const News = () => {
         </div>
       </div>
 
-      {/* News Articles */}
       <div className="news-list p-8">
-        {articles.map((item) => {
-          const fields = item.contentFields;
+        {currentBlogs.map((blog) => {
+          const shortDescription = blog.description ?? '';
 
-          /** Extract structured fields */
-          const shortDescription =
-            getFieldValue(fields, "shortDescription")?.data;
+          const publishDate = blog.datePublished?.split("T")[0] ?? '';
 
-          const publishDate =
-            getFieldValue(fields, "date")?.data?.split("T")[0];
+          const imageUrl = blog.image?.contentUrl;
 
-          const imageUrl =
-            getFieldValue(fields, "image")?.image?.contentUrl;
-
-          /** Active category object */
-          const activeCategory = categories.find(
-            (cat) => Number(cat.id) === Number(activeCategoryId)
+          const categoryNames = (blog.taxonomyCategoryBriefs ?? []).map(
+            (cat) => cat.taxonomyCategoryName,
           );
 
           return (
-            <div key={item.id} className="news-item">
+            <div key={blog.id} className="news-item">
               <div className="news-info">
-                <h3>{item.title}</h3>
-
-                {/* Optional description */}
-                {/* <p className="line-2">{shortDescription}</p> */}
+                <h3>{blog.headline}</h3>
 
                 <div className="news-date-div">
                   <span className="red-text">
-                    {activeCategory?.name || ""}
+                    {categoryNames.join(', ')}
                   </span>
                   <span className="dot-custom"></span>
                   <span className="news-date">{publishDate}</span>
@@ -209,7 +160,7 @@ const News = () => {
 
               <img
                 src={`${window.location.origin}${imageUrl}`}
-                alt={item.title}
+                alt={blog.caption}
               />
             </div>
           );
