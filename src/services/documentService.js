@@ -66,3 +66,18 @@ export const uploadDocument = async (folderId, file) => {
 export const deleteDocument = async (documentId) => {
   await axiosPrivate.delete(`/o/headless-delivery/v1.0/documents/${documentId}`);
 };
+
+/**
+ * Fetches document content as a Blob.
+ * 
+ * @async
+ * @function getDocumentBlob
+ * @param {string} contentUrl - The URL of the document content.
+ * @returns {Promise<Blob>}
+ */
+export const getDocumentBlob = async (contentUrl) => {
+  const res = await axiosPrivate.get(contentUrl, {
+    responseType: 'blob'
+  });
+  return res.data;
+};
