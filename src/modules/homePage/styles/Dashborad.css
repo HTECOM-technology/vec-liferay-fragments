@@ -193,7 +193,7 @@ p:last-child {
     padding-bottom: 10px !important;
 }
 .dashboard-upper-cards.bottom-area {
-    gap: 0 !important;
+    gap: 10px !important;
     width: 100% !important;
 }
 

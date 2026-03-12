@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
 import { StatsRow, StatCard } from "../../style";
-import ValidationIcon from "../../../../assets/icon/validation.svg";
-import AlertIcon from "../../../../assets/icon/alert-02.svg";
-import HourglassIcon from "../../../../assets/icon/hourglass.svg";
-import FileShredderIcon from "../../../../assets/icon/file-shredder.svg";
+import { ReactComponent as ValidationIcon } from "../../../../assets/icon/validation.svg";
+import { ReactComponent as AlertIcon } from "../../../../assets/icon/alert-02.svg";
+import { ReactComponent as HourglassIcon } from "../../../../assets/icon/hourglass.svg";
+import { ReactComponent as FileShredderIcon } from "../../../../assets/icon/file-shredder.svg";
 
 function WorkStatsCards({
   primaryData,
@@ -42,7 +42,7 @@ function WorkStatsCards({
             {String(stats.total).padStart(2, "0")}
           </div>
         </div>
-        <img src={FileShredderIcon} alt="total" className="stat-icon" />
+        <FileShredderIcon className="stat-icon" />
       </StatCard>
       <StatCard>
         <div className="stat-content">
@@ -51,7 +51,7 @@ function WorkStatsCards({
             {String(stats.processing).padStart(2, "0")}
           </div>
         </div>
-        <img src={HourglassIcon} alt="processing" className="stat-icon" />
+        <HourglassIcon className="stat-icon" />
       </StatCard>
       <StatCard>
         <div className="stat-content">
@@ -60,7 +60,7 @@ function WorkStatsCards({
             {String(stats.completed).padStart(2, "0")}
           </div>
         </div>
-        <img src={ValidationIcon} alt="completed" className="stat-icon" />
+        <ValidationIcon className="stat-icon" />
       </StatCard>
       <StatCard>
         <div className="stat-content">
@@ -69,7 +69,7 @@ function WorkStatsCards({
             {String(stats.overdue).padStart(2, "0")}
           </div>
         </div>
-        <img src={AlertIcon} alt="overdue" className="stat-icon" />
+        <AlertIcon className="stat-icon" />
       </StatCard>
     </StatsRow>
   );
