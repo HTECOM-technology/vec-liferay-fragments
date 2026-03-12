@@ -4,8 +4,10 @@ import '../styles/responsive.css';
 import FeedbackModal from "./FeedbackModal";
 
 // component
-import News from './News'
-import TrafficCameraMonitor from './Trafficcameramonitor';
+import News from "./News";
+import TrafficCameraMonitor from "./Trafficcameramonitor";
+import TopCardsSection from "./TopCardsSection";
+import MiddleCardsSection from "./MiddleCardsSection";
 
 export default function Dashboard() {
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -21,6 +23,7 @@ export default function Dashboard() {
   return (
     <div className="container-fluid">
       <div className="dashboard">
+    <TopCardsSection />
         <div className="dashboard-upper-cards pb-2">
           <div className="dashboard-upper-card">
 
@@ -405,6 +408,7 @@ export default function Dashboard() {
                 <span className="primary-color p-8">Góp ý - Sáng kiến cải tiến</span>
               </div>
 
+        <MiddleCardsSection />
 
 
             </div>
@@ -741,7 +745,6 @@ export default function Dashboard() {
               <TrafficCameraMonitor />
             </div>
         </div>
-
       </div>
     </div>
   );

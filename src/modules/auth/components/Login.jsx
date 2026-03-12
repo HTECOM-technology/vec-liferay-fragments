@@ -33,8 +33,8 @@ const Login = () => {
    */
   useEffect(() => {
     if (AuthService.isAuthenticated()) {
-      // Redirect to home if already logged in
-      window.location.href = '/web/guest/home';
+      // Redirect về trang chủ (path trống, không dùng /home)
+      window.location.href = '/web/guest';
     }
   }, []);
 
@@ -75,15 +75,8 @@ const Login = () => {
     e.preventDefault();
     
     // Validation
-    if (!credentials.username || !credentials.password) {
+    if (!credentials.username?.trim() || !credentials.password) {
       setError('Vui lòng nhập đầy đủ thông tin');
-      return;
-    }
-
-    // Email validation (basic)
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(credentials.username)) {
-      setError('Email không hợp lệ');
       return;
     }
 
@@ -93,7 +86,8 @@ const Login = () => {
     try {
       const result = await AuthService.login(
         credentials.username,
-        credentials.password
+        credentials.password,
+        rememberMe
       );
 
       if (result.success) {
@@ -102,8 +96,8 @@ const Login = () => {
           AuthService.storeUserData(result.user);
         }
         
-        // Redirect on success
-        window.location.href = '/web/guest/home';
+        // Redirect về trang chủ (path trống, không dùng /home)
+        window.location.href = '/web/guest';
       } else {
         setError(result.error || 'Đăng nhập thất bại');
       }
