@@ -731,11 +731,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="dashboard-upper-cards bottom-area row mt-4">
+        <div className="dashboard-upper-cards bottom-area mt-4">
           <div className="col-lg-8">
               <News />
             </div>
-
             <div className="col-lg-4 mt-4 mt-lg-0" style={{'padding-right':0}}>
               <TrafficCameraMonitor />
             </div>
