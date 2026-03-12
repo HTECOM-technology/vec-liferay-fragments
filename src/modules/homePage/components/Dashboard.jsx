@@ -1,13 +1,22 @@
-import React from "react";
+import React,{useState} from "react";
 import "../styles/Dashborad.css";
 import '../styles/responsive.css';
-
+import FeedbackModal from "./FeedbackModal";
 
 // component
 import News from './News'
 import TrafficCameraMonitor from './Trafficcameramonitor';
 
 export default function Dashboard() {
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+
+      const handleOpenFeedbackModal = () => {
+    setIsFeedbackModalOpen(true);
+  };
+
+  const handleCloseFeedbackModal = () => {
+    setIsFeedbackModalOpen(false);
+  };
 
   return (
     <div className="container-fluid">
@@ -327,8 +336,9 @@ export default function Dashboard() {
           </div>
           <div className="dashboard-upper-card mobile-d-none">
 
-            <div className="doc-card doc-single-card mb-2">
-
+            <div className="doc-card doc-single-card mb-2"  onClick={handleOpenFeedbackModal}
+            style={{ cursor: 'pointer' }}>
+            
               <div className="doc-card-header d-flex align-items-center p-0">
                 <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
                   <img src={'/documents/d/guest/chat-icon'} alt="icon " />
@@ -373,9 +383,13 @@ export default function Dashboard() {
                 <span className="primary-color p-8">Sổ tay nhân viên</span>
               </div>
 
-
-
-            </div>
+              
+              
+             </div>
+                 <FeedbackModal 
+        isOpen={isFeedbackModalOpen} 
+        onClose={handleCloseFeedbackModal} 
+      />
           </div>
         </div>
 
@@ -719,14 +733,13 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        <div className="dashboard-upper-cards bottom-area row mt-4">
+        <div className="dashboard-upper-cards bottom-area mt-4">
           <div className="col-lg-8">
-            <News />
-          </div>
-
-          <div className="col-lg-4 mt-4 mt-lg-0" style={{ 'padding-right': 0 }}>
-            <TrafficCameraMonitor />
-          </div>
+              <News />
+            </div>
+            <div className="col-lg-4 mt-4 mt-lg-0" style={{'padding-right':0}}>
+              <TrafficCameraMonitor />
+            </div>
         </div>
 
       </div>
