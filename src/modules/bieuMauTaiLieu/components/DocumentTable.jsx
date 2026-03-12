@@ -3,6 +3,14 @@ import { Table, Grid } from "antd";
 import { TableContainer, ActionButton, ActionsCell } from "../style";
 import { ReactComponent as EyeIcon } from "../../../assets/icon/eye-icon.svg";
 import { ReactComponent as DownloadIcon } from "../../../assets/icon/download-icon.svg";
+import { ReactComponent as EditIcon } from "../../../assets/icon/pen-icon.svg";
+import { ReactComponent as DeleteIcon } from "../../../assets/icon/trash-icon.svg";
+import {
+    handleViewDocument,
+    handleDownloadDocument,
+    handleEditDocument,
+    handleDeleteDocument,
+} from "./documentActions";
 
 const { useBreakpoint } = Grid;
 
@@ -30,12 +38,36 @@ const DocumentTable = () => {
             render: (_, record) => (
                 <ActionsCell>
                     {screens.md && (
-                        <ActionButton className="view-btn" title="Xem">
+                        <ActionButton
+                            className="view-btn"
+                            title="Xem"
+                            onClick={() => handleViewDocument(record)}
+                        >
                             <EyeIcon />
                         </ActionButton>
                     )}
-                    <ActionButton className="download-btn" title="Tải xuống">
+                    <ActionButton
+                        className="download-btn"
+                        title="Tải xuống"
+                        onClick={() => handleDownloadDocument(record)}
+                    >
                         <DownloadIcon />
+                    </ActionButton>
+                    {screens.md && (
+                        <ActionButton
+                            className="edit-btn"
+                            title="Chỉnh sửa"
+                            onClick={() => handleEditDocument(record)}
+                        >
+                            <EditIcon />
+                        </ActionButton>
+                    )}
+                    <ActionButton
+                        className="delete-btn"
+                        title="Xóa"
+                        onClick={() => handleDeleteDocument(record)}
+                    >
+                        <DeleteIcon />
                     </ActionButton>
                 </ActionsCell>
             ),

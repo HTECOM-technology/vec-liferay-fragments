@@ -162,6 +162,24 @@ export const ActionButton = styled.button`
     }
   }
 
+  &.edit-btn {
+    color: #fffc42;
+    background: rgba(230, 252, 40, 0.1);
+    
+    &:hover {
+      background: rgba(148, 136, 26, 0.2);
+    }
+  }
+  
+  &.delete-btn {
+    color: #f74134;
+    background: rgba(209, 52, 52, 0.1);
+    
+    &:hover {
+      background: rgba(160, 38, 38, 0.2);
+    }
+  }
+
   svg {
     font-size: 16px;
   }

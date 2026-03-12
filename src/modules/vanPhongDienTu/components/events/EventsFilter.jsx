@@ -130,7 +130,11 @@ function EventsFilter({
               >
                 Thêm sự kiện
               </CButton>
-              <CButton type="primary" icon={<EyeOutlined />}>
+              <CButton
+                type="primary"
+                icon={<EyeOutlined />}
+                onClick={() => window.open("", "_blank")}
+              >
                 Xem đầy đủ lịch
               </CButton>
             </EventsActionGroup>

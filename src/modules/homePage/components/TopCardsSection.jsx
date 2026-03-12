@@ -299,6 +299,7 @@ export default function TopCardsSection() {
           </div>
         </div>
         <div className="dashboard-upper-card mobile-d-none">
+          {/*
           <div className="doc-card doc-single-card mb-2">
             <div className="doc-card-header d-flex align-items-center p-0">
               <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
@@ -320,6 +321,7 @@ export default function TopCardsSection() {
               </a>
             </div>
           </div>
+          */}
           <div className="doc-card mb-2 doc-single-card">
             <div className="doc-card-header  d-flex align-items-center p-0">
               <div className=" d-flex justify-content-center p-0 image-w-50 align-items-center">
@@ -329,7 +331,7 @@ export default function TopCardsSection() {
               <a
                 href="/web/intranet/quy-trinh-yeu-cau-ho-tro"
                 className="primary-color p-8"
-              >
+                >
                 Quy trình - Yêu cầu hỗ trợ
               </a>
             </div>

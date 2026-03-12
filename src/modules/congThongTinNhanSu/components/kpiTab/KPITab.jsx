@@ -5,7 +5,7 @@ import { CButton, CTablePagination } from "../../../../components/common";
 import KPIFilter from "./KPIFilter";
 import KPITable from "./KPITable";
 import { HeaderActions } from "../../style";
-import { mockKPIData } from "../constants";
+import { mockKPIData, getPhongBanGroup, getCurrentUserPhongBan } from "../constants";
 
 function KPITab() {
     const [dataSource] = useState(mockKPIData);
@@ -18,6 +18,20 @@ function KPITab() {
         // Mock search logic
     };
 
+    const handleEvaluateVP = () => {
+        // TODO: thay thế bằng URL thực tế khi có
+        window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=zchrpai";
+    };
+    const handleEvaluateQL = () => {
+        // TODO: thay thế bằng URL thực tế khi có
+        window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=zchrpaiSouth";
+    };
+
+    // Phân loại phòng ban: khối văn phòng → handleEvaluateVP, QLDA → handleEvaluateQL (khi có user phòng ban)
+    const userPhongBan = getCurrentUserPhongBan();
+    const phongBanGroup = getPhongBanGroup(userPhongBan);
+    const handleEvaluate = phongBanGroup === "qlda" ? handleEvaluateQL : handleEvaluateVP;
+
     return (
         <div>
             <HeaderActions>
@@ -29,7 +43,7 @@ function KPITab() {
                             onClick={() => setFilterVisible(true)}
                         />
                     )}
-                    <CButton type="primary" icon={<EditOutlined />}>
+                    <CButton type="primary" icon={<EditOutlined />} onClick={handleEvaluate}>
                         Đánh giá
                     </CButton>
                 </div>
