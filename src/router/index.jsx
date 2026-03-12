@@ -3,15 +3,7 @@ import { memo } from "react";
 import { MainLayout } from "../components/layout";
 import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage, BieuMauTaiLieuPage, LoginPage, GiamSatGiaoThongPage } from "../modules";
 import { paths } from "./menuConfig";
-
-function PlaceholderPage({ title }) {
-  return (
-    <div>
-      <h1>{title}</h1>
-      <p>Nội dung trang (placeholder).</p>
-    </div>
-  );
-}
+import TinTucSuKienPage from "../modules/tinTucSuKien";
 
 function AppRouter() {
   return (
@@ -24,7 +16,7 @@ function AppRouter() {
           <Route path={paths.doiSoatThuPhi} element={<DoiSoatThuPhiPage />} />
           <Route path={paths.congThongTinNhanSu} element={<CongThongTinNhanSuPage />} />
           <Route path={paths.giamSatGiaoThong} element={<GiamSatGiaoThongPage />} />
-          <Route path={paths.tinTucSuKien} element={<PlaceholderPage title="Tin tức - Sự kiện" />} />
+          <Route path={paths.tinTucSuKien} element={<TinTucSuKienPage />} />
           <Route path={paths.bieuMauTaiLieu} element={<BieuMauTaiLieuPage />} />
           <Route path={paths.soTayNhanVien} element={<SoTayNhanVienPage />} />
           <Route path={paths.khaoSatBieuQuyet} element={<KhaoSatBieuQuyetPage />} />
