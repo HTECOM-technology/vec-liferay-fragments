@@ -3,28 +3,42 @@ import {
   getVocabulariesBySite,
   getCategoriesByVocabulary,
 } from "../services/taxonomyService";
+
 import { getAllBlogBySiteId } from "../services/blogService";
+
 import "../styles/News.css";
+
+import "../styles/NewsMobie.css";
+
 import { formatDate } from "../utils/dateUtils";
+
+const PAGE_SIZE = 10;
 
 const SITE_ID = 1029373;
 const VOCABULARY_NAME = "tin bài";
 
 const News = () => {
+
   const [categories, setCategories] = useState([]);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [sortType, setSortType] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     loadInitialData();
   }, []);
 
   const loadInitialData = async () => {
+
     try {
+
       setLoading(true);
 
       const vocabularies = await getVocabulariesBySite(SITE_ID);
+
       const targetVocabulary = vocabularies.find(
         (v) => v.name?.toLowerCase() === VOCABULARY_NAME.toLowerCase()
       );
@@ -32,119 +46,351 @@ const News = () => {
       if (!targetVocabulary) return;
 
       const cats = await getCategoriesByVocabulary(targetVocabulary.id);
+
       setCategories(cats);
 
       const defaultCategoryId = cats[0]?.id;
+
       setActiveCategoryId(defaultCategoryId);
 
       const blogsResponse = await getAllBlogBySiteId(SITE_ID);
+
       setBlogs(blogsResponse);
+
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
+
   };
+
+  /*
+  =================
+  CATEGORY NAME
+  =================
+  */
 
   const activeCategoryName = useMemo(() => {
     return categories.find((c) => c.id === activeCategoryId)?.name || "";
   }, [categories, activeCategoryId]);
 
+  /*
+  =================
+  FILTER BLOG
+  =================
+  */
+
   const currentBlogs = useMemo(() => {
+
     if (!activeCategoryId) return [];
 
-    return blogs.filter((blog) =>
+    let filtered = blogs.filter((blog) =>
       blog.taxonomyCategoryBriefs?.some(
         (brief) =>
           String(brief.taxonomyCategoryId) === String(activeCategoryId)
       )
     );
-  }, [blogs, activeCategoryId]);
+
+    filtered.sort((a, b) => {
+
+      const dateA = new Date(a.datePublished);
+      const dateB = new Date(b.datePublished);
+
+      if (sortType === "newest") return dateB - dateA;
+
+      return dateA - dateB;
+
+    });
+
+    return filtered;
+
+  }, [blogs, activeCategoryId, sortType]);
+
+  /*
+  =================
+  HOT BLOGS
+  =================
+  */
+
+  const hotBlogs = useMemo(() => {
+
+    return blogs
+      .filter(blog =>
+        blog.keywords?.some(
+          k => k.toLowerCase() === "tin hot"
+        )
+      )
+      .sort(
+        (a, b) => new Date(b.datePublished) - new Date(a.datePublished)
+      )
+      .slice(0, 5);
+
+  }, [blogs]);
+
+  /*
+  =================
+  PAGINATION
+  =================
+  */
+
+  const totalPages = Math.ceil(currentBlogs.length / PAGE_SIZE);
+
+  const paginatedBlogs = useMemo(() => {
+
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+
+    return currentBlogs.slice(start, end);
+
+  }, [currentBlogs, currentPage]);
 
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="news-container">
+
+    <div className="news-wrapper">
 
       {/* CATEGORY TABS */}
+
       <div className="news-tabs-wrapper">
-        {categories.map((cat) => (
+
+        {categories.map(cat => (
+
           <div
             key={cat.id}
-            className={`news-tab ${
-              activeCategoryId === cat.id ? "active" : ""
-            }`}
-            onClick={() => setActiveCategoryId(cat.id)}
+            className={`news-tab ${activeCategoryId === cat.id ? "active" : ""}`}
+            onClick={() => {
+              setActiveCategoryId(cat.id);
+              setCurrentPage(1);
+            }}
           >
-            {/* ảnh nền category */}
-            <img
-              className="news-tab-bg"
-              src=""
-              alt=""
-            />
 
-            <span className="news-tab-title">{cat.name}</span>
+            <img className="news-tab-bg" src="" alt="" />
+
+            <span className="news-tab-title">
+              {cat.name}
+            </span>
+
           </div>
+
         ))}
+
       </div>
 
-      {/* TITLE CATEGORY */}
-      <div className="news-section-title">
-        {activeCategoryName}
-      </div>
+      {/* MAIN LAYOUT */}
 
-      {/* NEWS LIST */}
-      <div className="news-list">
+      <div className="news-layout">
 
-        {currentBlogs.map((blog) => {
-          const publishDate = formatDate(blog.datePublished);
-          const imageUrl = blog.image?.contentUrl;
-          const fullImage =
-            imageUrl?.startsWith("http")
-              ? imageUrl
-              : `${window.location.origin}${imageUrl}`;
+        {/* LEFT COLUMN */}
 
-          const categoryNames =
-            blog.taxonomyCategoryBriefs?.map(
-              (cat) => cat.taxonomyCategoryName
-            ) || [];
+        <div className="news-main">
 
-          return (
-            <div key={blog.id} className="news-item">
+          <div className="news-header">
 
-              <div className="news-left">
-                <h3 className="news-title">{blog.headline}</h3>
+            <div className="news-section-title">
+              {activeCategoryName}
+            </div>
 
-                <p className="news-desc">
-                  {blog.alternativeHeadline}
-                </p>
+            <select
+              className="news-sort"
+              value={sortType}
+              onChange={(e) => {
+                setSortType(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
 
-                <div className="news-meta">
-                  <span className="news-category">
-                    {activeCategoryName}
-                  </span>
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
 
-                  <span className="news-dot"></span>
+            </select>
 
-                  <span className="news-date">
-                    {publishDate}
-                  </span>
+          </div>
+
+          <div className="news-list">
+
+            {paginatedBlogs.map(blog => {
+
+              const publishDate = formatDate(blog.datePublished);
+
+              const imageUrl = blog.image?.contentUrl;
+
+              const fullImage =
+                imageUrl?.startsWith("http")
+                  ? imageUrl
+                  : `${window.location.origin}${imageUrl}`;
+
+              return (
+
+                <div key={blog.id} className="news-item">
+
+                  <div className="news-left">
+
+                    <h3 className="news-title">
+                      {blog.headline}
+                    </h3>
+
+                    <p className="news-desc">
+                      {blog.alternativeHeadline}
+                    </p>
+
+                    <div className="news-meta">
+
+                      <span className="news-category">
+                        {activeCategoryName}
+                      </span>
+
+                      <span className="news-dot"></span>
+
+                      <span className="news-date">
+                        {publishDate}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                  {imageUrl && (
+
+                    <img
+                      className="news-image"
+                      src={fullImage}
+                      alt={blog.caption}
+                    />
+
+                  )}
+
                 </div>
+
+              );
+
+            })}
+
+          </div>
+
+          {/* PAGINATION */}
+
+          <div className="news-pagination">
+
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+            >
+              ‹
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+
+              <button
+                key={page}
+                className={currentPage === page ? "active" : ""}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+
+            ))}
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              ›
+            </button>
+
+          </div>
+
+        </div>
+
+        {/* SIDEBAR */}
+
+        <div className="news-sidebar">
+
+          <div className="vec-weekly-wrapper">
+
+            <div className="vec-weekly-container">
+
+              <div className="vec-weekly-header">
+                <h2 className="vec-weekly-header__title">
+                  Nổi bật trong tuần
+                </h2>
               </div>
 
-              {imageUrl && (
-                <img
-                  className="news-image"
-                  src={fullImage}
-                  alt={blog.caption}
-                />
-              )}
+              <div className="vec-weekly-list">
+
+                {hotBlogs.map(blog => {
+
+                  const publishDate = formatDate(blog.datePublished);
+
+                  const imageUrl = blog.image?.contentUrl;
+
+                  const fullImage =
+                    imageUrl?.startsWith("http")
+                      ? imageUrl
+                      : `${window.location.origin}${imageUrl}`;
+
+                  return (
+
+                    <a key={blog.id} className="vec-weekly-item">
+
+                      <div className="vec-weekly-item__image">
+                        <img src={fullImage} alt={blog.headline}/>
+                      </div>
+
+                      <div className="vec-weekly-item__content">
+
+                        <div className="vec-weekly-item__title">
+                          {blog.headline}
+                        </div>
+
+                        <div className="vec-weekly-item__meta">
+
+                          <div className="vec-weekly-item__category">
+                            {blog.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryName}
+                          </div>
+
+                          <div className="vec-weekly-item__date">
+                            {publishDate}
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    </a>
+
+                  );
+
+                })}
+
+              </div>
+
+              <svg width="0" height="0">
+                <defs>
+                  <clipPath id="myClip" clipPathUnits="objectBoundingBox">
+                    <path d="M 0,0 L 0.8,0 Q 0.85,0.05 1,1 L 0,1 Z" />
+                  </clipPath>
+                </defs>
+              </svg>
+
+              <div className="decorative-bar">
+                <div className="bar-left"></div>
+                <div className="bar-right"></div>
+              </div>
+
             </div>
-          );
-        })}
+
+          </div>
+
+        </div>
+
       </div>
+
     </div>
+
   );
+
 };
 
 export default News;
