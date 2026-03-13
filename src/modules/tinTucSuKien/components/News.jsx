@@ -75,6 +75,46 @@ const News = () => {
     return categories.find((c) => c.id === activeCategoryId)?.name || "";
   }, [categories, activeCategoryId]);
 
+    /*
+  =================
+ FAKE IMAGE CATEGORY
+  =================
+  */
+
+  const CATEGORY_TABS = [
+  {
+    id: 1,
+    name: "Thông báo",
+    link: "/documents/1029373/1134436/Thong_bao.png/23737b73-90d1-eb04-c629-67bdab965886",
+  },
+  {
+    id: 2,
+    name: "Đại hội Đảng 2025 - 2030",
+    link: "/documents/1029373/1134436/Dai_hoi_dang.png/ceb20db6-0ff6-21d7-15ab-bbe7340a6fe8",
+  },
+  {
+    id: 3,
+    name: "Hoạt động TCT",
+    link: "/documents/1029373/1134436/Hoat_dong_TCT.png/a49000ae-d48a-8659-0a26-e785298d5e44",
+  },
+  {
+    id: 4,
+    name: "Hoạt động CT thành viên",
+    link: "/documents/1029373/1134436/Hoat_dong_CT_thanh_vien.png/d706dd15-5944-36f1-3588-e3fe7684320a",
+  },
+  {
+    id: 5,
+    name: "Chuyển đổi số",
+    link: "/documents/1029373/1134436/Chuyen_doi_so.png/5eeb66e1-c6fb-34f5-5fb4-e2d6c270b8e4",
+  },
+  {
+    id: 6,
+    name: "Tin hiện trường",
+    link: "/documents/1029373/1134436/Tin_hien_truong.png/1ef7c0c4-3dca-5008-cf5c-e8a6a1405770",
+
+  }
+];
+
   /*
   =================
   FILTER BLOG
@@ -155,7 +195,7 @@ const News = () => {
 
       <div className="news-tabs-wrapper">
 
-        {categories.map(cat => (
+        {(CATEGORY_TABS?.length ? CATEGORY_TABS : categories).map(cat => (
 
           <div
             key={cat.id}
@@ -166,7 +206,7 @@ const News = () => {
             }}
           >
 
-            <img className="news-tab-bg" src="" alt="" />
+            <img className="news-tab-bg" src={cat.image || ""} alt={cat.name || ""} />
 
             <span className="news-tab-title">
               {cat.name}
