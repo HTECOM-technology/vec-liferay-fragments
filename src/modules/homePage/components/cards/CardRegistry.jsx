@@ -240,7 +240,7 @@ export function NhiemVuCard({ dragHandleProps }) {
             </div>
             <Link to="/web/intranet/van-phong-dien-tu">
               {notificationCount > 0 ? (
-                <img src="/assets/notification.gif" alt="" style={{ width: "24px", height: "24px" }} />
+                <img src="https://res.cloudinary.com/dzjwdapic/image/upload/v1773388023/notification_zgmrmb.gif" alt="" style={{ width: "24px", height: "24px" }} />
               ) : (
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" />
