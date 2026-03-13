@@ -39,7 +39,6 @@ export const StyledContent = styled(Layout.Content)`
   background: #fff;
   border-radius: 8px;
   border: 1px solid #0090cf33;
-  overflow-x: scroll;
 `;
 
 export const StyledLeftMenu = styled.div`

@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   getVocabulariesBySite,
   getCategoriesByVocabulary,
-} from "../services/taxonomyService";
+} from "../../../services/taxonomyService";
 import "../styles/News.css";
-import { getFieldValue } from "../utils/contentFieldUtils";
-import { getAllBlogBySiteId } from "../services/blogService";
+import { getFieldValue } from "../../../utils/contentFieldUtils";
+import { getAllBlogBySiteId } from "../../../services/blogService";
 
 /**
  * News Component
