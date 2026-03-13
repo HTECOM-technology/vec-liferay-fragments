@@ -5,7 +5,7 @@ const path = require('path');
 const BUILD_DIR = path.join(__dirname, 'build');
 const LIFERAY_PROJECT_DIR = path.join(__dirname, 'liferay-build');
 const COLLECTION_DIR = path.join(LIFERAY_PROJECT_DIR, 'src', 'intranet-fragment');
-const FRAGMENT_DIR = path.join(COLLECTION_DIR, 'fragments', 'react-hello-world');
+const FRAGMENT_DIR = path.join(COLLECTION_DIR, 'fragments', 'intranet-fragment');
 
 console.log('🚀 Syncing React build to Liferay Fragment...\n');
 console.log('📂 Paths:');
@@ -116,7 +116,6 @@ try {
   console.log(`\n📄 Found files:`);
   console.log(`   CSS: ${mainCss}`);
   console.log(`   JS:  ${mainJs}\n`);
-
   // 9. Tạo index.html
   const indexHtml = `<div id="react-root"></div>
 
@@ -133,7 +132,7 @@ try {
   fs.writeFileSync(path.join(FRAGMENT_DIR, 'index.html'), indexHtml);
   console.log('✅ Created index.html');
 
-// 10. Tạo index.js
+// 11. Tạo index.js
 const indexJs = `const root = fragmentElement.querySelector('#react-root');
 
 console.log('Fragment loaded');
@@ -146,7 +145,7 @@ if (root && window.ReactHelloWorldApp) {
 fs.writeFileSync(path.join(FRAGMENT_DIR, 'index.js'), indexJs);
 console.log('✅ Created index.js');
 
-  // 11. Tạo index.css
+  // 12. Tạo index.css
   const indexCss = `.react-fragment-container {
   width: 100%;
   min-height: 200px;
@@ -155,7 +154,7 @@ console.log('✅ Created index.js');
   fs.writeFileSync(path.join(FRAGMENT_DIR, 'index.css'), indexCss);
   console.log('✅ Created index.css');
 
-  // 12. Tạo fragment.json
+  // 13. Tạo fragment.json
   const fragmentJson = {
     cssPath: 'index.css',
     htmlPath: 'index.html',
@@ -167,13 +166,13 @@ console.log('✅ Created index.js');
   fs.writeJsonSync(path.join(FRAGMENT_DIR, 'fragment.json'), fragmentJson, { spaces: 2 });
   console.log('✅ Created fragment.json');
 
-  // 13. Thành công
+  // 14. Thành công
   console.log('\n✨ Sync completed successfully!\n');
   console.log('📁 Complete structure:');
   console.log('   liferay-fragment/');
   console.log('   ├── collection.json        ← Collection metadata');
   console.log('   └── fragments/');
-  console.log('       └── react-hello-world/');
+  console.log('       └── intranet-fragment/');
   console.log('           ├── fragment.json');
   console.log('           ├── index.html');
   console.log('           ├── index.css');
