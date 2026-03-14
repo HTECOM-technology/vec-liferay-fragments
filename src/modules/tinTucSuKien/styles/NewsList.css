@@ -1,0 +1,78 @@
+/* =============================
+   NEWS LIST
+============================= */
+
+.news-list {
+   display: flex;
+   flex-direction: column;
+}
+
+.news-item {
+   display: flex;
+   justify-content: flex-start;
+   gap: 20px;
+   padding: 16px 0;
+   border-bottom: 1px solid #eee;
+   cursor: pointer;
+   transition: background .2s ease;
+}
+
+.news-item:hover {
+   background: #fafafa;
+}
+
+.news-left {
+   flex: 1;
+   min-width: 0;
+}
+
+.news-title {
+   font-size: 16px;
+   font-weight: 600;
+   line-height: 1.4;
+   transition: color .25s ease;
+   margin: 0;
+}
+
+.news-item:hover .news-title {
+   color: #0090CF;
+}
+
+.news-desc {
+   font-size: 14px;
+   color: #555;
+   margin-top: 6px;
+}
+
+.news-meta {
+   margin-top: 8px;
+   display: flex;
+   gap: 6px;
+   align-items: center;
+}
+
+.news-category {
+   color: #e53935;
+   font-weight: 500;
+   font-size: 13px;
+}
+
+.news-dot {
+   width: 4px;
+   height: 4px;
+   background: #888;
+   border-radius: 50%;
+}
+
+.news-date {
+   font-size: 13px;
+   color: #888;
+}
+
+.news-image {
+   width: 220px;
+   height: 140px;
+   object-fit: cover;
+   border-radius: 6px;
+   flex-shrink: 0;
+}

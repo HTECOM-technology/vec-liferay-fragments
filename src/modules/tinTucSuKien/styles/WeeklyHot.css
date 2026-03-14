@@ -1,0 +1,109 @@
+/* =============================
+   WEEKLY HOT SIDEBAR
+============================= */
+
+.vec-weekly-container {
+   background: #E1EFF5;
+   border-radius: 8px;
+   overflow: hidden;
+}
+
+.vec-weekly-header {
+   padding: 20px;
+}
+
+.vec-weekly-header__title {
+   font-size: 20px;
+   font-weight: 700;
+   margin: 0;
+}
+
+.vec-weekly-list {
+   display: flex;
+   flex-direction: column;
+}
+
+.vec-weekly-item {
+   display: flex;
+   gap: 15px;
+   padding: 16px 20px;
+   border-bottom: 1px solid #e0e0e0;
+   text-decoration: none;
+   color: inherit;
+   transition: background-color .2s ease;
+   cursor:pointer;
+}
+
+.vec-weekly-item:last-child {
+   border-bottom: none;
+}
+
+.vec-weekly-item:hover {
+   background: #f8f9fa;
+   color: #333;
+}
+
+.vec-weekly-item__image {
+   width: 80px;
+   height: 80px;
+   border-radius: 8px;
+   overflow: hidden;
+   flex-shrink: 0;
+}
+
+.vec-weekly-item__image img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+}
+
+.vec-weekly-item__content {
+   flex: 1;
+}
+
+.vec-weekly-item__title {
+   font-size: 14px;
+   font-weight: 700;
+   line-height: 1.4;
+   margin-bottom: 4px;
+}
+
+.vec-weekly-item__category {
+   color: #e63946;
+   font-size: 12px;
+   font-weight: 600;
+}
+
+.vec-weekly-item__date {
+   font-size: 12px;
+   color: #888;
+   margin-top: 2px;
+}
+
+/* ===== DECORATIVE BAR ===== */
+.decorative-bar {
+   position: relative;
+   width: 100%;
+   height: 5px;
+   margin-top: 12px;
+}
+
+.bar-left {
+   position: absolute;
+   z-index: 2;
+   left: 0;
+   bottom: 0;
+   width: 30%;
+   height: 17px;
+   background: #0090CF;
+   clip-path: url(#myClip);
+}
+
+.bar-right {
+   position: absolute;
+   z-index: 1;
+   right: 0;
+   width: 100%;
+   height: 100%;
+   background: #E31C2A;
+}
