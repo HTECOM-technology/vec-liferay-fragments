@@ -156,6 +156,7 @@ export function CongViecCard({ dragHandleProps }) {
 }
 
 export function NhiemVuCard({ dragHandleProps }) {
+  const notificationCount = 1;
   return (
     <div className="doc-card">
       <div className="doc-card-header d-flex align-items-center">
@@ -163,14 +164,14 @@ export function NhiemVuCard({ dragHandleProps }) {
         <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
           <img src={"/documents/d/guest/card-icon-3"} alt="icon" />
         </div>
-        <span>Nhiệm vụ</span>
+        <span>Tổng hợp nhân sự</span>
       </div>
       <div className="row no-gutters doc-card-body">
         <div className="col-6 doc-item padding-right-8">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Tổng số<br />công việc</p>
-              <h3>08</h3>
+              <p className="min-hight-30">Số ngày phép còn lại</p>
+              <h3>00</h3>
             </div>
             <div className="doc-item-icon">
               <img src={"/documents/d/guest/file-shredder"} alt="" />
@@ -180,7 +181,7 @@ export function NhiemVuCard({ dragHandleProps }) {
         <div className="col-6 doc-item">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Đang xử lý</p>
+              <p className="min-hight-30">Duyệt nghỉ, vắng mặt</p>
               <h3>02</h3>
             </div>
             <div className="doc-item-icon">
@@ -191,7 +192,7 @@ export function NhiemVuCard({ dragHandleProps }) {
         <div className="col-6 doc-item padding-right-8">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Đã hoàn<br />thành</p>
+              <p className="min-hight-30">Duyệt xác nhận công</p>
               <h3>04</h3>
             </div>
             <div className="doc-item-icon">
@@ -202,12 +203,51 @@ export function NhiemVuCard({ dragHandleProps }) {
         <div className="col-6 doc-item">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Quá hạn</p>
+              <p className="min-hight-30">Duyệt làm thêm giờ</p>
               <h3>0</h3>
             </div>
             <div className="doc-item-icon">
               <img src={"/documents/d/guest/alert-02"} alt="" />
             </div>
+          </div>
+        </div>
+        <div className="col-6 doc-item">
+          <div className="d-flex justify-content-between align-items-start">
+            <div>
+              <p className="min-hight-30">Duyệt đánh giá KPI tháng</p>
+              <h3>0</h3>
+            </div>
+            <div className="doc-item-icon">
+              <img src={"/documents/d/guest/alert-02"} alt="" />
+            </div>
+          </div>
+        </div>
+        <div className="col-6 doc-item">
+          <div className="d-flex justify-content-between align-items-start">
+            <div>
+              <p className="min-hight-30">Chấm công</p>
+              <h3>0</h3>
+            </div>
+            <div className="doc-item-icon">
+              <img src={"/documents/d/guest/alert-02"} alt="" />
+            </div>
+          </div>
+        </div>
+        <div className="col-12 doc-item">
+          <div className="d-flex justify-content-between align-items-center">
+            <div>
+              <p className="">Thông báo mới</p>
+            </div>
+            <Link to="/web/intranet/van-phong-dien-tu">
+              {notificationCount > 0 ? (
+                <img src="https://res.cloudinary.com/dzjwdapic/image/upload/v1773388023/notification_zgmrmb.gif" alt="" style={{ width: "24px", height: "24px" }} />
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" />
+                  <path d="M2.71833 12.7716C2.60947 12.8909 2.53763 13.0393 2.51155 13.1987C2.48547 13.3581 2.50627 13.5217 2.57142 13.6695C2.63658 13.8173 2.74328 13.9429 2.87855 14.0312C3.01381 14.1195 3.17182 14.1665 3.33333 14.1666H16.6667C16.8282 14.1667 16.9862 14.1198 17.1216 14.0317C17.2569 13.9436 17.3637 13.8181 17.4291 13.6704C17.4944 13.5227 17.5154 13.3592 17.4895 13.1998C17.4637 13.0404 17.392 12.8919 17.2833 12.7725C16.175 11.63 15 10.4158 15 6.66663C15 5.34054 14.4732 4.06877 13.5355 3.13109C12.5979 2.19341 11.3261 1.66663 10 1.66663C8.67392 1.66663 7.40215 2.19341 6.46447 3.13109C5.52679 4.06877 5 5.34054 5 6.66663C5 10.4158 3.82417 11.63 2.71833 12.7716Z" stroke="#6B7280" strokeWidth="1.16667" />
+                </svg>
+              )}
+            </Link>
           </div>
         </div>
       </div>
