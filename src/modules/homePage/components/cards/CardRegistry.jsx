@@ -238,7 +238,7 @@ export function NhiemVuCard({ dragHandleProps }) {
             <div>
               <p className="">Thông báo mới</p>
             </div>
-            <Link to="/web/intranet/van-phong-dien-tu">
+            <Link to="/web/intranet/cong-thong-tin-nhan-su">
               {notificationCount > 0 ? (
                 <img src="https://res.cloudinary.com/dzjwdapic/image/upload/v1773388023/notification_zgmrmb.gif" alt="" style={{ width: "24px", height: "24px" }} />
               ) : (
