@@ -143,6 +143,38 @@ function VanPhongDienTuPage() {
               />
             ),
           },
+          {
+            key: "connect",
+            label: "LIÊN KẾT TRA CỨU",
+            children: (
+              <WorkTab
+                // activeItem={activeWorkItem}
+                // onItemChange={handleWorkItemChange}
+                // initialValues={filterInitialValues}
+                // onSearch={handleSearchWork}
+                // primaryData={mockWorkPrimaryData}
+                // supportData={mockWorkSupportData}
+                // assignedData={[]}
+                // followData={[]}
+              />
+            ),
+          },
+          {
+            key: "fastconnect",
+            label: "TRUY CẬP NHANH  ",
+            children: (
+              <WorkTab
+                // activeItem={activeWorkItem}
+                // onItemChange={handleWorkItemChange}
+                // initialValues={filterInitialValues}
+                // onSearch={handleSearchWork}
+                // primaryData={mockWorkPrimaryData}
+                // supportData={mockWorkSupportData}
+                // assignedData={[]}
+                // followData={[]}
+              />
+            ),
+          },
           // {
           //   key: "tasks",
           //   label: <TabLabel label="NHIỆM VỤ" />,

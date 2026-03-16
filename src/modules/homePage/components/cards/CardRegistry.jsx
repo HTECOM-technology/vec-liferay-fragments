@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import News from "../News";
 import TrafficCameraMonitor from "../Trafficcameramonitor";
 import FeedbackModal from "../FeedbackModal";
-import { Badge } from "antd";
 import { Link } from "react-router-dom";
 
 // Grip icon shown in header when drag is enabled
@@ -238,7 +237,7 @@ export function NhiemVuCard({ dragHandleProps }) {
             <div>
               <p className="">Thông báo mới</p>
             </div>
-            <Link to="/web/intranet/van-phong-dien-tu">
+            <Link to="/web/intranet/cong-thong-tin-nhan-su">
               {notificationCount > 0 ? (
                 <img src="https://res.cloudinary.com/dzjwdapic/image/upload/v1773388023/notification_zgmrmb.gif" alt="" style={{ width: "24px", height: "24px" }} />
               ) : (
@@ -334,21 +333,35 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50">
           <img src={"/documents/d/guest/rankin-icon"} alt="icon" />
-          <a href="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
+          <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
             Khảo sát & biểu quyết nội bộ
-          </a>
+          </Link>
         </div>
       </div>
-      <div className="doc-card mb-2 doc-single-card">
-        <div className="doc-card-header d-flex align-items-center p-0">
+      <div className="doc-card doc-single-card mb-2">
+        <div className="doc-card-header p-0 d-flex align-items-center image-w-50">
+          <img src={"/documents/d/guest/call-icon"} alt="icon" />
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro">
+            Quy trình - Yêu cầu hỗ trợ
+          </Link>
+          {/* <a href="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
+            Khảo sát & biểu quyết nội bộ
+          </a> */}
+        </div>
+      </div>
+      {/* <div className="doc-card mb-2 doc-single-card">
+        <div className="oc-card-header p-0 d-flex align-items-center image-w-50">
           <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
-            <img src={"/documents/d/guest/call-icon"} alt="icon" />
+          <img src={"/documents/d/guest/call-icon"} alt="icon" />
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro">
+            Quy trình - Yêu cầu hỗ trợ
+          </Link>
           </div>
           <a href="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Quy trình - Yêu cầu hỗ trợ
           </a>
         </div>
-      </div>
+      </div> */}
       <div className="doc-card doc-single-card">
         <div className="doc-card-header d-flex align-items-center p-0">
           <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
