@@ -63,6 +63,12 @@
     font-weight: 600;
     line-height: 1.4;
     margin-bottom: 6px;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* meta */
@@ -85,4 +91,44 @@
 
 .related-card-date {
     color: #888;
+}
+
+/* =========================
+   MOBILE SLIDER
+========================= */
+
+@media (max-width:768px) {
+
+    /* chuyển grid sang slider */
+
+    .related-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 16px;
+
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+
+        grid-template-columns: none;
+    }
+
+    /* ẩn scrollbar */
+
+    .related-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* mỗi card full width */
+
+    .related-card {
+        min-width: 100%;
+        scroll-snap-align: start;
+    }
+
+    /* ảnh to hơn cho mobile */
+
+    .related-card-image {
+        height: 200px;
+    }
+
 }

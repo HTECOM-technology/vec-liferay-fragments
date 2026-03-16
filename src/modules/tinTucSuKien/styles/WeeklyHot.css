@@ -66,6 +66,13 @@
    font-weight: 700;
    line-height: 1.4;
    margin-bottom: 4px;
+
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
 .vec-weekly-item__category {
