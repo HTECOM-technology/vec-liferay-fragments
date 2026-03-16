@@ -334,9 +334,12 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50">
           <img src={"/documents/d/guest/rankin-icon"} alt="icon" />
-          <a href="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
+          <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo">
             Khảo sát & biểu quyết nội bộ
-          </a>
+          </Link>
+          {/* <a href="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
+            Khảo sát & biểu quyết nội bộ
+          </a> */}
         </div>
       </div>
       <div className="doc-card mb-2 doc-single-card">
@@ -344,9 +347,12 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
           <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
             <img src={"/documents/d/guest/call-icon"} alt="icon" />
           </div>
-          <a href="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro">
             Quy trình - Yêu cầu hỗ trợ
-          </a>
+          </Link>
+          {/* <a href="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+            Quy trình - Yêu cầu hỗ trợ
+          </a> */}
         </div>
       </div>
       <div className="doc-card doc-single-card">
