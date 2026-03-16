@@ -43,3 +43,5 @@ liferay-test/.cache/
 # =========================
 debug.log
 /liferay-build
+
+liferay-fragments.zip
