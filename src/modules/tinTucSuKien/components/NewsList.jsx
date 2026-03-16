@@ -60,17 +60,17 @@ const NewsList = ({
               </div>
 
             </div>
+            <div className="news-image">
+              {imageUrl && (
 
-            {imageUrl && (
+                <img
+                  className="news-image"
+                  src={fullImage}
+                  alt={blog.caption}
+                />
 
-              <img
-                className="news-image"
-                src={fullImage}
-                alt={blog.caption}
-              />
-
-            )}
-
+              )}
+            </div>
           </div>
 
         );
