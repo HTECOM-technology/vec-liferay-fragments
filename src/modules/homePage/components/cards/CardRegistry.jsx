@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import News from "../News";
 import TrafficCameraMonitor from "../Trafficcameramonitor";
 import FeedbackModal from "../FeedbackModal";
-import { Badge } from "antd";
 import { Link } from "react-router-dom";
 
 // Grip icon shown in header when drag is enabled
@@ -334,12 +333,9 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50">
           <img src={"/documents/d/guest/rankin-icon"} alt="icon" />
-          <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo">
+          <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
             Khảo sát & biểu quyết nội bộ
           </Link>
-          {/* <a href="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
-            Khảo sát & biểu quyết nội bộ
-          </a> */}
         </div>
       </div>
       <div className="doc-card mb-2 doc-single-card">

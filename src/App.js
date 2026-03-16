@@ -1,13 +1,11 @@
-import React from "react";
 import "@ant-design/v5-patch-for-react-19";
 import "./App.css";
+import "dayjs/locale/vi";
 
 import { ConfigProvider } from "antd";
 import AppRouter from "./router";
 import vi_VN from "antd/es/locale/vi_VN";
 import dayjs from "dayjs";
-
-import "dayjs/locale/vi";
 
 dayjs.locale("vi");
 

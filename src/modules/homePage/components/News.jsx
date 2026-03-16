@@ -4,7 +4,6 @@ import {
   getCategoriesByVocabulary,
 } from "../../../services/taxonomyService";
 import "../styles/News.css";
-import { getFieldValue } from "../../../utils/contentFieldUtils";
 import { getAllBlogBySiteId } from "../../../services/blogService";
 
 /**
@@ -134,8 +133,6 @@ const News = () => {
 
       <div className="news-list p-8">
         {currentBlogs.map((blog) => {
-          const shortDescription = blog.description ?? '';
-
           const publishDate = blog.datePublished?.split("T")[0] ?? '';
 
           const imageUrl = blog.image?.contentUrl;
@@ -158,10 +155,7 @@ const News = () => {
                 </div>
               </div>
 
-              <img
-                src={`${window.location.origin}${imageUrl}`}
-                alt={blog.caption}
-              />
+              <img src={imageUrl} alt={blog.caption} />
             </div>
           );
         })}
