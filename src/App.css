@@ -270,6 +270,11 @@
   max-width: calc(6 / 12 * 100%);
 }
 
+.col-12 {
+  flex: 0 0 calc(1 * 100%);
+  max-width: calc(1 * 100%);
+}
+
 .row {
   display: flex;
   flex-wrap: wrap;

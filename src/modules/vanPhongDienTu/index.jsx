@@ -144,51 +144,83 @@ function VanPhongDienTuPage() {
             ),
           },
           {
-            key: "tasks",
-            label: <TabLabel label="NHIỆM VỤ" />,
+            key: "connect",
+            label: "LIÊN KẾT TRA CỨU",
             children: (
-              <TasksTab
-                initialValues={filterInitialValues}
-                onSearch={handleSearchTasks}
-                dataSource={mockTasksData}
-                pagination={{
-                  current: page,
-                  pageSize: 12,
-                  total: 550,
-                  onChange: (p, size) => {
-                    setPage(p);
-                    setPageSize(size || 12);
-                  },
-                }}
-                activeSubTab={activeTaskSubTab}
-                onSubTabChange={setActiveTaskSubTab}
-                stats={{ total: 8, processing: 2, completed: 4, overdue: 0 }}
+              <WorkTab
+                // activeItem={activeWorkItem}
+                // onItemChange={handleWorkItemChange}
+                // initialValues={filterInitialValues}
+                // onSearch={handleSearchWork}
+                // primaryData={mockWorkPrimaryData}
+                // supportData={mockWorkSupportData}
+                // assignedData={[]}
+                // followData={[]}
               />
             ),
           },
           {
-            key: "documents",
-            label: <TabLabel label="VĂN BẢN"/>,
+            key: "fastconnect",
+            label: "TRUY CẬP NHANH  ",
             children: (
-              <DocumentsTab
-                initialValues={filterInitialValues}
-                onSearch={handleSearchDocuments}
-                dataSource={mockDocumentsData}
-                pagination={{
-                  current: page,
-                  pageSize: pageSize,
-                  total: 500,
-                  onChange: (p, size) => {
-                    setPage(p);
-                    setPageSize(size || 12);
-                  },
-                }}
-                activeSubTab={activeDocumentSubTab}
-                onSubTabChange={setActiveDocumentSubTab}
-                stats={{ incoming: 5, outgoing: 12, pending: 2, approved: 0 }}
+              <WorkTab
+                // activeItem={activeWorkItem}
+                // onItemChange={handleWorkItemChange}
+                // initialValues={filterInitialValues}
+                // onSearch={handleSearchWork}
+                // primaryData={mockWorkPrimaryData}
+                // supportData={mockWorkSupportData}
+                // assignedData={[]}
+                // followData={[]}
               />
             ),
           },
+          // {
+          //   key: "tasks",
+          //   label: <TabLabel label="NHIỆM VỤ" />,
+          //   children: (
+          //     <TasksTab
+          //       initialValues={filterInitialValues}
+          //       onSearch={handleSearchTasks}
+          //       dataSource={mockTasksData}
+          //       pagination={{
+          //         current: page,
+          //         pageSize: 12,
+          //         total: 550,
+          //         onChange: (p, size) => {
+          //           setPage(p);
+          //           setPageSize(size || 12);
+          //         },
+          //       }}
+          //       activeSubTab={activeTaskSubTab}
+          //       onSubTabChange={setActiveTaskSubTab}
+          //       stats={{ total: 8, processing: 2, completed: 4, overdue: 0 }}
+          //     />
+          //   ),
+          // },
+          // {
+          //   key: "documents",
+          //   label: <TabLabel label="VĂN BẢN"/>,
+          //   children: (
+          //     <DocumentsTab
+          //       initialValues={filterInitialValues}
+          //       onSearch={handleSearchDocuments}
+          //       dataSource={mockDocumentsData}
+          //       pagination={{
+          //         current: page,
+          //         pageSize: pageSize,
+          //         total: 500,
+          //         onChange: (p, size) => {
+          //           setPage(p);
+          //           setPageSize(size || 12);
+          //         },
+          //       }}
+          //       activeSubTab={activeDocumentSubTab}
+          //       onSubTabChange={setActiveDocumentSubTab}
+          //       stats={{ incoming: 5, outgoing: 12, pending: 2, approved: 0 }}
+          //     />
+          //   ),
+          // },
         ]}
       />
     </PageWrap>

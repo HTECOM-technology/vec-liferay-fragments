@@ -10,12 +10,11 @@ body {
 
 /* Card */
 .doc-card {
-  width: 300px;
+  width: 100%;
   background: #ffffff;
   border: 1px solid #cfeeff;
   border-radius: 8px;
   overflow: hidden;
-
 }
 .checkbox-custom {
     width: 15px;
@@ -76,13 +75,91 @@ body {
     display: none !important;
 }   
 .dashboard-upper-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+/* ─── Hide / Show cards ─────────────────────────────────────────────────────── */
+
+/* Nút ✕ ẩn card — hiện khi hover vào card wrapper */
+.dashboard-upper-card {
+    position: relative;
+}
+.card-hide-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
     display: flex;
-    gap: 10px;
-    /* flex-wrap: wrap; */
-   overflow-x: scroll;
-   scrollbar-width: thin;
-   /* width: 77vw; */
-   width: calc( 100vw - 370px);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+}
+.dashboard-upper-card:hover .card-hide-btn {
+    opacity: 1;
+}
+
+/* Panel hiển thị các card đã ẩn (chỉ admin thấy) */
+.hidden-cards-panel {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f0f8ff;
+    border: 1px dashed #0090CF;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.hidden-cards-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+.hidden-cards-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.hidden-card-restore-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #fff;
+    border: 1px solid #0090CF;
+    border-radius: 16px;
+    font-size: 12px;
+    color: #0090CF;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.hidden-card-restore-btn:hover {
+    background: #0090CF;
+    color: #fff;
+}
+.restore-icon {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+}
+.grid-col-span-3 {
+    grid-column: span 3;
+}
+.grid-col-span-2 {
+    grid-column: span 2;
 }
 .doc-card.doc-single-card  {
     padding: 0;
@@ -93,9 +170,6 @@ body {
 .doc-card.doc-single-card .span  {
   padding: 10px ;
 }
-/* .dashboard-upper-cards .dashboard-upper-card {
-    width:310px;
-} */
 .doc-item img {
   width: 26px;
 }
@@ -192,9 +266,84 @@ p:last-child {
     padding-top: 10px !important;
     padding-bottom: 10px !important;
 }
-.dashboard-upper-cards.bottom-area {
-    gap: 0 !important;
-    width: 100% !important;
+
+/* ─── Proportional card widths (card-based, travels with the card) ─────────── */
+
+
+/* ─── Drag & Drop ──────────────────────────────────────────────────────────── */
+
+/* Grip icon inside card headers */
+.drag-grip-icon {
+    font-size: 14px;
+    color: #aaa;
+    cursor: grab;
+    padding: 0 4px 0 0;
+    user-select: none;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+.drag-grip-icon:hover {
+    color: #0090CF;
+}
+.drag-grip-icon:active {
+    cursor: grabbing;
+}
+
+/* Drag handle bar for quick-links and row-3 cards */
+.drag-handle-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #eaf8ff;
+    border: 1px solid #cfeeff;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: grab;
+    user-select: none;
+}
+.drag-handle-bar:active {
+    cursor: grabbing;
+}
+.drag-handle-bar .drag-handle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1E1E1E;
+}
+
+/* Quick links group */
+.quick-links-card-group {
+    display: flex;
+    flex-direction: column;
+}
+.quick-links-card-group .doc-card:first-of-type {
+    border-radius: 0;
+}
+.quick-links-card-group .drag-handle-bar + .doc-card {
+    border-radius: 0;
+}
+
+/* Row 3 card wrappers */
+.row3-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.row3-card-wrapper > *:last-child {
+    flex: 1;
+}
+
+/* Ghost card overlay while dragging */
+.overlay-dragging {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    border-radius: 8px;
+    opacity: 0.95;
+}
+
+/* Disable text selection during drag */
+.dashboard [data-dnd-dragging] * {
+    user-select: none;
 }
 
 .height-500 {
@@ -251,9 +400,6 @@ p:last-child {
 
 
 @media screen and (min-width:1921px) {
-    .dashboard-upper-card {
-    width: 20%;
-}
 .doc-card {
     width: 100%;
 }

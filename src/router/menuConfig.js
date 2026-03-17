@@ -39,9 +39,9 @@ export const menuSections = [
     title: "Quản lý liên kết",
     items: [
       { key: paths.vanPhongDienTu, label: "Văn phòng điện tử", icon: "desktop" },
-      { key: paths.doiSoatThuPhi, label: "Đối soát thu phí", icon: "file-text" },
-      { key: paths.congThongTinNhanSu, label: "Cổng thông tin nhân sự", icon: "team" },
       { key: paths.giamSatGiaoThong, label: "Giám sát giao thông", icon: "traffic" },
+      { key: paths.congThongTinNhanSu, label: "Cổng thông tin nhân sự", icon: "team" },
+      { key: paths.doiSoatThuPhi, label: "Đối soát thu phí", icon: "file-text" },
     ],
   },
   {

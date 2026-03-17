@@ -1,0 +1,210 @@
+.detail-wrapper {
+    width: 100%;
+    font-family: "Inter", sans-serif;
+    color: #333;
+}
+
+/* ===== TOP BAR ===== */
+
+.detail-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #e8f2f7;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.detail-back {
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.detail-title-fixed {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* ===== MAIN LAYOUT ===== */
+
+.detail-layout {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.detail-left {
+    flex: 1;
+}
+
+.detail-right {
+    width: 360px;
+    flex-shrink: 0;
+}
+
+/* ===== ARTICLE HEADER ===== */
+
+.article-title {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.article-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.article-category {
+    color: #e53935;
+    font-weight: 600;
+}
+
+.article-date {
+    color: #777;
+}
+
+.article-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 10px 0 20px;
+}
+
+/* ===== CONTENT ===== */
+
+.article-content {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #333;
+}
+
+/* paragraph */
+
+.article-content p {
+    line-height: 1.7;
+    margin-bottom: 14px;
+    text-align: justify;
+    text-indent: 0;
+}
+
+/* heading trong bài */
+
+.article-content h1,
+.article-content h2,
+.article-content h3 {
+    margin: 20px 0 10px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+/* link */
+
+.article-content a {
+    color: #0b8fd8;
+    text-decoration: none;
+}
+
+.article-content a:hover {
+    text-decoration: underline;
+}
+
+/* list */
+
+.article-content ul,
+.article-content ol {
+    margin: 0 0 14px 22px;
+}
+
+/* ===== IMAGE ===== */
+
+.article-content img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 20px auto;
+    border-radius: 6px;
+}
+
+/* ===== CAPTION ===== */
+
+.article-content figcaption,
+.article-content em {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}
+
+/* reset indent từ CMS editor */
+
+.article-content * {
+    text-indent: 0 !important;
+}
+
+/* ===== BOTTOM ===== */
+
+.related-wrapper {
+    margin-top: 40px;
+}
+
+.related-title {
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 15px;
+}
+
+.article-dot {
+    margin: 0 6px;
+    color: #999;
+    font-size: 14px;
+}
+
+/* =========================
+   MOBILE RESPONSIVE
+========================= */
+
+@media (max-width:768px) {
+
+    /* layout chuyển sang column */
+
+    .detail-layout {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* sidebar full width */
+
+    .detail-right {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Ẩn SubCategory */
+
+    .detail-right> :first-child {
+        display: none;
+    }
+
+    /* Thứ tự hiển thị */
+
+    .detail-left {
+        order: 1;
+    }
+
+    .related-wrapper {
+        order: 2;
+    }
+
+    .detail-right {
+        order: 3;
+    }
+
+}

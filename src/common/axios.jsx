@@ -1,4 +1,5 @@
 import axios from "axios";
+import { DEFAULT_CSRF_TOKEN } from "../utils/const";
 
 /**
  * Pre-configured Axios instance for authenticated requests in Liferay.
@@ -13,9 +14,11 @@ import axios from "axios";
  * const response = await axiosPrivate.get("/o/headless-delivery/v1.0/sites");
  */
 export const axiosPrivate = axios.create({
-  baseURL: window.location.origin,
+  baseURL: window.Liferay
+    ? window.location.origin
+    : process.env.REACT_APP_BASE_API_URL || window.location.origin,
   headers: {
     "Content-Type": "application/json",
-    "x-csrf-token": Liferay.authToken,
+    "x-csrf-token": window.Liferay?.authToken || DEFAULT_CSRF_TOKEN || "",
   },
 });
