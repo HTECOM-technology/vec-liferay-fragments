@@ -26,17 +26,17 @@ function ChamCongPage() {
 
     const handleRegisterOvertime = () => {
         // TODO: thay thế bằng URL thực tế khi có
-        window.location.href = "#/dang-ky-lam-them-gio";
+        window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=zchrEmployeeOvertimeRegister2";
     };
 
     const handleRegisterLeave = () => {
         // TODO: thay thế bằng URL thực tế khi có
-        window.location.href = "#/dang-ky-nghi-vang-mat-cong-tac";
+        window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=hrLeaveInput";
     };
 
     const handleRegisterConfirmWork = () => {
         // TODO: thay thế bằng URL thực tế khi có
-        window.location.href = "#/dang-ky-xac-nhan-cong";
+        window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=zchdxxnc";
     };
 
     const registerMenuItems = [
@@ -59,7 +59,7 @@ function ChamCongPage() {
 
     const handleApprove = () => {
         // TODO: thay thế bằng URL thực tế khi có
-        window.location.href = "#/phe-duyet-cham-cong";
+        window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=zchrdxnc";
     };
 
     return (

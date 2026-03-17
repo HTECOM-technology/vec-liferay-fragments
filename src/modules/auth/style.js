@@ -121,7 +121,10 @@ export const LoginTitle = styled.h2`
 export const LoginSubtitle = styled.p`
   margin: 0;
   color: #1e1e1e;
-  font-size: 15px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 `;
 
 // Form

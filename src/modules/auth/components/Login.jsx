@@ -15,7 +15,6 @@ import {
 } from '../style';
 
 // Import images
-import loginBg from '../../../assets/image-login.png';
 import logoVec from '../../../assets/layout/logo.png';
 
 const Login = () => {
@@ -114,7 +113,7 @@ const Login = () => {
       <LoginBox>
         {/* Left Section - Background Image */}
         <LeftSection>
-          <BackgroundImage src={loginBg} alt="VEC Highway" />
+          <BackgroundImage src="/documents/d/intranet/image-login" alt="VEC Highway" />
         </LeftSection>
 
         {/* Right Section - Login Form */}
@@ -128,8 +127,8 @@ const Login = () => {
           </CompanyName>
 
           <LoginHeader>
-            <LoginTitle>ĐĂNG NHẬP</LoginTitle>
             <LoginSubtitle>Trang thông tin nội bộ của VEC</LoginSubtitle>
+            <LoginTitle>ĐĂNG NHẬP</LoginTitle>
           </LoginHeader>
 
           {/* Login Form Component */}

@@ -23,6 +23,11 @@ function DaoTaoPage() {
     console.log("Tìm kiếm khóa học:", values);
   };
 
+  const handleTrainingRegister = () => {
+    // TODO: thay thế bằng URL thực tế khi có
+    window.location.href = "https://qlns.tctvec.vn/FBO/Main/zhredirect.aspx?id=zvdkdaotao";
+};
+
   return (
     <PageWrap>
       <HeaderActions>
@@ -59,6 +64,7 @@ function DaoTaoPage() {
             </svg>
           }
           className="register-button"
+          onClick={handleTrainingRegister}
         >
           Đăng ký đào tạo
         </CButton>
