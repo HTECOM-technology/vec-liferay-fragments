@@ -192,14 +192,8 @@ export const TableContainer = styled.div`
   }
 
   .employee-name {
-    color: rgba(1, 99, 224, 1);
-    font-weight: 600;
+    font-weight: 400;
     font-size: 14px;
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   .status-tag {

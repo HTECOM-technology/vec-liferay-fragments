@@ -319,7 +319,7 @@ EmployeeDetailModal.propTypes = {
 EmployeeDetailModal.defaultProps = {
     visible: false,
     employee: null,
-    onClose: () => {},
+    onClose: () => { },
 };
 
 export default EmployeeDetailModal;

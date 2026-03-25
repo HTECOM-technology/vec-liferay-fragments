@@ -210,7 +210,7 @@ function NhanSuTab() {
             }}
             onPaginationChange={handlePaginationChange}
             onPageSizeChange={handlePageSizeChange}
-            onEmployeeClick={handleEmployeeClick}
+
           />
         </>
       )}
