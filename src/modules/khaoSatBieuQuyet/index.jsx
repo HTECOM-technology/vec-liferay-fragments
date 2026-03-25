@@ -3,9 +3,9 @@ import { Select, Input, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { SurveyCard, CreateVoteModal, VoteSurveyModal, FILTER_TYPES, SORT_OPTIONS } from "./components";
 import { getSurveys, createSurvey, submitVote } from "./services/surveyService";
-import { IconInvited } from "assets/icon/IconInvited";
-import { IconMySurveys } from "assets/icon/IconMySurveys";
-import { IconCreateSurvey } from "assets/icon/IconCreateSurvey";
+import { IconInvited } from "../../assets/icon/IconInvited";
+import { IconMySurveys } from "../../assets/icon/IconMySurveys";
+import { IconCreateSurvey } from "../../assets/icon/IconCreateSurvey";
 import {
   PageContainer,
   ContentContainer,
