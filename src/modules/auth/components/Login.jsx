@@ -96,7 +96,7 @@ const Login = () => {
         }
         
         // Redirect về trang chủ (path trống, không dùng /home)
-        window.location.href = '/web/guest';
+        window.location.href = '/web/intranet';
       } else {
         setError(result.error || 'Đăng nhập thất bại');
       }
