@@ -32,7 +32,7 @@ export function CongVanVbCard({ dragHandleProps }) {
         <span>Công văn - Văn bản</span>
         <Link to="/web/intranet/van-phong-dien-tu" className="icon-link">
           {notificationCount > 0 ? (
-            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926257/notification_1_xtkwe1.png" alt="" style={{ width: "20px", height: "20px" }} />
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774929237/notification_1_evmeys.gif" alt="" style={{ width: "20px", height: "20px" }} />
           ) : (
             <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926423/notification-02_xcwyt6.png" alt="" style={{ width: "20px", height: "20px" }} />
           )}
@@ -100,7 +100,7 @@ export function CongViecCard({ dragHandleProps }) {
         <span>Công việc</span>
         <Link to="/web/intranet/van-phong-dien-tu" className="icon-link">
           {notificationCount > 0 ? (
-            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926257/notification_1_xtkwe1.png" alt="" style={{ width: "20px", height: "20px" }} />
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774929237/notification_1_evmeys.gif" alt="" style={{ width: "20px", height: "20px" }} />
           ) : (
             <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926423/notification-02_xcwyt6.png" alt="" style={{ width: "20px", height: "20px" }} />
           )}
@@ -146,7 +146,7 @@ export function NhiemVuCard({ dragHandleProps }) {
         <span>Tổng hợp nhân sự</span>
         <Link to="/web/intranet/cong-thong-tin-nhan-su" className="icon-link">
           {notificationCount > 0 ? (
-            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926257/notification_1_xtkwe1.png" alt="" style={{ width: "20px", height: "20px" }} />
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774929237/notification_1_evmeys.gif" alt="" style={{ width: "20px", height: "20px" }} />
           ) : (
             <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926423/notification-02_xcwyt6.png" alt="" style={{ width: "20px", height: "20px" }} />
           )}
@@ -296,7 +296,8 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       </div> */}
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/chat-icon"} alt="icon" />
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/user-add-01"} alt="icon" /> */}
+          <img src={"/documents/d/guest/user-add-01"} alt="icon" />
           <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Góp ý - Sáng kiến cải tiến
 
@@ -308,7 +309,8 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       </div>
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/rankin-icon"} alt="icon" />
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/briefcase-01"} alt="icon" /> */}
+          <img src={"/documents/d/guest/briefcase-01"} alt="icon" />
           <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
             Khảo sát & biểu quyết nội bộ
 
@@ -320,7 +322,8 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       </div>
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/call-icon"} alt="icon" />
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/card-exchange-01"} alt="icon" /> */}
+          <img src={"/documents/d/guest/card-exchange-01"} alt="icon" />
           <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Quy trình - Yêu cầu hỗ trợ
 
@@ -332,7 +335,8 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       </div>
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/notebook-icon"} alt="icon" />
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/traffic-light-2"} alt="icon" /> */}
+          <img src={"/documents/d/guest/traffic-light-2"} alt="icon" />
           <Link to="/web/intranet/so-tay-nhan-vien" className="primary-color p-8">
             Sổ tay nhân viên
 
