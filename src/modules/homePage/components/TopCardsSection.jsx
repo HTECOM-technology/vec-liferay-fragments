@@ -331,7 +331,7 @@ export default function TopCardsSection() {
               <a
                 href="/web/intranet/quy-trinh-yeu-cau-ho-tro"
                 className="primary-color p-8"
-                >
+              >
                 Quy trình - Yêu cầu hỗ trợ
               </a>
             </div>

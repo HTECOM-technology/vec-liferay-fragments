@@ -265,6 +265,13 @@
   justify-content: start;
 }
 
+.col-3 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: calc(3 / 12 * 100%);
+  max-width: calc(3 / 12 * 100%);
+}
+
 .col-6 {
   flex: 0 0 calc(6 / 12 * 100%);
   max-width: calc(6 / 12 * 100%);
@@ -389,6 +396,12 @@
 
 .doc-card-header a {
   font-size: 14px;
+}
+
+.doc-card-header a.icon-link {
+  padding: 5px;
+  background-color: #FFF;
+  border-radius: 6px;
 }
 
 @media (min-width: 992px) {

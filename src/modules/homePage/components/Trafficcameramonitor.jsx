@@ -87,13 +87,13 @@ const TrafficCameraMonitor = () => {
 
   const fetchCameraData = async () => {
     setLoading(true);
-    
+
     try {
       // TODO: Replace with actual API call
       // const response = await fetch(`/api/cameras?route=${selectedRoute}&date=${selectedDate}`);
       // const data = await response.json();
       // setCameras(data);
-      
+
       // Simulating API delay
       await new Promise(resolve => setTimeout(resolve, 500));
       setCameras(staticCameras);
@@ -122,15 +122,15 @@ const TrafficCameraMonitor = () => {
   return (
     <div className="traffic-camera-monitor doc-card">
       <div className="doc-card-header d-flex align-items-center">
-                <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
+        {/* <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
                 <img src={'/documents/d/intranet/container-1'} alt="icon" />
-                </div>
-                <span>Camera giao thông</span>
-              </div>
-    
-      <div className="d-flex align-items-center p-8 flex-column traffic-search-div flex-sm-row" style={{gap:'8px'}}>
+                </div> */}
+        <span>Camera giao thông</span>
+      </div>
+
+      <div className="d-flex align-items-center p-8 flex-column traffic-search-div flex-sm-row" style={{ gap: '8px' }}>
         <div className="traffic-select-input">
-          <select 
+          <select
             className="custom-select-1"
             value={selectedRoute}
             onChange={handleRouteChange}
@@ -141,66 +141,66 @@ const TrafficCameraMonitor = () => {
               </option>
             ))}
           </select>
-          
+
         </div>
 
         <div className="traffic-date-input">
-          <input 
-            type="date" 
+          <input
+            type="date"
             className="custom-date-1"
             value={selectedDate}
             onChange={handleDateChange}
           />
-         
+
         </div>
       </div>
 
-        <div className='traffic-camera-inner-div'>
-      <div className="traffic-camera-monitor__grid">
-        {loading ? (
-          <div className="traffic-camera-monitor__loading">
-            <div className="traffic-camera-monitor__loading-spinner"></div>
-            <p>Đang tải...</p>
-          </div>
-        ) : (
-          cameras.map(camera => (
-            <div 
-              key={camera.id} 
-              className="traffic-camera-monitor__camera-card"
-              onClick={() => handleCameraClick(camera)}
-            >
-              <div className="traffic-camera-monitor__camera-card-image-wrapper">
-                <div className="traffic-camera-monitor__camera-card-label">
-                  {camera.name}
-                </div>
-                <img 
-                  src={camera.thumbnail} 
-                  alt={camera.name}
-                  className="traffic-camera-monitor__camera-card-image"
-                />
-                <div className="traffic-camera-monitor__camera-card-overlay">
-                  <button className="traffic-camera-monitor__camera-card-play-button">
-                       <img 
-                      src={"/documents/d/intranet/link"}
-                      alt="Play"
-                      className="traffic-camera-monitor__camera-card-play-icon"
-                      width="32"
-                      height="32"
-                    />
-                  </button>
+      <div className='traffic-camera-inner-div'>
+        <div className="traffic-camera-monitor__grid">
+          {loading ? (
+            <div className="traffic-camera-monitor__loading">
+              <div className="traffic-camera-monitor__loading-spinner"></div>
+              <p>Đang tải...</p>
+            </div>
+          ) : (
+            cameras.map(camera => (
+              <div
+                key={camera.id}
+                className="traffic-camera-monitor__camera-card"
+                onClick={() => handleCameraClick(camera)}
+              >
+                <div className="traffic-camera-monitor__camera-card-image-wrapper">
+                  <div className="traffic-camera-monitor__camera-card-label">
+                    {camera.name}
+                  </div>
+                  <img
+                    src={camera.thumbnail}
+                    alt={camera.name}
+                    className="traffic-camera-monitor__camera-card-image"
+                  />
+                  <div className="traffic-camera-monitor__camera-card-overlay">
+                    <button className="traffic-camera-monitor__camera-card-play-button">
+                      <img
+                        src={"/documents/d/intranet/link"}
+                        alt="Play"
+                        className="traffic-camera-monitor__camera-card-play-icon"
+                        width="32"
+                        height="32"
+                      />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
         </div>
       </div>
       <div className="extra-load-btn">
-         <div className="load">
-              <a href="" className="load-button">
-                Xem thêm
-              </a>
-              </div>
+        <div className="load">
+          <a href="" className="load-button">
+            Xem thêm
+          </a>
+        </div>
       </div>
     </div>
   );

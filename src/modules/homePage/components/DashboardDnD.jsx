@@ -26,18 +26,18 @@ const DEFAULT_FLAT_ORDER = [
 ];
 
 const CARD_NAMES = {
-  "cong-van-vb":  "Công văn - Văn bản",
-  "cong-viec":    "Công việc",
-  "nhiem-vu":     "Nhiệm vụ",
-  "giao-thong":   "Tình trạng giao thông",
-  "quick-links":  "Liên kết nhanh",
-  "van-ban-moi":  "Văn bản mới",
+  "cong-van-vb": "Công văn - Văn bản",
+  "cong-viec": "Công việc",
+  "nhiem-vu": "Nhiệm vụ",
+  // "giao-thong":   "Tình trạng giao thông",
+  "quick-links": "Liên kết nhanh",
+  "van-ban-moi": "Văn bản mới",
   "lich-co-quan": "Lịch cơ quan",
-  "sinh-nhat":    "Sinh nhật công ty",
-  "nhan-su":      "Hoạt động nhân sự",
-  "bieu-mau":     "Biểu mẫu",
-  "tin-tuc":      "Tin tức - Sự kiện",
-  "camera":       "Camera giao thông",
+  "sinh-nhat": "Sinh nhật công ty",
+  "nhan-su": "Hoạt động nhân sự",
+  "bieu-mau": "Biểu mẫu",
+  "tin-tuc": "Tin tức - Sự kiện",
+  "camera": "Camera giao thông",
 };
 
 const LS_KEY = "dashboard-layout-v2";
@@ -401,7 +401,7 @@ export default function DashboardDnD() {
             className={
               idx === visibleLayout.length - 1
                 ? "dashboard-upper-cards bottom-area"
-                : "dashboard-upper-cards"
+                : "dashboard-upper-cards column-area-4"
             }
           >
             {rowItems.map((id) => (
