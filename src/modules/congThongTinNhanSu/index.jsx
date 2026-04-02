@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
-import { KPITab, NhanSuTab, SalaryTab, DaoTaoPage, ChamCongPage } from "./components";
+import { NhanSuTab } from "./components";
+import LienKetTraCuuTab from "./components/LienKetTraCuuTab";
 
 function CongThongTinNhanSuPage() {
   const [activeTab, setActiveTab] = useState("nhanSu");
@@ -18,24 +19,9 @@ function CongThongTinNhanSuPage() {
             children: <NhanSuTab />,
           },
           {
-            key: "kpi",
-            label: "KPI",
-            children: <KPITab />,
-          },
-          {
-            key: "daoTao",
-            label: "ĐÀO TẠO",
-            children: <DaoTaoPage />,
-          },
-          {
-            key: "chamCong",
-            label: "CHẤM CÔNG",
-            children: <ChamCongPage />,
-          },
-          {
-            key: "luong",
-            label: "LƯƠNG",
-            children: <SalaryTab />,
+            key: "lienKetTraCuu",
+            label: "LIÊN KẾT - TRA CỨU",
+            children: <LienKetTraCuuTab />,
           },
         ]}
       />

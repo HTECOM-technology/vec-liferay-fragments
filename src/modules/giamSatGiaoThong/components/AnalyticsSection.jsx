@@ -10,8 +10,9 @@ const AnalyticsContainer = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   padding: 16px 20px;
-  background: #f8f9fa;
+  background: #FFF;
   border-bottom: 1px solid #e4e4e4;
+  border-radius: 8px;
 
   @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
