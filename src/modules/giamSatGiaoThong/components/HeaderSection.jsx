@@ -9,6 +9,8 @@ const SearchInput = styled(Input)`
   width: 300px;
   height: 40px !important;
   border-radius: 6px !important;
+  display: flex;
+  align-items: center;
 
   .ant-input {
     font-size: 15px !important;
@@ -65,12 +67,12 @@ const SearchButton = styled.button`
   }
 `;
 
-const HeaderSection = ({ 
-  routes, 
-  selectedRoute, 
-  selectedDate, 
+const HeaderSection = ({
+  routes,
+  selectedRoute,
+  selectedDate,
   searchKeyword,
-  onFilterChange 
+  onFilterChange
 }) => {
   const routeOptions = [
     { value: '', label: 'Tất cả tuyến đường' },
@@ -111,7 +113,7 @@ const HeaderSection = ({
           placeholder="15/01/2025"
         />
 
-        <SearchButton onClick={() => {}}>
+        <SearchButton onClick={() => { }}>
           Tìm kiếm
         </SearchButton>
       </Filters>
