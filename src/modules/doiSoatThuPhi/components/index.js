@@ -1,3 +1,5 @@
+export { default as BaoCaoTongHopTab } from "./BaoCaoTongHopTab";
+export { default as LienKetTraCuuTab } from "./LienKetTraCuuTab";
 export { default as DataReconciliationFilter } from "./DataReconciliationFilter";
 export { default as DataReconciliationTable } from "./DataReconciliationTable";
 export { default as DataReconciliationTab } from "./DataReconciliationTab";
