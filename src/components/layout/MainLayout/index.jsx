@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
@@ -27,6 +27,12 @@ function MainLayout() {
   const [showDrawer, setShowDrawer] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const navigate = useNavigate();
+
+  const handleLogout = useCallback(() => {
+    setPopoverOpen(false);
+    navigate(paths.dangNhap);
+  }, [navigate]);
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -100,9 +106,11 @@ function MainLayout() {
                 trigger="click"
                 placement="bottomRight"
                 content={
-                  <LogoutItem onClick={() => { setPopoverOpen(false); navigate(paths.dangNhap); }}>
-                    Đăng xuất
-                  </LogoutItem>
+                  <div>
+                    <LogoutItem onClick={handleLogout}>
+                      Đăng xuất
+                    </LogoutItem>
+                  </div>
                 }
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21, cursor: "pointer" }}>
