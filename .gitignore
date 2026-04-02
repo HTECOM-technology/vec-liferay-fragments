@@ -45,3 +45,4 @@ debug.log
 /liferay-build
 
 liferay-fragments.zip
+custom-bundles/.env

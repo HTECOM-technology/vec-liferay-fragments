@@ -70,7 +70,7 @@
             }
 
             var labelMap = {
-                '_com_liferay_login_web_portlet_LoginPortlet_login': 'Email',
+                '_com_liferay_login_web_portlet_LoginPortlet_login': 'Tài khoản',
                 '_com_liferay_login_web_portlet_LoginPortlet_rememberMe': 'Ghi nhớ đăng nhập'
             };
 
@@ -95,7 +95,7 @@
 
             if (email) {
                 email.value = '';
-                email.setAttribute('placeholder', 'Email');
+                email.setAttribute('placeholder', 'Tài khoản');
             }
 
             if (password) {
