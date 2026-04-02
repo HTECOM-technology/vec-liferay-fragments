@@ -1,16 +1,32 @@
 import React, { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { Avatar, Badge, Button, Flex, Layout, theme } from "antd";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
-import { menuItems } from "../../../router/menuConfig";
+import { menuItems, paths } from "../../../router/menuConfig";
 import { CInput } from "../../common";
 import { SearchOutlined } from "@ant-design/icons";
 import logo from "../../../assets/layout/logo.png";
+import styled from "styled-components";
+
+const LogoutItem = styled.div`
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #e31c2a;
+  font-weight: 500;
+  min-width: 200px;
+  border-radius: 6px;
+
+  &:hover {
+    background: #fff1f0;
+  }
+`;
 
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const navigate = useNavigate();
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -78,15 +94,27 @@ function MainLayout() {
 
             <CInput prefix={<SearchOutlined />} style={{ width: 600, maxWidth: "30vw" }} placeholder="Tìm kiếm" className="search-input" />
             <AccountWrap>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21 }}>
-                <Avatar style={{ background: "#0090CF" }} size={40}>
-                  JD
-                </Avatar>
-                <div style={{ lineHeight: "16px" }}>
-                  <b>VEC Account</b> <br />
-                  vec.account@gmail.com
+              <Popover
+                open={popoverOpen}
+                onOpenChange={setPopoverOpen}
+                trigger="click"
+                placement="bottomRight"
+                content={
+                  <LogoutItem onClick={() => { setPopoverOpen(false); navigate(paths.dangNhap); }}>
+                    Đăng xuất
+                  </LogoutItem>
+                }
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21, cursor: "pointer" }}>
+                  <Avatar style={{ background: "#0090CF" }} size={40}>
+                    JD
+                  </Avatar>
+                  <div style={{ lineHeight: "16px" }}>
+                    <b>VEC Account</b> <br />
+                    vec.account@gmail.com
+                  </div>
                 </div>
-              </div>
+              </Popover>
               <Badge count={1}>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" stroke-width="1.16667" stroke-linecap="round" stroke-linejoin="round" />
