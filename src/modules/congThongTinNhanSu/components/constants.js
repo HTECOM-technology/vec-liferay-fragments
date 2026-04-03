@@ -34,3 +34,34 @@ export const DON_VI_OPTIONS = [
     { label: "VEC", value: "vec" },
     { label: "VEC O&M", value: "vec_om" },
 ];
+
+/** Giá trị phòng ban thuộc khối văn phòng (dùng cho nút Đánh giá KPI → handleEvaluateVP) */
+export const PHONG_BAN_KHOI_VAN_PHONG = ["van_phong", "ke_toan"];
+
+/** Giá trị phòng ban thuộc QLDA (dùng cho nút Đánh giá KPI → handleEvaluateQL) */
+export const PHONG_BAN_QLDA = ["qlda", "ban_qlda_bac", "ban_qlda_nam", "ban_qlda_danang"];
+
+/**
+ * Phân loại phòng ban của user đang thao tác để chọn handler đánh giá KPI.
+ * @param {string} phongBanValue - value phòng ban (vd: "van_phong", "qlda")
+ * @returns {"vp" | "qlda" | null} "vp" = khối văn phòng, "qlda" = QLDA, null = không xác định
+ */
+export const getPhongBanGroup = (phongBanValue) => {
+    if (!phongBanValue) return null;
+    const v = String(phongBanValue).toLowerCase().trim();
+    if (PHONG_BAN_KHOI_VAN_PHONG.some((p) => p === v)) return "vp";
+    if (PHONG_BAN_QLDA.some((p) => p === v)) return "qlda";
+    return null;
+};
+
+/**
+ * Lấy phòng ban của user đang đăng nhập (để phân loại VP/QLDA).
+ * TODO: Thay bằng AuthService.getCurrentUser()?.phongBan khi backend/Liferay trả về.
+ * Hiện có thể set REACT_APP_USER_PHONG_BAN (vd: van_phong, qlda) để test.
+ */
+export const getCurrentUserPhongBan = () => {
+    if (typeof process !== "undefined" && process.env?.REACT_APP_USER_PHONG_BAN) {
+        return process.env.REACT_APP_USER_PHONG_BAN;
+    }
+    return null;
+};

@@ -39,7 +39,7 @@ const Icon = styled.div`
   height: 32px;
   border-radius: 50%;
   background: ${props => {
-    switch(props.severity) {
+    switch (props.severity) {
       case 'high': return '#fee';
       case 'medium': return '#fff4e6';
       case 'low': return '#e8f5e9';
@@ -87,7 +87,7 @@ const ViewDetails = styled.div`
 
 const IncidentInfoCard = ({ incident, position }) => {
   const getIcon = (severity) => {
-    switch(severity) {
+    switch (severity) {
       case 'high': return '🚨';
       case 'medium': return '⚠️';
       case 'low': return 'ℹ️';

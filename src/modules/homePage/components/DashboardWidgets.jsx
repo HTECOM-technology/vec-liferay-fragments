@@ -191,59 +191,59 @@ export function MissionWidget({ data }) {
 }
 
 // Tình trạng giao thông Widget
-export function TrafficWidget({ data }) {
-    return (
-        <WidgetCard>
-            <WidgetHeader $bgColor="rgba(229, 247, 255, 1)" $iconBg="rgba(0, 144, 207, 1)">
-                <div className="header-icon">
-                    <TrafficIcon />
-                </div>
-                <span className="header-title">Tình trạng giao thông</span>
-            </WidgetHeader>
-            <WidgetBody>
-                <StatItem>
-                    <TextWrapper>
-                        <div className="stat-label">Số văn bản<br />đến mới</div>
-                        <div className="stat-value">{data?.vanBanDenMoi || "05"}</div>
-                    </TextWrapper>
-                    <div className="stat-icon">
-                        <NumberOfViolatingVehiclesIcon />
-                    </div>
-                </StatItem>
-                <StatItem $noBorderRight>
-                    <TextWrapper>
-                        <div className="stat-label">Tốc độ lưu<br />thông TB</div>
-                        <div className="stat-value">
-                            {data?.tocDoLuuThong || "02"}
-                            <span className="stat-unit">km/h</span>
-                        </div>
-                    </TextWrapper>
-                    <div className="stat-icon">
-                        <AverageTrafficSpeedIcon />
-                    </div>
-                </StatItem>
-                <StatItem $noBorderBottom>
-                    <TextWrapper>
-                        <div className="stat-label">SL gia súc đi<br />vào cao tốc</div>
-                        <div className="stat-value">{data?.vanBanDenMoi || "05"}</div>
-                    </TextWrapper>
-                    <div className="stat-icon">
-                        <NumberOfLivestockEnteringTheExpresswayIcon />
-                    </div>
-                </StatItem>
-                <StatItem $noBorderRight $noBorderBottom>
-                    <TextWrapper>
-                        <div className="stat-label">Số lượng<br />camera bị lỗi</div>
-                        <div className="stat-value">{data?.vanBanDenMoi || "00"}</div>
-                    </TextWrapper>
-                    <div className="stat-icon">
-                        <NumberOfFaultyCamerasIcon />
-                    </div>
-                </StatItem>
-            </WidgetBody>
-        </WidgetCard>
-    );
-}
+// export function TrafficWidget({ data }) {
+//     return (
+//         <WidgetCard>
+//             <WidgetHeader $bgColor="rgba(229, 247, 255, 1)" $iconBg="rgba(0, 144, 207, 1)">
+//                 <div className="header-icon">
+//                     <TrafficIcon />
+//                 </div>
+//                 <span className="header-title">Tình trạng giao thông</span>
+//             </WidgetHeader>
+//             <WidgetBody>
+//                 <StatItem>
+//                     <TextWrapper>
+//                         <div className="stat-label">Số văn bản<br />đến mới</div>
+//                         <div className="stat-value">{data?.vanBanDenMoi || "05"}</div>
+//                     </TextWrapper>
+//                     <div className="stat-icon">
+//                         <NumberOfViolatingVehiclesIcon />
+//                     </div>
+//                 </StatItem>
+//                 <StatItem $noBorderRight>
+//                     <TextWrapper>
+//                         <div className="stat-label">Tốc độ lưu<br />thông TB</div>
+//                         <div className="stat-value">
+//                             {data?.tocDoLuuThong || "02"}
+//                             <span className="stat-unit">km/h</span>
+//                         </div>
+//                     </TextWrapper>
+//                     <div className="stat-icon">
+//                         <AverageTrafficSpeedIcon />
+//                     </div>
+//                 </StatItem>
+//                 <StatItem $noBorderBottom>
+//                     <TextWrapper>
+//                         <div className="stat-label">SL gia súc đi<br />vào cao tốc</div>
+//                         <div className="stat-value">{data?.vanBanDenMoi || "05"}</div>
+//                     </TextWrapper>
+//                     <div className="stat-icon">
+//                         <NumberOfLivestockEnteringTheExpresswayIcon />
+//                     </div>
+//                 </StatItem>
+//                 <StatItem $noBorderRight $noBorderBottom>
+//                     <TextWrapper>
+//                         <div className="stat-label">Số lượng<br />camera bị lỗi</div>
+//                         <div className="stat-value">{data?.vanBanDenMoi || "00"}</div>
+//                     </TextWrapper>
+//                     <div className="stat-icon">
+//                         <NumberOfFaultyCamerasIcon />
+//                     </div>
+//                 </StatItem>
+//             </WidgetBody>
+//         </WidgetCard>
+//     );
+// }
 
 // Quick Links
 export function GopYSangKienLink({ onClick }) {

@@ -366,7 +366,7 @@ const VoteIcon = () => (
     </svg>
 );
 
-function CreateVoteModal({ visible, onClose, onSubmit }) {
+function CreateVoteModal({ visible, onClose, onSubmit, submitting }) {
     // Form state
     const [title, setTitle] = useState("");
     const [options, setOptions] = useState(["", ""]);
@@ -619,8 +619,8 @@ function CreateVoteModal({ visible, onClose, onSubmit }) {
                 </MultipleChoiceSection>
 
                 {/* Submit Button */}
-                <SubmitButton onClick={handleSubmit} disabled={!isFormValid}>
-                    Tạo
+                <SubmitButton onClick={handleSubmit} disabled={!isFormValid || submitting}>
+                    {submitting ? "Đang tạo..." : "Tạo"}
                 </SubmitButton>
             </ModalBody>
         </Modal>
@@ -631,12 +631,14 @@ CreateVoteModal.propTypes = {
     visible: PropTypes.bool,
     onClose: PropTypes.func,
     onSubmit: PropTypes.func,
+    submitting: PropTypes.bool,
 };
 
 CreateVoteModal.defaultProps = {
     visible: false,
     onClose: () => { },
     onSubmit: () => { },
+    submitting: false,
 };
 
 export default CreateVoteModal;

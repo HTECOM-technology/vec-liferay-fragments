@@ -341,7 +341,7 @@ const GiamSatGiaoThong = () => {
   const handleFilterChange = (filterType, value) => {
     if (filterType === 'route') {
       setSelectedRouteFilter(value);
-      
+
       if (value !== '') {
         const selectedRouteData = routes.find(r => r.id === parseInt(value));
         if (selectedRouteData) {
@@ -360,7 +360,7 @@ const GiamSatGiaoThong = () => {
       setSelectedDate(value);
     } else if (filterType === 'search') {
       setSearchKeyword(value);
-      
+
       if (value.trim() === '') {
         setFilteredRoutes(routes);
         if (routes.length > 0) {
@@ -373,7 +373,7 @@ const GiamSatGiaoThong = () => {
           route.location.toLowerCase().includes(value.toLowerCase())
         );
         setFilteredRoutes(filtered);
-        
+
         if (filtered.length > 0) {
           setSelectedRoute(filtered[0]);
           loadDataForRoute(filtered[0].id);
@@ -397,13 +397,19 @@ const GiamSatGiaoThong = () => {
       date: selectedDate,
       keyword: searchKeyword,
     });
-    
+
     // TODO: Add API call here when ready
   };
 
   return (
     <Container>
       <TabContainer>
+        {/* Analytics cards */}
+        <AnalyticsSection
+          routeId={selectedRoute?.id}
+          analytics={analytics}
+        />
+
         {/* Header with search and filters */}
         <HeaderSection
           routes={filteredRoutes}
@@ -414,18 +420,12 @@ const GiamSatGiaoThong = () => {
           onSearch={handleSearch}
         />
 
-        {/* Analytics cards */}
-        <AnalyticsSection 
-          routeId={selectedRoute?.id}
-          analytics={analytics}
-        />
-
         {/* Map and Detail sections */}
         <ContentTable>
           <MapSection
             route={selectedRoute}
             options={mapOptions}
-            onCameraClick={(camera) => 
+            onCameraClick={(camera) =>
               setCameraModalData({ name: camera.name, videoUrl: camera.videoUrl })
             }
             onIncidentClick={(incident) => {
@@ -438,7 +438,7 @@ const GiamSatGiaoThong = () => {
             route={selectedRoute}
             cameras={cameras}
             violations={violations}
-            onCameraClick={(camera) => 
+            onCameraClick={(camera) =>
               setCameraModalData({ name: camera.name, videoUrl: camera.video_url })
             }
             onViolationClick={(violation) => {

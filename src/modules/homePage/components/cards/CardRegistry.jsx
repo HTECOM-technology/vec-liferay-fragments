@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import News from "../News";
 import TrafficCameraMonitor from "../Trafficcameramonitor";
 import FeedbackModal from "../FeedbackModal";
-import { Badge } from "antd";
 import { Link } from "react-router-dom";
 
 // Grip icon shown in header when drag is enabled
@@ -25,12 +24,19 @@ export function CongVanVbCard({ dragHandleProps }) {
   const notificationCount = 1;
   return (
     <div className="doc-card">
-      <div className="doc-card-header d-flex align-items-center">
+      <div className="doc-card-header d-flex align-items-center justify-content-between">
         <GripHandle dragHandleProps={dragHandleProps} />
-        <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
+        {/* <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
           <img src={"/documents/d/guest/archive-02"} alt="icon" />
-        </div>
+        </div> */}
         <span>Công văn - Văn bản</span>
+        <Link to="/web/intranet/van-phong-dien-tu" className="icon-link">
+          {notificationCount > 0 ? (
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774929237/notification_1_evmeys.gif" alt="" style={{ width: "20px", height: "20px" }} />
+          ) : (
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926423/notification-02_xcwyt6.png" alt="" style={{ width: "20px", height: "20px" }} />
+          )}
+        </Link>
       </div>
       <div className="row no-gutters doc-card-body">
         <div className="col-6 doc-item padding-right-8">
@@ -55,17 +61,6 @@ export function CongVanVbCard({ dragHandleProps }) {
             </div>
           </div>
         </div>
-        <div className="col-6 doc-item padding-right-8">
-          <div className="d-flex justify-content-between align-items-start">
-            <div>
-              <p className="min-hight-30"> Văn bản theo dõi </p>
-              <h3>00</h3>
-            </div>
-            <div className="doc-item-icon">
-              <img src={"/documents/d/guest/time-quarter-pass"} alt="" />
-            </div>
-          </div>
-        </div>
         <div className="col-6 doc-item">
           <div className="d-flex justify-content-between align-items-start">
             <div>
@@ -77,21 +72,15 @@ export function CongVanVbCard({ dragHandleProps }) {
             </div>
           </div>
         </div>
-        <div className="col-12 doc-item">
-          <div className="d-flex justify-content-between align-items-center">
+        <div className="col-6 doc-item padding-right-8">
+          <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="">Văn bản mới</p>
+              <p className="min-hight-30"> Văn bản theo dõi </p>
+              <h3>00</h3>
             </div>
-            <Link to="/web/intranet/van-phong-dien-tu">
-              {notificationCount > 0 ? (
-                <img src="https://res.cloudinary.com/dzjwdapic/image/upload/v1773388023/notification_zgmrmb.gif" alt="" style={{ width: "24px", height: "24px" }} />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" />
-                  <path d="M2.71833 12.7716C2.60947 12.8909 2.53763 13.0393 2.51155 13.1987C2.48547 13.3581 2.50627 13.5217 2.57142 13.6695C2.63658 13.8173 2.74328 13.9429 2.87855 14.0312C3.01381 14.1195 3.17182 14.1665 3.33333 14.1666H16.6667C16.8282 14.1667 16.9862 14.1198 17.1216 14.0317C17.2569 13.9436 17.3637 13.8181 17.4291 13.6704C17.4944 13.5227 17.5154 13.3592 17.4895 13.1998C17.4637 13.0404 17.392 12.8919 17.2833 12.7725C16.175 11.63 15 10.4158 15 6.66663C15 5.34054 14.4732 4.06877 13.5355 3.13109C12.5979 2.19341 11.3261 1.66663 10 1.66663C8.67392 1.66663 7.40215 2.19341 6.46447 3.13109C5.52679 4.06877 5 5.34054 5 6.66663C5 10.4158 3.82417 11.63 2.71833 12.7716Z" stroke="#6B7280" strokeWidth="1.16667" />
-                </svg>
-              )}
-            </Link>
+            <div className="doc-item-icon">
+              <img src={"/documents/d/guest/time-quarter-pass"} alt="" />
+            </div>
           </div>
         </div>
       </div>
@@ -100,15 +89,22 @@ export function CongVanVbCard({ dragHandleProps }) {
 }
 
 export function CongViecCard({ dragHandleProps }) {
-  const notificationCount = 1;
+  const notificationCount = 0;
   return (
     <div className="doc-card">
-      <div className="doc-card-header d-flex align-items-center">
+      <div className="doc-card-header d-flex align-items-center justify-content-between">
         <GripHandle dragHandleProps={dragHandleProps} />
-        <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
+        {/* <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
           <img src={"/documents/d/guest/briefcase-03"} alt="icon" />
-        </div>
+        </div> */}
         <span>Công việc</span>
+        <Link to="/web/intranet/van-phong-dien-tu" className="icon-link">
+          {notificationCount > 0 ? (
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774929237/notification_1_evmeys.gif" alt="" style={{ width: "20px", height: "20px" }} />
+          ) : (
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926423/notification-02_xcwyt6.png" alt="" style={{ width: "20px", height: "20px" }} />
+          )}
+        </Link>
       </div>
       <div className="row no-gutters doc-card-body">
         <div className="col-6 doc-item padding-right-8">
@@ -133,44 +129,35 @@ export function CongViecCard({ dragHandleProps }) {
             </div>
           </div>
         </div>
-        <div className="col-12 doc-item">
-          <div className="d-flex justify-content-between align-items-center">
-            <div>
-              <p className="">Công việc mới</p>
-            </div>
-            <Link to="/web/intranet/van-phong-dien-tu">
-              {notificationCount > 0 ? (
-                <img src="https://res.cloudinary.com/dzjwdapic/image/upload/v1773388023/notification_zgmrmb.gif" alt="" style={{ width: "24px", height: "24px" }} />
-              ) : (
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" />
-                  <path d="M2.71833 12.7716C2.60947 12.8909 2.53763 13.0393 2.51155 13.1987C2.48547 13.3581 2.50627 13.5217 2.57142 13.6695C2.63658 13.8173 2.74328 13.9429 2.87855 14.0312C3.01381 14.1195 3.17182 14.1665 3.33333 14.1666H16.6667C16.8282 14.1667 16.9862 14.1198 17.1216 14.0317C17.2569 13.9436 17.3637 13.8181 17.4291 13.6704C17.4944 13.5227 17.5154 13.3592 17.4895 13.1998C17.4637 13.0404 17.392 12.8919 17.2833 12.7725C16.175 11.63 15 10.4158 15 6.66663C15 5.34054 14.4732 4.06877 13.5355 3.13109C12.5979 2.19341 11.3261 1.66663 10 1.66663C8.67392 1.66663 7.40215 2.19341 6.46447 3.13109C5.52679 4.06877 5 5.34054 5 6.66663C5 10.4158 3.82417 11.63 2.71833 12.7716Z" stroke="#6B7280" strokeWidth="1.16667" />
-                </svg>
-              )}
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
 export function NhiemVuCard({ dragHandleProps }) {
+  const notificationCount = 1;
   return (
     <div className="doc-card">
-      <div className="doc-card-header d-flex align-items-center">
+      <div className="doc-card-header d-flex align-items-center justify-content-between">
         <GripHandle dragHandleProps={dragHandleProps} />
-        <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
+        {/* <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
           <img src={"/documents/d/guest/card-icon-3"} alt="icon" />
-        </div>
-        <span>Nhiệm vụ</span>
+        </div> */}
+        <span>Tổng hợp nhân sự</span>
+        <Link to="/web/intranet/cong-thong-tin-nhan-su" className="icon-link">
+          {notificationCount > 0 ? (
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774929237/notification_1_evmeys.gif" alt="" style={{ width: "20px", height: "20px" }} />
+          ) : (
+            <img src="https://res.cloudinary.com/dmd5s46fu/image/upload/v1774926423/notification-02_xcwyt6.png" alt="" style={{ width: "20px", height: "20px" }} />
+          )}
+        </Link>
       </div>
       <div className="row no-gutters doc-card-body">
         <div className="col-6 doc-item padding-right-8">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Tổng số<br />công việc</p>
-              <h3>08</h3>
+              <p className="min-hight-30">Số ngày phép còn lại</p>
+              <h3>00</h3>
             </div>
             <div className="doc-item-icon">
               <img src={"/documents/d/guest/file-shredder"} alt="" />
@@ -180,7 +167,7 @@ export function NhiemVuCard({ dragHandleProps }) {
         <div className="col-6 doc-item">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Đang xử lý</p>
+              <p className="min-hight-30">Duyệt nghỉ, vắng mặt</p>
               <h3>02</h3>
             </div>
             <div className="doc-item-icon">
@@ -188,25 +175,35 @@ export function NhiemVuCard({ dragHandleProps }) {
             </div>
           </div>
         </div>
-        <div className="col-6 doc-item padding-right-8">
+        <div className="col-3 doc-item padding-right-8">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Đã hoàn<br />thành</p>
+              <p className="min-hight-30">Duyệt xác nhận công</p>
               <h3>04</h3>
-            </div>
-            <div className="doc-item-icon">
-              <img src={"/documents/d/guest/validation"} alt="" />
             </div>
           </div>
         </div>
-        <div className="col-6 doc-item">
+        <div className="col-3 doc-item">
           <div className="d-flex justify-content-between align-items-start">
             <div>
-              <p className="min-hight-30">Quá hạn</p>
+              <p className="min-hight-30">Duyệt làm thêm giờ</p>
               <h3>0</h3>
             </div>
-            <div className="doc-item-icon">
-              <img src={"/documents/d/guest/alert-02"} alt="" />
+          </div>
+        </div>
+        <div className="col-3 doc-item">
+          <div className="d-flex justify-content-between align-items-start">
+            <div>
+              <p className="min-hight-30">Duyệt đánh giá KPI tháng</p>
+              <h3>0</h3>
+            </div>
+          </div>
+        </div>
+        <div className="col-3 doc-item">
+          <div className="d-flex justify-content-between align-items-start">
+            <div>
+              <p className="min-hight-30">Chấm công</p>
+              <h3>0</h3>
             </div>
           </div>
         </div>
@@ -279,46 +276,92 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   return (
     <div className="quick-links-card-group">
-      <div className="drag-handle-bar" {...dragHandleProps}>
+      {/* <div className="drag-handle-bar" {...dragHandleProps}>
         {canDrag && <span className="drag-grip-icon">&#8942;&#8942;</span>}
         <span className="drag-handle-label">Liên kết nhanh</span>
-      </div>
-      <div className="doc-card doc-single-card mb-2" onClick={() => setIsFeedbackModalOpen(true)} style={{ cursor: "pointer" }}>
-        <div className="doc-card-header d-flex align-items-center p-0">
+      </div> */}
+      {/* <div className="doc-card doc-single-card mb-2" onClick={() => setIsFeedbackModalOpen(true)} style={{ cursor: "pointer" }}>
+        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
           <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
             <img src={"/documents/d/guest/chat-icon"} alt="icon" />
           </div>
-          <span className="primary-color p-8">Góp ý - Sáng kiến cải tiến</span>
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+            Góp ý - Sáng kiến cải tiến
+
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </Link>
+        </div>
+      </div> */}
+      <div className="doc-card doc-single-card mb-2">
+        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/user-add-01"} alt="icon" /> */}
+          <img src={"/documents/d/guest/user-add-01"} alt="icon" />
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+            Góp ý - Sáng kiến cải tiến
+
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </Link>
         </div>
       </div>
       <div className="doc-card doc-single-card mb-2">
-        <div className="doc-card-header p-0 d-flex align-items-center image-w-50">
-          <img src={"/documents/d/guest/rankin-icon"} alt="icon" />
-          <a href="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
+        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/briefcase-01"} alt="icon" /> */}
+          <img src={"/documents/d/guest/briefcase-01"} alt="icon" />
+          <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
             Khảo sát & biểu quyết nội bộ
-          </a>
+
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </Link>
         </div>
       </div>
-      <div className="doc-card mb-2 doc-single-card">
-        <div className="doc-card-header d-flex align-items-center p-0">
-          <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
-            <img src={"/documents/d/guest/call-icon"} alt="icon" />
-          </div>
-          <a href="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+      <div className="doc-card doc-single-card mb-2">
+        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/card-exchange-01"} alt="icon" /> */}
+          <img src={"/documents/d/guest/card-exchange-01"} alt="icon" />
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Quy trình - Yêu cầu hỗ trợ
-          </a>
+
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </Link>
         </div>
       </div>
-      <div className="doc-card doc-single-card">
-        <div className="doc-card-header d-flex align-items-center p-0">
+      <div className="doc-card doc-single-card mb-2">
+        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
+          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/traffic-light-2"} alt="icon" /> */}
+          <img src={"/documents/d/guest/traffic-light-2"} alt="icon" />
+          <Link to="/web/intranet/so-tay-nhan-vien" className="primary-color p-8">
+            Sổ tay nhân viên
+
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+      {/* <div className="doc-card doc-single-card">
+        <div className="doc-card-header d-flex align-items-center p-0 doc-card-header-link">
           <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
             <img src={"/documents/d/guest/notebook-icon"} alt="icon" />
           </div>
-          <span className="primary-color p-8">Sổ tay nhân viên</span>
+          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+            Sổ tay nhân viên
+
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </Link>
         </div>
-      </div>
+      </div> */}
       <FeedbackModal isOpen={isFeedbackModalOpen} onClose={() => setIsFeedbackModalOpen(false)} />
-    </div>
+    </div >
   );
 }
 
@@ -549,13 +592,13 @@ export const CARD_REGISTRY = {
   "cong-van-vb": CongVanVbCard,
   "cong-viec": CongViecCard,
   "nhiem-vu": NhiemVuCard,
-  "giao-thong": GiaoThongCard,
+  // "giao-thong": GiaoThongCard,
   "quick-links": QuickLinksCard,
-  "van-ban-moi": VanBanMoiCard,
-  "lich-co-quan": LichCoQuanCard,
-  "sinh-nhat": SinhNhatCard,
-  "nhan-su": NhanSuCard,
-  "bieu-mau": BieuMauCard,
+  // "van-ban-moi": VanBanMoiCard,
+  // "lich-co-quan": LichCoQuanCard,
+  // "sinh-nhat": SinhNhatCard,
+  // "nhan-su": NhanSuCard,
+  // "bieu-mau": BieuMauCard,
   "tin-tuc": TinTucCard,
   "camera": CameraCard,
 };

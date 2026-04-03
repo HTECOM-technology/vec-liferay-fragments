@@ -39,9 +39,9 @@ export const menuSections = [
     title: "Quản lý liên kết",
     items: [
       { key: paths.vanPhongDienTu, label: "Văn phòng điện tử", icon: "desktop" },
-      { key: paths.giamSatGiaoThong, label: "Giám sát giao thông", icon: "traffic" },
-      { key: paths.congThongTinNhanSu, label: "Cổng thông tin nhân sự", icon: "team" },
+      { key: paths.congThongTinNhanSu, label: "Thông tin nhân sự", icon: "team" },
       { key: paths.doiSoatThuPhi, label: "Đối soát thu phí", icon: "file-text" },
+      { key: paths.giamSatGiaoThong, label: "Giám sát giao thông", icon: "traffic" },
     ],
   },
   {
@@ -50,6 +50,8 @@ export const menuSections = [
       { key: paths.tinTucSuKien, label: "Tin tức - Sự kiện", icon: "calendar" },
       { key: paths.bieuMauTaiLieu, label: "Biểu mẫu tài liệu", icon: "books" },
       { key: paths.soTayNhanVien, label: "Sổ tay nhân viên", icon: "document" },
+      { key: paths.khaoSatBieuQuyet, label: "Khảo sát nội bộ", icon: "rank" },
+      { key: paths.quyTrinhHoTro, label: "Yêu cầu hỗ trợ", icon: "letter" },
       { key: "logout", label: "Đăng xuất", icon: "logout" },
     ],
   },

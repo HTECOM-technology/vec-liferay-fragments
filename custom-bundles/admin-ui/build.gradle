@@ -1,0 +1,23 @@
+buildscript {
+    dependencies {
+        classpath group: "com.liferay", name: "com.liferay.gradle.plugins", version: "latest.release"
+    }
+    repositories {
+        maven {
+            url "https://repository-cdn.liferay.com/nexus/content/groups/public"
+        }
+    }
+}
+
+apply plugin: "com.liferay.plugin"
+
+def liferayHome = System.getenv("LIFERAY_HOME") ?: "/root/vec/bundles"
+
+dependencies {
+    compileOnly files("${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib/portal-kernel.jar")
+    compileOnly files("${liferayHome}/tomcat/lib/servlet-api.jar")
+    compileOnly files("${rootDir}/../libs/osgi-annotations.jar")
+}
+
+tasks.named("buildCSS").configure { enabled = false }
+tasks.named("copyCSS").configure { enabled = false }
