@@ -34,21 +34,22 @@ function __setDefaultValueForInputPublishInNewPost() {
     const dd = String(currentDate.getDate()).padStart(2, '0');
     const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
     const yyyy = currentDate.getFullYear();
-    const formatted = `${dd}/${mm}/${yyyy}`;
+    const formattedLocal = `${dd}/${mm}/${yyyy}`;
+    const formatted = `${yyyy}-${mm}-${dd}`;
 
     const tooltip = inputPublishDate.querySelector('[data-tooltip-align]');
     if (tooltip) {
-        tooltip.setAttribute('title', formatted);
+        tooltip.setAttribute('title', formattedLocal);
     }
 
     const nativeSetter = Object.getOwnPropertyDescriptor(
         HTMLInputElement.prototype, 'value'
     ).set;
 
-    const setValue = (selector) => {
+    const setValue = (selector, value) => {
         const input = inputPublishDate.querySelector(selector);
         if (input) {
-            nativeSetter.call(input, formatted);
+            nativeSetter.call(input, value);
             input.dispatchEvent(new Event('change', { bubbles: true }));
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('blur', { bubbles: true }));
@@ -61,9 +62,9 @@ function __setDefaultValueForInputPublishInNewPost() {
     }
 
     setTimeout(() => {
-        setValue('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Date75635616"]');
-        setValue('[id^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Date75635616"]');
-        setValue('[name="datePicker"]');
+        setValue('[name="datePicker"]', formattedLocal);
+        setValue('[id^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Date75635616"]', formattedLocal);
+        setValue('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Date75635616"]', formatted);
     }, 5000);
 }
 

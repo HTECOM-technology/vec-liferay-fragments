@@ -29,7 +29,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "sync": "node sync-to-liferay.js",
-    "build:liferay": "npm run build && npm run sync"
+    "build:liferay": "npm run build && npm run sync",
+    "run-test-performance": "k6 run test-performance/load-test.js"
   },
   "eslintConfig": {
     "extends": [
