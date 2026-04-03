@@ -120,3 +120,67 @@
     height: 100%;
     background: #E31C2A;
 }
+
+
+/* =========================
+   CSS tin tức sự kiện
+========================= */
+
+
+.news-main.ttsk {
+    flex: 1;
+    min-width: 0;
+}
+
+.news-layout.ttsk {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.news-sidebar.ttsk {
+    width: 360px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.news-header.ttsk {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+
+    width: 100%;
+
+    background: #fff;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #0090CF;
+    margin-bottom: 16px;
+}
+
+.news-section-title.ttsk {
+    font-size: 20px;
+    font-weight: 600;
+    padding-bottom: 6px;
+
+    flex: 1;
+    min-width: 0;
+
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.news-sort.ttsk {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+

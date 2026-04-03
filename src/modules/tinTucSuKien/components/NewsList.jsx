@@ -12,7 +12,7 @@ const NewsList = ({ blogs, categoryName, categoryId }) => {
 
   return (
 
-      <div className="news-list">
+      <div className="news-list ttsk">
 
         {blogs.map((article) => {
 
@@ -31,31 +31,31 @@ const NewsList = ({ blogs, categoryName, categoryId }) => {
 
               <div
                   key={article.id}
-                  className="news-item"
+                  className="news-item ttsk"
                   onClick={() =>
                       navigate(`/web/intranet/tin-tuc-su-kien/${categoryId}/${article.id}`, { state: { categoryName } })
                   }
               >
 
-                <div className="news-left">
+                <div className="news-left ttsk">
 
-                  <h3 className="news-title">
+                  <h3 className="news-title ttsk">
                     {title}
                   </h3>
 
-                  <p className="news-desc">
+                  <p className="news-desc ttsk">
                     {shortDescription}
                   </p>
 
-                  <div className="news-meta">
+                  <div className="news-meta ttsk">
 
-                <span className="news-category">
+                <span className="news-category ttsk">
                   {categoryName}
                 </span>
 
-                    <span className="news-dot"></span>
+                    <span className="news-dot ttsk"></span>
 
-                    <span className="news-date">
+                    <span className="news-date ttsk">
                   {publishDate}
                 </span>
 
@@ -63,10 +63,10 @@ const NewsList = ({ blogs, categoryName, categoryId }) => {
 
                 </div>
 
-                <div className="news-image">
+                <div className="news-image ttsk">
                   {imageUrl && (
                       <img
-                          className="news-image"
+                          className="news-image ttsk"
                           src={fullImage}
                           alt={title}
                       />
