@@ -148,20 +148,20 @@ const News = () => {
 
       {/* MAIN LAYOUT */}
 
-      <div className="news-layout">
+      <div className="news-layout ttsk">
 
         {/* LEFT */}
 
-        <div className="news-main">
+        <div className="news-main ttsk">
 
-          <div className="news-header">
+          <div className="news-header ttsk">
 
-            <div className="news-section-title">
+            <div className="news-section-title ttsk">
               {activeCategoryName}
             </div>
 
             <select
-              className="news-sort"
+              className="news-sort ttsk"
               value={sortType}
               onChange={(e) => {
                 setSortType(e.target.value);
@@ -188,7 +188,7 @@ const News = () => {
 
           {/* PAGINATION */}
 
-          <div className="news-pagination">
+          <div className="news-pagination ttsk">
 
             <button
               disabled={currentPage === 1}
@@ -220,7 +220,7 @@ const News = () => {
 
         {/* SIDEBAR */}
 
-        <div className="news-sidebar">
+        <div className="news-sidebar ttsk">
           <WeeklyHot blogs={hotArticles} />
         </div>
 
