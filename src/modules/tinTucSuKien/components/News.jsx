@@ -83,7 +83,7 @@ const News = () => {
 
   const activeCategoryName = useMemo(() => {
     return categories.find(
-        (c) => String(c.id) === String(activeCategoryId)
+      (c) => String(c.id) === String(activeCategoryId)
     )?.name || "";
   }, [categories, activeCategoryId]);
 
@@ -109,11 +109,11 @@ const News = () => {
 
   const hotArticles = useMemo(() => {
     return articles
-        .filter((a) =>
-            a.keywords?.some((k) => k.toLowerCase() === "tin hot")
-        )
-        .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
-        .slice(0, 5);
+      .filter((a) =>
+        a.keywords?.some((k) => k.toLowerCase() === "tin hot")
+      )
+      .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
+      .slice(0, 5);
   }, [articles]);
 
   /*
@@ -133,100 +133,100 @@ const News = () => {
 
   return (
 
-      <div className="news-wrapper">
+    <div className="news-wrapper">
 
-        {/* CATEGORY TABS */}
+      {/* CATEGORY TABS */}
 
-        <CategoryTabs
-            tabs={categories}
-            activeCategoryId={activeCategoryId}
-            onSelectCategory={(id) => {
-              setActiveCategoryId(id);
-              setCurrentPage(1);
-            }}
-        />
+      <CategoryTabs
+        tabs={categories}
+        activeCategoryId={activeCategoryId}
+        onSelectCategory={(id) => {
+          setActiveCategoryId(id);
+          setCurrentPage(1);
+        }}
+      />
 
-        {/* MAIN LAYOUT */}
+      {/* MAIN LAYOUT */}
 
-        <div className="news-layout">
+      <div className="news-layout">
 
-          {/* LEFT */}
+        {/* LEFT */}
 
-          <div className="news-main">
+        <div className="news-main">
 
-            <div className="news-header">
+          <div className="news-header">
 
-              <div className="news-section-title">
-                {activeCategoryName}
-              </div>
-
-              <select
-                  className="news-sort"
-                  value={sortType}
-                  onChange={(e) => {
-                    setSortType(e.target.value);
-                    setCurrentPage(1);
-                  }}
-              >
-                <option value="newest">Mới nhất</option>
-                <option value="oldest">Cũ nhất</option>
-              </select>
-
+            <div className="news-section-title">
+              {activeCategoryName}
             </div>
 
-            {/* NEWS LIST */}
-
-            {loadingArticles ? (
-                <div>Đang tải bài viết...</div>
-            ) : (
-                <NewsList
-                    blogs={paginatedArticles}
-                    categoryName={activeCategoryName}
-                    categoryId={activeCategoryId}
-                />
-            )}
-
-            {/* PAGINATION */}
-
-            <div className="news-pagination">
-
-              <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => p - 1)}
-              >
-                ‹
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                      key={page}
-                      className={currentPage === page ? "active" : ""}
-                      onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </button>
-              ))}
-
-              <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => p + 1)}
-              >
-                ›
-              </button>
-
-            </div>
+            <select
+              className="news-sort"
+              value={sortType}
+              onChange={(e) => {
+                setSortType(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              <option value="newest">Mới nhất</option>
+              <option value="oldest">Cũ nhất</option>
+            </select>
 
           </div>
 
-          {/* SIDEBAR */}
+          {/* NEWS LIST */}
 
-          <div className="news-sidebar">
-            <WeeklyHot blogs={hotArticles} />
+          {loadingArticles ? (
+            <div>Đang tải bài viết...</div>
+          ) : (
+            <NewsList
+              blogs={paginatedArticles}
+              categoryName={activeCategoryName}
+              categoryId={activeCategoryId}
+            />
+          )}
+
+          {/* PAGINATION */}
+
+          <div className="news-pagination">
+
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+            >
+              ‹
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                className={currentPage === page ? "active" : ""}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              ›
+            </button>
+
           </div>
 
         </div>
 
+        {/* SIDEBAR */}
+
+        <div className="news-sidebar">
+          <WeeklyHot blogs={hotArticles} />
+        </div>
+
       </div>
+
+    </div>
 
   );
 
