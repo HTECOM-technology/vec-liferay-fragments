@@ -15,8 +15,7 @@
 
 .news-main {
     flex: 1;
-    width: 100%;
-    max-width: 100%;
+    min-width: 0;
 }
 
 .news-sidebar {
