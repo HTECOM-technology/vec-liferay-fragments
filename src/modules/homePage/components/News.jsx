@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   getVocabulariesBySite,
   getCategoriesByVocabulary,
@@ -184,10 +185,10 @@ const News = () => {
 
 
           const categoryId = blog.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryId;
-          const detailUrl = `/web/intranet/tin-tuc-su-kien/${categoryId}/${blog.id}`;
+          const detailUrl = `/web/guest/intranet/tin-tuc-su-kien/${categoryId}/${blog.id}`;
 
           return (
-            <a key={blog.id} className="news-item" href={detailUrl}>
+            <Link key={blog.id} className="news-item" to={detailUrl}>
               <div className="news-info">
                 <h3>{title}</h3>
 
@@ -201,7 +202,7 @@ const News = () => {
               </div>
 
               <img src={process.env.REACT_APP_BASE_API_URL ? `${process.env.REACT_APP_BASE_API_URL}${imageUrl}` : imageUrl} alt="img" />
-            </a>
+            </Link>
           );
         })}
       </div>
