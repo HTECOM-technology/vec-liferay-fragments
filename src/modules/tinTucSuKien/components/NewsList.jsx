@@ -33,7 +33,7 @@ const NewsList = ({ blogs, categoryName, categoryId }) => {
                   key={article.id}
                   className="news-item ttsk"
                   onClick={() =>
-                      navigate(`/web/intranet/tin-tuc-su-kien/${categoryId}/${article.id}`, { state: { categoryName } })
+                      navigate(`/web/guest/intranet/tin-tuc-su-kien/${categoryId}/${article.id}`, { state: { categoryName } })
                   }
               >
 

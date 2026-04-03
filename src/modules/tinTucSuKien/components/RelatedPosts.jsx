@@ -45,7 +45,7 @@ const RelatedPosts = ({ blogs }) => {
                             key={article.id}
                             className="related-card"
                             onClick={() =>
-                                navigate(`/web/intranet/tin-tuc-su-kien/detail/${article.id}`, {
+                                navigate(`/web/guest/intranet/tin-tuc-su-kien/detail/${article.id}`, {
                                     state: { categoryName }
                                 })
                             }

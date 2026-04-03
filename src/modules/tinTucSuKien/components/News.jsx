@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import { getCategoriesByVocabulary } from "../../../services/taxonomyService";
+import { getCategoriesByVocabularyWithImage } from "../../../services/taxonomyService";
 import { getStructuredContentsByCategory } from "../../../services/structuredContentService";
 
 import CategoryTabs from "../components/CategoryTabs";
@@ -37,7 +37,7 @@ const News = () => {
     const loadCategories = async () => {
       try {
         setLoading(true);
-        const cats = await getCategoriesByVocabulary(VOCABULARY_ID);
+        const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
         setCategories(cats);
         const defaultId = slug ? slug : cats[0]?.id;
         setActiveCategoryId(defaultId);

@@ -41,3 +41,15 @@ const extractFirstImage = (htmlString) => {
   const match = htmlString.match(/<img[^>]+src="([^">]+)"/);
   return match ? match[1] : null;
 };
+
+export const getCategoriesByVocabularyWithImage = async (vocabularyId) => {
+  const res = await axiosPrivate.get(
+      `/o/headless-admin-taxonomy/v1.0/taxonomy-vocabularies/${vocabularyId}/taxonomy-categories`,
+      { params: { pageSize: 200 } }
+  );
+  return res.data.items.map((cat) => ({
+    id: String(cat.id),
+    name: cat.name,
+    link: extractFirstImage(cat.description),
+  }));
+};

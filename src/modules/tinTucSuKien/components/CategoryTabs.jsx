@@ -16,7 +16,7 @@ const CategoryTabs = ({ tabs, activeCategoryId, onSelectCategory }) => {
                     className={`news-tab ${String(activeCategoryId) === String(cat.id) ? "active" : ""}`}
                     onClick={() => {
                         if (onSelectCategory) onSelectCategory(cat.id);
-                        navigate(`/web/intranet/tin-tuc-su-kien/${cat.id}`);
+                        navigate(`/web/guest/intranet/tin-tuc-su-kien/${cat.id}`);
                     }}
                 >
 

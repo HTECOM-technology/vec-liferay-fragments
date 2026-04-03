@@ -41,7 +41,7 @@ const WeeklyHot = ({ blogs }) => {
                             key={article.id}
                             className="vec-weekly-item"
                             onClick={() =>
-                                navigate(`/web/intranet/tin-tuc-su-kien/detail/${article.id}`, {
+                                navigate(`/web/guest/intranet/tin-tuc-su-kien/detail/${article.id}`, {
                                     state: { categoryName }
                                 })
                             }
