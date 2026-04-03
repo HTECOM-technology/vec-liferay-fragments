@@ -6,6 +6,8 @@ import {
 
 import { getAllBlogBySiteId } from "../../../services/blogService";
 
+import { useNavigate, useParams } from "react-router-dom";
+
 import "../styles/News.css";
 
 import "../styles/NewsMobie.css";
@@ -19,6 +21,9 @@ const VOCABULARY_NAME = "tin bài";
 
 const News = () => {
 
+  const navigate = useNavigate();
+  const { slug } = useParams();
+
   const [categories, setCategories] = useState([]);
   const [activeCategoryId, setActiveCategoryId] = useState(null);
   const [blogs, setBlogs] = useState([]);
@@ -29,7 +34,7 @@ const News = () => {
 
   useEffect(() => {
     loadInitialData();
-  }, []);
+  }, [slug]);
 
   const loadInitialData = async () => {
 
@@ -49,7 +54,7 @@ const News = () => {
 
       setCategories(cats);
 
-      const defaultCategoryId = cats[0]?.id;
+      const defaultCategoryId = slug || cats[0]?.id;
 
       setActiveCategoryId(defaultCategoryId);
 
@@ -215,24 +220,27 @@ const News = () => {
 
         {(CATEGORY_TABS?.length ? CATEGORY_TABS : categories).map(cat => (
 
-          <div
-            key={cat.id}
-            className={`news-tab ${activeCategoryId === cat.id ? "active" : ""}`}
-            onClick={() => {
-              setActiveCategoryId(cat.id);
-              setCurrentPage(1);
-            }}
-          >
+    <div
+      key={cat.id}
+      className={`news-tab ${activeCategoryId === cat.id ? "active" : ""}`}
+      onClick={() => {
+        navigate(`/web/intranet/tin-tuc-su-kien/${cat.id}`);
+      }}
+    >
 
-            <img className="news-tab-bg" src={cat.link || ""} alt={cat.name || ""} />
+      <img
+        className="news-tab-bg"
+        src={cat.link || ""}
+        alt={cat.name || ""}
+      />
 
-            <span className="news-tab-title">
-              {cat.name}
-            </span>
+      <span className="news-tab-title">
+        {cat.name}
+      </span>
 
-          </div>
+    </div>
 
-        ))}
+  ))}
 
       </div>
 
@@ -281,7 +289,13 @@ const News = () => {
 
               return (
 
-                <div key={blog.id} className="news-item">
+                <div
+  key={blog.id}
+  className="news-item"
+  onClick={() =>
+    navigate(`/web/intranet/tin-tuc-su-kien/${activeCategoryId}/${blog.id}`)
+  }
+>
 
                   <div className="news-left">
 
