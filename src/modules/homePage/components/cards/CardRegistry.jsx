@@ -298,7 +298,7 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
           {/* <img src={"http://45.77.240.85:8080/documents/d/guest/user-add-01"} alt="icon" /> */}
           <img src={"/documents/d/guest/user-add-01"} alt="icon" />
-          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+          <Link to="/web/guest/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Góp ý - Sáng kiến cải tiến
 
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -311,7 +311,7 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
           {/* <img src={"http://45.77.240.85:8080/documents/d/guest/briefcase-01"} alt="icon" /> */}
           <img src={"/documents/d/guest/briefcase-01"} alt="icon" />
-          <Link to="/web/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
+          <Link to="/web/guest/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
             Khảo sát & biểu quyết nội bộ
 
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -324,7 +324,7 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
           {/* <img src={"http://45.77.240.85:8080/documents/d/guest/card-exchange-01"} alt="icon" /> */}
           <img src={"/documents/d/guest/card-exchange-01"} alt="icon" />
-          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
+          <Link to="/web/guest/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Quy trình - Yêu cầu hỗ trợ
 
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -337,7 +337,7 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
           {/* <img src={"http://45.77.240.85:8080/documents/d/guest/traffic-light-2"} alt="icon" /> */}
           <img src={"/documents/d/guest/traffic-light-2"} alt="icon" />
-          <Link to="/web/intranet/so-tay-nhan-vien" className="primary-color p-8">
+          <Link to="/web/guest/intranet/so-tay-nhan-vien" className="primary-color p-8">
             Sổ tay nhân viên
 
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
