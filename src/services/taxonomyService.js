@@ -35,3 +35,9 @@ export const getCategoriesByVocabulary = async (vocabularyId) => {
   );
   return res.data.items;
 };
+
+const extractFirstImage = (htmlString) => {
+  if (!htmlString) return null;
+  const match = htmlString.match(/<img[^>]+src="([^">]+)"/);
+  return match ? match[1] : null;
+};
