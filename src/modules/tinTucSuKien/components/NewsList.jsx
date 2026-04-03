@@ -2,82 +2,84 @@ import "../styles/NewsList.css";
 import { formatDate } from "../../../utils/dateUtils";
 import { useNavigate } from "react-router-dom";
 
-const NewsList = ({
-  blogs,
-  categoryName,
-  categoryId
-}) => {
+const getContentField = (article, fieldName) => {
+  return article.contentFields?.find((f) => f.name === fieldName);
+};
+
+const NewsList = ({ blogs, categoryName, categoryId }) => {
 
   const navigate = useNavigate();
 
   return (
 
-    <div className="news-list">
+      <div className="news-list">
 
-      {blogs.map(blog => {
+        {blogs.map((article) => {
 
-        const publishDate = formatDate(blog.datePublished);
+          const title = getContentField(article, "title")?.contentFieldValue?.data;
+          const shortDescription = getContentField(article, "shortDescription")?.contentFieldValue?.data;
+          const imageUrl = getContentField(article, "image")?.contentFieldValue?.image?.contentUrl;
+          const date = getContentField(article, "date")?.contentFieldValue?.data;
 
-        const imageUrl = blog.image?.contentUrl;
+          const publishDate = formatDate(date || article.datePublished);
 
-        const fullImage =
-          imageUrl?.startsWith("http")
-            ? imageUrl
-            : `${window.location.origin}${imageUrl}`;
+          const fullImage = imageUrl?.startsWith("http")
+              ? imageUrl
+              : `${window.location.origin}${imageUrl}`;
 
-        return (
+          return (
 
-          <div
-            key={blog.id}
-            className="news-item"
-            onClick={() =>
-              navigate(`/web/intranet/tin-tuc-su-kien/${categoryId}/${blog.id}`, { state: { categoryName } })
-            }
-          >
+              <div
+                  key={article.id}
+                  className="news-item"
+                  onClick={() =>
+                      navigate(`/web/intranet/tin-tuc-su-kien/${categoryId}/${article.id}`, { state: { categoryName } })
+                  }
+              >
 
-            <div className="news-left">
+                <div className="news-left">
 
-              <h3 className="news-title">
-                {blog.headline}
-              </h3>
+                  <h3 className="news-title">
+                    {title}
+                  </h3>
 
-              <p className="news-desc">
-                {blog.alternativeHeadline}
-              </p>
+                  <p className="news-desc">
+                    {shortDescription}
+                  </p>
 
-              <div className="news-meta">
+                  <div className="news-meta">
 
                 <span className="news-category">
                   {categoryName}
                 </span>
 
-                <span className="news-dot"></span>
+                    <span className="news-dot"></span>
 
-                <span className="news-date">
+                    <span className="news-date">
                   {publishDate}
                 </span>
 
+                  </div>
+
+                </div>
+
+                <div className="news-image">
+                  {imageUrl && (
+                      <img
+                          className="news-image"
+                          src={fullImage}
+                          alt={title}
+                      />
+                  )}
+                </div>
+
               </div>
 
-            </div>
-            <div className="news-image">
-              {imageUrl && (
+          );
 
-                <img
-                  className="news-image"
-                  src={fullImage}
-                  alt={blog.caption}
-                />
+        })}
 
-              )}
-            </div>
-          </div>
-
-        );
-
-      })}
-
-    </div>
+      </div>
 
   );
 

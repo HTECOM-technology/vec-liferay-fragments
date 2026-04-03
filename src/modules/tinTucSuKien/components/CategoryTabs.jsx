@@ -1,7 +1,7 @@
 import "../styles/CategoryTabs.css";
 import { useNavigate } from "react-router-dom";
 
-const CategoryTabs = ({ tabs, activeCategoryId }) => {
+const CategoryTabs = ({ tabs, activeCategoryId, onSelectCategory }) => {
 
     const navigate = useNavigate();
 
@@ -13,11 +13,11 @@ const CategoryTabs = ({ tabs, activeCategoryId }) => {
 
                 <div
                     key={cat.id}
-                    className={`news-tab ${String(activeCategoryId) === String(cat.id) ? "active" : ""
-                        }`}
-                    onClick={() =>
-                        navigate(`/web/intranet/tin-tuc-su-kien/${cat.id}`)
-                    }
+                    className={`news-tab ${String(activeCategoryId) === String(cat.id) ? "active" : ""}`}
+                    onClick={() => {
+                        if (onSelectCategory) onSelectCategory(cat.id);
+                        navigate(`/web/intranet/tin-tuc-su-kien/${cat.id}`);
+                    }}
                 >
 
                     <img
@@ -27,8 +27,8 @@ const CategoryTabs = ({ tabs, activeCategoryId }) => {
                     />
 
                     <span className="news-tab-title">
-                        {cat.name}
-                    </span>
+            {cat.name}
+          </span>
 
                 </div>
 
