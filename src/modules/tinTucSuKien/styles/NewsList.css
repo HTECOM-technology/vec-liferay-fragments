@@ -4,7 +4,8 @@
 
 .news-list {
    display: flex;
-   flex-direction: column;
+   flex-wrap: wrap;
+   /* flex-direction: column; */
    gap: 16px;
 
    height: auto;
@@ -19,7 +20,7 @@
    cursor: pointer;
 
    align-items: stretch;
-   min-height: 160px;
+   /* min-height: 160px; */
 }
 
 .news-item:hover {

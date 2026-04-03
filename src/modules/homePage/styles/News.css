@@ -26,18 +26,19 @@
 .news-tabs {
   display: flex;
   gap: 15px;
-   
+
   list-style: none;
   padding: 0;
   /* border-bottom: 1px solid #e5e7eb; */
 }
+
 ul.news-tabs {
   margin-bottom: 0 !important;
 }
 
 .news-tabs li {
   cursor: pointer;
-  padding-bottom:0px;
+  padding-bottom: 0px;
   font-size: 14px;
 }
 
@@ -46,12 +47,15 @@ ul.news-tabs {
   /* border-bottom: 2px solid red; */
   font-weight: 600;
 }
+
 .news-container.doc-card {
   width: 100% !important;
 }
+
 .traffic-camera-monitor__controls {
-  flex-wrap: nowrap  !important;
+  flex-wrap: nowrap !important;
 }
+
 /* Articles */
 .news-list {
   display: grid;
@@ -59,19 +63,20 @@ ul.news-tabs {
   gap: 16px;
   height: 400px;
   overflow-y: auto;
- scrollbar-width: thin;
+  scrollbar-width: thin;
 }
 
 .news-item {
   display: flex;
   gap: 12px;
-  width: 100%;
+  width: calc(50% - 8px);
   justify-content: space-between;
 }
 
 .news-item img {
+  min-width: 120px;
   width: 120px;
-  height: 80px;
+  height: 84px;
   object-fit: cover;
   border-radius: 6px;
 }
@@ -79,6 +84,13 @@ ul.news-tabs {
 .news-info h3 {
   font-size: 14px;
   margin: 0;
+  font-weight: 600;
+  color: rgba(30, 30, 30, 1);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .news-info p {
@@ -91,37 +103,42 @@ ul.news-tabs {
   font-size: 12px;
   color: #888;
 }
+
 .news-date-div {
   display: flex;
   gap: 5px;
   align-items: center;
   margin-top: 8px;
 }
+
 .red-text {
   font-size: 12px;
   color: #E31C2A !important;
   font-weight: 500;
 }
+
 .dot-custom {
   width: 4px;
   height: 4px;
   background-color: #888;
   border-radius: 50%;
-  display: inline-block;}
+  display: inline-block;
+}
 
-  .news-tabs-div {
-        display: flex;
-    align-items: center;
-    max-width: 70%;
-    gap: 6px;
-  
-    overflow-x: auto;
-    white-space: nowrap;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-  }
-  .news-tabs {
-    display: flex;
-    gap: 12px;
-   
-  }
+.news-tabs-div {
+  display: flex;
+  align-items: center;
+  /* max-width: 70%; */
+  gap: 6px;
+
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.news-tabs {
+  display: flex;
+  gap: 12px;
+
+}

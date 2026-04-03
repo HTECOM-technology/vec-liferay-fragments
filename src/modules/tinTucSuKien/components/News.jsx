@@ -17,7 +17,7 @@ import "../styles/NewsMobie.css";
 
 const PAGE_SIZE = 10;
 
-const SITE_ID = 1029373;
+const SITE_ID = 20117;
 const VOCABULARY_NAME = "tin bài";
 
 const News = () => {
