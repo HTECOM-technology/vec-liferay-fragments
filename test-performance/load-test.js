@@ -1,6 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
+import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/latest/dist/bundle.js'
 
 const errorRate = new Rate('error_rate');
 const responseTrend = new Trend('response_time');
@@ -9,21 +10,21 @@ const BASE_URL = 'http://portal.tctvec.vn/en';
 
 export const options = {
   scenarios: {
-    // constant_load: {
-    //   executor: 'constant-vus',
-    //   vus: 500,
-    //   duration: '1m',
-    // },
-    find_limit: {
-      executor: 'ramping-vus',
-      stages: [
-        { duration: '1m', target: 50  },
-        { duration: '1m', target: 100 },
-        { duration: '1m', target: 200 },
-        { duration: '1m', target: 300 },
-        { duration: '1m', target: 500 },
-      ],
+    constant_load: {
+      executor: 'constant-vus',
+      vus: 70,
+      duration: '1m',
     },
+    // find_limit: {
+    //   executor: 'ramping-vus',
+    //   stages: [
+    //     { duration: '1m', target: 50  },
+    //     { duration: '1m', target: 100 },
+    //     { duration: '1m', target: 200 },
+    //     { duration: '1m', target: 300 },
+    //     { duration: '1m', target: 500 },
+    //   ],
+    // },
   },
   thresholds: {
     http_req_duration: ['p(95)<2000'],  // 95% request < 2s
@@ -32,8 +33,14 @@ export const options = {
   },
 };
 
+export function handleSummary(data) {
+  return {
+    'summary.html': htmlReport(data),
+  }
+}
+
 export default function Main() {
-  const res = http.get(`${BASE_URL}/web/guest/home`, {
+  const res = http.get(`${BASE_URL}/web/guest`, {
     headers: {
       'Accept': 'text/html,application/xhtml+xml',
       'Accept-Language': 'vi-VN,vi;q=0.9',

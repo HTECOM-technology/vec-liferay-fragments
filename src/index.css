@@ -12,3 +12,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+html body .cadmin.control-menu-container {
+  display: none !important;
+}
+
+html body .cadmin.lfr-product-menu-panel {
+  display: none !important;
+}
+
+html body #wrapper {
+  padding: 0 !important;
+}

@@ -1,3 +1,70 @@
+function __initFormLogin () {
+    // Chỉ chạy trên trang login
+    var loginForm = document.querySelector('form[name="_com_liferay_login_web_portlet_LoginPortlet_loginForm"]');
+    if (!loginForm) return;
+
+    // Lấy và validate __custom_redirect từ URL
+    function getSafeRedirect() {
+        var params = new URLSearchParams(window.location.search);
+        var redirect = params.get('_com_liferay_login_web_portlet_LoginPortlet_redirect');
+
+        if (
+            redirect &&
+            redirect.startsWith('/') &&
+            !redirect.startsWith('//') &&
+            redirect.indexOf('://') === -1 &&
+            redirect.indexOf('\0') === -1
+        ) {
+            return redirect;
+        }
+
+        return '/web/guest';
+    }
+
+    var customRedirect = getSafeRedirect();
+
+    loginForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        var actionUrl = loginForm.getAttribute('action');
+        var formData = new FormData(loginForm);
+
+        // Disable submit button để tránh double submit
+        var submitBtn = loginForm.querySelector('[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        fetch(actionUrl, {
+            method: 'POST',
+            body: new URLSearchParams(formData), // Liferay cần application/x-www-form-urlencoded
+            redirect: 'follow',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        })
+            .then(function (response) {
+                // Login thành công khi Liferay redirect ra khỏi trang login
+                var finalUrl = response.url || '';
+                var isStillOnLogin =
+                    finalUrl.indexOf('/c/portal/login') !== -1 ||
+                    finalUrl.indexOf('login') !== -1;
+
+                if (response.ok && !isStillOnLogin) {
+                    // Thành công → redirect theo custom param
+                    window.location.href = customRedirect;
+                } else {
+                    // Thất bại → để Liferay xử lý lỗi bình thường
+                    loginForm.submit();
+                }
+            })
+            .catch(function () {
+                // Lỗi network → fallback submit bình thường
+                if (submitBtn) submitBtn.disabled = false;
+                loginForm.submit();
+            });
+    });
+}
+
 (function () {
     // Check login page từ URL (trước khi DOM ready)
     var isLoginPage = window.location.search.indexOf('LoginPortlet') !== -1;
@@ -102,6 +169,8 @@
                 password.value = '';
                 password.setAttribute('placeholder', 'Mật khẩu');
             }
+
+            //__initFormLogin();
 
             // Ẩn loading screen
             requestAnimationFrame(function () {
