@@ -1,16 +1,18 @@
 import React from "react";
-import { Wrap, Grid, Card, CardLabel, SubLabel } from "./lienKetTraCuu/styled";
-import { menuItems } from "./lienKetTraCuu/menuItems";
+import { Wrap, Grid, Card, CardLabel } from "./lienKetTraCuu/styled";
+import useLienKetTraCuu from "./lienKetTraCuu/useLienKetTraCuu";
 
 function LienKetTraCuuTab() {
+  const { items } = useLienKetTraCuu();
+  console.log(items);
+
   return (
     <Wrap>
       <Grid>
-        {menuItems.map((item) => (
-          <Card key={item.key} href="#">
+        {items.map((item) => (
+          <Card key={item.id} href={item.uRL || "#"}>
             {item.icon}
-            <CardLabel>{item.label}</CardLabel>
-            {item.subLabel && <SubLabel>{item.subLabel}</SubLabel>}
+            <CardLabel>{item.title}</CardLabel>
           </Card>
         ))}
       </Grid>

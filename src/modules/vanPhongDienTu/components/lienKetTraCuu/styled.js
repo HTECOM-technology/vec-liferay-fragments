@@ -36,6 +36,7 @@ export const CardLabel = styled.div`
   text-align: center;
   line-height: 1.5;
   font-weight: 500;
+  white-space: pre-line;
 `;
 
 export const SubLabel = styled.div`
