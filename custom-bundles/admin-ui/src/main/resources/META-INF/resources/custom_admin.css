@@ -1,0 +1,62 @@
+#_com_liferay_journal_web_portlet_JournalPortlet_metadata {
+  display: none !important;
+}
+
+fieldset#basicInformation,
+fieldset#defaultTemplate,
+fieldset#featuredImage,
+fieldset#relatedAssets {
+  display: none !important;
+}
+
+fieldset#categorization a[href^=https\:\/\/learn\.liferay\.com] {
+  display: none !important;
+}
+
+fieldset#categorization .lfr-tooltip-scope > div:last-child {
+  display: none !important;
+}
+
+#categorizationContent .panel-body > div:last-child {
+  display: none !important;
+}
+
+fieldset#schedule .review-date.input-Date-wrapper {
+  display: none !important;
+}
+
+fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields .sheet-subtitle {
+  margin-bottom: 0 !important;
+}
+
+fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields #_com_liferay_journal_web_portlet_JournalPortlet_fieldsContent .panel-body {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_inputPermissionsTable {
+  display: none !important;
+}
+
+[name="_com_liferay_journal_web_portlet_JournalPortlet_displayDateYear"] ~ div {
+  display: none !important;
+}
+
+#displayPageContent .panel-body p.text-secondary {
+  display: none !important;
+}
+
+#portlet_com_liferay_journal_web_portlet_JournalPortlet .translation-manager {
+  display: none !important;
+}
+
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_style_book_web_internal_portlet_StyleBookPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_blogs_web_portlet_BlogsAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_bookmarks_web_portlet_BookmarksAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_dynamic_data_mapping_form_web_portlet_DDMFormAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_knowledge_base_web_portlet_AdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_message_boards_web_portlet_MBAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_translation_web_internal_portlet_TranslationPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_segments_web_internal_portlet_SegmentsPortlet) {
+  display: none !important;
+}
