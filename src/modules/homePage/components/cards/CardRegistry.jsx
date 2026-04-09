@@ -3,6 +3,7 @@ import News from "../News";
 import TrafficCameraMonitor from "../Trafficcameramonitor";
 import FeedbackModal from "../FeedbackModal";
 import { Link } from "react-router-dom";
+import useQuickLinks from "../quicklinks/useQuickLink";
 
 // Grip icon shown in header when drag is enabled
 function GripHandle({ dragHandleProps }) {
@@ -274,42 +275,27 @@ export function GiaoThongCard({ dragHandleProps }) {
 
 export function QuickLinksCard({ dragHandleProps, canDrag }) {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const { items } = useQuickLinks();
+  console.log(items);
+
   return (
     <div className="quick-links-card-group">
-      {/* <div className="drag-handle-bar" {...dragHandleProps}>
-        {canDrag && <span className="drag-grip-icon">&#8942;&#8942;</span>}
-        <span className="drag-handle-label">Liên kết nhanh</span>
-      </div> */}
-      {/* <div className="doc-card doc-single-card mb-2" onClick={() => setIsFeedbackModalOpen(true)} style={{ cursor: "pointer" }}>
-        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
-            <img src={"/documents/d/guest/chat-icon"} alt="icon" />
+      {items.map((item) => (
+        <div className="doc-card doc-single-card mb-2">
+          <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
+            {item.icon}
+            <Link to={item.uRL} className="primary-color p-8">
+              {item.title}
+
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </Link>
           </div>
-          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
-            Góp ý - Sáng kiến cải tiến
-
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </Link>
         </div>
-      </div> */}
-      <div className="doc-card doc-single-card mb-2">
+      ))}
+      {/* <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/user-add-01"} alt="icon" /> */}
-          <img src={"/documents/d/guest/user-add-01"} alt="icon" />
-          <Link to="/web/guest/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
-            Góp ý - Sáng kiến cải tiến
-
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-      <div className="doc-card doc-single-card mb-2">
-        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/briefcase-01"} alt="icon" /> */}
           <img src={"/documents/d/guest/briefcase-01"} alt="icon" />
           <Link to="/web/guest/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
             Khảo sát & biểu quyết nội bộ
@@ -322,7 +308,6 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       </div>
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/card-exchange-01"} alt="icon" /> */}
           <img src={"/documents/d/guest/card-exchange-01"} alt="icon" />
           <Link to="/web/guest/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Quy trình - Yêu cầu hỗ trợ
@@ -335,23 +320,8 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
       </div>
       <div className="doc-card doc-single-card mb-2">
         <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          {/* <img src={"http://45.77.240.85:8080/documents/d/guest/traffic-light-2"} alt="icon" /> */}
           <img src={"/documents/d/guest/traffic-light-2"} alt="icon" />
           <Link to="/web/guest/intranet/so-tay-nhan-vien" className="primary-color p-8">
-            Sổ tay nhân viên
-
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-      {/* <div className="doc-card doc-single-card">
-        <div className="doc-card-header d-flex align-items-center p-0 doc-card-header-link">
-          <div className="d-flex justify-content-center p-0 image-w-50 align-items-center">
-            <img src={"/documents/d/guest/notebook-icon"} alt="icon" />
-          </div>
-          <Link to="/web/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
             Sổ tay nhân viên
 
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
