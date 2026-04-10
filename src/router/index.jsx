@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+// import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { memo } from "react";
 import { MainLayout } from "../components/layout";
 import { VanPhongDienTuPage, DoiSoatThuPhiPage, CongThongTinNhanSuPage, SoTayNhanVienPage, KhaoSatBieuQuyetPage, HomePage, QuyTrinhHoTroPage, BieuMauTaiLieuPage, LoginPage, GiamSatGiaoThongPage } from "../modules";
