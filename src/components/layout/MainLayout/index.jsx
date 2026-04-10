@@ -28,7 +28,7 @@ const LinkItem = styled.div`
   font-weight: 500;
   min-width: 200px;
   border-radius: 6px;
-
+  color: rgb(0, 144, 207);
   &:hover {
     background: rgba(0, 144, 207, 0.1);
   }
@@ -70,8 +70,8 @@ function MainLayout() {
 
   const handleLogout = useCallback(() => {
     setPopoverOpen(false);
-    navigate(paths.dangNhap);
-  }, [navigate]);
+    window.location.href = "/c/portal/logout";
+  }, []);
 
   const {
     token: { colorBgContainer },
@@ -169,8 +169,8 @@ function MainLayout() {
                 trigger="click"
                 placement="bottomRight"
                 content={
-                  <div>
-                    {userName && (
+                  userName ? (
+                    <div>
                       <UserItem>
                         <svg
                           className="lexicon-icon lexicon-icon-user"
@@ -180,14 +180,16 @@ function MainLayout() {
                         </svg>
                         {userName}
                       </UserItem>
-                    )}
-                    <LinkItem>
-                      <Link to="/web/guest/trangchu">Quản trị hệ thống</Link>
-                    </LinkItem>
-                    <LogoutItem onClick={handleLogout}>
-                      Đăng xuất
-                    </LogoutItem>
-                  </div>
+
+                      <LinkItem onClick={() => window.location.href = "/web/guest/trangchu"}>
+                        Quản trị hệ thống
+                      </LinkItem>
+
+                      <LogoutItem onClick={handleLogout}>
+                        Đăng xuất
+                      </LogoutItem>
+                    </div>
+                  ) : null
                 }
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21, cursor: "pointer" }}>
