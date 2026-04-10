@@ -2,17 +2,17 @@
  * Cấu hình path và menu cho MainLayout
  */
 export const paths = {
-  dangNhap: "/web/guest/intranet/login",
-  trangChu: "/web/guest/intranet/",
-  vanPhongDienTu: "/web/guest/intranet/van-phong-dien-tu",
-  doiSoatThuPhi: "/web/guest/intranet/doi-soat-thu-phi",
-  congThongTinNhanSu: "/web/guest/intranet/cong-thong-tin-nhan-su",
-  giamSatGiaoThong: "/web/guest/intranet/giam-sat-giao-thong",
-  tinTucSuKien: "/web/guest/intranet/tin-tuc-su-kien",
-  bieuMauTaiLieu: "/web/guest/intranet/bieu-mau-tai-lieu",
-  soTayNhanVien: "/web/guest/intranet/so-tay-nhan-vien",
-  khaoSatBieuQuyet: "/web/guest/intranet/khao-sat-va-bieu-quyet-noi-bo",
-  quyTrinhHoTro: "/web/guest/intranet/quy-trinh-yeu-cau-ho-tro",
+  dangNhap: "login",
+  trangChu: "",
+  vanPhongDienTu: "van-phong-dien-tu",
+  doiSoatThuPhi: "doi-soat-thu-phi",
+  congThongTinNhanSu: "cong-thong-tin-nhan-su",
+  giamSatGiaoThong: "giam-sat-giao-thong",
+  tinTucSuKien: "tin-tuc-su-kien",
+  bieuMauTaiLieu: "bieu-mau-tai-lieu",
+  soTayNhanVien: "so-tay-nhan-vien",
+  khaoSatBieuQuyet: "khao-sat-va-bieu-quyet-noi-bo",
+  quyTrinhHoTro: "quy-trinh-yeu-cau-ho-tro",
 };
 
 /**

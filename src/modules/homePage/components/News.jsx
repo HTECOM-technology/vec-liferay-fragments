@@ -185,7 +185,7 @@ const News = () => {
 
 
           const categoryId = blog.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryId;
-          const detailUrl = `/web/guest/intranet/tin-tuc-su-kien/${categoryId}/${blog.id}`;
+          const detailUrl = `/tin-tuc-su-kien/${categoryId}/${blog.id}`;
 
           return (
             <Link key={blog.id} className="news-item" to={detailUrl}>

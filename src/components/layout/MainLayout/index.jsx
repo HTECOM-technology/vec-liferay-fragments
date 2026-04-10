@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useCallback, useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
@@ -22,6 +22,46 @@ const LogoutItem = styled.div`
   }
 `;
 
+const LinkItem = styled.div`
+  cursor: pointer;
+  padding: 4px 8px;
+  font-weight: 500;
+  min-width: 200px;
+  border-radius: 6px;
+
+  &:hover {
+    background: rgba(0, 144, 207, 0.1);
+  }
+
+  a{
+    color: rgb(0, 144, 207);
+  }
+`;
+
+const UserItem = styled.div`
+  cursor: pointer;
+  padding: 4px 8px;
+  font-weight: 500;
+  min-width: 200px;
+  border-radius: 6px;
+  color: rgb(0, 144, 207);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  &:hover {
+    background: rgba(0, 144, 207, 0.1);
+  }
+
+  svg{
+    width: 16px;
+    height: 16px;
+    color: rgb(0, 144, 207);
+    fill: rgb(0, 144, 207);
+  }
+`;
+
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -38,8 +78,31 @@ function MainLayout() {
   } = theme.useToken();
   const pathname = useLocation().pathname;
   const currentMenu = menuItems.find((item) => item.key === pathname);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    if (window.Liferay) {
+      window.Liferay.Service(
+        "/user/get-user-by-id",
+        { userId: window.Liferay.ThemeDisplay.getUserId() },
+        (user) => {
+          if (user) {
+            const firstName = user.firstName || "";
+            const lastName = user.lastName || "";
+
+            const fullName = `${lastName} ${firstName}`.trim();
+
+            if (fullName) {
+              setUserName(fullName);
+            }
+          }
+        }
+      );
+    }
+  }, []);
 
   return (
+
     <StyledLayout>
       <StyledSider trigger={null} collapsible collapsed={collapsed} width={300}>
         <div className="demo-logo-vertical" />
@@ -107,6 +170,20 @@ function MainLayout() {
                 placement="bottomRight"
                 content={
                   <div>
+                    {userName && (
+                      <UserItem>
+                        <svg
+                          className="lexicon-icon lexicon-icon-user"
+                          role="presentation"
+                        >
+                          <use href="http://45.77.240.85:8080/o/classic-theme/images/clay/icons.svg#user" />
+                        </svg>
+                        {userName}
+                      </UserItem>
+                    )}
+                    <LinkItem>
+                      <Link to="/web/guest/trangchu">Quản trị hệ thống</Link>
+                    </LinkItem>
                     <LogoutItem onClick={handleLogout}>
                       Đăng xuất
                     </LogoutItem>

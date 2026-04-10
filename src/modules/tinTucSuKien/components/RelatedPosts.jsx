@@ -45,7 +45,7 @@ const RelatedPosts = ({ blogs }) => {
                             key={article.id}
                             className="related-card"
                             onClick={() =>
-                                navigate(`/web/guest/intranet/tin-tuc-su-kien/detail/${article.id}`, {
+                                navigate(`/tin-tuc-su-kien/detail/${article.id}`, {
                                     state: { categoryName }
                                 })
                             }
@@ -61,15 +61,15 @@ const RelatedPosts = ({ blogs }) => {
 
                             <div className="related-card-meta">
 
-                <span className="related-card-category">
-                  {categoryName}
-                </span>
+                                <span className="related-card-category">
+                                    {categoryName}
+                                </span>
 
                                 <span className="related-card-dot">•</span>
 
                                 <span className="related-card-date">
-                  {publishDate}
-                </span>
+                                    {publishDate}
+                                </span>
 
                             </div>
 
