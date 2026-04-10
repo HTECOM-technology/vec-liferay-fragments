@@ -11,25 +11,27 @@ import styled from "styled-components";
 
 const LogoutItem = styled.div`
   cursor: pointer;
-  padding: 4px 8px;
-  color: #e31c2a;
+  padding: 8px 22px;
+  color: #353535;
   font-weight: 500;
   min-width: 200px;
   border-radius: 6px;
 
   &:hover {
+    color: #e31c2a;
     background: #fff1f0;
   }
 `;
 
 const LinkItem = styled.div`
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 8px 22px;
   font-weight: 500;
   min-width: 200px;
   border-radius: 6px;
-  color: rgb(0, 144, 207);
+  color: #353535;
   &:hover {
+    color: rgb(0, 144, 207);
     background: rgba(0, 144, 207, 0.1);
   }
 
@@ -79,6 +81,8 @@ function MainLayout() {
   const pathname = useLocation().pathname;
   const currentMenu = menuItems.find((item) => item.key === pathname);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userInitials, setUserInitials] = useState("");
 
   useEffect(() => {
     if (window.Liferay) {
@@ -89,11 +93,23 @@ function MainLayout() {
           if (user) {
             const firstName = user.firstName || "";
             const lastName = user.lastName || "";
+            const email = user.emailAddress || "";
+            const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
+            const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
 
             const fullName = `${lastName} ${firstName}`.trim();
+            const shortName = `${lastInitial}${firstInitial}`;
 
             if (fullName) {
               setUserName(fullName);
+            }
+
+            if (email) {
+              setUserEmail(email);
+            }
+
+            if (shortName) {
+              setUserInitials(shortName);
             }
           }
         }
@@ -171,7 +187,7 @@ function MainLayout() {
                 content={
                   userName ? (
                     <div>
-                      <UserItem>
+                      {/* <UserItem>
                         <svg
                           className="lexicon-icon lexicon-icon-user"
                           role="presentation"
@@ -179,7 +195,7 @@ function MainLayout() {
                           <use href="http://45.77.240.85:8080/o/classic-theme/images/clay/icons.svg#user" />
                         </svg>
                         {userName}
-                      </UserItem>
+                      </UserItem> */}
 
                       <LinkItem onClick={() => window.location.href = "/web/guest/trangchu"}>
                         Quản trị hệ thống
@@ -194,11 +210,11 @@ function MainLayout() {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21, cursor: "pointer" }}>
                   <Avatar style={{ background: "#0090CF" }} size={40}>
-                    JD
+                    {userInitials ? userInitials : 'JD'}
                   </Avatar>
                   <div style={{ lineHeight: "16px" }}>
-                    <b>VEC Account</b> <br />
-                    vec.account@gmail.com
+                    <b>{userName ? userName : 'VEC Account'}</b> <br />
+                    {userEmail ? userEmail : 'vec.account@gmail.com'}
                   </div>
                 </div>
               </Popover>
