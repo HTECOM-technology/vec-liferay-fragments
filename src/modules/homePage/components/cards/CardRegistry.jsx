@@ -294,42 +294,6 @@ export function QuickLinksCard({ dragHandleProps, canDrag }) {
           </div>
         </div>
       ))}
-      {/* <div className="doc-card doc-single-card mb-2">
-        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/briefcase-01"} alt="icon" />
-          <Link to="/web/guest/intranet/khao-sat-va-bieu-quyet-noi-bo" className="primary-color p-8">
-            Khảo sát & biểu quyết nội bộ
-
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-      <div className="doc-card doc-single-card mb-2">
-        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/card-exchange-01"} alt="icon" />
-          <Link to="/web/guest/intranet/quy-trinh-yeu-cau-ho-tro" className="primary-color p-8">
-            Quy trình - Yêu cầu hỗ trợ
-
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </Link>
-        </div>
-      </div>
-      <div className="doc-card doc-single-card mb-2">
-        <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">
-          <img src={"/documents/d/guest/traffic-light-2"} alt="icon" />
-          <Link to="/web/guest/intranet/so-tay-nhan-vien" className="primary-color p-8">
-            Sổ tay nhân viên
-
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.66797 8H13.3346M13.3346 8L9.33464 4M13.3346 8L9.33464 12" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-          </Link>
-        </div>
-      </div> */}
       <FeedbackModal isOpen={isFeedbackModalOpen} onClose={() => setIsFeedbackModalOpen(false)} />
     </div >
   );

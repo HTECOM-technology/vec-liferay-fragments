@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useCallback, useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
@@ -22,6 +22,46 @@ const LogoutItem = styled.div`
   }
 `;
 
+const LinkItem = styled.div`
+  cursor: pointer;
+  padding: 4px 8px;
+  font-weight: 500;
+  min-width: 200px;
+  border-radius: 6px;
+  color: rgb(0, 144, 207);
+  &:hover {
+    background: rgba(0, 144, 207, 0.1);
+  }
+
+  a{
+    color: rgb(0, 144, 207);
+  }
+`;
+
+const UserItem = styled.div`
+  cursor: pointer;
+  padding: 4px 8px;
+  font-weight: 500;
+  min-width: 200px;
+  border-radius: 6px;
+  color: rgb(0, 144, 207);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  &:hover {
+    background: rgba(0, 144, 207, 0.1);
+  }
+
+  svg{
+    width: 16px;
+    height: 16px;
+    color: rgb(0, 144, 207);
+    fill: rgb(0, 144, 207);
+  }
+`;
+
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -30,16 +70,39 @@ function MainLayout() {
 
   const handleLogout = useCallback(() => {
     setPopoverOpen(false);
-    navigate(paths.dangNhap);
-  }, [navigate]);
+    window.location.href = "/c/portal/logout";
+  }, []);
 
   const {
     token: { colorBgContainer },
   } = theme.useToken();
   const pathname = useLocation().pathname;
   const currentMenu = menuItems.find((item) => item.key === pathname);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    if (window.Liferay) {
+      window.Liferay.Service(
+        "/user/get-user-by-id",
+        { userId: window.Liferay.ThemeDisplay.getUserId() },
+        (user) => {
+          if (user) {
+            const firstName = user.firstName || "";
+            const lastName = user.lastName || "";
+
+            const fullName = `${lastName} ${firstName}`.trim();
+
+            if (fullName) {
+              setUserName(fullName);
+            }
+          }
+        }
+      );
+    }
+  }, []);
 
   return (
+
     <StyledLayout>
       <StyledSider trigger={null} collapsible collapsed={collapsed} width={300}>
         <div className="demo-logo-vertical" />
@@ -106,11 +169,27 @@ function MainLayout() {
                 trigger="click"
                 placement="bottomRight"
                 content={
-                  <div>
-                    <LogoutItem onClick={handleLogout}>
-                      Đăng xuất
-                    </LogoutItem>
-                  </div>
+                  userName ? (
+                    <div>
+                      <UserItem>
+                        <svg
+                          className="lexicon-icon lexicon-icon-user"
+                          role="presentation"
+                        >
+                          <use href="http://45.77.240.85:8080/o/classic-theme/images/clay/icons.svg#user" />
+                        </svg>
+                        {userName}
+                      </UserItem>
+
+                      <LinkItem onClick={() => window.location.href = "/web/guest/trangchu"}>
+                        Quản trị hệ thống
+                      </LinkItem>
+
+                      <LogoutItem onClick={handleLogout}>
+                        Đăng xuất
+                      </LogoutItem>
+                    </div>
+                  ) : null
                 }
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21, cursor: "pointer" }}>
