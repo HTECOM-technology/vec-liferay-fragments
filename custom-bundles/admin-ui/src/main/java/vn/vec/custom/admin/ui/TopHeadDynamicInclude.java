@@ -19,8 +19,8 @@ public class TopHeadDynamicInclude implements DynamicInclude {
     HttpServletRequest request, HttpServletResponse response, String key)
     throws IOException {
 
-    String currentURL = (String) request.getAttribute(WebKeys.CURRENT_URL);
-    if (currentURL == null || !currentURL.contains("/control_panel/")) return;
+    // String currentURL = (String) request.getAttribute(WebKeys.CURRENT_URL);
+    // if (currentURL == null || !currentURL.contains("/control_panel/")) return;
 
     PrintWriter writer = response.getWriter();
 
@@ -29,7 +29,6 @@ public class TopHeadDynamicInclude implements DynamicInclude {
       writer.println("<script src=\"/o/vec-custom-admin-ui/custom_admin.js\" defer></script>");
     }
   }
-
 
   @Override
   public void register(DynamicInclude.DynamicIncludeRegistry dynamicIncludeRegistry) {

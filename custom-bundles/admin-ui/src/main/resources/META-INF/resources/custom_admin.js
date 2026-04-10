@@ -152,21 +152,55 @@ async function __customizeFormCreatePost() {
         });
     })
 
-    const stateElement1 = await waitForElement('[name="_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML"]');
-    const stateElement2 = await waitForElement('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text05273714"]');
-    if (!stateElement1 || !stateElement2) {
+    const stateElement = await waitForElement('[name="_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML"]');
+    if (!stateElement) {
         return;
     }
 
-    const currentInput = document.querySelector('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text05273714"]');
-    const targetInput = document.querySelector('[name="_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML"]');
+    const headingSelectorsMapping = [
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text64056903"]',
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text05273714"]',
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text89111708"]',
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text54004659"]',
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text89111708"]',
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text19236682"]',
+        '[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text30616905"]',
+    ];
 
-    currentInput.addEventListener('input', (e) => {
-        __reactJs_setValueForInput(targetInput, e.target.value);
-    });
+    for (const selector of headingSelectorsMapping) {
+        waitForElement(selector, (element) => {
+            const targetInput = document.querySelector('[name="_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML"]');
+            if (targetInput) {
+                element.addEventListener('input', (e) => {
+                    __reactJs_setValueForInput(targetInput, e.target.value);
+                });
+            }
+        }, { maxTry: 10 });
+    }
 
     waitForElement("#_com_liferay_journal_web_portlet_JournalPortlet_selectDisplayPageType", (element) => {
         __reactJs_setValueForInput(element, '2');
+    });
+}
+
+async function __initTheme() {
+    const data = await fetch("/o/c/systemkeys?filter=key eq 'THEME'").then((r) => r.json());
+    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
+        return;
+    }
+
+    const theme = data.items[0].value;
+    const themeClass = `theme-${theme}`;
+    document.body.classList.add(themeClass);
+
+    waitForElement('.header-swiper', (element) => {
+        element.classList.add(themeClass);
+    });
+    waitForElement('.footer-bg', (element) => {
+        element.classList.add(themeClass);
+    });
+    waitForElement('.highway-section-2', (element) => {
+        element.classList.add(themeClass);
     });
 }
 
@@ -179,6 +213,7 @@ async function __custom_admin_js() {
         && screen.objectDefinitionId === '42207';
 
     __appendCreateNewPostToLeftMenu();
+    __initTheme();
 
     if (isPageCreateNewPost) {
         waitForElement(

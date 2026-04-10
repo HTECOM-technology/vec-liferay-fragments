@@ -1,3 +1,54 @@
+function ___getCurrentLiferayScreen() {
+    const params = new URLSearchParams(window.location.search);
+    const portletId = params.get('p_p_id') ?? '';
+
+    // Tách suffix ngắn gọn hơn (phần sau dấu _ cuối cùng nếu có)
+    const shortId = portletId.split('_').pop(); // "R6F7" — unique per instance
+
+    // Các param riêng của portlet đó đều có prefix:
+    const prefix = `_${portletId}_`;
+    const explicitKeys = new Set(['p_p_id', 'p_p_lifecycle', 'p_p_state', 'p_v_l_s_g_id']);
+    const portletParams = {};
+    const remainingParams = {};
+    for (const [key, val] of params.entries()) {
+        if (key.startsWith(prefix)) {
+            portletParams[key.replace(prefix, '')] = val;
+        } else if (!explicitKeys.has(key)) {
+            remainingParams[key] = val;
+        }
+    }
+
+    return {
+        portletId,
+        shortId,
+        lifecycle: params.get('p_p_lifecycle'),
+        state: params.get('p_p_state'),
+        groupId: params.get('p_v_l_s_g_id'),
+        portletParams,
+        objectDefinitionId: params.get('_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_S4B0_objectDefinitionId'),
+        ...remainingParams,
+    };
+}
+
+function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } = {}) {
+    return new Promise((resolve) => {
+        let tryCount = 0;
+        const timer = setInterval(() => {
+            if (++tryCount > maxTry) {
+                clearInterval(timer);
+                resolve(false);
+                return;
+            }
+            const el = document.querySelector(selector);
+            if (el) {
+                clearInterval(timer);
+                callback?.(el);
+                resolve(true);
+            }
+        }, interval);
+    });
+}
+
 (function () {
     // Check login page từ URL (trước khi DOM ready)
     var isLoginPage = window.location.search.indexOf('LoginPortlet') !== -1;
@@ -16,10 +67,14 @@
 
     // 2. Khi DOM ready
     function onReady() {
+        const screen = ___getCurrentLiferayScreen();
+
         // ===== CHỈ CHẠY Ở TRANG LOGIN =====
         if (isLoginPage) {
             document.querySelector('body').classList.add('vec-login-page');
-            document.querySelector('.alert-container.cadmin').classList.add('hide');
+            ___waitForElement('.alert-container.cadmin', (element) => {
+                element.classList.add('hide');
+            });
 
             // Add class cho wrapper
             var wrapper = document.querySelector('.vec-wrapper');
@@ -63,9 +118,14 @@
             var portletHeader = document.querySelector('.portlet-login .portlet-header');
 
             if (portletHeader) {
+                const isIntranetLogin = (screen._com_liferay_login_web_portlet_LoginPortlet_redirect || '').includes(
+                    'intranet'
+                );
+                const title = isIntranetLogin ? 'Trang thông tin nội bộ của VEC' : 'Trang quản trị nội dung của VEC';
+
                 var headerHtml = document.createElement('div');
                 headerHtml.className = 'vec-login-heading';
-                headerHtml.innerHTML = `<h1 style="text-align: center;margin-bottom: 1rem;font-size: 24px;font-weight: 700;text-transform: uppercase;letter-spacing: normal;">Trang quản trị nội dung của VEC</h1>
+                headerHtml.innerHTML = `<h1 style="text-align: center;margin-bottom: 1rem;font-size: 24px;font-weight: 700;text-transform: uppercase;letter-spacing: normal;">${title}</h1>
                 <p style="text-align: center;font-size: 24px;color: #1a1a2e;letter-spacing: normal;margin-bottom: 12px;">Đăng nhập</p>`;
                 portletHeader.insertAdjacentElement('afterend', headerHtml);
             }
@@ -119,7 +179,9 @@
                             alertContainer.innerHTML = '';
                         }
 
-                        document.querySelector('.alert-container.cadmin').classList.remove('hide');
+                        ___waitForElement('.alert-container.cadmin', (element) => {
+                            element.classList.remove('hide');
+                        });
                     }, 350);
                 });
             });
