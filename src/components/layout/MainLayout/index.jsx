@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
-import { menuItems, paths } from "../../../router/menuConfig";
+import { menuItems, menuSections, paths } from "../../../router/menuConfig";
 import { CInput } from "../../common";
 import { SearchOutlined } from "@ant-design/icons";
 import logo from "../../../assets/layout/logo.png";
@@ -58,7 +58,17 @@ function MainLayout() {
     token: { colorBgContainer },
   } = theme.useToken();
   const pathname = useLocation().pathname;
-  const currentMenu = menuItems.find((item) => item.key === pathname);
+  // const currentMenu = menuItems.find((item) => item.key === pathname);
+  // const currentMenu = menuItems.find((item) => {
+  //   const itemPath = item.key ? `/${item.key}` : "/";
+  //   return itemPath === pathname;
+  // });
+  const allItems = menuSections.flatMap((s) => s.items);
+  console.log("pathname:", pathname);
+  console.log("allItems keys:", allItems.map((i) => i.key));
+
+  const currentMenu = allItems.find((item) => item.key === pathname);
+  console.log("currentMenu:", currentMenu);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");

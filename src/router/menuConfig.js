@@ -1,18 +1,32 @@
 /**
  * Cấu hình path và menu cho MainLayout
  */
+// export const paths = {
+//   dangNhap: "login",
+//   trangChu: "",
+//   vanPhongDienTu: "van-phong-dien-tu",
+//   doiSoatThuPhi: "doi-soat-thu-phi",
+//   congThongTinNhanSu: "cong-thong-tin-nhan-su",
+//   giamSatGiaoThong: "giam-sat-giao-thong",
+//   tinTucSuKien: "tin-tuc-su-kien",
+//   bieuMauTaiLieu: "bieu-mau-tai-lieu",
+//   soTayNhanVien: "so-tay-nhan-vien",
+//   khaoSatBieuQuyet: "khao-sat-va-bieu-quyet-noi-bo",
+//   quyTrinhHoTro: "quy-trinh-yeu-cau-ho-tro",
+// };
+
 export const paths = {
-  dangNhap: "login",
-  trangChu: "",
-  vanPhongDienTu: "van-phong-dien-tu",
-  doiSoatThuPhi: "doi-soat-thu-phi",
-  congThongTinNhanSu: "cong-thong-tin-nhan-su",
-  giamSatGiaoThong: "giam-sat-giao-thong",
-  tinTucSuKien: "tin-tuc-su-kien",
-  bieuMauTaiLieu: "bieu-mau-tai-lieu",
-  soTayNhanVien: "so-tay-nhan-vien",
-  khaoSatBieuQuyet: "khao-sat-va-bieu-quyet-noi-bo",
-  quyTrinhHoTro: "quy-trinh-yeu-cau-ho-tro",
+  dangNhap: "/login",
+  trangChu: "/",              // thay "" thành "/"
+  vanPhongDienTu: "/van-phong-dien-tu",
+  doiSoatThuPhi: "/doi-soat-thu-phi",
+  congThongTinNhanSu: "/cong-thong-tin-nhan-su",
+  giamSatGiaoThong: "/giam-sat-giao-thong",
+  tinTucSuKien: "/tin-tuc-su-kien",
+  bieuMauTaiLieu: "/bieu-mau-tai-lieu",
+  soTayNhanVien: "/so-tay-nhan-vien",
+  khaoSatBieuQuyet: "/khao-sat-va-bieu-quyet-noi-bo",
+  quyTrinhHoTro: "/quy-trinh-yeu-cau-ho-tro",
 };
 
 /**
