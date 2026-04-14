@@ -5,6 +5,7 @@ Web-ContextPath: /vec-custom-admin-ui
 
 Import-Package: \
     javax.servlet.*;version="0.0.0",\
+    javax.ws.rs.*;version="0.0.0",\
     *
 
 -contract: !JavaServlet

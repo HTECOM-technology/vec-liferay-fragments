@@ -122,6 +122,28 @@ function __setDefaultPostTypeInNewPost() {
     }
 }
 
+function __appendAIChatHistoryMenu() {
+    const ATTR = 'data-vec-ai-history';
+
+    waitForElement(
+        '#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_site_administration_panel',
+        (panel) => {
+            if (panel.querySelector('[' + ATTR + ']')) return;
+
+            const link = document.createElement('a');
+            link.setAttribute(ATTR, '1');
+            link.className = 'nav-link list-group-heading panel-header collapsed';
+            link.href = '/o/vec-custom-admin-ui/chat-history.html';
+            link.target = '_blank';
+            link.setAttribute('role', 'menuitem');
+            link.textContent = 'Xem lịch sử AI';
+
+            panel.appendChild(link);
+        },
+        { maxTry: 200, interval: 50 }
+    );
+}
+
 function __appendCreateNewPostToLeftMenu() {
     const html = `<a aria-expanded="false" class="nav-link list-group-heading panel-header collapsed" href="/group/guest/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_journal_web_portlet_JournalPortlet_mvcRenderCommandName=%2Fjournal%2Fedit_article&_com_liferay_journal_web_portlet_JournalPortlet_redirect=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURL=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURLTitle=B%C3%A0i+vi%E1%BA%BFt-C%E1%BA%A5u+tr%C3%BAc-Bi%E1%BB%83u+m%E1%BA%ABu&_com_liferay_journal_web_portlet_JournalPortlet_ddmStructureId=38305&_com_liferay_journal_web_portlet_JournalPortlet_folderId=719056&_com_liferay_journal_web_portlet_JournalPortlet_groupId=20117&_com_liferay_journal_web_portlet_JournalPortlet_showSelectFolder=false&p_p_auth=iLMlc0kw" role="menuitem" tabindex="0">
             Tạo nhanh Tin tức hoạt động
@@ -283,6 +305,7 @@ async function __custom_admin_js() {
         && screen.groupId === '20117'
         && screen.objectDefinitionId === '42207';
 
+    __appendAIChatHistoryMenu();
     __appendCreateNewPostToLeftMenu();
     __initTheme();
     __hiddenFramentDefaultList();
