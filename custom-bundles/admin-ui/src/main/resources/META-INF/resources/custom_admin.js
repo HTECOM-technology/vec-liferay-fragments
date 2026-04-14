@@ -1,4 +1,4 @@
-function waitForElement(selector, callback, { maxTry = 100, interval = 300 } = {}) {
+function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}) {
     return new Promise((resolve) => {
         let tryCount = 0;
         const timer = setInterval(() => {
@@ -46,6 +46,22 @@ function __getCurrentLiferayScreen() {
         }
     }
 
+    let redirectUrl = params.get('redirectUrl');
+    if (!redirectUrl) {
+        redirectUrl = params.get('_com_liferay_login_web_portlet_LoginPortlet_redirect');
+    }
+    if (!redirectUrl) {
+        if (typeof remainingParams.portletParams !== 'undefined') {
+            redirectUrl = remainingParams.portletParams.redirect;
+        }
+    }
+    if (!redirectUrl) {
+        redirectUrl = params.get('redirect');
+    }
+    if (!redirectUrl) {
+        redirectUrl = '';
+    }
+
     return {
         portletId,
         shortId,
@@ -54,6 +70,7 @@ function __getCurrentLiferayScreen() {
         groupId: params.get('p_v_l_s_g_id'),
         portletParams,
         objectDefinitionId: params.get('_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_S4B0_objectDefinitionId'),
+        redirectUrl,
         ...remainingParams,
     };
 }
@@ -145,12 +162,41 @@ function __appendButtonImportCourtFee() {
 }
 
 async function __customizeFormCreatePost() {
+    const screen = __getCurrentLiferayScreen();
+
     waitForElement('[aria-controls="_com_liferay_journal_web_portlet_JournalPortlet_fieldsContent"]', () => {
         document.querySelector('[aria-controls="_com_liferay_journal_web_portlet_JournalPortlet_fieldsContent"]').addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
         });
-    })
+    });
+
+    const folderId = screen.portletParams?.folderId;
+    const folderIdsIntranet = [
+        "1215213",
+        "1216901",
+        "1216903",
+        "1216899",
+        "1216897",
+        "1215252",
+    ];
+    waitForElement('fieldset#categorization', (fieldset) => {
+        if (folderIdsIntranet.includes(folderId)) {
+            const idsHidden = [
+                'namespace_assetCategoriesSelector_49318',
+                'namespace_assetCategoriesSelector_63815',
+                'namespace_assetCategoriesSelector_36237',
+                'namespace_assetCategoriesSelector_1035270',
+                'namespace_assetCategoriesSelector_38320',
+            ];
+            for (const id of idsHidden) {
+                waitForElement(`#${id}`, (element) => {
+                    element.style.display = 'none';
+                });
+            }
+        }
+        fieldset.classList.add('show');
+    });
 
     const stateElement = await waitForElement('[name="_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML"]');
     if (!stateElement) {
@@ -175,7 +221,7 @@ async function __customizeFormCreatePost() {
                     __reactJs_setValueForInput(targetInput, e.target.value);
                 });
             }
-        }, { maxTry: 10 });
+        }, { maxTry: 20, interval: 300 });
     }
 
     waitForElement("#_com_liferay_journal_web_portlet_JournalPortlet_selectDisplayPageType", (element) => {
@@ -204,6 +250,31 @@ async function __initTheme() {
     });
 }
 
+function __hiddenFramentDefaultList() {
+    const hiddenElement = (element) => {
+        const menubar = element.closest('.menubar');
+        if (!menubar) {
+            return false;
+        }
+        const scope = menubar.parentNode;
+        if (!scope) {
+            return false;
+        }
+        scope.style.display = 'none';
+        scope.previousElementSibling.style.display = 'none';
+
+        setTimeout(() => {
+            const leftCol = document.querySelector('#portlet_com_liferay_fragment_web_portlet_FragmentPortlet .col-lg-3');
+            if (leftCol) {
+                leftCol.style.opacity = '1';
+            }
+        }, 100);
+
+        return true;
+    }
+    waitForElement('a[href*="_com_liferay_fragment_web_portlet_FragmentPortlet_fragmentCollectionKey=COMMERCE_ACCOUNT_FRAGMENTS"]', hiddenElement);
+}
+
 async function __custom_admin_js() {
     const screen = __getCurrentLiferayScreen();
 
@@ -214,6 +285,7 @@ async function __custom_admin_js() {
 
     __appendCreateNewPostToLeftMenu();
     __initTheme();
+    __hiddenFramentDefaultList();
 
     if (isPageCreateNewPost) {
         waitForElement(

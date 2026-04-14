@@ -18,6 +18,22 @@ function ___getCurrentLiferayScreen() {
         }
     }
 
+    let redirectUrl = params.get('redirectUrl');
+    if (!redirectUrl) {
+        redirectUrl = params.get('_com_liferay_login_web_portlet_LoginPortlet_redirect');
+    }
+    if (!redirectUrl) {
+        if (typeof remainingParams.portletParams !== 'undefined') {
+            redirectUrl = remainingParams.portletParams.redirect;
+        }
+    }
+    if (!redirectUrl) {
+        redirectUrl = params.get('redirect');
+    }
+    if (!redirectUrl) {
+        redirectUrl = '';
+    }
+
     return {
         portletId,
         shortId,
@@ -26,6 +42,7 @@ function ___getCurrentLiferayScreen() {
         groupId: params.get('p_v_l_s_g_id'),
         portletParams,
         objectDefinitionId: params.get('_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_S4B0_objectDefinitionId'),
+        redirectUrl,
         ...remainingParams,
     };
 }
@@ -108,9 +125,9 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
                 logoSection.style.cssText = 'display: flex; flex-direction: column; justify-items: center; align-items: center; gap: 16px; width: auto; padding: 10px 0; margin-bottom: 2rem;';
                 logoSection.innerHTML = '<svg width="80" height="69" viewBox="0 0 80 69" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 0.5C61.8887 0.5 79.5 15.746 79.5 34.4004C79.4998 53.0546 61.8885 68.2998 40 68.2998C18.1115 68.2998 0.500245 53.0546 0.5 34.4004C0.5 15.746 18.1113 0.5 40 0.5Z" fill="#0090CF" stroke="white"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M17.8318 55.2912L40.2146 2.06882L26.5187 44.9827L34.7906 35.2485H36.923L23.0983 55.2768H17.8318V55.2912Z" fill="#E31C2A"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M38.1679 34.9907L36.8799 45.2848L46.5686 45.2131L45.853 43.2174L40.0856 43.0738V39.4989L44.8656 39.3553L44.5078 38.0631L40.0856 38.1349V36.1393L44.0784 36.2111L43.6491 35.1343L38.1679 34.9907Z" fill="#E31C2A"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M45.939 35.1331L53.71 34.9178L54.4255 36.7124L52.2216 36.7842L51.8638 36.1382L48.5865 36.2099L51.0052 43.1445H54.6402L54.2967 42.0677H56.7583L58.0749 45.2263L49.2019 45.2837L45.939 35.1331Z" fill="#E31C2A"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M24.9158 55.2046L41.3308 55.0754L41.3594 47.1071L30.4685 46.8917L24.9158 55.2046Z" fill="white"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M44.4651 47.0358L58.8193 47.0646L62.1681 54.961L45.2093 55.1333L44.4651 47.0358Z" fill="white"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.6725 14.3733L40.8156 20.1162H42.1609L41.7029 14.3733H40.6725ZM41.016 5.04105L52.9945 33.2818L43.2628 33.3966H43.2056L42.7619 27.783H41.016L41.1591 33.3966H31.9426L41.016 5.04105Z" fill="white"></path></svg>' +
                     '<div class="title-container" style="width: auto; text-align: center;">' +
-                        '<p class="title-vn" style="color: #E31C2A;">TỔNG CÔNG TY</p>' +
-                        '<p class="title-vn" style="color: #E31C2A;">ĐẦU TƯ PHÁT TRIỂN ĐƯỜNG CAO TỐC VIỆT NAM</p>' +
-                        '<p class="title-eu" style="color: #0090CF;">Vietnam Expressway Corporation (VEC)</p>' +
+                    '<p class="title-vn" style="color: #E31C2A;">TỔNG CÔNG TY</p>' +
+                    '<p class="title-vn" style="color: #E31C2A;">ĐẦU TƯ PHÁT TRIỂN ĐƯỜNG CAO TỐC VIỆT NAM</p>' +
+                    '<p class="title-eu" style="color: #0090CF;">Vietnam Expressway Corporation (VEC)</p>' +
                     '</div>';
                 portletContent.insertBefore(logoSection, portletContent.firstChild);
             }
@@ -118,9 +135,7 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
             var portletHeader = document.querySelector('.portlet-login .portlet-header');
 
             if (portletHeader) {
-                const isIntranetLogin = (screen._com_liferay_login_web_portlet_LoginPortlet_redirect || '').includes(
-                    'intranet'
-                );
+                const isIntranetLogin = screen.redirectUrl.includes('intranet');
                 const title = isIntranetLogin ? 'Trang thông tin nội bộ của VEC' : 'Trang quản trị nội dung của VEC';
 
                 var headerHtml = document.createElement('div');
@@ -131,12 +146,15 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
             }
 
             var labelMap = {
-                '_com_liferay_login_web_portlet_LoginPortlet_login': 'Tài khoản',
-                '_com_liferay_login_web_portlet_LoginPortlet_rememberMe': 'Ghi nhớ đăng nhập'
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_login"]': 'Tài khoản',
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_password"]': 'Mật khẩu',
+                '#_com_liferay_login_web_portlet_LoginPortlet_mjid': 'Đăng nhập',
+                '#_com_liferay_login_web_portlet_LoginPortlet_ctvk____ > span': 'Quên mật khẩu',
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_rememberMe"]': 'Ghi nhớ đăng nhập'
             };
 
-            Object.keys(labelMap).forEach(function (forAttr) {
-                var lbl = document.querySelector('label[for="' + forAttr + '"]');
+            Object.keys(labelMap).forEach(function (selector) {
+                var lbl = document.querySelector(selector);
 
                 if (lbl) {
                     var textNode = [...lbl.childNodes].find(function (node) {
@@ -144,9 +162,9 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
                     });
 
                     if (textNode) {
-                        textNode.textContent = ' ' + labelMap[forAttr];
+                        textNode.textContent = ' ' + labelMap[selector];
                     } else {
-                        lbl.appendChild(document.createTextNode(' ' + labelMap[forAttr]));
+                        lbl.appendChild(document.createTextNode(' ' + labelMap[selector]));
                     }
                 }
             });

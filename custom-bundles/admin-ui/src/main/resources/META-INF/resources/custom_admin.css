@@ -13,7 +13,7 @@ fieldset#categorization a[href^=https\:\/\/learn\.liferay\.com] {
   display: none !important;
 }
 
-fieldset#categorization .lfr-tooltip-scope > div:last-child {
+fieldset#categorization .lfr-tooltip-scope > div:last-child:not(#_com_liferay_journal_web_portlet_JournalPortlet_zomp___assetTagsSelector) {
   display: none !important;
 }
 
@@ -59,4 +59,21 @@ fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields #_com_liferay_jo
 #panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_translation_web_internal_portlet_TranslationPortlet),
 #panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_segments_web_internal_portlet_SegmentsPortlet) {
   display: none !important;
+}
+
+fieldset#categorization {
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+fieldset#categorization.show {
+  height: auto !important;
+  opacity: 1;
+}
+
+#portlet_com_liferay_fragment_web_portlet_FragmentPortlet .col-lg-3 {
+  opacity: 0;
+  transition: all .2s;
 }
