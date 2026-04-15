@@ -145,12 +145,39 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
                 portletHeader.insertAdjacentElement('afterend', headerHtml);
             }
 
+            const fastLoginContainer = document.querySelector('#p_p_id_com_liferay_login_web_portlet_FastLoginPortlet_');
+            if (fastLoginContainer) {
+                const ff = (el, callback) => {
+                    const ffEl = fastLoginContainer.querySelector(el);
+                    if (ffEl) {
+                        callback?.(ffEl);
+                    }
+                    return ffEl;
+                };
+
+                ff('.portlet-body', (el) => {
+                    el.classList.add('w-100');
+                });
+
+                ff('button[id*="_com_liferay_login_web_portlet_FastLoginPortlet"]', (el) => {
+                    el.classList.add('w-100', 'm-0');
+                });
+
+                ff('a[href*="create_anonymous_account"]', (el) => {
+                    el.innerText = 'Tư cách khách';
+                });
+            }
+
             var labelMap = {
                 'label[for="_com_liferay_login_web_portlet_LoginPortlet_login"]': 'Tài khoản',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_login"]': 'Tài khoản',
                 'label[for="_com_liferay_login_web_portlet_LoginPortlet_password"]': 'Mật khẩu',
-                '#_com_liferay_login_web_portlet_LoginPortlet_mjid': 'Đăng nhập',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_password"]': 'Mật khẩu',
+                // 'button[id*="_com_liferay_login_web_portlet_LoginPortlet"]': 'Đăng nhập',
                 '#_com_liferay_login_web_portlet_LoginPortlet_ctvk____ > span': 'Quên mật khẩu',
-                'label[for="_com_liferay_login_web_portlet_LoginPortlet_rememberMe"]': 'Ghi nhớ đăng nhập'
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_rememberMe"]': 'Ghi nhớ đăng nhập',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_emailAddress"]': 'Địa chỉ Email',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_captchaText"]': 'Mã Captcha',
             };
 
             Object.keys(labelMap).forEach(function (selector) {

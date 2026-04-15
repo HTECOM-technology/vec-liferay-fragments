@@ -6,6 +6,7 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,7 +31,7 @@ public class ConversationResource {
 	 * GET /o/vec-webhook/conversations
 	 *
 	 * Query params:
-	 *   search   — tìm theo contactId hoặc conversationId
+	 *   search   — tìm theo contactId, conversationId hoặc nội dung tin nhắn
 	 *   orderBy  — "asc" | "desc" (mặc định "desc")
 	 *   page     — trang (mặc định 1)
 	 *   pageSize — số item mỗi trang (mặc định 20)
@@ -43,17 +44,30 @@ public class ConversationResource {
 		@QueryParam("page") @DefaultValue("1") int page,
 		@QueryParam("pageSize") @DefaultValue("20") int pageSize) {
 
+		if (!_isSignedIn()) {
+			return Response.status(Response.Status.UNAUTHORIZED)
+				.entity("{\"error\":\"Unauthorized\"}")
+				.build();
+		}
+
 		try {
 			String order = "asc".equalsIgnoreCase(orderBy) ? "ASC" : "DESC";
 			int offset = (page - 1) * pageSize;
 			boolean hasSearch = search != null && !search.trim().isEmpty();
 
+			// Dùng subquery cho messageContent để GROUP BY vẫn đếm đúng tổng tin nhắn
 			String where =
 				"WHERE source = 'tinytalk' " +
 				"AND conversationId IS NOT NULL AND conversationId != '' " +
-				(hasSearch ? "AND (contactId LIKE ? OR conversationId LIKE ?) " : "");
+				(hasSearch ?
+					"AND (contactId LIKE ? OR conversationId LIKE ? " +
+					"OR conversationId IN (" +
+					"  SELECT DISTINCT conversationId FROM VEC_WebhookLog" +
+					"  WHERE messageContent LIKE ?" +
+					")) " : "");
 
-			String countSql = "SELECT COUNT(DISTINCT conversationId) FROM VEC_WebhookLog " + where;
+			String countSql =
+				"SELECT COUNT(DISTINCT conversationId) FROM VEC_WebhookLog " + where;
 
 			String listSql =
 				"SELECT conversationId, contactId, botId, " +
@@ -77,6 +91,7 @@ public class ConversationResource {
 						String like = "%" + search.trim() + "%";
 						countPs.setString(1, like);
 						countPs.setString(2, like);
+						countPs.setString(3, like);
 					}
 
 					ResultSet rs = countPs.executeQuery();
@@ -100,6 +115,7 @@ public class ConversationResource {
 
 					if (hasSearch) {
 						String like = "%" + search.trim() + "%";
+						listPs.setString(idx++, like);
 						listPs.setString(idx++, like);
 						listPs.setString(idx++, like);
 					}
@@ -159,8 +175,9 @@ public class ConversationResource {
 	 * GET /o/vec-webhook/conversations/{conversationId}/messages
 	 *
 	 * Query params:
-	 *   page     — trang (mặc định 1)
-	 *   pageSize — số tin nhắn mỗi lần load (mặc định 20)
+	 *   page          — trang (mặc định 1)
+	 *   pageSize      — số tin nhắn mỗi lần load (mặc định 20)
+	 *   searchContent — nếu có, trả thêm matchOffset (vị trí tin nhắn khớp đầu tiên)
 	 */
 	@GET
 	@Path("/{conversationId}/messages")
@@ -168,14 +185,23 @@ public class ConversationResource {
 	public Response getMessages(
 		@PathParam("conversationId") String conversationId,
 		@QueryParam("page") @DefaultValue("1") int page,
-		@QueryParam("pageSize") @DefaultValue("20") int pageSize) {
+		@QueryParam("pageSize") @DefaultValue("20") int pageSize,
+		@QueryParam("searchContent") String searchContent) {
+
+		if (!_isSignedIn()) {
+			return Response.status(Response.Status.UNAUTHORIZED)
+				.entity("{\"error\":\"Unauthorized\"}")
+				.build();
+		}
 
 		try {
+			boolean hasSearch = searchContent != null && !searchContent.trim().isEmpty();
 			int offset = (page - 1) * pageSize;
 
 			Connection con = DataAccess.getConnection();
 
 			try {
+				// Tổng số tin nhắn
 				int total = 0;
 
 				PreparedStatement countPs = con.prepareStatement(
@@ -196,6 +222,41 @@ public class ConversationResource {
 					DataAccess.cleanUp(countPs);
 				}
 
+				// Tìm vị trí (offset) của tin nhắn khớp đầu tiên
+				int matchOffset = -1;
+
+				if (hasSearch) {
+					PreparedStatement matchPs = con.prepareStatement(
+						"SELECT COUNT(*) FROM VEC_WebhookLog " +
+						"WHERE conversationId = ? AND createDate < (" +
+						"  SELECT MIN(createDate) FROM VEC_WebhookLog " +
+						"  WHERE conversationId = ? AND messageContent LIKE ?" +
+						")");
+
+					try {
+						matchPs.setString(1, conversationId);
+						matchPs.setString(2, conversationId);
+						matchPs.setString(3, "%" + searchContent.trim() + "%");
+
+						ResultSet rs = matchPs.executeQuery();
+
+						if (rs.next()) {
+							matchOffset = rs.getInt(1);
+						}
+
+						DataAccess.cleanUp(rs);
+					}
+					finally {
+						DataAccess.cleanUp(matchPs);
+					}
+
+					// Nếu page=1 và có match, tự động nhảy đến trang chứa match
+					if (page == 1 && matchOffset >= 0) {
+						offset = (matchOffset / pageSize) * pageSize;
+					}
+				}
+
+				// Load tin nhắn
 				JSONArray items = JSONFactoryUtil.createJSONArray();
 
 				PreparedStatement ps = con.prepareStatement(
@@ -238,9 +299,12 @@ public class ConversationResource {
 
 				result.put("conversationId", conversationId);
 				result.put("total", total);
-				result.put("page", page);
+				result.put("page", (offset / pageSize) + 1);
 				result.put("pageSize", pageSize);
+				result.put("offset", offset);
 				result.put("hasMore", (offset + pageSize) < total);
+				result.put("hasBefore", offset > 0);
+				result.put("matchOffset", matchOffset);
 				result.put("items", items);
 
 				return _ok(result.toString());
@@ -255,6 +319,16 @@ public class ConversationResource {
 			return Response.serverError()
 				.entity("{\"error\":\"Internal server error\"}")
 				.build();
+		}
+	}
+
+	private boolean _isSignedIn() {
+		try {
+			String name = PrincipalThreadLocal.getName();
+			return name != null && Long.parseLong(name) > 0;
+		}
+		catch (Exception e) {
+			return false;
 		}
 	}
 

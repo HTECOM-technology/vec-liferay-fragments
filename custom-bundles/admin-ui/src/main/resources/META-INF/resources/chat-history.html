@@ -13,6 +13,7 @@
       color: #272833;
       min-height: 100vh;
     }
+    body.auth-checking { visibility: hidden; }
 
     /* ── Header ── */
     .app-header {
@@ -234,9 +235,21 @@
     }
     .btn-load-more:hover { background: #f0f3ff; }
     .btn-load-more:disabled { opacity: .5; cursor: default; }
+
+    /* ── Search highlight ── */
+    mark.vec-hl {
+      background: #fff176;
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    .msg[data-match] .msg-bubble {
+      border-color: #f5a623;
+      box-shadow: 0 0 0 2px rgba(245,166,35,.25);
+    }
   </style>
 </head>
-<body>
+<body class="auth-checking">
 
 <header class="app-header">
   <button class="btn-back" id="btnBack" title="Quay lại">&#8592;</button>
@@ -268,8 +281,11 @@
   <div class="content">
     <div class="detail-meta" id="detailMeta"></div>
     <div class="messages" id="messageList"></div>
+    <div class="load-more-wrap" id="loadBeforeWrap" style="display:none">
+      <button class="btn-load-more" id="btnLoadBefore">&#8593; Xem tin nhắn trước</button>
+    </div>
     <div class="load-more-wrap" id="loadMoreWrap" style="display:none">
-      <button class="btn-load-more" id="btnLoadMore">Xem thêm tin nhắn</button>
+      <button class="btn-load-more" id="btnLoadMore">Xem thêm tin nhắn &#8595;</button>
     </div>
   </div>
 </div>
@@ -277,9 +293,32 @@
 <script>
   const API = '/o/vec-webhook/conversations';
 
+  function redirectToLogin() {
+    window.location.href = '/c/portal/login?redirect=' + encodeURIComponent(window.location.href);
+  }
+
+  async function checkAuthAndInit() {
+    try {
+      const res = await fetch(API + '?pageSize=1');
+      if (res.status === 401) { redirectToLogin(); return; }
+      document.body.classList.remove('auth-checking');
+      loadConversations();
+    } catch (e) {
+      document.body.classList.remove('auth-checking');
+      loadConversations();
+    }
+  }
+
   const state = {
-    list:   { page: 1, pageSize: 20, total: 0, search: '', orderBy: 'desc' },
-    detail: { conversationId: null, contactId: null, page: 1, pageSize: 20, total: 0 }
+    list: { page: 1, pageSize: 20, total: 0, search: '', orderBy: 'desc' },
+    detail: {
+      conversationId: null, contactId: null,
+      pageSize: 20, total: 0,
+      currentOffset: 0,   // offset của batch đang hiển thị đầu tiên
+      loadedCount: 0,      // số tin nhắn đã load
+      searchTerm: '',
+      matchOffset: -1
+    }
   };
 
   // ── Elements ──
@@ -298,6 +337,19 @@
     if (!iso) return '';
     const d = new Date(iso);
     return d.toLocaleString('vi-VN', { hour12: false });
+  }
+
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Highlight từ khóa trong text (escape HTML trước, rồi wrap match)
+  function highlightText(rawText, term) {
+    const safe = escHtml(rawText || '');
+    if (!term || !term.trim()) return safe;
+    const safeTerm = escHtml(term.trim()).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return safe.replace(new RegExp(safeTerm, 'gi'), '<mark class="vec-hl">$&</mark>');
   }
 
   function showLoading(container) {
@@ -320,6 +372,7 @@
 
     try {
       const res = await fetch(API + '?' + params);
+      if (res.status === 401) { redirectToLogin(); return; }
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
 
@@ -350,7 +403,7 @@
         '<div class="conv-card-contact">Người nhắn: ' + (item.contactId || '—') + '</div>' +
         '<div class="conv-card-date">Lần cuối: ' + formatDate(item.lastMessageDate) + '</div>';
 
-      card.addEventListener('click', () => openDetail(item));
+      card.addEventListener('click', () => openDetail(item, state.list.search));
       container.appendChild(card);
     });
   }
@@ -370,15 +423,8 @@
     $('btnNext').disabled = page >= totalPages;
   }
 
-  $('btnPrev').addEventListener('click', () => {
-    state.list.page--;
-    loadConversations();
-  });
-
-  $('btnNext').addEventListener('click', () => {
-    state.list.page++;
-    loadConversations();
-  });
+  $('btnPrev').addEventListener('click', () => { state.list.page--; loadConversations(); });
+  $('btnNext').addEventListener('click', () => { state.list.page++; loadConversations(); });
 
   $('btnSearch').addEventListener('click', () => {
     state.list.search  = $('searchInput').value.trim();
@@ -392,11 +438,15 @@
   });
 
   // ── Detail view ──
-  async function openDetail(conv) {
-    state.detail.conversationId = conv.conversationId;
-    state.detail.contactId      = conv.contactId;
-    state.detail.page           = 1;
-    state.detail.total          = 0;
+  async function openDetail(conv, searchTerm) {
+    const d = state.detail;
+    d.conversationId = conv.conversationId;
+    d.contactId      = conv.contactId;
+    d.total          = 0;
+    d.currentOffset  = 0;
+    d.loadedCount    = 0;
+    d.searchTerm     = searchTerm || '';
+    d.matchOffset    = -1;
 
     listView.style.display   = 'none';
     detailView.style.display = 'block';
@@ -409,73 +459,156 @@
       'Bot: <strong>' + (conv.botId || '—') + '</strong>';
 
     $('messageList').innerHTML = '';
-    $('loadMoreWrap').style.display = 'none';
+    $('loadMoreWrap').style.display    = 'none';
+    $('loadBeforeWrap').style.display  = 'none';
 
-    await loadMessages();
+    // Load lần đầu — backend sẽ tự nhảy đến trang chứa match nếu có searchTerm
+    await fetchAndAppendMessages({ isFirst: true });
   }
 
-  async function loadMessages() {
-    const { conversationId, page, pageSize } = state.detail;
-    const params = new URLSearchParams({ page, pageSize });
-    const container = $('messageList');
-    const btnMore = $('btnLoadMore');
+  /**
+   * Fetch một batch tin nhắn và append/prepend vào list.
+   * @param {object} opts
+   *   isFirst   — lần đầu mở (clear container, có thể dùng searchContent)
+   *   direction — 'after' (load more) | 'before' (load trước)
+   */
+  async function fetchAndAppendMessages({ isFirst = false, direction = 'after' } = {}) {
+    const d = state.detail;
+    const container  = $('messageList');
+    const btnMore    = $('btnLoadMore');
+    const btnBefore  = $('btnLoadBefore');
 
-    btnMore.disabled = true;
+    btnMore.disabled   = true;
+    btnBefore.disabled = true;
+
+    let fetchOffset;
+    if (isFirst) {
+      fetchOffset = 0; // backend sẽ tự điều chỉnh nếu có searchContent
+    } else if (direction === 'after') {
+      fetchOffset = d.currentOffset + d.loadedCount;
+    } else {
+      fetchOffset = Math.max(0, d.currentOffset - d.pageSize);
+    }
+
+    const params = new URLSearchParams({ page: 1, pageSize: d.pageSize });
+    // Dùng offset trực tiếp thay page để không bị backend override
+    if (!isFirst) {
+      params.set('page', Math.floor(fetchOffset / d.pageSize) + 1);
+    }
+    if (isFirst && d.searchTerm) {
+      params.set('searchContent', d.searchTerm);
+    }
 
     try {
-      const res = await fetch(API + '/' + encodeURIComponent(conversationId) + '/messages?' + params);
+      const res = await fetch(
+        API + '/' + encodeURIComponent(d.conversationId) + '/messages?' + params
+      );
+      if (res.status === 401) { redirectToLogin(); return; }
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
 
-      state.detail.total = data.total;
+      d.total = data.total;
 
-      if (page === 1 && (!data.items || data.items.length === 0)) {
+      if (isFirst && (!data.items || data.items.length === 0)) {
         showError(container, 'Không có tin nhắn nào.');
         return;
       }
 
-      appendMessages(data.items, container);
+      // Cập nhật offset
+      if (isFirst) {
+        d.currentOffset = data.offset || 0;
+        d.loadedCount   = data.items.length;
+        container.innerHTML = '';
+        appendMessages(data.items, container, 'after');
 
-      if (data.hasMore) {
-        $('loadMoreWrap').style.display = 'block';
-        btnMore.disabled = false;
+        // Highlight và scroll đến match
+        if (d.searchTerm) {
+          d.matchOffset = data.matchOffset;
+          scrollToMatch();
+        }
+      } else if (direction === 'after') {
+        d.loadedCount += data.items.length;
+        appendMessages(data.items, container, 'after');
       } else {
-        $('loadMoreWrap').style.display = 'none';
+        d.currentOffset = fetchOffset;
+        d.loadedCount  += data.items.length;
+        appendMessages(data.items, container, 'before');
       }
+
+      // Nút load more (sau)
+      const hasMore = (d.currentOffset + d.loadedCount) < d.total;
+      $('loadMoreWrap').style.display = hasMore ? 'block' : 'none';
+      btnMore.disabled = !hasMore;
+
+      // Nút load before (trước)
+      const hasBefore = d.currentOffset > 0;
+      $('loadBeforeWrap').style.display = hasBefore ? 'block' : 'none';
+      btnBefore.disabled = !hasBefore;
+
     } catch (e) {
-      showError(container, 'Không tải được tin nhắn: ' + e.message);
+      if (isFirst) showError(container, 'Không tải được tin nhắn: ' + e.message);
+      else alert('Không tải được: ' + e.message);
     }
   }
 
-  function appendMessages(items, container) {
+  function appendMessages(items, container, direction) {
+    const fragment = document.createDocumentFragment();
+
     items.forEach(msg => {
       const role = msg.messageRole || 'unknown';
       const roleClass =
-        role === 'user'          ? 'role-user'  :
-        role === 'assistant'     ? 'role-ai'    :
-        role === 'agent'         ? 'role-agent' : 'role-user';
+        role === 'user'      ? 'role-user'  :
+        role === 'assistant' ? 'role-ai'    :
+        role === 'agent'     ? 'role-agent' : 'role-user';
 
       const avatarLabel =
-        role === 'user'      ? 'U' :
+        role === 'user'      ? 'U'  :
         role === 'assistant' ? 'AI' :
         role === 'agent'     ? 'AG' : '?';
 
+      const content = msg.messageContent || '(trống)';
+      const renderedContent = highlightText(content, state.detail.searchTerm);
+      const isMatch = state.detail.searchTerm &&
+        content.toLowerCase().includes(state.detail.searchTerm.toLowerCase());
+
       const wrap = document.createElement('div');
       wrap.className = 'msg ' + roleClass;
+      if (isMatch) wrap.dataset.match = '1';
+
       wrap.innerHTML =
         '<div class="msg-avatar">' + avatarLabel + '</div>' +
         '<div class="msg-meta">' +
-          '<div class="msg-bubble">' + escHtml(msg.messageContent || '(trống)') + '</div>' +
+          '<div class="msg-bubble">' + renderedContent + '</div>' +
           '<div class="msg-time">' + formatDate(msg.createDate) + '</div>' +
         '</div>';
 
-      container.appendChild(wrap);
+      fragment.appendChild(wrap);
+    });
+
+    if (direction === 'before') {
+      const firstChild = container.firstChild;
+      container.insertBefore(fragment, firstChild);
+    } else {
+      container.appendChild(fragment);
+    }
+  }
+
+  function scrollToMatch() {
+    // Đợi render xong mới scroll
+    requestAnimationFrame(() => {
+      const match = document.querySelector('.msg[data-match]');
+      if (match) {
+        match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     });
   }
 
   $('btnLoadMore').addEventListener('click', () => {
-    state.detail.page++;
-    loadMessages();
+    fetchAndAppendMessages({ direction: 'after' });
+  });
+
+  $('btnLoadBefore').addEventListener('click', () => {
+    fetchAndAppendMessages({ direction: 'before' });
   });
 
   btnBack.addEventListener('click', () => {
@@ -485,13 +618,8 @@
     pageTitle.textContent = 'Lịch sử hội thoại AI';
   });
 
-  // ── Escape HTML ──
-  function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
   // ── Init ──
-  loadConversations();
+  checkAuthAndInit();
 </script>
 </body>
 </html>

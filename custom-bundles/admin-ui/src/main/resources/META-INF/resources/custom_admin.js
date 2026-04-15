@@ -116,6 +116,11 @@ function __setDefaultPostTypeInNewPost() {
         return;
     }
 
+    const inputChecked = document.querySelector('[data-field-name*="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Radio68088030"] input:checked');
+    if (inputChecked) {
+        return;
+    }
+
     const input = groupEl.querySelector('input[value="Option92128051"]');
     if (input) {
         input.click();
@@ -124,24 +129,41 @@ function __setDefaultPostTypeInNewPost() {
 
 function __appendAIChatHistoryMenu() {
     const ATTR = 'data-vec-ai-history';
+    const roleCanAccess = [
+        '31923',
+        '20100',
+    ];
 
-    waitForElement(
-        '#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_site_administration_panel',
-        (panel) => {
-            if (panel.querySelector('[' + ATTR + ']')) return;
+    if (!window.Liferay) {
+        setTimeout(__appendAIChatHistoryMenu, 50);
+        return;
+    }
 
-            const link = document.createElement('a');
-            link.setAttribute(ATTR, '1');
-            link.className = 'nav-link list-group-heading panel-header collapsed';
-            link.href = '/o/vec-custom-admin-ui/chat-history.html';
-            link.target = '_blank';
-            link.setAttribute('role', 'menuitem');
-            link.textContent = 'Xem lịch sử AI';
+    const userId = window.Liferay.ThemeDisplay.getUserId();
+    window.Liferay.Service('/role/get-user-roles', { userId }, (roles) => {
+        const isAllowed = roles.some(r => roleCanAccess.includes(r.roleId));
+        if (!isAllowed) {
+            return;
+        }
 
-            panel.appendChild(link);
-        },
-        { maxTry: 200, interval: 50 }
-    );
+        waitForElement(
+            '#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_site_administration_panel',
+            (panel) => {
+                if (panel.querySelector('[' + ATTR + ']')) return;
+
+                const link = document.createElement('a');
+                link.setAttribute(ATTR, '1');
+                link.className = 'nav-link list-group-heading panel-header collapsed';
+                link.href = '/o/vec-custom-admin-ui/chat-history.html';
+                link.target = '_blank';
+                link.setAttribute('role', 'menuitem');
+                link.textContent = 'Xem lịch sử AI';
+
+                panel.appendChild(link);
+            },
+            { maxTry: 200, interval: 50 }
+        );
+    });
 }
 
 function __appendCreateNewPostToLeftMenu() {
@@ -248,6 +270,10 @@ async function __customizeFormCreatePost() {
 
     waitForElement("#_com_liferay_journal_web_portlet_JournalPortlet_selectDisplayPageType", (element) => {
         __reactJs_setValueForInput(element, '2');
+    });
+
+    waitForElement('#_com_liferay_journal_web_portlet_JournalPortlet_Aria', (element) => {
+        element.innerText = 'Tiêu đề của Metadata';
     });
 }
 

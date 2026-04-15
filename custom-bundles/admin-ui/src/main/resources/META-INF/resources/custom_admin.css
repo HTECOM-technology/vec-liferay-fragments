@@ -1,5 +1,15 @@
-#_com_liferay_journal_web_portlet_JournalPortlet_metadata {
+#_com_liferay_journal_web_portlet_JournalPortlet_metadata .panel-header,
+#_com_liferay_journal_web_portlet_JournalPortlet_descriptionMapAsXMLWrapper,
+#_com_liferay_journal_web_portlet_JournalPortlet_friendlyURLWrapper {
   display: none !important;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_metadata .panel-body {
+  padding: 1.25rem !important;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML {
+  font-size: 18px !important;
 }
 
 fieldset#basicInformation,
