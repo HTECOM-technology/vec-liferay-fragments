@@ -1,6 +1,6 @@
 Bundle-Name: VEC Custom Admin UI
 Bundle-SymbolicName: vn.vec.custom.admin.ui
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Web-ContextPath: /vec-custom-admin-ui
 
 Import-Package: \

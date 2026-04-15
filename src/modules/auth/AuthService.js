@@ -60,7 +60,7 @@ class AuthService {
             else if (/locked|khóa|lockout/i.test(text)) errorMessage = 'Tài khoản đã bị khóa';
             else if (/expired|hết hạn/i.test(text)) errorMessage = 'Mật khẩu đã hết hạn';
           }
-        } catch (_) {}
+        } catch (_) { }
         return { success: false, error: errorMessage };
       }
 
@@ -121,7 +121,7 @@ class AuthService {
         scopeGroupId: window.Liferay.ThemeDisplay.getScopeGroupId()
       };
     }
-    
+
     return null;
   }
 
@@ -133,7 +133,7 @@ class AuthService {
     if (typeof window !== 'undefined' && window.Liferay && window.Liferay.ThemeDisplay) {
       return window.Liferay.ThemeDisplay.isSignedIn();
     }
-    
+
     return false;
   }
 

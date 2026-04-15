@@ -23,7 +23,7 @@ const SubCategoryTabsDetail = ({ tabs }) => {
                         key={cat.id}
                         className="vec-subcategory-item"
                         onClick={() =>
-                            navigate(`/web/guest/intranet/tin-tuc-su-kien/${cat.id}`)
+                            navigate(`/tin-tuc-su-kien/${cat.id}`)
                         }
                     >
 
