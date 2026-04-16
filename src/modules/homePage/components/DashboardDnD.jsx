@@ -16,6 +16,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { CARD_REGISTRY } from "./cards/CardRegistry";
 import { fetchLayoutFromFirebase, saveLayoutToFirebase } from "../services/firebaseLayoutService";
+import { BtnChangeDragOverlay } from "../style";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -278,6 +279,7 @@ export default function DashboardDnD() {
   const [flatOrder, setFlatOrder] = useState(() => loadState().flatOrder);
   const [hiddenIds, setHiddenIds] = useState(() => loadState().hiddenIds);
   const [activeId, setActiveId] = useState(null);
+  const [isDragEnabled, setIsDragEnabled] = useState(true);
 
   // Ref để dùng hiddenIds bên trong setFlatOrder callbacks (tránh stale closure)
   const hiddenIdsRef = useRef(hiddenIds);
@@ -370,6 +372,10 @@ export default function DashboardDnD() {
     setActiveId(null);
   }
 
+  function toggleDragMode() {
+    setIsDragEnabled((prev) => !prev);
+  }
+
   // ─── HIDE / SHOW ────────────────────────────────────────────────────────────
 
   function toggleHide(id) {
@@ -392,6 +398,47 @@ export default function DashboardDnD() {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
+      <style>{`
+        .drag-handle-bar {
+          display: ${isDragEnabled ? 'flex' : 'none'} !important;
+        }
+      `}</style>
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <BtnChangeDragOverlay
+          onClick={toggleDragMode}
+          style={{
+            opacity: isDragEnabled ? 1 : 1,
+            backgroundColor: isDragEnabled ? undefined : "rgba(0, 144, 207, 1)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          title={isDragEnabled ? "Click để khóa bố cục" : "Click để mở khóa bố cục"}
+        >
+          {isDragEnabled ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8, display: "inline-block" }}>
+                <rect width="7" height="9" x="3" y="3" rx="1" />
+                <rect width="7" height="5" x="14" y="3" rx="1" />
+                <rect width="7" height="9" x="14" y="12" rx="1" />
+                <rect width="7" height="5" x="3" y="16" rx="1" />
+              </svg>
+              Hoàn thành
+            </>
+          ) :
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 8, display: "inline-block" }}>
+                <rect width="7" height="9" x="3" y="3" rx="1" />
+                <rect width="7" height="5" x="14" y="3" rx="1" />
+                <rect width="7" height="9" x="14" y="12" rx="1" />
+                <rect width="7" height="5" x="3" y="16" rx="1" />
+              </svg>
+              Sắp xếp bố cục
+            </>
+          }
+        </BtnChangeDragOverlay>
+      </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {visibleLayout.map((rowItems, idx) => (
           <DroppableRow
@@ -405,14 +452,14 @@ export default function DashboardDnD() {
             }
           >
             {rowItems.map((id) => (
-              <SortableCard key={id} id={id} canDrag={canDrag} onHide={toggleHide} />
+              <SortableCard key={id} id={id} canDrag={canDrag && isDragEnabled} onHide={toggleHide} />
             ))}
           </DroppableRow>
         ))}
       </div>
 
       {/* Panel hiển thị các card đã ẩn — chỉ admin thấy */}
-      {canDrag && hiddenIds.size > 0 && (
+      {canDrag && isDragEnabled && hiddenIds.size > 0 && (
         <div className="hidden-cards-panel">
           <span className="hidden-cards-label">Card đã ẩn:</span>
           <div className="hidden-cards-list">

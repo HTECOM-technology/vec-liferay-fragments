@@ -19,11 +19,16 @@ const Menu = ({ collapsed, setShowDrawer }) => {
     setShowDrawer && setShowDrawer(false);
   };
 
+  // const isActive = (key) => {
+  //   if (key === "logout") return false;
+  //   const path = pathname.replace(/\/$/, "") || "/";
+  //   const itemPath = key.replace(/\/$/, "") || "/";
+  //   return path === itemPath;
+  // };
+
   const isActive = (key) => {
     if (key === "logout") return false;
-    const path = pathname.replace(/\/$/, "") || "/";
-    const itemPath = key.replace(/\/$/, "") || "/";
-    return path === itemPath;
+    return pathname === key;
   };
 
   return (
