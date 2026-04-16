@@ -66,11 +66,38 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
     });
 }
 
+function __waitForCKEditor() {
+    return new Promise((resolve) => {
+
+        // Hàm lắng nghe khi có instance ready
+        function listenReady() {
+            window.CKEDITOR.on('instanceReady', function (event) {
+                resolve(event.editor);
+            });
+
+            const instances = window.CKEDITOR.instances;
+            const keys = Object.keys(instances);
+            if (keys.length > 0) {
+                resolve(instances[keys[0]]);
+            }
+        }
+
+        if (typeof CKEDITOR === 'undefined') {
+            const interval = setInterval(() => {
+                if (typeof CKEDITOR !== 'undefined') {
+                    clearInterval(interval);
+                    listenReady();
+                }
+            }, 100);
+        } else {
+            listenReady();
+        }
+    });
+}
+
 (function () {
-    // Check login page từ URL (trước khi DOM ready)
     var isLoginPage = window.location.search.indexOf('LoginPortlet') !== -1;
 
-    // 1. Inject loading screen chỉ trên login
     var loadingEl = null;
 
     if (isLoginPage) {
@@ -232,6 +259,24 @@ function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } 
             });
         }
         // ===== END LOGIN PAGE =====
+
+        __waitForCKEditor().then((editor) => {
+            console.log('CKEditor ready! Editor name:', editor.name);
+
+            const iframeDoc = editor.document.$;
+
+            const style = iframeDoc.createElement('style');
+            style.textContent = `
+                body {
+                    height: 85px !important;
+                    overflow: auto;
+                }
+                p {
+                    margin-bottom: 0;
+                }
+            `;
+            iframeDoc.head.appendChild(style);
+        });
     }
 
     if (document.readyState === 'loading') {

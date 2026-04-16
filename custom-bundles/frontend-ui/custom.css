@@ -293,3 +293,40 @@
 .portlet-login .portlet {
     max-width: 475px;
 }
+
+#_com_liferay_comment_page_comments_web_portlet_PageCommentsPortlet_discussionContainer {
+    .cke_top, .cke_bottom {
+        display: none !important;
+    }
+
+    .cke_contents {
+        height: 85px !important;
+    }
+
+    .button-holder {
+        margin-top: .5rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    .lfr-discussion-container, .comment-container {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .lfr-discussion-container:first-of-type {
+        padding-top: .5rem !important;
+    }
+
+    .autofit-float-end.autofit-row>.autofit-col {
+        justify-content: center;
+    }
+
+    .panel-body .autofit-float-end.autofit-row {
+        margin-bottom: .5rem !important;
+    }
+}
+
+#_com_liferay_login_web_portlet_FastLoginPortlet_fm {
+    .panel-body {
+        width: 100% !important;
+    }
+}
