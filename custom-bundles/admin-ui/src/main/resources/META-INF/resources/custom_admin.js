@@ -17,6 +17,8 @@ function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}
     });
 }
 
+window.waitForElement = waitForElement;
+
 function __reactJs_setValueForInput(input, value) {
     const proto = input instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
     const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value').set;
@@ -323,146 +325,6 @@ function __hiddenFramentDefaultList() {
     waitForElement('a[href*="_com_liferay_fragment_web_portlet_FragmentPortlet_fragmentCollectionKey=COMMERCE_ACCOUNT_FRAGMENTS"]', hiddenElement);
 }
 
-async function __exportUsersHandler(btn) {
-    const BASE_URL = window.location.origin;
-
-    const disableBtn = () => {
-        btn.disabled = true;
-        btn.innerText = "Đang xuất...";
-    };
-
-    const enableBtn = () => {
-        btn.disabled = false;
-        btn.innerText = "Xuất CSV";
-    };
-
-    const buildCSV = (users) => {
-        const headers = ["ID", "Name", "Email", "Username", "Roles"];
-        let csv = headers.join(";") + "\n";
-
-        users.forEach(u => {
-            const roles = (u.roleBriefs || [])
-                .map(r => r.name)
-                .join("|");
-
-            csv += [
-                u.id,
-                safe(u.name),
-                safe(u.emailAddress),
-                safe(u.alternateName),
-                safe(roles)
-            ].join(";") + "\n";
-        });
-
-        return csv;
-    }
-
-    const downloadFile = (content, filename) => {
-        const BOM = "\uFEFF";
-
-        const blob = new Blob([BOM + content], {
-            type: "text/csv;charset=utf-8;"
-        });
-
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
-    const safe = (val) => {
-        return (val || "").toString().replace(/"/g, '""');
-    }
-
-    disableBtn();
-
-    try {
-        let page = 1;
-        let pageSize = 200;
-        let allUsers = [];
-
-        while (true) {
-
-            const url = `${BASE_URL}/o/headless-admin-user/v1.0/user-accounts?filter=status eq 0&page=${page}&pageSize=${pageSize}`;
-
-            const res = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "x-csrf-token": window.Liferay.authToken
-                },
-                credentials: "include"
-            });
-
-            if (!res.ok) {
-                throw new Error("HTTP " + res.status);
-            }
-
-            const data = await res.json();
-
-            if (!data.items || data.items.length === 0) break;
-
-            allUsers = allUsers.concat(data.items);
-
-            if (allUsers.length >= data.totalCount) break;
-
-            page++;
-        }
-
-        if (allUsers.length === 0) {
-            window.Liferay.Util.openToast({
-                message: '❌ Không có user',
-                type: 'danger',
-            });
-            enableBtn();
-            return;
-        }
-
-        const csv = buildCSV(allUsers);
-
-        downloadFile(csv, "all-users.csv");
-
-        window.Liferay.Util.openToast({
-            message: `✅ Export ${allUsers.length} user`,
-            type: 'suucess',
-        });
-    } catch (err) {
-        window.Liferay.Util.openToast({
-            message: '❌ Lỗi',
-            type: 'suucess',
-        });
-    }
-
-    enableBtn();
-};
-
-
-function __initDownloadUser() {
-    waitForElement('a[data-qa-id="creationMenuNewButton"]', (element) => {
-        const lastLiEl = element.closest('ul').querySelector('li:last-child');
-        lastLiEl.insertAdjacentHTML('beforeend', `
-            <div class="export-user-box">
-                <button id="__btnExportUsers" class="nav-btn d-md-flex d-none pl-4 pr-4 btn border" style="border-color: #b7b7bd !important;">
-                    Xuất CSV
-                </button>
-            </div>`);
-
-        waitForElement('#__btnExportUsers', (btn) => {
-            btn.addEventListener('click', () => {
-                try {
-                    __exportUsersHandler(btn);
-                } catch (e) {
-                    console.log(e);
-                }
-            });
-        });
-    });
-}
 
 async function __custom_admin_js() {
     const screen = __getCurrentLiferayScreen();
@@ -500,8 +362,8 @@ async function __custom_admin_js() {
         __appendButtonImportCourtFee();
     }
 
-    if (isUsersAdminPage) {
-        __initDownloadUser();
+    if (isUsersAdminPage && typeof window.__initDownloadUser === 'function') {
+        window.__initDownloadUser();
     }
 }
 

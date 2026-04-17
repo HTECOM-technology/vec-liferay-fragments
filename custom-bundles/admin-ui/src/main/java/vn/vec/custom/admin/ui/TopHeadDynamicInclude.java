@@ -19,13 +19,17 @@ public class TopHeadDynamicInclude implements DynamicInclude {
     HttpServletRequest request, HttpServletResponse response, String key)
     throws IOException {
 
-    // String currentURL = (String) request.getAttribute(WebKeys.CURRENT_URL);
-    // if (currentURL == null || !currentURL.contains("/control_panel/")) return;
-
     PrintWriter writer = response.getWriter();
 
     if (key.contains("top_head")) {
       writer.println("<link rel=\"stylesheet\" href=\"/o/vec-custom-admin-ui/custom_admin.css\">");
+
+      String currentURL = (String) request.getAttribute(WebKeys.CURRENT_URL);
+      if (currentURL != null && currentURL.contains("UsersAdminPortlet")) {
+        writer.println("<script src=\"https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js\"></script>");
+        writer.println("<script src=\"/o/vec-custom-admin-ui/user_admin.js\" defer></script>");
+      }
+
       writer.println("<script src=\"/o/vec-custom-admin-ui/custom_admin.js\" defer></script>");
     }
   }
