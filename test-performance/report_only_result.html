@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Báo cáo Hiện trạng Hiệu năng – portal.tctvec.vn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #1a202c;
+      padding: 2rem;
+    }
+    .container { max-width: 960px; margin: 0 auto; }
+
+    .page-header {
+      background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+      border-radius: 14px;
+      padding: 1.6rem 2rem;
+      color: white;
+      margin-bottom: 2rem;
+    }
+    .page-header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .page-header p  { font-size: 0.85rem; opacity: 0.85; }
+
+    section { margin-bottom: 2rem; }
+    h2 {
+      font-size: 1.0rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #4a5568;
+      border-left: 4px solid #7c3aed;
+      padding-left: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    /* k6 raw block */
+    .raw-block {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .raw-block-header {
+      background: #f7fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .raw-block-header span   { font-size: 0.82rem; color: #718096; }
+    .raw-block-header strong { font-size: 0.9rem;  color: #2d3748; }
+
+    .k6-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      padding: 1.2rem;
+    }
+    .k6-card {
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .k6-card .k6-icon {
+      position: absolute; top: 50%; right: 1rem;
+      transform: translateY(-50%);
+      font-size: 3rem; opacity: 0.15;
+    }
+    .k6-card h4 {
+      font-size: 0.72rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 0.4rem; opacity: 0.9;
+    }
+    .k6-card .k6-val { font-size: 2rem; font-weight: 700; }
+    .k6-card.primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .k6-card.success { background: linear-gradient(135deg, #68d391, #48bb78); }
+    .k6-card.danger  { background: linear-gradient(135deg, #fc8181, #f56565); }
+
+    .k6-tables { padding: 0 1.2rem 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
+    .k6-table-label {
+      font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: #718096; margin-bottom: 0.4rem;
+    }
+    .k6-tables table {
+      width: 100%; border-collapse: collapse;
+      border-radius: 8px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      font-size: 0.83rem;
+    }
+    .k6-tables thead { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .k6-tables thead th { padding: 0.6rem 0.8rem; text-align: left; font-size: 0.78rem; font-weight: 600; }
+    .k6-tables tbody td { padding: 0.6rem 0.8rem; border-bottom: 1px solid #e2e8f0; }
+    .k6-tables tbody tr:last-child td { border-bottom: none; }
+    .k6-tables tbody tr:hover { background: #f7fafc; }
+    .k6-fail { color: #e53e3e; font-weight: 600; }
+    .k6-ok   { color: #38a169; font-weight: 600; }
+
+    /* Summary cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .card .label {
+      font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #718096; margin-bottom: 0.35rem;
+    }
+    .card .value { font-size: 1.85rem; font-weight: 700; }
+    .ok      { color: #38a169; }
+    .warn    { color: #dd6b20; }
+    .fail    { color: #e53e3e; }
+    .neutral { color: #4a5568; }
+
+    /* Report tables */
+    table.report-table {
+      width: 100%; border-collapse: collapse;
+      background: white; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07); font-size: 0.87rem;
+    }
+    table.report-table thead { background: #7c3aed; color: white; }
+    table.report-table thead th { padding: 0.7rem 0.9rem; text-align: left; font-size: 0.78rem; }
+    table.report-table tbody td { padding: 0.7rem 0.9rem; border-bottom: 1px solid #e2e8f0; }
+    table.report-table tbody tr:last-child td { border-bottom: none; }
+    table.report-table tbody tr:hover { background: #f7fafc; }
+    td.ok   { color: #38a169; font-weight: 600; }
+    td.fail { color: #e53e3e; font-weight: 600; }
+    td.warn { color: #dd6b20; font-weight: 600; }
+
+    /* Alert boxes */
+    .alert {
+      border-radius: 8px; padding: 0.9rem 1.1rem;
+      margin-bottom: 0.75rem; font-size: 0.87rem; line-height: 1.65;
+    }
+    .alert.danger  { background: #fff5f5; border-left: 4px solid #e53e3e; color: #742a2a; }
+    .alert.warning { background: #fffaf0; border-left: 4px solid #dd6b20; color: #7b341e; }
+    .alert.success { background: #f0fff4; border-left: 4px solid #38a169; color: #22543d; }
+    .alert strong  { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+
+    footer {
+      text-align: center; color: #a0aec0;
+      font-size: 0.78rem; margin-top: 3rem;
+      padding-top: 1rem; border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>Báo cáo Hiện trạng Hiệu năng – portal.tctvec.vn</h1>
+    <p>Ngày thực hiện: 2026-04-19 &nbsp;|&nbsp; Công cụ: k6 &nbsp;|&nbsp; Cấu hình: 73–150 VUs · ramping-vus · 1 phút</p>
+  </div>
+
+
+  <!-- PHẦN 1: KẾT QUẢ THỰC TẾ TỪ K6 -->
+  <section>
+    <h2>Kết quả thực tế từ k6 (summary.html – 18:03)</h2>
+    <div class="raw-block">
+
+      <div class="raw-block-header">
+        <strong>Test Report: 2026-04-19 18:03</strong>
+        <span>k6 Reporter v3.0.0</span>
+      </div>
+
+      <div class="k6-cards">
+        <div class="k6-card primary">
+          <i class="fas fa-globe k6-icon"></i>
+          <h4>Total Requests</h4>
+          <div class="k6-val">3 485</div>
+        </div>
+        <div class="k6-card success">
+          <i class="fas fa-check-circle k6-icon"></i>
+          <h4>Failed Requests (HTTP)</h4>
+          <div class="k6-val">0</div>
+        </div>
+        <div class="k6-card danger">
+          <i class="fas fa-exclamation-triangle k6-icon"></i>
+          <h4>Breached Thresholds</h4>
+          <div class="k6-val">2</div>
+        </div>
+        <div class="k6-card danger">
+          <i class="fas fa-eye k6-icon"></i>
+          <h4>Failed Checks</h4>
+          <div class="k6-val">346</div>
+        </div>
+      </div>
+
+      <div class="k6-tables">
+
+        <div>
+          <div class="k6-table-label">Trends &amp; Times (ms)</div>
+          <table>
+            <thead>
+              <tr><th>Metric</th><th>Avg</th><th>Min</th><th>Med</th><th>Max</th><th>P(90)</th><th>P(95)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><b>http_req_blocked</b></td><td>2.19</td><td>0.00</td><td>0.01</td><td>87.97</td><td>0.01</td><td>0.02</td></tr>
+              <tr><td><b>http_req_connecting</b></td><td>2.02</td><td>0.00</td><td>0.00</td><td>82.86</td><td>0.00</td><td>0.00</td></tr>
+              <tr><td><b>http_req_duration</b></td><td>1 617.79</td><td>104.59</td><td>1 592.44</td><td>2 660.32</td><td>1 996.66</td><td class="k6-fail">2 331.47</td></tr>
+              <tr><td><b>http_req_receiving</b></td><td>130.85</td><td>25.31</td><td>83.98</td><td>1 790.57</td><td>195.47</td><td>264.32</td></tr>
+              <tr><td><b>http_req_sending</b></td><td>0.02</td><td>0.00</td><td>0.02</td><td>0.15</td><td>0.03</td><td>0.04</td></tr>
+              <tr><td><b>http_req_tls_handshaking</b></td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
+              <tr><td><b>http_req_waiting</b></td><td>1 486.92</td><td>75.81</td><td>1 481.53</td><td>2 603.04</td><td>1 821.69</td><td>1 959.40</td></tr>
+              <tr><td><b>iteration_duration</b></td><td>2 621.78</td><td>1 106.54</td><td>2 594.43</td><td>3 691.14</td><td>2 998.45</td><td>3 356.39</td></tr>
+              <tr><td><b>response_time</b></td><td>1 617.79</td><td>104.59</td><td>1 592.44</td><td>2 660.32</td><td>1 996.66</td><td>2 331.47</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="k6-table-label">Rates</div>
+          <table>
+            <thead>
+              <tr><th>Metric</th><th>Rate</th><th>Passes</th><th>Fails</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><b>error_rate</b></td><td class="k6-fail">0.10</td><td>346</td><td>3 139</td></tr>
+              <tr><td><b>http_req_failed</b></td><td class="k6-ok">0.00</td><td>0</td><td>3 485</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="k6-table-label">Checks &amp; Groups</div>
+          <table>
+            <thead>
+              <tr><th>Check Name</th><th>Passes</th><th>Failures</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>status 200</td><td class="k6-ok">3 485</td><td>0</td></tr>
+              <tr><td>response &lt; 2000ms</td><td>3 139</td><td class="k6-fail">346</td></tr>
+              <tr><td>body not empty</td><td class="k6-ok">3 485</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="k6-table-label">Test Run Details</div>
+          <table>
+            <thead>
+              <tr><th>Mục</th><th>Giá trị</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Checks passed / failed</td><td>10 109 / <span class="k6-fail">346</span></td></tr>
+              <tr><td>Iterations (total / rate)</td><td>3 485 &nbsp;/&nbsp; 56.52/s</td></tr>
+              <tr><td>Virtual Users (min / max)</td><td>73 / 150</td></tr>
+              <tr><td>Data received</td><td>1 213.53 MB &nbsp;@&nbsp; 19.68 MB/s</td></tr>
+              <tr><td>Data sent</td><td>0.66 MB &nbsp;@&nbsp; 0.01 MB/s</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- PHẦN 2: ĐÁNH GIÁ HIỆN TRẠNG -->
+  <section>
+    <h2>Tổng quan</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="label">Tổng requests</div>
+        <div class="value neutral">3 485</div>
+      </div>
+      <div class="card">
+        <div class="label">HTTP lỗi (4xx/5xx)</div>
+        <div class="value ok">0</div>
+      </div>
+      <div class="card">
+        <div class="label">Thresholds vi phạm</div>
+        <div class="value fail">2 / 3</div>
+      </div>
+      <div class="card">
+        <div class="label">Checks thất bại</div>
+        <div class="value warn">346</div>
+      </div>
+      <div class="card">
+        <div class="label">Avg response time</div>
+        <div class="value warn">1 618 ms</div>
+      </div>
+      <div class="card">
+        <div class="label">p(95) response time</div>
+        <div class="value fail">2 331 ms</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Chỉ số thời gian phản hồi (ms)</h2>
+    <table class="report-table">
+      <thead>
+        <tr><th>Chỉ số</th><th>Avg</th><th>Min</th><th>Median</th><th>Max</th><th>p(90)</th><th>p(95)</th><th>Ngưỡng</th><th>Kết quả</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>http_req_duration</strong></td>
+          <td>1 618</td><td>105</td><td>1 592</td><td>2 660</td><td>1 997</td>
+          <td class="fail">2 331</td><td>p(95) &lt; 2 000</td><td class="fail">FAIL</td>
+        </tr>
+        <tr>
+          <td><strong>http_req_waiting (TTFB)</strong></td>
+          <td>1 487</td><td>76</td><td>1 482</td><td>2 603</td><td>1 822</td>
+          <td>1 959</td><td>–</td><td class="warn">Chú ý</td>
+        </tr>
+        <tr>
+          <td><strong>http_req_receiving</strong></td>
+          <td>131</td><td>25</td><td>84</td><td>1 791</td><td>195</td>
+          <td>264</td><td>–</td><td class="ok">OK</td>
+        </tr>
+        <tr>
+          <td><strong>http_req_blocked</strong></td>
+          <td>2.19</td><td>0</td><td>0.01</td><td>88</td><td>0.01</td>
+          <td>0.02</td><td>–</td><td class="ok">OK</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Tỉ lệ lỗi &amp; Checks</h2>
+    <table class="report-table">
+      <thead>
+        <tr><th>Chỉ số</th><th>Tỉ lệ</th><th>Pass</th><th>Fail</th><th>Ngưỡng</th><th>Kết quả</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>error_rate</strong></td>
+          <td class="fail">10%</td><td>346</td><td>3 139</td>
+          <td>&lt; 5%</td><td class="fail">FAIL</td>
+        </tr>
+        <tr>
+          <td><strong>http_req_failed</strong> (HTTP 4xx/5xx)</td>
+          <td class="ok">0%</td><td>0</td><td>3 485</td>
+          <td>&lt; 5%</td><td class="ok">PASS</td>
+        </tr>
+        <tr>
+          <td>Check: status 200</td>
+          <td class="ok">100%</td><td>3 485</td><td>0</td><td>–</td><td class="ok">PASS</td>
+        </tr>
+        <tr>
+          <td>Check: response &lt; 2000ms</td>
+          <td class="warn">90.1%</td><td>3 139</td><td>346</td><td>–</td><td class="fail">FAIL</td>
+        </tr>
+        <tr>
+          <td>Check: body not empty</td>
+          <td class="ok">100%</td><td>3 485</td><td>0</td><td>–</td><td class="ok">PASS</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Đánh giá hiện trạng</h2>
+
+    <div class="alert warning">
+      <strong>p(95) vượt ngưỡng 2s (hiện tại: 2 331ms)</strong>
+      90.1% requests đáp ứng dưới 2 giây. Tuy nhiên ~9.9% đỉnh tải (346 requests) vượt ngưỡng, xảy ra khi số VU tăng cao gần 150. TTFB p(95) đạt 1 959ms — chiếm ~84% tổng response time, cho thấy thời gian xử lý phía server là nguyên nhân chính.
+    </div>
+
+    <div class="alert warning">
+      <strong>error_rate = 10% (ngưỡng yêu cầu &lt; 5%)</strong>
+      Không có lỗi HTTP thực sự (0 request 4xx/5xx). Toàn bộ 346 trường hợp lỗi đến từ check <code>response &lt; 2000ms</code> thất bại — không phản ánh lỗi hệ thống mà phản ánh hiệu năng chưa đạt SLA.
+    </div>
+
+    <div class="alert success">
+      <strong>Tính ổn định &amp; network tốt</strong>
+      100% requests trả về HTTP 200, body không rỗng. Nhận 1 213 MB dữ liệu ở tốc độ 19.68 MB/s, không có lỗi TLS hay connection drop. Vấn đề hiệu năng không liên quan đến hạ tầng mạng.
+    </div>
+  </section>
+
+  <footer>Báo cáo hiện trạng hiệu năng · k6 load test · 2026-04-19 · portal.tctvec.vn</footer>
+
+</div>
+</body>
+</html>

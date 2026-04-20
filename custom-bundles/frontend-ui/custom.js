@@ -131,7 +131,7 @@ function __waitForCKEditor() {
                 var bgDiv = document.createElement('div');
                 bgDiv.className = 'testtttt';
                 bgDiv.style.cssText = 'position: fixed; z-index: 0; bottom: -280px; width: 100vw; opacity: 0.6;';
-                bgDiv.innerHTML = '<img style="width: 100%;" src="http://45.77.240.85:8080/documents/d/guest/login_bg">';
+                bgDiv.innerHTML = '<img style="width: 100%;" src="/documents/d/guest/login_bg">';
                 wrapperById.insertBefore(bgDiv, wrapperById.firstChild);
             }
 

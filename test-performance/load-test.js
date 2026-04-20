@@ -6,13 +6,13 @@ import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporte
 const errorRate = new Rate('error_rate');
 const responseTrend = new Trend('response_time');
 
-const BASE_URL = 'http://portal.tctvec.vn/en';
+const BASE_URL = 'http://portal.tctvec.vn';
 
 export const options = {
   scenarios: {
     constant_load: {
       executor: 'constant-vus',
-      vus: 70,
+      vus: 150,
       duration: '1m',
     },
     // find_limit: {
@@ -35,12 +35,12 @@ export const options = {
 
 export function handleSummary(data) {
   return {
-    'summary.html': htmlReport(data),
+    'test-performance/summary.html': htmlReport(data),
   }
 }
 
 export default function Main() {
-  const res = http.get(`${BASE_URL}/web/guest`, {
+  const res = http.get(`${BASE_URL}/web/guest/trangchu/ve-vec/gioi-thieu-chung`, {
     headers: {
       'Accept': 'text/html,application/xhtml+xml',
       'Accept-Language': 'vi-VN,vi;q=0.9',
