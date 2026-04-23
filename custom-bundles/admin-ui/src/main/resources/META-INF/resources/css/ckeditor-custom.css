@@ -1,0 +1,90 @@
+/* Fix #3: Image max-width inside editor */
+.cke_editable img {
+    max-width: 100% !important;
+    height: auto !important;
+    box-sizing: border-box;
+}
+
+/* Fix #4: Image grid layout - 2 images */
+.ck-image-grid {
+    display: flex;
+    gap: 4%;
+    margin: 1em 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix #4: Image grid layout - 3 images */
+.ck-image-grid-3 {
+    gap: 3%;
+}
+
+.ck-image-grid figure {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.ck-image-grid figure img {
+    width: 100%;
+    height: 200px;
+    display: block;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+/* Paragraph spacing matching Word default (8pt after) */
+.cke_editable p {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+/* BUG 1 FIX: Multiimage toolbar buttons - text label fallback */
+.cke_button__insert2images .cke_button_icon,
+.cke_button__insert3images .cke_button_icon {
+    display: none !important;
+}
+.cke_button__insert2images::after {
+    content: '2\263F';
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 18px;
+    padding: 0 4px;
+    display: inline-block;
+}
+.cke_button__insert3images::after {
+    content: '3\263F';
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 18px;
+    padding: 0 4px;
+    display: inline-block;
+}
+.cke_button__insert2images,
+.cke_button__insert3images {
+    min-width: 28px;
+    width: auto !important;
+}
+
+/* BUG 3 FIX: Remove fixed height from Liferay editor wrapper */
+.cke_inner,
+.cke_contents {
+    height: auto !important;
+    min-height: 100px;
+}
+.cke_wysiwyg_frame,
+.cke_wysiwyg_div {
+    height: auto !important;
+    min-height: 100px !important;
+}
+.ddm-field-text .cke_contents,
+.journal-content-add-button .cke_contents {
+    height: auto !important;
+}
+
+/* Fix #2: Sticky toolbar shadow effect */
+.cke_top.cke-toolbar-sticky {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    border-bottom: 2px solid #0b5fff;
+    background: #f8f8f8;
+}

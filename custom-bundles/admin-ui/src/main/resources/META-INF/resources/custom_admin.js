@@ -374,3 +374,22 @@ async function __custom_admin_js() {
         __custom_admin_js();
     }
 })();
+
+// === CKEditor Custom Override ===
+(function loadCKEditorOverride() {
+    function load() {
+        var script = document.createElement('script');
+        script.src = '/o/vec-custom-admin-ui/js/ckeditor_override.js?v=' + Date.now();
+        script.async = true;
+        script.onerror = function () {
+            console.warn('[Admin UI] Could not load ckeditor_override.js');
+        };
+        document.head.appendChild(script);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', load);
+    } else {
+        load();
+    }
+})();
