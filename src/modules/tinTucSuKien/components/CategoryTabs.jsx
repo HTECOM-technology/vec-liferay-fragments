@@ -1,15 +1,21 @@
 import "../styles/CategoryTabs.css";
 import { useNavigate } from "react-router-dom";
 
+const EXCLUDED_CATEGORY_IDS = ["1215636"];
+
 const CategoryTabs = ({ tabs, activeCategoryId, onSelectCategory }) => {
 
     const navigate = useNavigate();
+
+    const filteredTabs = tabs.filter(
+        cat => !EXCLUDED_CATEGORY_IDS.includes(String(cat.id))
+    );
 
     return (
 
         <div className="news-tabs-wrapper">
 
-            {tabs.map(cat => (
+            {filteredTabs.map(cat => (
 
                 <div
                     key={cat.id}
