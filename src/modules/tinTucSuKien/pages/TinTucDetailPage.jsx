@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 
-import { getCategoriesByVocabulary } from "../../../services/taxonomyService";
+import { getCategoriesByVocabularyWithImage } from "../../../services/taxonomyService";
 import { getStructuredContentsByCategory, getStructuredContentById } from "../../../services/structuredContentService";
 import { formatDate } from "../../../utils/dateUtils";
 import WeeklyHot from "../components/WeeklyHot";
@@ -38,7 +38,7 @@ const TinTucDetailPage = () => {
     try {
 
       // Load categories để dùng cho tabs + related
-      const cats = await getCategoriesByVocabulary(VOCABULARY_ID);
+      const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
       setCategories(cats);
 
       // Load bài viết hiện tại theo id
