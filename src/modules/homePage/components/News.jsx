@@ -201,7 +201,7 @@ const News = () => {
                 </div>
               </div>
 
-              <img src={process.env.REACT_APP_BASE_API_URL ? `${process.env.REACT_APP_BASE_API_URL}${imageUrl}` : imageUrl} alt="img" />
+              <img src={imageUrl} alt="img" />
             </Link>
           );
         })}
