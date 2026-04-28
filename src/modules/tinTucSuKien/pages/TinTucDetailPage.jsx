@@ -56,7 +56,7 @@ const TinTucDetailPage = () => {
         // Hot articles
         const hot = sameCategory
             .filter((a) =>
-                a.keywords?.some((k) => k.toLowerCase() === "tin hot")
+                a.keywords?.some((k) => k.toLowerCase() === "Nổi bật trong tuần")
             )
             .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
             .slice(0, 5);
