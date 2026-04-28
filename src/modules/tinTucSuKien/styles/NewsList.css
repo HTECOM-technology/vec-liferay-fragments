@@ -136,11 +136,12 @@
 }
 
 .news-title.ttsk {
-   font-size: 16px;
+   font-size: 20px;
    font-weight: 600;
    line-height: 1.4;
    transition: color .25s ease;
    margin: 0;
+   color: #000000;
 
    white-space: nowrap;
    overflow: hidden;
@@ -152,7 +153,7 @@
 }
 
 .news-desc.ttsk {
-   font-size: 14px;
+   font-size: 15px;
    color: #555;
    margin-top: 6px;
 
@@ -172,20 +173,20 @@
 }
 
 .news-category.ttsk {
-   color: #e53935;
+   color: #D71920;
    font-weight: 500;
-   font-size: 13px;
+   font-size: 15px;
 }
 
 .news-dot.ttsk {
-   width: 4px;
-   height: 4px;
+   width: 6px;
+   height: 6px;
    background: #888;
    border-radius: 50%;
 }
 
 .news-date.ttsk {
-   font-size: 13px;
+   font-size: 15px;
    color: #888;
 }
 
