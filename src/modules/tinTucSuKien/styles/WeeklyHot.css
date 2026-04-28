@@ -13,9 +13,10 @@
 }
 
 .vec-weekly-header__title {
-   font-size: 20px;
+   font-size: 24px;
    font-weight: 700;
    margin: 0;
+   color: #000000;
 }
 
 .vec-weekly-list {
@@ -62,10 +63,11 @@
 }
 
 .vec-weekly-item__title {
-   font-size: 14px;
+   font-size: 15px;
    font-weight: 700;
    line-height: 1.4;
    margin-bottom: 4px;
+   color: #333333;
 
    display: -webkit-box;
    -webkit-line-clamp: 3;

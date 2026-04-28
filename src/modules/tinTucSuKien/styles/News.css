@@ -163,7 +163,7 @@
 }
 
 .news-section-title.ttsk {
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
     padding-bottom: 6px;
 
@@ -173,6 +173,7 @@
     white-space: normal;
     word-break: break-word;
     line-height: 1.4;
+    color: #000000;
 }
 
 .news-sort.ttsk {
