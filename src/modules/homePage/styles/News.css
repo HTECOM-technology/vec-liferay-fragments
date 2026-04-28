@@ -126,6 +126,7 @@ ul.news-tabs {
 }
 
 .news-tabs-div {
+  width: 100%;
   display: flex;
   align-items: center;
   /* max-width: 70%; */
@@ -140,5 +141,11 @@ ul.news-tabs {
 .news-tabs {
   display: flex;
   gap: 12px;
+  width: 100%;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+}
 
+.no-pointer {
+  pointer-events: none;
 }
