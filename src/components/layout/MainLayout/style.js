@@ -119,10 +119,11 @@ export const MenuItem = styled.button`
   border: none;
   cursor: pointer;
   text-align: left;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
   line-height: 100%;
   letter-spacing: 0px;
+  font-family: "Inter", sans-serif !important;
 
   background: ${(p) => (p.$active ? "#0090cf" : "transparent")};
   color: ${(p) => (p.$active ? "#fff" : "#333")};
