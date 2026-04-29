@@ -39,14 +39,8 @@ function Sidebar({ activeSection, activeItem, onItemSelect }) {
         </svg>
     );
 
-    const getIcon = (iconType) => {
-        switch (iconType) {
-            case "edit":
-                return <FileActiveIcon />;
-            case "file":
-            default:
-                return <FileUnActiveIcon />;
-        }
+    const getIcon = (isActive) => {
+        return isActive ? <FileActiveIcon /> : <FileUnActiveIcon />;
     };
 
     return (
@@ -73,7 +67,7 @@ function Sidebar({ activeSection, activeItem, onItemSelect }) {
                                     $active={activeItem === item.key}
                                     onClick={() => onItemSelect(section.key, item.key)}
                                 >
-                                    <span className="menu-icon">{getIcon(item.icon)}</span>
+                                    <span className="menu-icon">{getIcon(activeItem === item.key)}</span>
                                     <span className="menu-label">{item.label}</span>
                                 </MenuItem>
                             ))}

@@ -99,8 +99,8 @@ const CakeIcon = () => (
 );
 
 const FILTER_TAGS = [
-  { key: "all", label: "Tất cả", icon: GridIcon },
   { key: "organization", label: "Sơ đồ tổ chức", icon: OrgIcon },
+  { key: "all", label: "Danh bạ", icon: GridIcon },
   { key: "birthday", label: "Sinh nhật", icon: CakeIcon },
 ];
 
@@ -108,7 +108,7 @@ function NhanSuTab() {
   const [dataSource] = useState(mockNhanSuData);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [activeTag, setActiveTag] = useState("all");
+  const [activeTag, setActiveTag] = useState("organization");
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [filters, setFilters] = useState({
     search: "",
