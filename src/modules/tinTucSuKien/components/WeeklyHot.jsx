@@ -26,10 +26,12 @@ const WeeklyHot = ({ blogs }) => {
 
                     const title = getContentField(article, "title")?.contentFieldValue?.data;
                     const imageUrl = getContentField(article, "image")?.contentFieldValue?.image?.contentUrl;
-                    const date = getContentField(article, "date")?.contentFieldValue?.data;
                     const categoryName = article.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryName;
+                    const date = getContentField(article, "date")?.contentFieldValue?.data;
 
-                    const publishDate = formatDate(date || article.datePublished);
+                    const publishDate = formatDate(
+                        article.dateCreated || article.datePublished || date
+                    );
 
                     const fullImage = imageUrl?.startsWith("http")
                         ? imageUrl

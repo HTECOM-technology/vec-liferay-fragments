@@ -46,6 +46,26 @@ const TinTucDetailPage = () => {
       const targetArticle = await getStructuredContentById(id);
       setArticle(targetArticle);
 
+      // WeeklyHot lấy toàn bộ category trong vocabulary
+      const allItems = await Promise.all(
+          cats.map((cat) => getStructuredContentsByCategory(cat.id))
+      );
+
+      const hot = allItems
+          .flat()
+          .filter((a) =>
+              a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
+          )
+          .sort(
+              (a, b) =>
+                  new Date(b.dateCreated || b.datePublished) -
+                  new Date(a.dateCreated || a.datePublished)
+          )
+          .slice(0, 5);
+
+      setHotArticles(hot);
+
+      // RelatedPosts vẫn lấy cùng category với bài đang xem
       const currentCategoryId =
           targetArticle?.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryId;
 
@@ -54,18 +74,13 @@ const TinTucDetailPage = () => {
             currentCategoryId
         );
 
-        const hot = sameCategory
-            .filter((a) =>
-                a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
-            )
-            .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
-            .slice(0, 5);
-
-        setHotArticles(hot);
-
         const related = sameCategory
             .filter((a) => String(a.id) !== String(id))
-            .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
+            .sort(
+                (a, b) =>
+                    new Date(b.dateCreated || b.datePublished) -
+                    new Date(a.dateCreated || a.datePublished)
+            )
             .slice(0, 4);
 
         setRelatedArticles(related);
@@ -82,7 +97,9 @@ const TinTucDetailPage = () => {
   const content =
       getContentField(article, "paragraphContent1")?.contentFieldValue?.data;
 
-  const publishDate = formatDate(date || article.datePublished);
+  const publishDate = formatDate(
+      article.dateCreated || article.datePublished || date
+  );
 
   const imageField = getContentField(article, "image");
   const imageUrl = imageField?.contentFieldValue?.image?.contentUrl || "";
