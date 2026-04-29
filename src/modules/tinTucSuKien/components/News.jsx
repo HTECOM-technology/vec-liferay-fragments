@@ -110,7 +110,7 @@ const News = () => {
   const hotArticles = useMemo(() => {
     return articles
       .filter((a) =>
-        a.keywords?.some((k) => k.toLowerCase() === "Nổi bật trong tuần")
+        a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
       )
       .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
       .slice(0, 5);
