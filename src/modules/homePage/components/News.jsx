@@ -113,15 +113,26 @@ const News = () => {
     }
   };
 
+  const sortByDate = (list) => {
+    return [...list].sort((a, b) => {
+      const getDate = (blog) => {
+        const dateStr = (blog.contentFields ?? []).find((f) => f.name === "date")
+          ?.contentFieldValue?.data;
+        return dateStr ? new Date(dateStr) : new Date(0);
+      };
+      return getDate(b) - getDate(a);
+    });
+  };
+
   const currentBlogs = useMemo(() => {
-    // Tab "Mới nhất" → hiển thị toàn bộ blogs đã fetch (đã sort từ API)
-    if (activeCategoryId === "latest") return blogs;
+    if (activeCategoryId === "latest") return sortByDate(blogs);
     if (!activeCategoryId) return [];
-    return blogs.filter((blog) =>
+    const filtered = blogs.filter((blog) =>
       blog.taxonomyCategoryBriefs?.some(
         (brief) => String(brief.taxonomyCategoryId) === String(activeCategoryId)
       )
     );
+    return sortByDate(filtered);
   }, [blogs, activeCategoryId]);
 
   /** Show loader while data is being fetched */
@@ -167,7 +178,8 @@ const News = () => {
           // const publishDate = blog.datePublished?.split("T")[0] ?? '';
 
           // const imageUrl = blog.image?.contentUrl;
-
+          console.log(blog);
+          
           const categoryNames = (blog.taxonomyCategoryBriefs ?? []).map(
             (cat) => cat.taxonomyCategoryName,
           );

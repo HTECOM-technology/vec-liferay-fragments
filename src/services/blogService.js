@@ -15,7 +15,15 @@ import { axiosPrivate } from "../common/axios";
 
 export const getAllBlogBySiteId = async (siteId, categoryId) => {
   const res = await axiosPrivate.get(
-    `/o/headless-delivery/v1.0/content-structures/38305/structured-contents?filter=taxonomyCategoryIds/any(t:t eq ${categoryId})&pageSize=10&page=1`
+    `/o/headless-delivery/v1.0/content-structures/38305/structured-contents`,
+    {
+      params: {
+        filter: `taxonomyCategoryIds/any(t:t eq ${categoryId})`,
+        sort: "datePublished:desc",
+        pageSize: 10,
+        page: 1,
+      },
+    }
   );
 
   return res.data.items;
