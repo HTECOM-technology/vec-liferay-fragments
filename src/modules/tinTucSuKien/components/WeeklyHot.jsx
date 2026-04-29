@@ -1,19 +1,36 @@
 import "../styles/WeeklyHot.css";
 import { formatDate } from "../../../utils/dateUtils";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getCategoriesByVocabulary } from "../../../services/taxonomyService";
+
+const VOCABULARY_ID = 1215209;
 
 const getContentField = (article, fieldName) => {
     return article?.contentFields?.find((f) => f.name === fieldName);
 };
 
 const WeeklyHot = ({ blogs }) => {
-
     const navigate = useNavigate();
+    const [vocabularyCategories, setVocabularyCategories] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const data = await getCategoriesByVocabulary(VOCABULARY_ID);
+                setVocabularyCategories(data || []);
+            } catch (error) {
+                console.error("Lỗi lấy category vocabulary:", error);
+            }
+        };
+
+        fetchCategories();
+    }, []);
+
+    const vocabularyCategoryIds = vocabularyCategories.map((c) => Number(c.id));
 
     return (
-
         <div className="vec-weekly-container">
-
             <div className="vec-weekly-header">
                 <h2 className="vec-weekly-header__title">
                     Nổi bật trong tuần
@@ -21,12 +38,16 @@ const WeeklyHot = ({ blogs }) => {
             </div>
 
             <div className="vec-weekly-list">
-
                 {blogs.map((article) => {
-
                     const title = getContentField(article, "title")?.contentFieldValue?.data;
                     const imageUrl = getContentField(article, "image")?.contentFieldValue?.image?.contentUrl;
-                    const categoryName = article.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryName;
+
+                    const category = article.taxonomyCategoryBriefs?.find((c) =>
+                        vocabularyCategoryIds.includes(Number(c.taxonomyCategoryId))
+                    );
+
+                    const categoryName = category?.taxonomyCategoryName;
+
                     const date = getContentField(article, "date")?.contentFieldValue?.data;
 
                     const publishDate = formatDate(
@@ -38,7 +59,6 @@ const WeeklyHot = ({ blogs }) => {
                         : `${window.location.origin}${imageUrl}`;
 
                     return (
-
                         <div
                             key={article.id}
                             className="vec-weekly-item"
@@ -48,13 +68,11 @@ const WeeklyHot = ({ blogs }) => {
                                 })
                             }
                         >
-
                             <div className="vec-weekly-item__image">
                                 <img src={fullImage} alt={title} />
                             </div>
 
                             <div className="vec-weekly-item__content">
-
                                 <div className="vec-weekly-item__title">
                                     {title}
                                 </div>
@@ -66,18 +84,12 @@ const WeeklyHot = ({ blogs }) => {
                                 <div className="vec-weekly-item__date">
                                     {publishDate}
                                 </div>
-
                             </div>
-
                         </div>
-
                     );
-
                 })}
-
             </div>
 
-            {/* SVG clip path */}
             <svg width="0" height="0">
                 <defs>
                     <clipPath id="myClip" clipPathUnits="objectBoundingBox">
@@ -86,16 +98,12 @@ const WeeklyHot = ({ blogs }) => {
                 </defs>
             </svg>
 
-            {/* decorative bar */}
             <div className="decorative-bar">
                 <div className="bar-left"></div>
                 <div className="bar-right"></div>
             </div>
-
         </div>
-
     );
-
 };
 
 export default WeeklyHot;
