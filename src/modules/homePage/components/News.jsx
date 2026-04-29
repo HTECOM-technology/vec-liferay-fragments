@@ -133,16 +133,14 @@ const News = () => {
     <div className="news-container doc-card">
       {/* Header */}
       <div className="doc-card-header d-flex align-items-center justify-content-between">
-        <div className="d-flex align-items-center gap-8">
-          {/* <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
-            <img src={'/documents/d/intranet/container-2-'} alt="News Icon" />
-          </div> */}
+        {/* <div className="d-flex align-items-center gap-8">
           <span>Tin tức - Sự kiện</span>
-        </div>
+        </div> */}
 
         {/* Category Tabs */}
         <div className="news-tabs-div">
           <ul className="news-tabs">
+            <li className="no-pointer">Tin tức - Sự kiện</li>
             <li
               className={activeCategoryId === "latest" ? "active" : ""}
               onClick={() => setActiveCategoryId("latest")}

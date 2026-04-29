@@ -416,6 +416,201 @@ export const UploadHint = styled.div`
     color: #999;
 `;
 
+// ── My Requests page ──────────────────────────────────────────────────────────
+
+export const MyRequestsWrap = styled.div`
+    flex: 1;
+    background: #fff;
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+`;
+
+export const MyRequestsHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(229, 247, 255, 1);
+    border-bottom: 1px solid rgba(0, 144, 207, 0.2);
+
+    .mr-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+    }
+`;
+
+export const MyRequestsFilter = styled.div`
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(229, 231, 235, 1);
+    background: #fafafa;
+
+    .filter-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        white-space: nowrap;
+    }
+
+    .ant-select-selector {
+        height: 32px !important;
+        border-radius: 4px !important;
+
+        .ant-select-selection-item {
+            line-height: 30px !important;
+            font-size: 13px;
+        }
+    }
+
+    .ant-picker {
+        height: 32px;
+        border-radius: 4px;
+    }
+`;
+
+export const FilterGroup = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: ${(props) => props.$flex || "unset"};
+
+    .filter-label {
+        min-width: fit-content;
+    }
+`;
+
+export const ResetFilterBtn = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fff;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 32px;
+
+    &:hover {
+        border-color: rgba(0, 144, 207, 1);
+        color: rgba(0, 144, 207, 1);
+    }
+`;
+
+export const MyRequestsTable = styled.div`
+    padding: 0 16px 16px;
+`;
+
+export const TableSummary = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+
+    .summary-text {
+        font-size: 13px;
+        color: #666;
+
+        span {
+            font-weight: 600;
+            color: rgba(0, 144, 207, 1);
+        }
+    }
+`;
+
+export const StatusBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: ${(props) => props.$bg || "#F5F5F5"};
+    color: ${(props) => props.$color || "#666"};
+    white-space: nowrap;
+`;
+
+export const PriorityBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    background: ${(props) => props.$bg || "#F5F5F5"};
+    color: ${(props) => props.$color || "#666"};
+    white-space: nowrap;
+`;
+
+export const RequestIdText = styled.span`
+    font-size: 12px;
+    color: rgba(0, 144, 207, 1);
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+`;
+
+export const RequestTitleText = styled.span`
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    &:hover {
+        color: rgba(0, 144, 207, 1);
+    }
+`;
+
+export const TablePaginationWrap = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+
+    .ant-pagination-item-active {
+        border-color: rgba(0, 144, 207, 1);
+
+        a {
+            color: rgba(0, 144, 207, 1);
+        }
+    }
+`;
+
+// ── Detail Modal ──────────────────────────────────────────────────────────────
+
+export const DetailRow = styled.div`
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+
+    .detail-label {
+        min-width: 140px;
+        color: #666;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .detail-value {
+        color: #333;
+        flex: 1;
+    }
+`;
+
+// ── Submit button ─────────────────────────────────────────────────────────────
+
 // Submit button
 export const FormActions = styled.div`
     display: flex;

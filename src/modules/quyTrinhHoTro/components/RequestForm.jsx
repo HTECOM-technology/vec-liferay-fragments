@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Input, Select, Checkbox, DatePicker, Upload } from "antd";
 import {
@@ -55,10 +55,10 @@ import {
     PARAGRAPH_STYLE_OPTIONS,
 } from "./constants";
 
-function RequestForm({ activeItem }) {
+function RequestForm({ activeItem, activeSection }) {
     const [formData, setFormData] = useState({
-        process: "dich-vu-cntt",
-        subProcess: "gop-y-cai-tien",
+        process: activeSection || "dich-vu-cntt",
+        subProcess: activeItem || "gop-y-cai-tien",
         title: "",
         handler: "hatv,TriTX",
         followers: [],
@@ -73,6 +73,14 @@ function RequestForm({ activeItem }) {
         attachments: [],
         relatedRequest: "",
     });
+
+    useEffect(() => {
+        setFormData((prev) => ({
+            ...prev,
+            process: activeSection,
+            subProcess: activeItem,
+        }));
+    }, [activeSection, activeItem]);
 
     const handleChange = (field, value) => {
         setFormData((prev) => ({
@@ -122,6 +130,7 @@ function RequestForm({ activeItem }) {
                                 value={formData.process}
                                 onChange={(value) => handleChange("process", value)}
                                 options={PROCESS_OPTIONS}
+                                disabled
                             />
                         </div>
                     </FormGroup>
@@ -131,6 +140,7 @@ function RequestForm({ activeItem }) {
                                 value={formData.subProcess}
                                 onChange={(value) => handleChange("subProcess", value)}
                                 options={SUB_PROCESS_OPTIONS[formData.process] || []}
+                                disabled
                             />
                         </div>
                     </FormGroup>
@@ -140,7 +150,7 @@ function RequestForm({ activeItem }) {
                 <FormRow>
                     <FormGroup>
                         <span className="form-label">
-                            Tiêu đề<span className="required">*</span>
+                            Tiêu đề <span className="required">*</span>
                         </span>
                         <div className="form-control">
                             <Input
@@ -156,7 +166,7 @@ function RequestForm({ activeItem }) {
                 <FormRow>
                     <FormGroup>
                         <span className="form-label">
-                            Người xử lý<span className="required">*</span>
+                            Người xử lý <span className="required">*</span>
                         </span>
                         <div className="form-control">
                             <Input
@@ -238,14 +248,14 @@ function RequestForm({ activeItem }) {
                 </FormRow>
 
                 {/* Giai đoạn đầu tiên */}
-                <FormRow>
+                {/* <FormRow>
                     <FormGroup>
                         <span className="form-label">Giai đoạn đầu tiên</span>
                         <div className="form-control">
                             <Input value={formData.phase} disabled />
                         </div>
                     </FormGroup>
-                </FormRow>
+                </FormRow> */}
 
                 {/* Thời gian */}
                 <FormRow>
@@ -342,7 +352,7 @@ function RequestForm({ activeItem }) {
                         <Input.TextArea
                             value={formData.content}
                             onChange={(e) => handleChange("content", e.target.value)}
-                            placeholder={`ĐỀ XUẤT, GỢI Ý CẢI TIẾN CHẤT LƯỢNG\n\nNgười góp ý:\nBộ phận:\nNội dung góp ý, đề xuất:`}
+                            placeholder={activeItem === "gop-y-cai-tien" ? `ĐỀ XUẤT, GỢI Ý CẢI TIẾN CHẤT LƯỢNG\n\nNgười góp ý:\nBộ phận:\nNội dung góp ý, đề xuất:` : ""}
                             autoSize={{ minRows: 8, maxRows: 15 }}
                             style={{
                                 border: "none",
@@ -376,7 +386,7 @@ function RequestForm({ activeItem }) {
                 </AttachmentSection>
 
                 {/* Yêu cầu liên quan */}
-                <FormRow>
+                {/* <FormRow>
                     <FormGroup>
                         <span className="form-label">Yêu cầu liên quan</span>
                         <div className="form-control">
@@ -387,7 +397,7 @@ function RequestForm({ activeItem }) {
                             />
                         </div>
                     </FormGroup>
-                </FormRow>
+                </FormRow> */}
 
                 {/* Submit button */}
                 <FormActions>
@@ -402,10 +412,12 @@ function RequestForm({ activeItem }) {
 
 RequestForm.propTypes = {
     activeItem: PropTypes.string,
+    activeSection: PropTypes.string,
 };
 
 RequestForm.defaultProps = {
     activeItem: "gop-y-cai-tien",
+    activeSection: "dich-vu-cntt",
 };
 
 export default RequestForm;
