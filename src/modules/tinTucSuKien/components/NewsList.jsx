@@ -19,9 +19,12 @@ const NewsList = ({ blogs, categoryName, categoryId }) => {
         const title = getContentField(article, "title")?.contentFieldValue?.data;
         const shortDescription = getContentField(article, "shortDescription")?.contentFieldValue?.data;
         const imageUrl = getContentField(article, "image")?.contentFieldValue?.image?.contentUrl;
+
         const date = getContentField(article, "date")?.contentFieldValue?.data;
 
-        const publishDate = formatDate(date || article.datePublished);
+        const publishDate = formatDate(
+            article.dateCreated || article.datePublished || date
+        );
 
         const fullImage = imageUrl?.startsWith("http")
           ? imageUrl

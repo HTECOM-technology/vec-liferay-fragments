@@ -26,6 +26,7 @@ const News = () => {
 
   const [sortType, setSortType] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
+  const [hotArticles, setHotArticles] = useState([]);
 
   /*
   =================
@@ -33,20 +34,37 @@ const News = () => {
   =================
   */
 
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+
+      const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
+      setCategories(cats);
+
+      const defaultId = slug ? slug : cats[0]?.id;
+      setActiveCategoryId(defaultId);
+
+      const allItems = await Promise.all(
+          cats.map((cat) => getStructuredContentsByCategory(cat.id))
+      );
+
+      const weeklyHot = allItems
+          .flat()
+          .filter((a) =>
+              a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
+          )
+          .sort((a, b) => new Date(b.dateCreated || b.datePublished) - new Date(a.dateCreated || a.datePublished))
+          .slice(0, 5);
+
+      setHotArticles(weeklyHot);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        setLoading(true);
-        const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
-        setCategories(cats);
-        const defaultId = slug ? slug : cats[0]?.id;
-        setActiveCategoryId(defaultId);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
     loadCategories();
   }, []);
 
@@ -95,8 +113,8 @@ const News = () => {
 
   const sortedArticles = useMemo(() => {
     return [...articles].sort((a, b) => {
-      const dateA = new Date(a.datePublished);
-      const dateB = new Date(b.datePublished);
+      const dateA = new Date(a.dateCreated || a.datePublished);
+      const dateB = new Date(b.dateCreated || b.datePublished);
       return sortType === "newest" ? dateB - dateA : dateA - dateB;
     });
   }, [articles, sortType]);
@@ -107,14 +125,16 @@ const News = () => {
   =================
   */
 
-  const hotArticles = useMemo(() => {
-    return articles
-      .filter((a) =>
-        a.keywords?.some((k) => k.toLowerCase() === "Nổi bật trong tuần")
-      )
-      .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
-      .slice(0, 5);
-  }, [articles]);
+  // const hotArticles = useMemo(() => {
+  //   return articles
+  //     .filter((a) =>
+  //       a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
+  //     )
+  //     .sort((a, b) => new Date(b.datePublished) - new Date(a.datePublished))
+  //     .slice(0, 5);
+  // }, [articles]);
+
+
 
   /*
   =================
