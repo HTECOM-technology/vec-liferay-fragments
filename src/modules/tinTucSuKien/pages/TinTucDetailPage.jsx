@@ -152,7 +152,7 @@ const TinTucDetailPage = () => {
   return (
       <div className="detail-wrapper">
         <div className="detail-top">
-        <span className="detail-back" onClick={() => navigate(-1)}>
+        <span className="detail-back" onClick={() => navigate("/tin-tuc-su-kien")}>
           <svg
               width="24"
               height="24"
