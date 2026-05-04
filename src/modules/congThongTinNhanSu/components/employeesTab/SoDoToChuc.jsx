@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Col, Row } from "antd";
 import HoiDongThanhVienModal from "./HoiDongThanhVienModal";
+import {
+  getStructuredContentsByFolder,
+  getContentById
+} from "../../../../services/structuredContentService";
 
 // --- Styled components ---
 const ChartWrap = styled.div`
@@ -175,14 +179,51 @@ function NodeBox({ label, members, type = "white", children, onClick }) {
   return (
     <Node className={type} onClick={onClick} role={onClick ? "button" : undefined}>
       <NodeLabel dangerouslySetInnerHTML={{ __html: label }} />
-      {members != null && <NodeMembers>Số lượng thành viên: {members}</NodeMembers>}
+      {/* {members != null && <NodeMembers>Số lượng thành viên: {members}</NodeMembers>} */}
       {children}
     </Node>
   );
 }
 
 const SoDoToChuc = () => {
+  const CONTENT_ID = 1266992
+
   const [hoiDongModalOpen, setHoiDongModalOpen] = useState(false);
+  const [itemsHDTV, setItemsHDTV] = useState([]);
+  const [itemHDTV, setItemHDTV] = useState(null);
+  const [contentHDTV, setContentHDTV] = useState(null);
+  const [blockThamMuu, setBlockThamMuu] = useState(null);
+  const [blockQuanLyDuAn, setBlockQuanLyDuAn] = useState(null);
+  const [blockCongTy, setBlockCongTy] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const dataHDTV = await getStructuredContentsByFolder();
+
+      const filtered = dataHDTV.filter(item =>
+        [1269592, 1269608].includes(item.id)
+      );
+      const single = dataHDTV.find(item => item.id === 1266992);
+
+      setItemsHDTV(filtered);
+      setItemHDTV(single);
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const contentHDTV = await getContentById(CONTENT_ID);
+      setContentHDTV(contentHDTV);
+
+      if (Array.isArray(contentHDTV) && contentHDTV.length >= 3) {
+        setBlockThamMuu(contentHDTV[0]);
+        setBlockQuanLyDuAn(contentHDTV[1]);
+        setBlockCongTy(contentHDTV[2]);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <ChartWrap>
@@ -205,8 +246,8 @@ const SoDoToChuc = () => {
               </svg>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
-                {TOP_RIGHT.map((item) => (
-                  <NodeBox key={item.label} label={item.label} members={item.members} type={item.type} />
+                {itemsHDTV.map((item) => (
+                  <NodeBox key={item.id} label={item.title} members={item.members} type="blue" />
                 ))}
               </div>
             </TopRightCol>
@@ -224,7 +265,8 @@ const SoDoToChuc = () => {
             />
           </svg>
 
-          <NodeBox label="BAN TỔNG GIÁM ĐỐC" members={5} type="red" />
+          {/* <NodeBox label="BAN TỔNG GIÁM ĐỐC" members={5} type="red" /> */}
+          <NodeBox label={itemHDTV?.title} members={5} type="red" />
         </TopLeftCol>
       </MiddleRow>
 
@@ -245,57 +287,78 @@ const SoDoToChuc = () => {
 
           <ThreeColumns>
             <Column>
-              <ColumnHeader>
-                <NodeBox label="KHỐI CÁC BAN THAM MƯU" type="outline" />
-              </ColumnHeader>
-              <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
-                  fill="#D9D9D9"
-                />
-              </svg>
+              {blockThamMuu?.nestedContentFields && (() => {
+                const subtitle = blockThamMuu.nestedContentFields.find(f => f.name === "subtitle");
+                const contents = blockThamMuu.nestedContentFields.filter(f => f.name === "content");
+                const allItems = [subtitle, ...contents];
 
-              <ColumnList>
-                {KHOI_BAN_THAM_MUU.map((item, i) => (
-                  <NodeBox key={i} label={item.label} members={item.members} />
-                ))}
-              </ColumnList>
+                return allItems.map((f, index, arr) => (
+                  <React.Fragment key={index}>
+                    <NodeBox
+                      label={f.contentFieldValue.data}
+                      type={index === 0 ? "outline" : "white"}
+                    />
+                    {index < arr.length - 1 && (
+                      <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
+                          fill="#D9D9D9"
+                        />
+                      </svg>
+                    )}
+                  </React.Fragment>
+                ));
+              })()}
             </Column>
 
             <Column>
-              <ColumnHeader>
-                <NodeBox label="KHỐI CÁC TRUNG TÂM <br/> BAN QUẢN LÝ DỰ ÁN" type="outline" />
-              </ColumnHeader>
-              <svg width="9" height="18" viewBox="0 0 9 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 17.5801C3.8427 17.873 4.25691 17.873 4.5498 17.5801L7.87993 14.25C8.17282 13.9571 8.17282 13.5429 7.87993 13.25L4.0498 9.41987L0.219678 13.25C-0.0732155 13.5429 -0.0732155 13.9571 0.219678 14.25L3.5498 17.5801ZM4.0498 0.75H3.2998V13.75H4.0498H4.7998V0.75H4.0498Z"
-                  fill="#D9D9D9"
-                />
-              </svg>
+              {blockQuanLyDuAn?.nestedContentFields && (() => {
+                const subtitle = blockQuanLyDuAn.nestedContentFields.find(f => f.name === "subtitle");
+                const contents = blockQuanLyDuAn.nestedContentFields.filter(f => f.name === "content");
+                const allItems = [subtitle, ...contents];
 
-              <ColumnList>
-                {KHOI_TRUNG_TAM_QLDA.map((item, i) => (
-                  <NodeBox key={i} label={item.label} members={item.members} />
-                ))}
-              </ColumnList>
+                return allItems.map((f, index, arr) => (
+                  <React.Fragment key={index}>
+                    <NodeBox
+                      label={f.contentFieldValue.data}
+                      type={index === 0 ? "outline" : "white"}
+                    />
+                    {index < arr.length - 1 && (
+                      <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
+                          fill="#D9D9D9"
+                        />
+                      </svg>
+                    )}
+                  </React.Fragment>
+                ));
+              })()}
             </Column>
 
             <Column>
-              <ColumnHeader>
-                <NodeBox label="KHỐI CÁC CÔNG TY <br/> THÀNH VIÊN" type="outline" />
-              </ColumnHeader>
-              <svg width="9" height="18" viewBox="0 0 9 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 17.5801C3.8427 17.873 4.25691 17.873 4.5498 17.5801L7.87993 14.25C8.17282 13.9571 8.17282 13.5429 7.87993 13.25L4.0498 9.41987L0.219678 13.25C-0.0732155 13.5429 -0.0732155 13.9571 0.219678 14.25L3.5498 17.5801ZM4.0498 0.75H3.2998V13.75H4.0498H4.7998V0.75H4.0498Z"
-                  fill="#D9D9D9"
-                />
-              </svg>
+              {blockCongTy?.nestedContentFields && (() => {
+                const subtitle = blockCongTy.nestedContentFields.find(f => f.name === "subtitle");
+                const contents = blockCongTy.nestedContentFields.filter(f => f.name === "content");
+                const allItems = [subtitle, ...contents];
 
-              <ColumnList>
-                {KHOI_CONG_TY_THANH_VIEN.map((item, i) => (
-                  <NodeBox key={i} label={item.label} members={item.members} />
-                ))}
-              </ColumnList>
+                return allItems.map((f, index, arr) => (
+                  <React.Fragment key={index}>
+                    <NodeBox
+                      label={f.contentFieldValue.data}
+                      type={index === 0 ? "outline" : "white"}
+                    />
+                    {index < arr.length - 1 && (
+                      <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
+                          fill="#D9D9D9"
+                        />
+                      </svg>
+                    )}
+                  </React.Fragment>
+                ));
+              })()}
             </Column>
           </ThreeColumns>
         </BranchConnectorWrap>
