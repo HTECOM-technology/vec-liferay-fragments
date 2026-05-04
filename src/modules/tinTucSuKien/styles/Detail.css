@@ -402,3 +402,33 @@
         right: 12px;
     }
 }
+
+@media (max-width: 1190px) {
+    .detail-layout {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .detail-left {
+        width: 100%;
+        flex: none;
+    }
+
+    .detail-right {
+        width: 100%;
+        flex-shrink: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .article-images .detail-article-image-large {
+        height: auto;
+        aspect-ratio: 892 / 517;
+    }
+
+    .article-images .detail-article-image-small {
+        height: auto;
+        aspect-ratio: 438 / 292;
+    }
+}
