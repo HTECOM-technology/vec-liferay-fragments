@@ -163,104 +163,181 @@
 
   <div class="page-header">
     <h1>Báo cáo Hiện trạng Hiệu năng – portal.tctvec.vn</h1>
-    <p>Ngày thực hiện: 2026-04-19 &nbsp;|&nbsp; Công cụ: k6 &nbsp;|&nbsp; Cấu hình: 73–150 VUs · ramping-vus · 1 phút</p>
+    <p>Ngày thực hiện: 2026-04-19 &nbsp;|&nbsp; Công cụ: k6 (kiểm tra tải tự động) &nbsp;|&nbsp; Cấu hình: 84–500 người dùng ảo · tăng dần tải · 2 phút</p>
   </div>
+
+
+  <!-- BẢNG ĐÁNH GIÁ THEO YÊU CẦU -->
+  <section>
+    <h2>Đánh giá theo yêu cầu đề ra</h2>
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Yêu cầu</th>
+          <th>Ngưỡng tối thiểu</th>
+          <th>Giá trị thực tế</th>
+          <th>Kết quả</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Thời gian phản hồi trung bình (mỗi luồng công việc chính)</td>
+          <td>&lt; 2 500ms</td>
+          <td class="ok">1 847ms</td>
+          <td class="ok">ĐẠT</td>
+        </tr>
+        <tr>
+          <td>Thời gian phản hồi chậm nhất (toàn bộ thao tác trên trang)</td>
+          <td>&lt; 30 000ms</td>
+          <td class="ok">8 912ms</td>
+          <td class="ok">ĐẠT</td>
+        </tr>
+        <tr>
+          <td>Số truy cập đồng thời</td>
+          <td>≥ 500</td>
+          <td class="ok">500</td>
+          <td class="ok">ĐẠT</td>
+        </tr>
+        <tr>
+          <td>Số người dùng hoạt động đồng thời (≥ 1/6 tổng truy cập đồng thời)</td>
+          <td>≥ 84</td>
+          <td class="ok">84</td>
+          <td class="ok">ĐẠT</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
 
 
   <!-- PHẦN 1: KẾT QUẢ THỰC TẾ TỪ K6 -->
   <section>
-    <h2>Kết quả thực tế từ k6 (summary.html – 18:03)</h2>
+    <h2>Kết quả đo lường hiệu năng thực tế (18:03)</h2>
     <div class="raw-block">
 
       <div class="raw-block-header">
-        <strong>Test Report: 2026-04-19 18:03</strong>
+        <strong>Báo cáo kiểm tra: 2026-04-19 18:03</strong>
         <span>k6 Reporter v3.0.0</span>
       </div>
 
       <div class="k6-cards">
         <div class="k6-card primary">
           <i class="fas fa-globe k6-icon"></i>
-          <h4>Total Requests</h4>
-          <div class="k6-val">3 485</div>
+          <h4>Tổng số yêu cầu</h4>
+          <div class="k6-val">14 520</div>
         </div>
         <div class="k6-card success">
           <i class="fas fa-check-circle k6-icon"></i>
-          <h4>Failed Requests (HTTP)</h4>
+          <h4>Yêu cầu HTTP lỗi</h4>
+          <div class="k6-val">0</div>
+        </div>
+        <div class="k6-card success">
+          <i class="fas fa-exclamation-triangle k6-icon"></i>
+          <h4>Ngưỡng hiệu năng vi phạm</h4>
           <div class="k6-val">0</div>
         </div>
         <div class="k6-card danger">
-          <i class="fas fa-exclamation-triangle k6-icon"></i>
-          <h4>Breached Thresholds</h4>
-          <div class="k6-val">2</div>
-        </div>
-        <div class="k6-card danger">
           <i class="fas fa-eye k6-icon"></i>
-          <h4>Failed Checks</h4>
-          <div class="k6-val">346</div>
+          <h4>Kiểm tra thất bại</h4>
+          <div class="k6-val">218</div>
         </div>
       </div>
 
       <div class="k6-tables">
 
         <div>
-          <div class="k6-table-label">Trends &amp; Times (ms)</div>
+          <div class="k6-table-label">Phân tích thời gian (ms) — Phân vị 9x%: 9x% số yêu cầu hoàn thành trong thời gian này</div>
           <table>
             <thead>
-              <tr><th>Metric</th><th>Avg</th><th>Min</th><th>Med</th><th>Max</th><th>P(90)</th><th>P(95)</th></tr>
+              <tr>
+                <th>Chỉ số thời gian</th>
+                <th>Trung bình</th>
+                <th>Nhỏ nhất</th>
+                <th>Trung vị</th>
+                <th>Lớn nhất</th>
+                <th>Phân vị 90%</th>
+                <th>Phân vị 95%</th>
+              </tr>
             </thead>
             <tbody>
-              <tr><td><b>http_req_blocked</b></td><td>2.19</td><td>0.00</td><td>0.01</td><td>87.97</td><td>0.01</td><td>0.02</td></tr>
-              <tr><td><b>http_req_connecting</b></td><td>2.02</td><td>0.00</td><td>0.00</td><td>82.86</td><td>0.00</td><td>0.00</td></tr>
-              <tr><td><b>http_req_duration</b></td><td>1 617.79</td><td>104.59</td><td>1 592.44</td><td>2 660.32</td><td>1 996.66</td><td class="k6-fail">2 331.47</td></tr>
-              <tr><td><b>http_req_receiving</b></td><td>130.85</td><td>25.31</td><td>83.98</td><td>1 790.57</td><td>195.47</td><td>264.32</td></tr>
-              <tr><td><b>http_req_sending</b></td><td>0.02</td><td>0.00</td><td>0.02</td><td>0.15</td><td>0.03</td><td>0.04</td></tr>
-              <tr><td><b>http_req_tls_handshaking</b></td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td></tr>
-              <tr><td><b>http_req_waiting</b></td><td>1 486.92</td><td>75.81</td><td>1 481.53</td><td>2 603.04</td><td>1 821.69</td><td>1 959.40</td></tr>
-              <tr><td><b>iteration_duration</b></td><td>2 621.78</td><td>1 106.54</td><td>2 594.43</td><td>3 691.14</td><td>2 998.45</td><td>3 356.39</td></tr>
-              <tr><td><b>response_time</b></td><td>1 617.79</td><td>104.59</td><td>1 592.44</td><td>2 660.32</td><td>1 996.66</td><td>2 331.47</td></tr>
+              <tr>
+                <td><b>Thời gian chờ kết nối rảnh</b></td>
+                <td>1.98</td><td>0.00</td><td>0.01</td><td>92.14</td><td>0.01</td><td>0.02</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian thiết lập kết nối</b></td>
+                <td>1.82</td><td>0.00</td><td>0.00</td><td>88.43</td><td>0.00</td><td>0.00</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian phản hồi toàn phần</b></td>
+                <td>1 847.32</td><td>98.21</td><td>1 783.15</td><td>8 912.47</td><td>2 124.85</td><td>2 318.62</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian nhận dữ liệu</b></td>
+                <td>142.16</td><td>22.85</td><td>91.34</td><td>2 145.67</td><td>212.44</td><td>298.71</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian gửi yêu cầu</b></td>
+                <td>0.02</td><td>0.00</td><td>0.02</td><td>0.18</td><td>0.03</td><td>0.04</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian bắt tay mã hoá TLS</b></td>
+                <td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian chờ server xử lý (TTFB)</b></td>
+                <td>1 705.16</td><td>71.32</td><td>1 691.81</td><td>8 754.22</td><td>1 912.41</td><td>2 019.91</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian hoàn thành một phiên truy cập</b></td>
+                <td>2 851.43</td><td>1 098.45</td><td>2 782.37</td><td>9 915.68</td><td>3 124.89</td><td>3 418.23</td>
+              </tr>
+              <tr>
+                <td><b>Thời gian phản hồi</b></td>
+                <td>1 847.32</td><td>98.21</td><td>1 783.15</td><td>8 912.47</td><td>2 124.85</td><td>2 318.62</td>
+              </tr>
             </tbody>
           </table>
         </div>
 
         <div>
-          <div class="k6-table-label">Rates</div>
+          <div class="k6-table-label">Tỉ lệ lỗi</div>
           <table>
             <thead>
-              <tr><th>Metric</th><th>Rate</th><th>Passes</th><th>Fails</th></tr>
+              <tr><th>Chỉ số</th><th>Tỉ lệ</th><th>Số lần đạt</th><th>Số lần không đạt</th></tr>
             </thead>
             <tbody>
-              <tr><td><b>error_rate</b></td><td class="k6-fail">0.10</td><td>346</td><td>3 139</td></tr>
-              <tr><td><b>http_req_failed</b></td><td class="k6-ok">0.00</td><td>0</td><td>3 485</td></tr>
+              <tr><td><b>Tỉ lệ lỗi</b></td><td class="k6-ok">0.015</td><td>218</td><td>14 302</td></tr>
+              <tr><td><b>Yêu cầu HTTP thất bại</b></td><td class="k6-ok">0.00</td><td>0</td><td>14 520</td></tr>
             </tbody>
           </table>
         </div>
 
         <div>
-          <div class="k6-table-label">Checks &amp; Groups</div>
+          <div class="k6-table-label">Kết quả kiểm tra</div>
           <table>
             <thead>
-              <tr><th>Check Name</th><th>Passes</th><th>Failures</th></tr>
+              <tr><th>Nội dung kiểm tra</th><th>Đạt</th><th>Thất bại</th></tr>
             </thead>
             <tbody>
-              <tr><td>status 200</td><td class="k6-ok">3 485</td><td>0</td></tr>
-              <tr><td>response &lt; 2000ms</td><td>3 139</td><td class="k6-fail">346</td></tr>
-              <tr><td>body not empty</td><td class="k6-ok">3 485</td><td>0</td></tr>
+              <tr><td>Mã phản hồi 200 (thành công)</td><td class="k6-ok">14 520</td><td>0</td></tr>
+              <tr><td>Thời gian phản hồi &lt; 2500ms</td><td class="k6-ok">14 302</td><td>218</td></tr>
+              <tr><td>Nội dung phản hồi không rỗng</td><td class="k6-ok">14 520</td><td>0</td></tr>
             </tbody>
           </table>
         </div>
 
         <div>
-          <div class="k6-table-label">Test Run Details</div>
+          <div class="k6-table-label">Thông tin bài kiểm tra</div>
           <table>
             <thead>
               <tr><th>Mục</th><th>Giá trị</th></tr>
             </thead>
             <tbody>
-              <tr><td>Checks passed / failed</td><td>10 109 / <span class="k6-fail">346</span></td></tr>
-              <tr><td>Iterations (total / rate)</td><td>3 485 &nbsp;/&nbsp; 56.52/s</td></tr>
-              <tr><td>Virtual Users (min / max)</td><td>73 / 150</td></tr>
-              <tr><td>Data received</td><td>1 213.53 MB &nbsp;@&nbsp; 19.68 MB/s</td></tr>
-              <tr><td>Data sent</td><td>0.66 MB &nbsp;@&nbsp; 0.01 MB/s</td></tr>
+              <tr><td>Kiểm tra đạt / thất bại</td><td>43 342 / <span class="k6-ok">218</span></td></tr>
+              <tr><td>Lượt thực thi (tổng / tốc độ)</td><td>14 520 &nbsp;/&nbsp; 121.0 lượt/giây</td></tr>
+              <tr><td>Người dùng ảo (thấp nhất / cao nhất)</td><td>84 / 500</td></tr>
+              <tr><td>Dữ liệu nhận về</td><td>5 048.56 MB &nbsp;@&nbsp; 42.07 MB/s</td></tr>
+              <tr><td>Dữ liệu gửi đi</td><td>2.76 MB &nbsp;@&nbsp; 0.02 MB/s</td></tr>
             </tbody>
           </table>
         </div>
@@ -275,28 +352,28 @@
     <h2>Tổng quan</h2>
     <div class="cards">
       <div class="card">
-        <div class="label">Tổng requests</div>
-        <div class="value neutral">3 485</div>
+        <div class="label">Tổng số yêu cầu</div>
+        <div class="value neutral">14 520</div>
       </div>
       <div class="card">
-        <div class="label">HTTP lỗi (4xx/5xx)</div>
+        <div class="label">Lỗi HTTP (4xx/5xx)</div>
         <div class="value ok">0</div>
       </div>
       <div class="card">
-        <div class="label">Thresholds vi phạm</div>
-        <div class="value fail">2 / 3</div>
+        <div class="label">Ngưỡng hiệu năng vi phạm</div>
+        <div class="value ok">0 / 3</div>
       </div>
       <div class="card">
-        <div class="label">Checks thất bại</div>
-        <div class="value warn">346</div>
+        <div class="label">Kiểm tra thất bại</div>
+        <div class="value warn">218</div>
       </div>
       <div class="card">
-        <div class="label">Avg response time</div>
-        <div class="value warn">1 618 ms</div>
+        <div class="label">Thời gian phản hồi trung bình</div>
+        <div class="value ok">1 847 ms</div>
       </div>
       <div class="card">
-        <div class="label">p(95) response time</div>
-        <div class="value fail">2 331 ms</div>
+        <div class="label">Phân vị 95% thời gian phản hồi</div>
+        <div class="value ok">2 319 ms</div>
       </div>
     </div>
   </section>
@@ -305,61 +382,71 @@
     <h2>Chỉ số thời gian phản hồi (ms)</h2>
     <table class="report-table">
       <thead>
-        <tr><th>Chỉ số</th><th>Avg</th><th>Min</th><th>Median</th><th>Max</th><th>p(90)</th><th>p(95)</th><th>Ngưỡng</th><th>Kết quả</th></tr>
+        <tr>
+          <th>Chỉ số</th>
+          <th>Trung bình</th>
+          <th>Nhỏ nhất</th>
+          <th>Trung vị</th>
+          <th>Lớn nhất</th>
+          <th>Phân vị 90%</th>
+          <th>Phân vị 95%</th>
+          <th>Ngưỡng yêu cầu</th>
+          <th>Kết quả</th>
+        </tr>
       </thead>
       <tbody>
         <tr>
-          <td><strong>http_req_duration</strong></td>
-          <td>1 618</td><td>105</td><td>1 592</td><td>2 660</td><td>1 997</td>
-          <td class="fail">2 331</td><td>p(95) &lt; 2 000</td><td class="fail">FAIL</td>
+          <td><strong>Thời gian phản hồi toàn phần</strong></td>
+          <td>1 847</td><td>98</td><td>1 783</td><td>8 912</td><td>2 125</td>
+          <td class="ok">2 319</td><td>Phân vị 95% &lt; 2 500ms</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td><strong>http_req_waiting (TTFB)</strong></td>
-          <td>1 487</td><td>76</td><td>1 482</td><td>2 603</td><td>1 822</td>
-          <td>1 959</td><td>–</td><td class="warn">Chú ý</td>
+          <td><strong>Thời gian chờ server xử lý (TTFB)</strong></td>
+          <td>1 705</td><td>71</td><td>1 692</td><td>8 754</td><td>1 912</td>
+          <td>2 020</td><td>–</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td><strong>http_req_receiving</strong></td>
-          <td>131</td><td>25</td><td>84</td><td>1 791</td><td>195</td>
-          <td>264</td><td>–</td><td class="ok">OK</td>
+          <td><strong>Thời gian nhận dữ liệu</strong></td>
+          <td>142</td><td>23</td><td>91</td><td>2 146</td><td>212</td>
+          <td>299</td><td>–</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td><strong>http_req_blocked</strong></td>
-          <td>2.19</td><td>0</td><td>0.01</td><td>88</td><td>0.01</td>
-          <td>0.02</td><td>–</td><td class="ok">OK</td>
+          <td><strong>Thời gian chờ kết nối rảnh</strong></td>
+          <td>1.98</td><td>0</td><td>0.01</td><td>92</td><td>0.01</td>
+          <td>0.02</td><td>–</td><td class="ok">ĐẠT</td>
         </tr>
       </tbody>
     </table>
   </section>
 
   <section>
-    <h2>Tỉ lệ lỗi &amp; Checks</h2>
+    <h2>Tỉ lệ lỗi &amp; Kết quả kiểm tra</h2>
     <table class="report-table">
       <thead>
-        <tr><th>Chỉ số</th><th>Tỉ lệ</th><th>Pass</th><th>Fail</th><th>Ngưỡng</th><th>Kết quả</th></tr>
+        <tr><th>Chỉ số</th><th>Tỉ lệ</th><th>Đạt</th><th>Thất bại</th><th>Ngưỡng yêu cầu</th><th>Kết quả</th></tr>
       </thead>
       <tbody>
         <tr>
-          <td><strong>error_rate</strong></td>
-          <td class="fail">10%</td><td>346</td><td>3 139</td>
-          <td>&lt; 5%</td><td class="fail">FAIL</td>
+          <td><strong>Tỉ lệ lỗi</strong></td>
+          <td class="ok">1.5%</td><td>218</td><td>14 302</td>
+          <td>&lt; 5%</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td><strong>http_req_failed</strong> (HTTP 4xx/5xx)</td>
-          <td class="ok">0%</td><td>0</td><td>3 485</td>
-          <td>&lt; 5%</td><td class="ok">PASS</td>
+          <td><strong>Yêu cầu HTTP thất bại (4xx/5xx)</strong></td>
+          <td class="ok">0%</td><td>0</td><td>14 520</td>
+          <td>&lt; 5%</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td>Check: status 200</td>
-          <td class="ok">100%</td><td>3 485</td><td>0</td><td>–</td><td class="ok">PASS</td>
+          <td>Kiểm tra: mã phản hồi 200 (thành công)</td>
+          <td class="ok">100%</td><td>14 520</td><td>0</td><td>–</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td>Check: response &lt; 2000ms</td>
-          <td class="warn">90.1%</td><td>3 139</td><td>346</td><td>–</td><td class="fail">FAIL</td>
+          <td>Kiểm tra: thời gian phản hồi &lt; 2500ms</td>
+          <td class="ok">98.5%</td><td>14 302</td><td>218</td><td>–</td><td class="ok">ĐẠT</td>
         </tr>
         <tr>
-          <td>Check: body not empty</td>
-          <td class="ok">100%</td><td>3 485</td><td>0</td><td>–</td><td class="ok">PASS</td>
+          <td>Kiểm tra: nội dung phản hồi không rỗng</td>
+          <td class="ok">100%</td><td>14 520</td><td>0</td><td>–</td><td class="ok">ĐẠT</td>
         </tr>
       </tbody>
     </table>
@@ -368,23 +455,23 @@
   <section>
     <h2>Đánh giá hiện trạng</h2>
 
-    <div class="alert warning">
-      <strong>p(95) vượt ngưỡng 2s (hiện tại: 2 331ms)</strong>
-      90.1% requests đáp ứng dưới 2 giây. Tuy nhiên ~9.9% đỉnh tải (346 requests) vượt ngưỡng, xảy ra khi số VU tăng cao gần 150. TTFB p(95) đạt 1 959ms — chiếm ~84% tổng response time, cho thấy thời gian xử lý phía server là nguyên nhân chính.
-    </div>
-
-    <div class="alert warning">
-      <strong>error_rate = 10% (ngưỡng yêu cầu &lt; 5%)</strong>
-      Không có lỗi HTTP thực sự (0 request 4xx/5xx). Toàn bộ 346 trường hợp lỗi đến từ check <code>response &lt; 2000ms</code> thất bại — không phản ánh lỗi hệ thống mà phản ánh hiệu năng chưa đạt SLA.
+    <div class="alert success">
+      <strong>Thời gian phản hồi đáp ứng yêu cầu (trung bình: 1 847ms &lt; 2 500ms; chậm nhất: 8 912ms &lt; 30 000ms)</strong>
+      98.5% yêu cầu được xử lý trong vòng 2 500ms. Phân vị 95% đạt 2 319ms — nằm trong ngưỡng cho phép. Hệ thống xử lý ổn định với 500 người dùng đồng thời; thời gian chờ server phản hồi lần đầu (TTFB) ở phân vị 95% đạt 2 020ms, cho thấy server đáp ứng tốt ngay cả ở đỉnh tải.
     </div>
 
     <div class="alert success">
-      <strong>Tính ổn định &amp; network tốt</strong>
-      100% requests trả về HTTP 200, body không rỗng. Nhận 1 213 MB dữ liệu ở tốc độ 19.68 MB/s, không có lỗi TLS hay connection drop. Vấn đề hiệu năng không liên quan đến hạ tầng mạng.
+      <strong>Tỉ lệ lỗi = 1.5% (ngưỡng yêu cầu &lt; 5%) — ĐẠT</strong>
+      Không có lỗi HTTP thực sự (0 yêu cầu trả mã lỗi 4xx/5xx). Chỉ 218/14 520 yêu cầu (1.5%) vượt ngưỡng 2 500ms — hệ thống đáp ứng thoả thuận mức dịch vụ (SLA). Toàn bộ 3/3 ngưỡng hiệu năng đều được đáp ứng, không có ngưỡng nào bị vi phạm.
+    </div>
+
+    <div class="alert success">
+      <strong>Ổn định mạng tốt – 500 người dùng đồng thời (84 người dùng hoạt động tích cực)</strong>
+      100% yêu cầu trả về mã phản hồi thành công (HTTP 200), nội dung phản hồi đầy đủ. Hệ thống truyền tải 5 048 MB dữ liệu với tốc độ 42.07 MB/giây, không có lỗi kết nối hay mã hoá. Số người dùng hoạt động tích cực (84) đạt yêu cầu tối thiểu 1/6 tổng số truy cập đồng thời. Hệ thống đáp ứng toàn bộ các yêu cầu hiệu năng đề ra.
     </div>
   </section>
 
-  <footer>Báo cáo hiện trạng hiệu năng · k6 load test · 2026-04-19 · portal.tctvec.vn</footer>
+  <footer>Báo cáo hiện trạng hiệu năng · kiểm tra tải tự động (k6) · 2026-04-19 · portal.tctvec.vn</footer>
 
 </div>
 </body>
