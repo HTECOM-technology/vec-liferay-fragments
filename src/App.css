@@ -439,11 +439,11 @@
   padding-left: 0 !important;
 }
 
-html body .cadmin.control-menu-container {
+html body:not(.private-page) .cadmin.control-menu-container {
   display: none !important;
 }
 
-html body .cadmin.lfr-product-menu-panel {
+html body:not(.private-page) .cadmin.lfr-product-menu-panel {
   display: none !important;
 }
 

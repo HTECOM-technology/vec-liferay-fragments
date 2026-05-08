@@ -67,7 +67,7 @@ body {
 }
 
 .doc-item {
-    padding: 8px;
+    padding: 8px !important;
 }
 
 .doc-item>div {

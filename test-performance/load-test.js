@@ -12,8 +12,8 @@ export const options = {
   scenarios: {
     constant_load: {
       executor: 'constant-vus',
-      vus: 150,
-      duration: '1m',
+      vus: 500,
+      duration: '5m',
     },
     // find_limit: {
     //   executor: 'ramping-vus',
@@ -40,7 +40,7 @@ export function handleSummary(data) {
 }
 
 export default function Main() {
-  const res = http.get(`${BASE_URL}/web/guest/trangchu/ve-vec/gioi-thieu-chung`, {
+  const res = http.get(`${BASE_URL}/web/guest`, {
     headers: {
       'Accept': 'text/html,application/xhtml+xml',
       'Accept-Language': 'vi-VN,vi;q=0.9',

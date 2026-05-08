@@ -279,7 +279,7 @@ export default function DashboardDnD() {
   const [flatOrder, setFlatOrder] = useState(() => loadState().flatOrder);
   const [hiddenIds, setHiddenIds] = useState(() => loadState().hiddenIds);
   const [activeId, setActiveId] = useState(null);
-  const [isDragEnabled, setIsDragEnabled] = useState(true);
+  const [isDragEnabled, setIsDragEnabled] = useState(false);
 
   // Ref để dùng hiddenIds bên trong setFlatOrder callbacks (tránh stale closure)
   const hiddenIdsRef = useRef(hiddenIds);
