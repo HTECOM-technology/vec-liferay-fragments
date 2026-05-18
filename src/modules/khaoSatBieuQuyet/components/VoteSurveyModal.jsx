@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Modal } from "antd";
+import { Alert, Modal, message } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import styled from "styled-components";
 
@@ -61,7 +61,8 @@ const OptionItem = styled.div`
     background: ${(props) => (props.$selected ? "rgba(229, 247, 255, 1)" : "rgba(248, 249, 250, 1)")};
     border: 1px solid ${(props) => (props.$selected ? "rgba(0, 144, 207, 0.3)" : "transparent")};
     border-radius: 4px;
-    cursor: pointer;
+    cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
+    opacity: ${(props) => (props.$disabled ? 0.72 : 1)};
     transition: all 0.2s;
 
     &:hover {
@@ -166,6 +167,8 @@ function VoteSurveyModal({
   onClose = () => { },
   onSubmit = () => { },
   allowMultiple = false,
+  disabledReason = "",
+  disabledText = "Đã kết thúc",
   submitting = false,
 }) {
   const [selectedOptions, setSelectedOptions] = useState([]);
@@ -178,6 +181,10 @@ function VoteSurveyModal({
   }, [visible, survey?.id]);
 
   const handleOptionClick = useCallback((optionId) => {
+    if (disabledReason) {
+      return;
+    }
+
     if (allowMultiple) {
       setSelectedOptions((prev) =>
         prev.includes(optionId) ? prev.filter((id) => id !== optionId) : [...prev, optionId]
@@ -185,13 +192,18 @@ function VoteSurveyModal({
     } else {
       setSelectedOptions([optionId]);
     }
-  }, [allowMultiple]);
+  }, [allowMultiple, disabledReason]);
 
   const handleSubmit = useCallback(() => {
-    if (selectedOptions.length > 0) {
+    if (!selectedOptions.length) {
+      message.warning("Vui lòng chọn phương án bình chọn.");
+      return;
+    }
+
+    if (!disabledReason && selectedOptions.length > 0) {
       onSubmit({ surveyId: survey?.id, selectedOptions });
     }
-  }, [selectedOptions, survey?.id, onSubmit]);
+  }, [disabledReason, selectedOptions, survey?.id, onSubmit]);
 
   const handleClose = useCallback(() => {
     setSelectedOptions([]);
@@ -199,8 +211,6 @@ function VoteSurveyModal({
   }, [onClose]);
 
   if (!survey) return null;
-
-  const hasSelection = selectedOptions.length > 0;
 
   return (
     <Modal open={visible} onCancel={handleClose} footer={null} width={740} closable={false} centered>
@@ -213,11 +223,21 @@ function VoteSurveyModal({
       </ModalHeader>
 
       <ModalBody>
+        {disabledReason && (
+          <Alert
+            showIcon
+            type="warning"
+            message={disabledReason}
+            style={{ marginBottom: 12 }}
+          />
+        )}
+
         <OptionsContainer>
           {survey.options?.map((option) => (
             <OptionItem
               key={option.id}
               $selected={selectedOptions.includes(option.id)}
+              $disabled={Boolean(disabledReason)}
               onClick={() => handleOptionClick(option.id)}
             >
               <OptionContent>
@@ -232,8 +252,8 @@ function VoteSurveyModal({
           ))}
         </OptionsContainer>
 
-        <SubmitButton onClick={handleSubmit} disabled={!hasSelection || submitting}>
-          {submitting ? "Đang gửi..." : "Bình chọn"}
+        <SubmitButton onClick={handleSubmit} disabled={Boolean(disabledReason) || submitting}>
+          {disabledReason ? disabledText : submitting ? "Đang gửi..." : "Bình chọn"}
         </SubmitButton>
       </ModalBody>
     </Modal>

@@ -46,6 +46,9 @@ public class SurveyResource {
 		@Context HttpServletRequest request,
 		@QueryParam("search") String search,
 		@QueryParam("status") String status,
+		@QueryParam("filter") @DefaultValue("all") String filter,
+		@QueryParam("state") @DefaultValue("all") String state,
+		@QueryParam("orderBy") @DefaultValue("desc") String orderBy,
 		@QueryParam("page") @DefaultValue("1") int page,
 		@QueryParam("pageSize") @DefaultValue("12") int pageSize) {
 
@@ -60,6 +63,9 @@ public class SurveyResource {
 
 		boolean hasSearch = search != null && !search.trim().isEmpty();
 		boolean hasStatus = status != null && !status.trim().isEmpty();
+		String normalizedFilter = _normalizeSurveyFilter(filter);
+		String normalizedState = _normalizeSurveyState(state);
+		String order = "asc".equalsIgnoreCase(orderBy) ? "ASC" : "DESC";
 
 		String where = "WHERE s.status != 'DELETED' ";
 
@@ -71,18 +77,54 @@ public class SurveyResource {
 			where += "AND s.status = ? ";
 		}
 
+		if ("active".equals(normalizedState)) {
+			where += "AND s.status = 'ACTIVE' " +
+				"AND (s.endDate IS NULL OR s.endDate >= NOW(6)) ";
+		}
+		else if ("expired".equals(normalizedState)) {
+			where += "AND (s.status != 'ACTIVE' " +
+				"OR (s.endDate IS NOT NULL AND s.endDate < NOW(6))) ";
+		}
+
+		if ("my_surveys".equals(normalizedFilter)) {
+			where += "AND s.userId = ? ";
+		}
+		else if ("invited".equals(normalizedFilter)) {
+			where +=
+				"AND EXISTS (" +
+				" SELECT 1 FROM VEC_InternalSurveyParticipant p " +
+				" WHERE p.surveyId = s.surveyId AND (" +
+				"  p.scopeType = 'ALL' OR " +
+				"  (p.scopeType = 'USER' AND p.userId = ?) OR " +
+				"  (p.scopeType IN ('ORGANIZATION', 'DEPARTMENT') AND EXISTS (" +
+				"   SELECT 1 FROM Users_Orgs uo LEFT JOIN Organization_ o " +
+				"   ON uo.organizationId = o.organizationId " +
+				"   WHERE uo.userId = ? AND (" +
+				"    uo.organizationId = p.organizationId OR " +
+				"    uo.organizationId = p.departmentId OR " +
+				"    o.parentOrganizationId = p.organizationId" +
+				"   )" +
+				"  ))" +
+				" )" +
+				") ";
+		}
+
 		try {
 			Connection con = DataAccess.getConnection();
 
 			try {
-				int total = _countSurveys(con, where, search, status, hasSearch, hasStatus);
+				int total = _countSurveys(
+					con, where, search, status, hasSearch, hasStatus,
+					normalizedFilter, userId);
 				JSONArray items = JSONFactoryUtil.createJSONArray();
 				PreparedStatement ps = con.prepareStatement(
 					"SELECT s.* FROM VEC_InternalSurvey s " + where +
-					"ORDER BY s.createDate DESC LIMIT ? OFFSET ?");
+					"ORDER BY s.createDate " + order + " LIMIT ? OFFSET ?");
 
 				try {
-					int idx = _bindSurveyFilters(ps, search, status, hasSearch, hasStatus);
+					int idx = _bindSurveyFilters(
+						ps, search, status, hasSearch, hasStatus,
+						normalizedFilter, userId);
 					ps.setInt(idx++, pageSize);
 					ps.setInt(idx, (page - 1) * pageSize);
 
@@ -269,6 +311,14 @@ public class SurveyResource {
 					return _notFound("Survey not found");
 				}
 
+				if (!_isSurveyOwner(con, surveyId, userId)) {
+					return _forbidden("Bạn không có quyền chỉnh sửa cuộc bình chọn này.");
+				}
+
+				if (_hasAnyVote(con, surveyId)) {
+					return _badRequest("Không thể chỉnh sửa cuộc bình chọn đã có người tham gia.");
+				}
+
 				con.setAutoCommit(false);
 				_updateSurvey(con, surveyId, payload, title);
 				_replaceOptions(con, surveyId, options);
@@ -315,6 +365,18 @@ public class SurveyResource {
 			Connection con = DataAccess.getConnection();
 
 			try {
+				if (!_surveyExists(con, surveyId)) {
+					return _notFound("Survey not found");
+				}
+
+				if (!_isSurveyOwner(con, surveyId, userId)) {
+					return _forbidden("Bạn không có quyền xóa cuộc bình chọn này.");
+				}
+
+				if (_hasAnyVote(con, surveyId)) {
+					return _badRequest("Không thể xóa cuộc bình chọn đã có người tham gia.");
+				}
+
 				PreparedStatement ps = con.prepareStatement(
 					"UPDATE VEC_InternalSurvey SET status = 'DELETED', modifiedDate = ? " +
 					"WHERE surveyId = ?");
@@ -379,15 +441,16 @@ public class SurveyResource {
 					return _notFound("Survey not found");
 				}
 
-				if (!_isOpenSurvey(survey)) {
-					return _badRequest("Survey is closed");
+				String unavailableReason = _getUnavailableVoteReason(survey);
+
+				if (unavailableReason != null) {
+					return _badRequest(unavailableReason);
 				}
 
-				if (!_canParticipate(con, surveyId, userId)) {
-					return _cors(Response.status(Response.Status.FORBIDDEN)
-						.type(MediaType.APPLICATION_JSON)
-						.entity("{\"error\":\"Forbidden\"}")
-					).build();
+				if (!_canParticipate(con, surveyId, userId) &&
+					!_isSurveyOwner(con, surveyId, userId)) {
+
+					return _forbidden("Bạn không nằm trong danh sách người tham gia bình chọn này.");
 				}
 
 				if (!survey.getBoolean("multipleChoice") && optionIds.length() > 1) {
@@ -603,7 +666,7 @@ public class SurveyResource {
 
 	private int _bindSurveyFilters(
 			PreparedStatement ps, String search, String status,
-			boolean hasSearch, boolean hasStatus)
+			boolean hasSearch, boolean hasStatus, String filter, long userId)
 		throws Exception {
 
 		int idx = 1;
@@ -616,7 +679,31 @@ public class SurveyResource {
 			ps.setString(idx++, status.trim());
 		}
 
+		if ("my_surveys".equals(filter)) {
+			ps.setLong(idx++, userId);
+		}
+		else if ("invited".equals(filter)) {
+			ps.setLong(idx++, userId);
+			ps.setLong(idx++, userId);
+		}
+
 		return idx;
+	}
+
+	private String _normalizeSurveyFilter(String filter) {
+		if ("invited".equals(filter) || "my_surveys".equals(filter)) {
+			return filter;
+		}
+
+		return "all";
+	}
+
+	private String _normalizeSurveyState(String state) {
+		if ("active".equals(state) || "expired".equals(state)) {
+			return state;
+		}
+
+		return "all";
 	}
 
 	private String _buildUserOrganizationFilter(long organizationId, long departmentId) {
@@ -672,16 +759,42 @@ public class SurveyResource {
 		}
 	}
 
+	private boolean _isSurveyOwner(Connection con, long surveyId, long userId)
+		throws Exception {
+
+		PreparedStatement ps = con.prepareStatement(
+			"SELECT COUNT(*) FROM VEC_InternalSurvey " +
+			"WHERE surveyId = ? AND userId = ? AND status != 'DELETED'");
+
+		try {
+			ps.setLong(1, surveyId);
+			ps.setLong(2, userId);
+
+			ResultSet rs = ps.executeQuery();
+
+			try {
+				return rs.next() && rs.getInt(1) > 0;
+			}
+			finally {
+				DataAccess.cleanUp(rs);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(ps);
+		}
+	}
+
 	private int _countSurveys(
 			Connection con, String where, String search, String status,
-			boolean hasSearch, boolean hasStatus)
+			boolean hasSearch, boolean hasStatus, String filter, long userId)
 		throws Exception {
 
 		PreparedStatement ps = con.prepareStatement(
 			"SELECT COUNT(*) FROM VEC_InternalSurvey s " + where);
 
 		try {
-			_bindSurveyFilters(ps, search, status, hasSearch, hasStatus);
+			_bindSurveyFilters(
+				ps, search, status, hasSearch, hasStatus, filter, userId);
 
 			ResultSet rs = ps.executeQuery();
 
@@ -817,6 +930,10 @@ public class SurveyResource {
 
 	private long _getSignedInUserId(HttpServletRequest request) {
 		try {
+			if (_isLocalDevReferer(request)) {
+				return _DEV_USER_ID;
+			}
+
 			User requestUser = null;
 
 			if (request != null) {
@@ -847,16 +964,40 @@ public class SurveyResource {
 		}
 	}
 
-	private boolean _isOpenSurvey(JSONObject survey) {
-		if (!"ACTIVE".equalsIgnoreCase(survey.getString("status"))) {
+	private boolean _isLocalDevReferer(HttpServletRequest request) {
+		if (request == null) {
 			return false;
+		}
+
+		String referer = request.getHeader("Referer");
+
+		return referer != null &&
+			(referer.equals("http://localhost:3000") ||
+				referer.startsWith("http://localhost:3000/"));
+	}
+
+	private boolean _isOpenSurvey(JSONObject survey) {
+		return _getUnavailableVoteReason(survey) == null;
+	}
+
+	private String _getUnavailableVoteReason(JSONObject survey) {
+		if (!"ACTIVE".equalsIgnoreCase(survey.getString("status"))) {
+			return "Cuộc bình chọn không còn hoạt động.";
 		}
 
 		long now = System.currentTimeMillis();
 		long start = survey.getLong("startDateMillis");
 		long end = survey.getLong("endDateMillis");
 
-		return (start <= 0 || now >= start) && (end <= 0 || now <= end);
+		if (start > 0 && now < start) {
+			return "Cuộc bình chọn chưa bắt đầu.";
+		}
+
+		if (end > 0 && now > end) {
+			return "Cuộc bình chọn đã kết thúc.";
+		}
+
+		return null;
 	}
 
 	private long _insertSurvey(
@@ -1174,10 +1315,24 @@ public class SurveyResource {
 		item.put("endDate", _format(rs.getTimestamp("endDate")));
 		item.put("createDate", _format(rs.getTimestamp("createDate")));
 		item.put("modifiedDate", _format(rs.getTimestamp("modifiedDate")));
+		item.put(
+			"votingOpen",
+			_isVotingOpen(
+				rs.getString("status"), rs.getTimestamp("startDate"),
+				rs.getTimestamp("endDate")));
+		item.put(
+			"voteUnavailableReason",
+			_getUnavailableVoteReason(
+				rs.getString("status"), rs.getTimestamp("startDate"),
+				rs.getTimestamp("endDate")));
 		item.put("options", _getOptions(con, surveyId));
 		item.put("participants", _getParticipants(con, surveyId));
 		item.put("hasVoted", _hasVoted(con, surveyId, userId));
-		item.put("canParticipate", _canParticipate(con, surveyId, userId));
+		item.put("votedOptions", _getVotedOptions(con, surveyId, userId));
+		item.put(
+			"canParticipate",
+			_canParticipate(con, surveyId, userId) ||
+				_isSurveyOwner(con, surveyId, userId));
 
 		return item;
 	}
@@ -1252,6 +1407,36 @@ public class SurveyResource {
 		}
 	}
 
+	private JSONArray _getVotedOptions(Connection con, long surveyId, long userId)
+		throws Exception {
+
+		PreparedStatement ps = con.prepareStatement(
+			"SELECT optionId FROM VEC_InternalSurveyVote " +
+			"WHERE surveyId = ? AND userId = ? ORDER BY voteId ASC");
+
+		try {
+			ps.setLong(1, surveyId);
+			ps.setLong(2, userId);
+
+			ResultSet rs = ps.executeQuery();
+			JSONArray optionIds = JSONFactoryUtil.createJSONArray();
+
+			try {
+				while (rs.next()) {
+					optionIds.put(rs.getLong("optionId"));
+				}
+			}
+			finally {
+				DataAccess.cleanUp(rs);
+			}
+
+			return optionIds;
+		}
+		finally {
+			DataAccess.cleanUp(ps);
+		}
+	}
+
 	private boolean _hasVoted(Connection con, long surveyId, long userId)
 		throws Exception {
 
@@ -1261,6 +1446,51 @@ public class SurveyResource {
 		try {
 			ps.setLong(1, surveyId);
 			ps.setLong(2, userId);
+
+			ResultSet rs = ps.executeQuery();
+
+			try {
+				return rs.next() && rs.getInt(1) > 0;
+			}
+			finally {
+				DataAccess.cleanUp(rs);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(ps);
+		}
+	}
+
+	private boolean _isVotingOpen(String status, Timestamp startDate, Timestamp endDate) {
+		return _getUnavailableVoteReason(status, startDate, endDate) == null;
+	}
+
+	private String _getUnavailableVoteReason(
+		String status, Timestamp startDate, Timestamp endDate) {
+
+		if (!"ACTIVE".equalsIgnoreCase(status)) {
+			return "Cuộc bình chọn không còn hoạt động.";
+		}
+
+		long now = System.currentTimeMillis();
+
+		if (startDate != null && now < startDate.getTime()) {
+			return "Cuộc bình chọn chưa bắt đầu.";
+		}
+
+		if (endDate != null && now > endDate.getTime()) {
+			return "Cuộc bình chọn đã kết thúc.";
+		}
+
+		return null;
+	}
+
+	private boolean _hasAnyVote(Connection con, long surveyId) throws Exception {
+		PreparedStatement ps = con.prepareStatement(
+			"SELECT COUNT(*) FROM VEC_InternalSurveyVote WHERE surveyId = ?");
+
+		try {
+			ps.setLong(1, surveyId);
 
 			ResultSet rs = ps.executeQuery();
 
@@ -1316,6 +1546,13 @@ public class SurveyResource {
 		).build();
 	}
 
+	private Response _forbidden(String message) {
+		return _cors(Response.status(Response.Status.FORBIDDEN)
+			.type(MediaType.APPLICATION_JSON)
+			.entity("{\"error\":\"" + message + "\"}")
+		).build();
+	}
+
 	private Response.ResponseBuilder _cors(Response.ResponseBuilder builder) {
 		return builder
 			.header("Access-Control-Allow-Origin", "*")
@@ -1330,14 +1567,14 @@ public class SurveyResource {
 	private Response _serverError() {
 		return _cors(Response.serverError()
 			.type(MediaType.APPLICATION_JSON)
-			.entity("{\"error\":\"Internal server error\"}")
+			.entity("{\"error\":\"Máy chủ đang gặp lỗi. Vui lòng thử lại sau.\"}")
 		).build();
 	}
 
 	private Response _unauthorized() {
 		return _cors(Response.status(Response.Status.UNAUTHORIZED)
 			.type(MediaType.APPLICATION_JSON)
-			.entity("{\"error\":\"Unauthorized\"}")
+			.entity("{\"error\":\"Bạn cần đăng nhập để sử dụng chức năng này.\"}")
 		).build();
 	}
 
@@ -1347,6 +1584,8 @@ public class SurveyResource {
 		long userId;
 		String userName = "";
 	}
+
+	private static final long _DEV_USER_ID = 1;
 
 	private static final Log _log = LogFactoryUtil.getLog(SurveyResource.class);
 

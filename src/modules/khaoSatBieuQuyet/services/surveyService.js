@@ -1,105 +1,169 @@
-import apiClient from "../../../common/apiClient";
+import surveyApi from "../apiService";
+import { SURVEY_STATUS } from "../components/constants";
 
-const USE_FIREBASE = process.env.REACT_APP_USE_FIREBASE === "true";
+function getCurrentUserId() {
+  if (typeof window !== "undefined" && window.location?.origin === "http://localhost:3000") {
+    return 1;
+  }
 
-function toArray(data) {
-  if (!data) {
-    return [];
+  if (typeof window === "undefined" || !window.Liferay?.ThemeDisplay) {
+    return null;
   }
-  if (Array.isArray(data)) {
-    return data;
-  }
-  return Object.entries(data).map(([key, value]) => ({ ...value, id: value.id ?? key }));
+
+  return Number(window.Liferay.ThemeDisplay.getUserId());
 }
 
-function sortItems(items, sort) {
-  const copy = [...items];
-  if (sort === "oldest") {
-    copy.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  } else {
-    copy.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }
-  return copy;
+function isExpired(endDate) {
+  return Boolean(endDate) && new Date(endDate).getTime() < Date.now();
 }
 
-function paginate(items, page, pageSize) {
-  const start = (page - 1) * pageSize;
-  return items.slice(start, start + pageSize);
-}
-
-export async function getSurveys({ filter, sort = "newest", page = 1, pageSize = 12 } = {}) {
-  if (USE_FIREBASE) {
-    const { data } = await apiClient.get("/surveys");
-    let items = toArray(data);
-    items = sortItems(items, sort);
-    const total = items.length;
-    return { items: paginate(items, page, pageSize), total };
+function normalizeStatus(survey) {
+  if (typeof survey.votingOpen === "boolean") {
+    return survey.votingOpen ? SURVEY_STATUS.OPEN : SURVEY_STATUS.CLOSED;
   }
 
-  const { data } = await apiClient.get("/surveys", {
-    params: { filter, sort, page, pageSize },
+  if (String(survey.status || "").toUpperCase() !== "ACTIVE") {
+    return SURVEY_STATUS.CLOSED;
+  }
+
+  return isExpired(survey.endDate) ? SURVEY_STATUS.CLOSED : SURVEY_STATUS.OPEN;
+}
+
+function normalizeOption(option) {
+  return {
+    id: option.optionId,
+    name: option.optionText,
+    votes: Number(option.voteCount || 0)
+  };
+}
+
+function normalizeSurvey(survey) {
+  const options = (survey.options || []).map(normalizeOption);
+  const currentUserId = getCurrentUserId();
+  const voteUnavailableReason = survey.voteUnavailableReason || "";
+
+  return {
+    ...survey,
+    id: survey.surveyId,
+    title: survey.title || "",
+    status: normalizeStatus(survey),
+    options,
+    totalVotes: options.reduce((sum, option) => sum + option.votes, 0),
+    createdAt: survey.createDate,
+    allowMultiple: Boolean(survey.multipleChoice),
+    hasVoted: Boolean(survey.hasVoted),
+    canParticipate: Boolean(survey.canParticipate),
+    isOwner: currentUserId ? Number(survey.userId) === currentUserId : false,
+    voteUnavailableReason,
+    voteDisabledText: voteUnavailableReason.includes("chưa bắt đầu") ? "Chưa bắt đầu" : "Đã kết thúc",
+    votedOptions: survey.votedOptions || []
+  };
+}
+
+function normalizeOrganization(item) {
+  return {
+    ...item,
+    value: item.organizationId,
+    label: item.name
+  };
+}
+
+function normalizeUser(item) {
+  return {
+    ...item,
+    value: item.userId,
+    label: item.fullName || item.screenName || item.emailAddress
+  };
+}
+
+function formatDateTime(date, time) {
+  if (!date) {
+    return "";
+  }
+
+  const datePart = date.format ? date.format("YYYY-MM-DD") : String(date).slice(0, 10);
+  const timePart = time?.format ? time.format("HH:mm:ss") : "00:00:00";
+
+  return `${datePart} ${timePart}`;
+}
+
+function toSurveyPayload(formData) {
+  const participants = formData.participants || {};
+  const deadline = formData.deadline;
+  const unit = participants.unit;
+  const department = participants.department;
+  const members = participants.members || [];
+
+  return {
+    title: formData.title,
+    description: formData.description || "",
+    multipleChoice: Boolean(formData.allowMultiple),
+    status: "ACTIVE",
+    startDate: deadline ? formatDateTime(deadline.startDate, deadline.startTime) : "",
+    endDate: deadline ? formatDateTime(deadline.endDate, deadline.endTime) : "",
+    allParticipants: Boolean(participants.selectAll),
+    organizationIds: !participants.selectAll && unit ? [unit] : [],
+    departmentIds: !participants.selectAll && department ? [department] : [],
+    userIds: !participants.selectAll ? members : [],
+    options: (formData.options || []).filter((option) => option.trim() !== "")
+  };
+}
+
+export async function getSurveys({
+  filter,
+  sort = "newest",
+  page = 1,
+  pageSize = 12,
+  search = "",
+  status = ""
+} = {}) {
+  const state = sort === "active" || sort === "expired" ? sort : "all";
+  const orderBy = sort === "oldest" ? "asc" : "desc";
+  const data = await surveyApi.getSurveys({
+    page,
+    pageSize,
+    search,
+    status,
+    filter,
+    state,
+    orderBy
   });
-  return data;
+  let items = (data.items || []).map(normalizeSurvey);
+
+  return {
+    ...data,
+    items,
+    total: data.total ?? items.length
+  };
 }
 
 export async function getSurveyById(id) {
-  if (USE_FIREBASE) {
-    const { data } = await apiClient.get(`/surveys/${id}`);
-    return data;
-  }
-  const { data } = await apiClient.get(`/surveys/${id}`);
-  return data;
+  const data = await surveyApi.getSurvey(id);
+  return normalizeSurvey(data);
 }
 
 export async function createSurvey(surveyData) {
-  const payload = {
-    ...surveyData,
-    status: "open",
-    totalVotes: 0,
-    hasVoted: false,
-    createdAt: new Date().toISOString(),
-    options: surveyData.options.map((name, i) => ({
-      id: `opt-${Date.now()}-${i}`,
-      name,
-      votes: 0,
-    })),
-  };
+  return surveyApi.createSurvey(toSurveyPayload(surveyData));
+}
 
-  if (USE_FIREBASE) {
-    const { data } = await apiClient.post("/surveys", payload);
-    return data;
-  }
+export async function updateSurvey(surveyId, surveyData) {
+  return surveyApi.updateSurvey(surveyId, toSurveyPayload(surveyData));
+}
 
-  const { data } = await apiClient.post("/surveys", payload);
-  return data;
+export async function deleteSurvey(surveyId) {
+  return surveyApi.deleteSurvey(surveyId);
 }
 
 export async function submitVote(surveyId, selectedOptionIds) {
-  if (USE_FIREBASE) {
-    const { data: survey } = await apiClient.get(`/surveys/${surveyId}`);
-    if (!survey) throw new Error(`Survey ${surveyId} not found`);
+  return surveyApi.vote(surveyId, selectedOptionIds);
+}
 
-    const previousVotes = survey.votedOptions ?? [];
+export async function getOrganizations(params = {}) {
+  const data = await surveyApi.getOrganizations(params);
+  return (data.items || []).map(normalizeOrganization);
+}
 
-    const updated = {
-      ...survey,
-      hasVoted: true,
-      votedOptions: selectedOptionIds,
-      options: survey.options.map((opt) => {
-        let votes = opt.votes;
-        if (previousVotes.includes(opt.id)) votes -= 1;
-        if (selectedOptionIds.includes(opt.id)) votes += 1;
-        return { ...opt, votes: Math.max(0, votes) };
-      }),
-    };
-    updated.totalVotes = updated.options.reduce((s, o) => s + o.votes, 0);
-
-    await apiClient.put(`/surveys/${surveyId}`, updated);
-    return updated;
-  }
-
-  const { data } = await apiClient.post(`/surveys/${surveyId}/votes`, {
-    optionIds: selectedOptionIds,
-  });
-  return data;
+export async function getUsers(params = {}) {
+  const data = await surveyApi.getUsers(params);
+  return (data.items || []).map(normalizeUser);
 }

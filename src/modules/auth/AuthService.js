@@ -1,3 +1,5 @@
+import { baseApiUrl } from "@/utils";
+
 /**
  * Authentication Service
  * Handles all authentication related operations
@@ -12,33 +14,32 @@ class AuthService {
    * @returns {Promise<{success: boolean, error?: string, user?: Object}>}
    */
   async login(username, password, rememberMe = false) {
+    const baseUrl = baseApiUrl();
     try {
-      // Liferay expects application/x-www-form-urlencoded, not multipart/form-data
       const params = new URLSearchParams();
       params.append('login', username.trim());
       params.append('password', password);
       params.append('rememberMe', rememberMe ? 'true' : 'false');
-      params.append('redirect', '/web/guest');
 
-      // CSRF token (p_auth) - required by Liferay when auth.token.check.enabled=true
       const authToken = this.getAuthToken();
       if (authToken) {
         params.append('p_auth', authToken);
       }
 
-      const redirectPath = encodeURIComponent('/web/guest');
-      const response = await fetch(`/c/portal/login?redirect=${redirectPath}`, {
+      const redirectPath = encodeURIComponent('/web/guest/intranet');
+      const apiLoginUrl = `/web/guest/trangchu?redirectUrl=${redirectPath}&redirect=${redirectPath}&p_p_id=com_liferay_login_web_portlet_LoginPortlet&p_p_lifecycle=1&p_p_state=maximized&p_p_mode=view&_com_liferay_login_web_portlet_LoginPortlet_javax.portlet.action=%2Flogin%2Flogin&_com_liferay_login_web_portlet_LoginPortlet_mvcRenderCommandName=%2Flogin%2Flogin&p_auth=Ri5BldX9`;
+      const response = await fetch(`${baseUrl}${apiLoginUrl}`, {
         method: 'POST',
         body: params.toString(),
         credentials: 'include',
         redirect: 'follow',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'x-csrf-token': authToken
         }
       });
 
-      // Liferay: success = redirect away from login (response.url no longer login page)
       const responseUrl = response.url || '';
       const isLoginPage = /\/c\/portal\/login\/?(\?|$)/i.test(responseUrl) || /\/login\/?(\?|$)/i.test(responseUrl);
 
@@ -50,7 +51,6 @@ class AuthService {
         };
       }
 
-      // 200 but still on login page = invalid credentials or server error in body
       if (response.ok && isLoginPage) {
         let errorMessage = 'Thông tin đăng nhập không chính xác';
         try {
@@ -145,7 +145,7 @@ class AuthService {
     if (typeof window !== 'undefined' && window.Liferay && window.Liferay.authToken) {
       return window.Liferay.authToken;
     }
-    return null;
+    return 'Ri5BldX9';
   }
 
   /**
@@ -189,5 +189,5 @@ class AuthService {
   }
 }
 
-// Export singleton instance
-export default new AuthService();
+const authService = new AuthService();
+export default authService;

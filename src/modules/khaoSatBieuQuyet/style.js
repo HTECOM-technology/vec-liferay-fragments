@@ -110,7 +110,7 @@ export const CardsGrid = styled.div`
     gap: 16px;
     margin-bottom: 16px;
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1360px) {
         grid-template-columns: repeat(3, 1fr);
     }
 
@@ -130,6 +130,9 @@ export const SurveyCard = styled.div`
     overflow: hidden;
     background: #fff;
     transition: box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 
     &:hover {
         box-shadow: 0 2px 8px rgba(0, 144, 207, 0.15);
@@ -231,10 +234,11 @@ export const CardFooter = styled.div`
     border-top: 1px solid rgba(229, 231, 235, 1);
     display: flex;
     justify-content: center;
+    gap: 8px;
 `;
 
 export const VoteButton = styled.button`
-    padding: 12px 25px;
+    padding: 7px 12px;
     background: ${(props) => (props.$disabled ? "rgba(239, 239, 239, 1)" : "rgba(229, 247, 255, 1)")};
     color: ${(props) => (props.$disabled ? "rgba(107, 114, 128, 1)" : "rgba(0, 144, 207, 1)")};
     border: 1px solid ${(props) => (props.$disabled ? "rgba(239, 239, 239, 1)" : "rgba(0, 144, 207, 0.2)")};
@@ -246,6 +250,22 @@ export const VoteButton = styled.button`
 
     &:hover:not(:disabled) {
         background: ${(props) => (props.$disabled ? "rgba(239, 239, 239, 1)" : "rgba(0, 144, 207, 0.2)")};
+    }
+`;
+
+export const EditButton = styled(VoteButton)`
+    background: #fff;
+    color: rgba(30, 30, 30, 0.78);
+    border-color: rgba(209, 213, 220, 1);
+`;
+
+export const DeleteButton = styled(VoteButton)`
+    background: #fff;
+    color: rgba(220, 38, 38, 1);
+    border-color: rgba(252, 165, 165, 1);
+
+    &:hover:not(:disabled) {
+        background: rgba(254, 242, 242, 1);
     }
 `;
 

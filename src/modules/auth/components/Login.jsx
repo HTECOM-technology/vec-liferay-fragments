@@ -15,7 +15,7 @@ import {
 } from '../style';
 
 // Import images
-import logoVec from '../../../assets/layout/logo.png';
+import logoVec from '@/assets/layout/logo.png';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -113,7 +113,7 @@ const Login = () => {
       <LoginBox>
         {/* Left Section - Background Image */}
         <LeftSection>
-          <BackgroundImage src="/documents/d/intranet/image-login" alt="VEC Highway" />
+          <BackgroundImage src="/login_bg.jpg" alt="VEC Highway" />
         </LeftSection>
 
         {/* Right Section - Login Form */}

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Select, Input, message } from "antd";
+import { Select, Input, Modal, message } from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { SurveyCard, CreateVoteModal, VoteSurveyModal, FILTER_TYPES, SORT_OPTIONS } from "./components";
-import { getSurveys, createSurvey, submitVote } from "./services/surveyService";
+import { SurveyCard, CreateVoteModal, VoteSurveyModal, FILTER_TYPES, SORT_OPTIONS, SURVEY_STATUS } from "./components";
+import { getSurveys, getSurveyById, createSurvey, updateSurvey, deleteSurvey, submitVote } from "./services/surveyService";
 import { IconInvited } from "../../assets/icon/IconInvited";
 import { IconMySurveys } from "../../assets/icon/IconMySurveys";
 import { IconCreateSurvey } from "../../assets/icon/IconCreateSurvey";
@@ -42,6 +42,7 @@ export default function KhaoSatBieuQuyet() {
 
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [editingSurvey, setEditingSurvey] = useState(null);
   const [isVoteModalVisible, setIsVoteModalVisible] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
@@ -111,9 +112,33 @@ export default function KhaoSatBieuQuyet() {
     setPagination({ current: 1, pageSize: size });
   }, []);
 
-  const handleVote = useCallback((survey) => {
-    setSelectedSurvey(survey);
-    setIsVoteModalVisible(true);
+  const handleVote = useCallback(async (survey) => {
+    if (!survey?.canParticipate) {
+      message.warning("Bạn không nằm trong danh sách người tham gia bình chọn này.");
+      return;
+    }
+
+    try {
+      const latestSurvey = await getSurveyById(survey.id);
+
+      if (!latestSurvey?.canParticipate) {
+        message.warning("Bạn không nằm trong danh sách người tham gia bình chọn này.");
+        return;
+      }
+
+      if (latestSurvey.status !== SURVEY_STATUS.OPEN) {
+        message.warning(latestSurvey.voteUnavailableReason || "Cuộc bình chọn không thể bình chọn.");
+        setSurveys((prev) =>
+          prev.map((item) => (item.id === latestSurvey.id ? latestSurvey : item))
+        );
+      }
+
+      setSelectedSurvey(latestSurvey);
+      setIsVoteModalVisible(true);
+    } catch (err) {
+      console.error("[KhaoSatBieuQuyet] getSurveyById error:", err);
+      message.error(err.message || "Không thể tải thông tin cuộc bình chọn. Vui lòng thử lại!");
+    }
   }, []);
 
   const handleCloseVoteModal = useCallback(() => {
@@ -140,7 +165,7 @@ export default function KhaoSatBieuQuyet() {
         setSelectedSurvey(null);
       } catch (err) {
         console.error("[KhaoSatBieuQuyet] submitVote error:", err);
-        message.error("Bình chọn thất bại. Vui lòng thử lại!");
+        message.error(err.message || "Bình chọn thất bại. Vui lòng thử lại!");
       } finally {
         setIsVoting(false);
       }
@@ -149,18 +174,72 @@ export default function KhaoSatBieuQuyet() {
   );
 
   const handleCreateSurvey = useCallback(() => {
+    setEditingSurvey(null);
     setIsCreateModalVisible(true);
   }, []);
 
+  const handleEditSurvey = useCallback((survey) => {
+    if (!survey?.isOwner) {
+      message.warning("Bạn không có quyền chỉnh sửa cuộc bình chọn này.");
+      return;
+    }
+
+    setEditingSurvey(survey);
+    setIsCreateModalVisible(true);
+  }, []);
+
+  const handleDeleteSurvey = useCallback((survey) => {
+    if (!survey?.isOwner) {
+      message.warning("Bạn không có quyền xóa cuộc bình chọn này.");
+      return;
+    }
+
+    if ((survey.totalVotes || 0) > 0) {
+      message.warning("Không thể xóa cuộc bình chọn đã có người tham gia.");
+      return;
+    }
+
+    Modal.confirm({
+      title: "Xóa cuộc bình chọn?",
+      content: `Bạn có chắc muốn xóa "${survey.title}" không?`,
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await deleteSurvey(survey.id);
+          const { items, total: t } = await getSurveys({
+            filter: activeFilter,
+            sort: sortOrder,
+            page: currentPage,
+            pageSize,
+          });
+          setSurveys(items ?? []);
+          setTotal(t ?? 0);
+          message.success("Xóa cuộc bình chọn thành công!");
+        } catch (err) {
+          console.error("[KhaoSatBieuQuyet] deleteSurvey error:", err);
+          message.error(err.message || "Xóa cuộc bình chọn thất bại. Vui lòng thử lại!");
+        }
+      },
+    });
+  }, [activeFilter, sortOrder, currentPage, pageSize]);
+
   const handleCloseCreateModal = useCallback(() => {
     setIsCreateModalVisible(false);
+    setEditingSurvey(null);
   }, []);
 
   const handleSubmitCreateModal = useCallback(
     async (formData) => {
       setIsCreating(true);
       try {
-        await createSurvey(formData);
+        if (editingSurvey) {
+          await updateSurvey(editingSurvey.id, formData);
+        } else {
+          await createSurvey(formData);
+        }
+
         const { items, total: t } = await getSurveys({
           filter: activeFilter,
           sort: sortOrder,
@@ -170,16 +249,17 @@ export default function KhaoSatBieuQuyet() {
         setSurveys(items ?? []);
         setTotal(t ?? 0);
         setPagination((prev) => ({ ...prev, current: 1 }));
-        message.success("Tạo cuộc bình chọn thành công!");
+        message.success(editingSurvey ? "Cập nhật cuộc bình chọn thành công!" : "Tạo cuộc bình chọn thành công!");
         setIsCreateModalVisible(false);
+        setEditingSurvey(null);
       } catch (err) {
         console.error("[KhaoSatBieuQuyet] createSurvey error:", err);
-        message.error("Tạo cuộc bình chọn thất bại. Vui lòng thử lại!");
+        message.error(err.message || (editingSurvey ? "Cập nhật cuộc bình chọn thất bại. Vui lòng thử lại!" : "Tạo cuộc bình chọn thất bại. Vui lòng thử lại!"));
       } finally {
         setIsCreating(false);
       }
     },
-    [activeFilter, sortOrder, pageSize]
+    [activeFilter, sortOrder, pageSize, editingSurvey]
   );
 
   return (
@@ -193,7 +273,7 @@ export default function KhaoSatBieuQuyet() {
                 value={sortOrder}
                 onChange={handleSortChange}
                 options={SORT_OPTIONS}
-                style={{ width: 130, height: 38 }}
+                style={{ width: 150, height: 38 }}
               />
             </FilterSelect>
             <CreateButton onClick={handleCreateSurvey} style={{ width: 190, height: 38 }}>
@@ -219,7 +299,14 @@ export default function KhaoSatBieuQuyet() {
 
         <CardsGrid>
           {!loading && surveys.map((survey) => (
-            <SurveyCard key={survey.id} data={survey} onVote={handleVote} />
+            <SurveyCard
+              key={survey.id}
+              data={survey}
+              onVote={handleVote}
+              onEdit={handleEditSurvey}
+              onDelete={handleDeleteSurvey}
+              showOwnerActions={activeFilter === FILTER_TYPES.MY_SURVEYS}
+            />
           ))}
         </CardsGrid>
         {!loading && surveys.length === 0 && (
@@ -295,6 +382,7 @@ export default function KhaoSatBieuQuyet() {
         onClose={handleCloseCreateModal}
         onSubmit={handleSubmitCreateModal}
         submitting={isCreating}
+        initialData={editingSurvey}
       />
 
       <VoteSurveyModal
@@ -303,6 +391,8 @@ export default function KhaoSatBieuQuyet() {
         onClose={handleCloseVoteModal}
         onSubmit={handleSubmitVote}
         allowMultiple={selectedSurvey?.allowMultiple ?? false}
+        disabledReason={selectedSurvey?.status !== SURVEY_STATUS.OPEN ? (selectedSurvey?.voteUnavailableReason || "Cuộc bình chọn không thể bình chọn.") : ""}
+        disabledText={selectedSurvey?.voteDisabledText || "Đã kết thúc"}
         submitting={isVoting}
       />
     </PageContainer>

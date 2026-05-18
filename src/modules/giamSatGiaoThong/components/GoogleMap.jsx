@@ -213,11 +213,11 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
   const getIncidentIcon = (severity) => {
     switch (severity) {
       case 'high':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23d32f2f"/><text x="20" y="28" font-size="20" text-anchor="middle" fill="white">⚠</text></svg>';
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23d32f2f"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
       case 'medium':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23f57c00"/><text x="20" y="28" font-size="20" text-anchor="middle" fill="white">⚠</text></svg>';
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23f57c00"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
       case 'low':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23388e3c"/><text x="20" y="28" font-size="20" text-anchor="middle" fill="white">ℹ</text></svg>';
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23388e3c"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">ℹ</text></svg>';
       default:
         return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
     }
