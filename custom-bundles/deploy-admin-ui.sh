@@ -18,7 +18,7 @@ if [ "$1" = "--server" ]; then
 
     # Build (tìm blade theo các vị trí phổ biến)
     BLADE_CMD=""
-    for p in blade "$HOME/.blade/bin/blade" /usr/local/bin/blade /usr/bin/blade; do
+    for p in blade "$HOME/.blade/bin/blade" /usr/local/bin/blade /usr/bin/blade $HOME/jpm/bin/blade; do
         if command -v "$p" &> /dev/null || [ -x "$p" ]; then
             BLADE_CMD="$p"
             break
