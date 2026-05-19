@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { CARD_REGISTRY } from "./cards/CardRegistry";
-import { fetchLayoutFromFirebase, saveLayoutToFirebase } from "../services/firebaseLayoutService";
+import { fetchLayoutFromApi, saveLayoutToApi } from "../services/dashboardLayoutService";
 import { BtnChangeDragOverlay } from "../style";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ function loadState() {
   }
 }
 
-function normalizeFirebaseData(data) {
+function normalizeLayoutData(data) {
   if (!data) return null;
   // Format cũ: { row1, row2, row3 }
   if (data.row1) {
@@ -294,10 +294,10 @@ export default function DashboardDnD() {
     [flatOrder, hiddenIds]
   );
 
-  // Fetch từ Firebase lần đầu mount
+  // Fetch saved layout once on mount.
   useEffect(() => {
-    fetchLayoutFromFirebase().then((data) => {
-      const normalized = normalizeFirebaseData(data);
+    fetchLayoutFromApi().then((data) => {
+      const normalized = normalizeLayoutData(data);
       if (!normalized) return;
       skipNextSaveRef.current = true;
       setFlatOrder(normalized.flatOrder);
@@ -305,7 +305,7 @@ export default function DashboardDnD() {
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Mỗi khi state thay đổi: update localStorage + debounce ghi Firebase
+  // Mỗi khi state thay đổi: update localStorage + debounce ghi API
   useEffect(() => {
     const toSave = { flatOrder, hiddenIds: [...hiddenIds] };
     localStorage.setItem(LS_KEY, JSON.stringify(toSave));
@@ -317,7 +317,7 @@ export default function DashboardDnD() {
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-      saveLayoutToFirebase(toSave);
+      saveLayoutToApi(toSave);
     }, DEBOUNCE_MS);
 
     return () => {

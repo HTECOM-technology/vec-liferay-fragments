@@ -113,6 +113,10 @@ public class SurveyResource {
 			Connection con = DataAccess.getConnection();
 
 			try {
+				_logSurveyListRequest(
+					con, request, userId, normalizedFilter, normalizedState, order,
+					status, search, page, pageSize);
+
 				int total = _countSurveys(
 					con, where, search, status, hasSearch, hasStatus,
 					normalizedFilter, userId);
@@ -149,6 +153,15 @@ public class SurveyResource {
 				result.put("page", page);
 				result.put("pageSize", pageSize);
 				result.put("items", items);
+
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						"Survey API list result: userId=" + userId +
+							", filter=" + normalizedFilter + ", state=" +
+								normalizedState + ", total=" + total +
+									", returned=" + items.length() + ", page=" +
+										page + ", pageSize=" + pageSize);
+				}
 
 				return _ok(result);
 			}
@@ -757,6 +770,55 @@ public class SurveyResource {
 		finally {
 			DataAccess.cleanUp(ps);
 		}
+	}
+
+	private void _logSurveyListRequest(
+		Connection con, HttpServletRequest request, long userId, String filter,
+		String state, String order, String status, String search, int page,
+		int pageSize) {
+
+		if (!_log.isInfoEnabled()) {
+			return;
+		}
+
+		try {
+			User user = UserLocalServiceUtil.fetchUser(userId);
+			UserContext userContext = _getUserContext(con, userId);
+
+			_log.info(
+				"Survey API list request: userId=" + userId +
+					", screenName=" + _safe(user == null ? "" : user.getScreenName()) +
+					", emailAddress=" + _safe(user == null ? "" : user.getEmailAddress()) +
+					", defaultUser=" + (user != null && user.isDefaultUser()) +
+					", guestUser=" + (user != null && user.isGuestUser()) +
+					", contextOrganizationId=" + userContext.organizationId +
+					", contextDepartmentId=" + userContext.departmentId +
+					", remoteUser=" + _safe(request == null ? "" : request.getRemoteUser()) +
+					", requestUserPrincipal=" +
+						_safe(
+							request == null || request.getUserPrincipal() == null ?
+								"" : request.getUserPrincipal().getName()) +
+					", requestedSessionIdValid=" +
+						(request != null && request.isRequestedSessionIdValid()) +
+					", filter=" + filter + ", state=" + state + ", order=" + order +
+					", status=" + _safe(status) + ", search=" + _safe(search) +
+					", page=" + page + ", pageSize=" + pageSize);
+		}
+		catch (Exception e) {
+			_log.info(
+				"Survey API list request: userId=" + userId +
+					", filter=" + filter + ", state=" + state +
+					", page=" + page + ", pageSize=" + pageSize +
+					", contextError=" + e.getMessage());
+		}
+	}
+
+	private String _safe(String value) {
+		if (value == null) {
+			return "";
+		}
+
+		return value.replace('\n', ' ').replace('\r', ' ');
 	}
 
 	private boolean _isSurveyOwner(Connection con, long surveyId, long userId)
