@@ -17,7 +17,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.TimeZone;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -79,6 +78,7 @@ public class SurveyResource {
 
 		if ("active".equals(normalizedState)) {
 			where += "AND s.status = 'ACTIVE' " +
+				"AND (s.startDate IS NULL OR s.startDate <= NOW(6)) " +
 				"AND (s.endDate IS NULL OR s.endDate >= NOW(6)) ";
 		}
 		else if ("expired".equals(normalizedState)) {
@@ -117,6 +117,7 @@ public class SurveyResource {
 					con, request, userId, normalizedFilter, normalizedState, order,
 					status, search, page, pageSize);
 
+				String databaseNow = _getDatabaseNowString(con);
 				int total = _countSurveys(
 					con, where, search, status, hasSearch, hasStatus,
 					normalizedFilter, userId);
@@ -136,7 +137,7 @@ public class SurveyResource {
 
 					try {
 						while (rs.next()) {
-							items.put(_toSurveyJson(con, rs, userId));
+							items.put(_toSurveyJson(con, rs, userId, databaseNow));
 						}
 					}
 					finally {
@@ -193,6 +194,7 @@ public class SurveyResource {
 			Connection con = DataAccess.getConnection();
 
 			try {
+				String databaseNow = _getDatabaseNowString(con);
 				PreparedStatement ps = con.prepareStatement(
 					"SELECT * FROM VEC_InternalSurvey WHERE surveyId = ? AND status != 'DELETED'");
 
@@ -206,7 +208,7 @@ public class SurveyResource {
 							return _notFound("Survey not found");
 						}
 
-						return _ok(_toSurveyJson(con, rs, userId));
+						return _ok(_toSurveyJson(con, rs, userId, databaseNow));
 					}
 					finally {
 						DataAccess.cleanUp(rs);
@@ -910,12 +912,9 @@ public class SurveyResource {
 				survey.put("surveyId", rs.getLong("surveyId"));
 				survey.put("multipleChoice", rs.getBoolean("multipleChoice"));
 				survey.put("status", rs.getString("status"));
-
-				Timestamp startDate = rs.getTimestamp("startDate");
-				Timestamp endDate = rs.getTimestamp("endDate");
-
-				survey.put("startDateMillis", startDate != null ? startDate.getTime() : 0);
-				survey.put("endDateMillis", endDate != null ? endDate.getTime() : 0);
+				survey.put("startDate", _formatDateTimeString(rs.getString("startDate")));
+				survey.put("endDate", _formatDateTimeString(rs.getString("endDate")));
+				survey.put("databaseNow", _getDatabaseNowString(con));
 
 				return survey;
 			}
@@ -1047,19 +1046,9 @@ public class SurveyResource {
 			return "Cuộc bình chọn không còn hoạt động.";
 		}
 
-		long now = System.currentTimeMillis();
-		long start = survey.getLong("startDateMillis");
-		long end = survey.getLong("endDateMillis");
-
-		if (start > 0 && now < start) {
-			return "Cuộc bình chọn chưa bắt đầu.";
-		}
-
-		if (end > 0 && now > end) {
-			return "Cuộc bình chọn đã kết thúc.";
-		}
-
-		return null;
+		return _getUnavailableVoteReason(
+			survey.getString("status"), survey.getString("startDate"),
+			survey.getString("endDate"), survey.getString("databaseNow"));
 	}
 
 	private long _insertSurvey(
@@ -1360,10 +1349,13 @@ public class SurveyResource {
 		}
 	}
 
-	private JSONObject _toSurveyJson(Connection con, ResultSet rs, long userId)
+	private JSONObject _toSurveyJson(
+			Connection con, ResultSet rs, long userId, String databaseNow)
 		throws Exception {
 
 		long surveyId = rs.getLong("surveyId");
+		String startDate = _formatDateTimeString(rs.getString("startDate"));
+		String endDate = _formatDateTimeString(rs.getString("endDate"));
 		JSONObject item = JSONFactoryUtil.createJSONObject();
 
 		item.put("surveyId", surveyId);
@@ -1373,20 +1365,17 @@ public class SurveyResource {
 		item.put("status", rs.getString("status"));
 		item.put("userId", rs.getLong("userId"));
 		item.put("userName", rs.getString("userName"));
-		item.put("startDate", _format(rs.getTimestamp("startDate")));
-		item.put("endDate", _format(rs.getTimestamp("endDate")));
+		item.put("startDate", startDate);
+		item.put("endDate", endDate);
 		item.put("createDate", _format(rs.getTimestamp("createDate")));
 		item.put("modifiedDate", _format(rs.getTimestamp("modifiedDate")));
 		item.put(
 			"votingOpen",
-			_isVotingOpen(
-				rs.getString("status"), rs.getTimestamp("startDate"),
-				rs.getTimestamp("endDate")));
+			_isVotingOpen(rs.getString("status"), startDate, endDate, databaseNow));
 		item.put(
 			"voteUnavailableReason",
 			_getUnavailableVoteReason(
-				rs.getString("status"), rs.getTimestamp("startDate"),
-				rs.getTimestamp("endDate")));
+				rs.getString("status"), startDate, endDate, databaseNow));
 		item.put("options", _getOptions(con, surveyId));
 		item.put("participants", _getParticipants(con, surveyId));
 		item.put("hasVoted", _hasVoted(con, surveyId, userId));
@@ -1523,24 +1512,27 @@ public class SurveyResource {
 		}
 	}
 
-	private boolean _isVotingOpen(String status, Timestamp startDate, Timestamp endDate) {
-		return _getUnavailableVoteReason(status, startDate, endDate) == null;
+	private boolean _isVotingOpen(
+		String status, String startDate, String endDate, String databaseNow) {
+
+		return _getUnavailableVoteReason(
+			status, startDate, endDate, databaseNow) == null;
 	}
 
 	private String _getUnavailableVoteReason(
-		String status, Timestamp startDate, Timestamp endDate) {
+		String status, String startDate, String endDate, String databaseNow) {
 
 		if (!"ACTIVE".equalsIgnoreCase(status)) {
 			return "Cuộc bình chọn không còn hoạt động.";
 		}
 
-		long now = System.currentTimeMillis();
+		String now = _formatDateTimeString(databaseNow);
 
-		if (startDate != null && now < startDate.getTime()) {
+		if (!startDate.isEmpty() && !now.isEmpty() && now.compareTo(startDate) < 0) {
 			return "Cuộc bình chọn chưa bắt đầu.";
 		}
 
-		if (endDate != null && now > endDate.getTime()) {
+		if (!endDate.isEmpty() && !now.isEmpty() && now.compareTo(endDate) > 0) {
 			return "Cuộc bình chọn đã kết thúc.";
 		}
 
@@ -1573,11 +1565,45 @@ public class SurveyResource {
 			return "";
 		}
 
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
-		sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 		return sdf.format(timestamp);
+	}
+
+	private String _getDatabaseNowString(Connection con) throws Exception {
+		PreparedStatement ps = con.prepareStatement("SELECT NOW(6)");
+
+		try {
+			ResultSet rs = ps.executeQuery();
+
+			try {
+				if (rs.next()) {
+					return _formatDateTimeString(rs.getString(1));
+				}
+			}
+			finally {
+				DataAccess.cleanUp(rs);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(ps);
+		}
+
+		return "";
+	}
+
+	private String _formatDateTimeString(String value) {
+		if (value == null || value.trim().isEmpty()) {
+			return "";
+		}
+
+		String normalized = value.trim().replace("T", " ").replace("Z", "");
+
+		if (normalized.length() > 19) {
+			normalized = normalized.substring(0, 19);
+		}
+
+		return normalized;
 	}
 
 	private String _fullName(ResultSet rs) throws Exception {

@@ -1,0 +1,1760 @@
+(function () {
+    Liferay.on('allPortletsReady', function () {
+        const slider = document.getElementById("routeList");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");nextBtn
+				 if (window.Liferay?.ThemeDisplay?.isSignedIn?.()) {
+          const addCameraBtn = document.getElementById('addCameraBtn');
+          if (addCameraBtn) {
+            addCameraBtn.style.display = 'flex'; // Hiển thị nút nếu đã đăng nhập
+          }
+        }
+
+        if (!slider) return;
+
+        const updateNavButtons = () => {
+            const { scrollLeft, scrollWidth, clientWidth } = slider;
+
+            if (prevBtn) {
+                // Ẩn nếu ở sát lề trái
+                if (scrollLeft <= 5) prevBtn.classList.add('hidden');
+                else prevBtn.classList.remove('hidden');
+            }
+
+            if (nextBtn) {
+                // Ẩn nếu ở sát lề phải
+                if (scrollLeft + clientWidth >= scrollWidth - 5) nextBtn.classList.add('hidden');
+                else nextBtn.classList.remove('hidden');
+            }
+        };
+
+        const scrollStep = 400;
+
+        if (prevBtn) {
+            prevBtn.addEventListener("click", () => {
+                slider.scrollBy({ left: -scrollStep, behavior: "smooth" });
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener("click", () => {
+                slider.scrollBy({ left: scrollStep, behavior: "smooth" });
+            });
+        }
+
+        slider.addEventListener("scroll", updateNavButtons);
+
+        // Cập nhật trạng thái sau khi render nội dung
+        setTimeout(updateNavButtons, 600);
+
+        let isDown = false;
+    })
+})();
+
+(function () {
+  const loadGoogleMaps = () => {
+    if (window.google && window.google.maps) {
+      initMap();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyB1hMVFgbfsjv4AMtE0T3eoQds-TuZQkrY";
+    script.async = true;
+    script.defer = true;
+
+    script.onload = initMap;
+    script.onerror = () => {
+      console.error("Không load được Google Maps API");
+    };
+
+    document.head.appendChild(script);
+  };
+
+  window.__loadGoogleMaps__ = loadGoogleMaps;
+})();
+
+// ============ SLIDER SCRIPT ============
+const slider = document.getElementById("routeList");
+let isDown = false;
+let startX;
+let scrollLeft;
+let velocity = 0;
+let rafID;
+
+slider.addEventListener("mousedown", (e) => {
+  isDown = true;
+  startX = e.pageX;
+  scrollLeft = slider.scrollLeft;
+  velocity = 0;
+  cancelAnimationFrame(rafID);
+});
+slider.addEventListener("mouseleave", endDrag);
+slider.addEventListener("mouseup", endDrag);
+slider.addEventListener("mousemove", (e) => {
+  if (!isDown) return;
+  e.preventDefault();
+  const x = e.pageX;
+  const walk = x - startX;
+  slider.scrollLeft = scrollLeft - walk;
+  velocity = walk * 0.15;
+});
+function endDrag() {
+  if (!isDown) return;
+  isDown = false;
+  momentum();
+}
+function momentum() {
+  slider.scrollLeft -= velocity;
+  velocity *= 0.95;
+  if (Math.abs(velocity) > 0.5) {
+    rafID = requestAnimationFrame(momentum);
+  }
+}
+slider.addEventListener(
+  "wheel",
+  (e) => {
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      slider.scrollLeft += e.deltaY;
+    }
+  },
+  { passive: false }
+);
+
+// ============ API CONFIGURATION ===========
+const API_BASE_URL = "";
+const API_HIGHWAYS_URL = `${API_BASE_URL}/o/c/highways/`;
+const API_LIVECAMERAS_URL = `${API_BASE_URL}/o/c/livecameras/`;
+const API_HEADERS = {
+  accept: "application/json",
+};
+
+// ============ ROUTE DATA (populated from API) ===========
+let ROUTE_DATA = [];
+
+// ============ MOCK DATA FALLBACK ===========
+const MOCK_DATA_ITEMS = [];
+
+// ============ API FETCH FUNCTION ===========
+async function fetchHighwaysData() {
+  try {
+    const response = await fetch(API_HIGHWAYS_URL, {
+      method: "GET",
+      headers: API_HEADERS,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.items || [];
+  } catch (error) {
+    console.error("Error fetching highways data, using mock data:", error);
+    return MOCK_DATA_ITEMS;
+  }
+}
+
+async function fetchTollDetail(highwayId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/o/c/highways/${highwayId}/stationInfoAndHighwayFK`, {
+      method: "GET",
+      headers: API_HEADERS,
+    });
+    console.log('Kết quả: ', response );
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+
+    return (data.items || []).map((item) => ({
+      lat: Number(item.lat),
+      lng: Number(item.lng),
+      name: item.name,
+      id: item.id,
+      img: item.image?.link?.href ? `${API_BASE_URL}${item.image.link.href}` : "https://placehold.co/104x104",
+      address: item.location || item.name,
+      status: "Mở cả ngày",
+      type: item.type?.key || "tollStation",
+      fees: [],
+    }));
+  } catch (error) {
+    console.error(`Error fetching toll details for highway ${highwayId}:`, error);
+    return [];
+  }
+}
+
+// ============================================================
+// MOCK CAMERA DATA - video_url được đọc từ Liferay Fragment Configuration
+// Để thay đổi URL video: vào chế độ Edit Page trong Liferay,
+// chọn Fragment → tab "General" → nhóm "Camera" → chỉnh sửa
+// các trường "Cam 1 Video URL" ... "Cam 6 Video URL"
+// ============================================================
+let currentHighwayId = null;
+
+const _DEFAULT_CAM_URL = "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4";
+
+/**
+ * Đọc video_url từ Liferay Fragment configuration object.
+ * configuration.camVideoUrl1 … camVideoUrl6 được khai báo trong configuration.json.
+ * Nếu chưa có giá trị (chạy ngoài Liferay hoặc field bỏ trống), dùng defaultUrl.
+ */
+function getCamVideoUrl(configKey, defaultUrl) {
+  try {
+    const val = configuration[configKey];
+    return (val && val.trim()) ? val.trim() : defaultUrl;
+  } catch (e) {
+    return defaultUrl;
+  }
+}
+
+// 6 biến đường dẫn camera — đọc trực tiếp từ configuration.json
+const camVideoUrl1 = getCamVideoUrl("camVideoUrl1", _DEFAULT_CAM_URL);
+const camVideoUrl2 = getCamVideoUrl("camVideoUrl2", _DEFAULT_CAM_URL);
+const camVideoUrl3 = getCamVideoUrl("camVideoUrl3", _DEFAULT_CAM_URL);
+const camVideoUrl4 = getCamVideoUrl("camVideoUrl4", _DEFAULT_CAM_URL);
+const camVideoUrl5 = getCamVideoUrl("camVideoUrl5", _DEFAULT_CAM_URL);
+const camVideoUrl6 = getCamVideoUrl("camVideoUrl6", _DEFAULT_CAM_URL);
+
+// Helper function to clean up live_camera_id based on observed patterns
+function cleanCameraId(id) {
+  let newId = id;
+
+  // Step 1: Find the longest repeated suffix `_X` such that the ID is `prefix_X_X`.
+  // Iterate from longest possible repeated segment to shortest.
+  const parts = id.split('_');
+  for (let i = Math.floor(parts.length / 2); i >= 1; i--) {
+    const segment = parts.slice(parts.length - i).join('_');
+    const fullSegment = `_${segment}`;
+    if (newId.endsWith(fullSegment + fullSegment)) {
+      newId = newId.substring(0, newId.length - fullSegment.length);
+      break; // Found the longest repeated suffix, stop.
+    }
+  }
+
+  // Step 2: If the resulting ID ends with `_hld_o`, remove `_hld_o`.
+  if (newId.endsWith('_hld_o')) {
+    newId = newId.substring(0, newId.length - '_hld_o'.length);
+  }
+
+  return newId;
+}
+
+const MOCK_CAMERAS = [
+  // Highway 42753 (Giữ 6 camera đầu)
+  {
+    live_camera_id: "camera_phat_nguoi_tram_nut_giao_vd_3_hld_o",
+    highway_id: 42753,
+    name: "Camera Phạt Nguội Trạm Nút giao VĐ 3 - HLD (O)",
+    lat: 10.7865492,
+    lng: 106.831025,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_phat_nguoi_tram_long_phuoc",
+    highway_id: 42753,
+    name: "Camera Phạt Nguội Trạm Long Phước",
+    lat: 10.7858859,
+    lng: 106.8518264,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_tram_319_hld",
+    highway_id: 42753,
+    name: "Camera Giám Sát Trạm 319 - HLD",
+    lat: 10.7687625,
+    lng: 106.9228906,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_an_ninh_tram_ql51",
+    highway_id: 42753,
+    name: "Camera An Ninh Trạm QL51",
+    lat: 10.7652167,
+    lng: 106.9565542,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_phat_nguoi_tram_dau_giay_phan_thiet",
+    highway_id: 42753,
+    name: "Camera Phạt Nguội Trạm Dầu Giây - Phan Thiết",
+    lat: 10.9183029,
+    lng: 107.1639825,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_tram_dau_giay",
+    highway_id: 42753,
+    name: "Camera Giám Sát Trạm Dầu Giây",
+    lat: 10.9183029,
+    lng: 107.1639825,
+    video_url: camVideoUrl6
+  },
+
+  // Highway 43943 (Giữ 6 camera đầu)
+  {
+    live_camera_id: "camera_giam_sat_nut_giao_lap_thach_vinh_phuc",
+    highway_id: 43943,
+    name: "Camera Giám Sát Nút giao Lập Thạch - Vĩnh Phúc",
+    lat: 21.35511687939501,
+    lng: 105.46131555332033,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giao_thong_nut_giao_phu_ninh",
+    highway_id: 43943,
+    name: "Camera Giao Thông Nút giao Phù Ninh",
+    lat: 21.392105372803904,
+    lng: 105.33334137708744,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_angt_nut_giao_sai_nga",
+    highway_id: 43943,
+    name: "Camera ANGT Nút giao Sai Nga",
+    lat: 21.440036353276298,
+    lng: 105.12563708062589,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_nut_giao_tp_yen_bai",
+    highway_id: 43943,
+    name: "Camera Giám Sát Nút giao TP.Yên Bái",
+    lat: 21.695207578491846,
+    lng: 104.84861180791472,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giao_thong_nut_giao_mau_a",
+    highway_id: 43943,
+    name: "Camera Giao Thông Nút giao Mậu A",
+    lat: 21.87833897554471,
+    lng: 104.67552057087255,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_angt_nut_giao_tam_dao_vinh_yen",
+    highway_id: 43943,
+    name: "Camera ANGT Nút giao Tam Đảo - Vĩnh Yên",
+    lat: 21.35593120452099,
+    lng: 105.60853231841588,
+    video_url: camVideoUrl6
+  },
+
+  // Highway 44090 (Toàn bộ 8 camera cũ -> Giữ 6 camera đầu)
+  {
+    live_camera_id: "camera_giam_sat_tram_tuy_loan_km4",
+    highway_id: 44090,
+    name: "Camera Giám Sát Trạm Túy Loan - Km4",
+    lat: 15.9728908,
+    lng: 108.1628043,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_an_ninh_tram_phong_thu_km_13",
+    highway_id: 44090,
+    name: "Camera An Ninh Trạm Phong Thử - Km 13",
+    lat: 15.8905526,
+    lng: 108.1736457,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_phat_nguoi_tram_ha_lam_km_41",
+    highway_id: 44090,
+    name: "Camera Phạt Nguội Trạm Hà Lam - Km 41",
+    lat: 15.7102784,
+    lng: 108.3354004,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_tram_tam_ky_km64",
+    highway_id: 44090,
+    name: "Camera Giám Sát Trạm Tam Kỳ - Km64",
+    lat: 15.5382974,
+    lng: 108.4537533,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_an_ninh_tram_chu_lai_km_83",
+    highway_id: 44090,
+    name: "Camera An Ninh Trạm Chu Lai - Km 83",
+    lat: 15.4422387,
+    lng: 108.593055,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_phat_nguoi_tram_bac_quang_ngai_km_124",
+    highway_id: 44090,
+    name: "Camera Phạt Nguội Trạm Bắc Quảng Ngãi - Km 124",
+    lat: 15.1578704,
+    lng: 108.751739,
+    video_url: camVideoUrl6
+  },
+
+  // Highway 44147 (Giữ 6 camera đầu)
+  {
+    live_camera_id: "camera_an_ninh_tram_thu_phi_liem_tuyen",
+    highway_id: 44147,
+    name: "Camera An Ninh Trạm thu phí Liêm Tuyền",
+    lat: 20.538183256509967,
+    lng: 105.94826158354499,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_phat_nguoi_tram_thu_phi_cao_bo",
+    highway_id: 44147,
+    name: "Camera Phạt Nguội Trạm thu phí Cao Bồ",
+    lat: 20.29129443818642,
+    lng: 106.01120109154044,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_tram_thu_phi_vuc_vong",
+    highway_id: 44147,
+    name: "Camera Giám Sát Trạm thu phí Vực Vòng",
+    lat: 20.64836850931345,
+    lng: 105.9383360739746,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_angt_nut_giao_dai_xuyen",
+    highway_id: 44147,
+    name: "Camera ANGT Nút giao Đại Xuyên",
+    lat: 20.701286372549472,
+    lng: 105.92010476511223,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_nut_giao_vuc_vong",
+    highway_id: 44147,
+    name: "Camera Giám Sát Nút giao Vực Vòng",
+    lat: 20.646601522576592,
+    lng: 105.93885105810546,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giao_thong_nut_giao_liem_tuyen",
+    highway_id: 44147,
+    name: "Camera Giao Thông Nút giao Liêm Tuyền",
+    lat: 20.538350174775015,
+    lng: 105.94864297153322,
+    video_url: camVideoUrl6
+  },
+
+  // Highway 74573 (Giữ 6 camera đầu)
+  {
+    live_camera_id: "camera_giao_thong_nut_giao_my_yen",
+    highway_id: 74573,
+    name: "Camera Giao Thông Nút giao Mỹ Yên",
+    lat: 10.6786393,
+    lng: 106.5391977,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_angt_nut_giao_quoc_lo_1",
+    highway_id: 74573,
+    name: "Camera ANGT Nút giao Quốc lộ 1",
+    lat: 10.6619306,
+    lng: 106.5571366,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giam_sat_nut_giao_ql50",
+    highway_id: 74573,
+    name: "Camera Giám Sát Nút giao QL50",
+    lat: 10.6596766,
+    lng: 106.6527104,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_giao_thong_nut_giao_nguyen_van_tao",
+    highway_id: 74573,
+    name: "Camera Giao Thông Nút giao Nguyễn Văn Tạo",
+    lat: 10.662887,
+    lng: 106.7226574,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_an_ninh_tram_thu_phi_01b",
+    highway_id: 74573,
+    name: "Camera An Ninh Trạm thu phí 01B",
+    lat: 10.6720885,
+    lng: 106.5361871,
+    video_url: camVideoUrl6
+  },
+  {
+    live_camera_id: "camera_phat_nguoi_tram_thu_phi_02",
+    highway_id: 74573,
+    name: "Camera Phạt Nguội Trạm thu phí 02",
+    lat: 10.6611374,
+    lng: 106.5587932,
+    video_url: camVideoUrl6
+  }
+];
+// ---- localStorage helpers ----
+const LS_KEY = 'vec_cameras_v1';
+
+function lsLoadCameras() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return null;
+}
+
+function lsSaveCameras(cameras) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(cameras));
+  } catch (e) {
+    console.warn('localStorage save failed:', e);
+  }
+}
+
+function getActiveCameras() {
+  return lsLoadCameras() || MOCK_CAMERAS;
+}
+// ---- end localStorage helpers ----
+
+async function fetchLiveCameras(highwayId) {
+  // Priority 1: localStorage (user-saved data persists across refresh)
+  const saved = lsLoadCameras();
+  if (saved) return saved;
+
+  // Priority 2: live API
+  try {
+    const response = await fetch(API_LIVECAMERAS_URL, {
+      method: "GET",
+      headers: API_HEADERS,
+    });
+
+    if (!response.ok) {
+      return MOCK_CAMERAS;
+    }
+
+    const data = await response.json();
+
+    let cameras = data.items || [];
+    if (highwayId) {
+      cameras = cameras.filter(camera => camera.highway_id === highwayId);
+    } 
+    
+    if (cameras.length === 0) {
+      return MOCK_CAMERAS;
+    }
+    
+    return cameras;
+  } catch (error) {
+    console.error("Error fetching live cameras, using mock data:", error);
+    return MOCK_CAMERAS;
+  }
+}
+
+async function renderCameras(highwayId) {
+  const cameraContent = document.querySelector('.td-camera__content');
+  if (!cameraContent) return; 
+  currentHighwayId = highwayId;
+  
+  cameraContent.innerHTML = '<div class="p-4 text-gray-500">Đang tải camera...</div>';
+  
+  // const cameras = await fetchLiveCameras(highwayId);
+  const cameras = MOCK_CAMERAS.filter(camera => camera.highway_id === highwayId);
+  
+  if (cameras.length === 0) {
+    cameraContent.innerHTML = '<div class="p-4 text-gray-500">Không có camera trực tuyến</div>';
+    return;
+  }
+
+  window.currentCameras = cameras;
+  
+    cameraContent.innerHTML = cameras
+    .map(
+      (camera) => `
+        <div class="camera-box" data-camera-id="${camera.live_camera_id}" data-video-url="${camera.video_url || ''}">
+          <div class="camera-label">${camera.name || 'Camera'}</div>
+          <video class="camera-video-thumbnail" autoplay muted loop playsinline>
+            <source src="${camera.video_url || ''}" type="application/x-mpegURL">
+          </video>
+          <button class="camera-play-btn">
+            <img src="https://res.cloudinary.com/drwairjk5/image/upload/v1767609285/Variant3_e7bc0u.svg" alt="Play" />
+          </button>
+        </div>
+      `
+    )
+    .join("");
+
+  const cameraBoxes = cameraContent.querySelectorAll(".camera-box");
+  cameraBoxes.forEach((box) => {
+    box.addEventListener("click", () => {
+      const cameraId = box.getAttribute("data-camera-id");
+      const videoUrl = box.getAttribute("data-video-url");
+      const cameraName = box.querySelector(".camera-label").textContent;
+      
+      if (videoUrl) {
+        openCameraModal(cameraName, videoUrl);
+      }
+    });
+  });
+  
+  const cameraLocations = cameras.map(cam => ({
+    lat: cam.lat,
+    lng: cam.lng,
+    name: cam.name,
+    id: cam.live_camera_id,
+    videoUrl: cam.video_url
+  }));
+  
+  if (currentRoute && currentRoute.mapData) {
+    currentRoute.mapData.cameraLocations = cameraLocations;
+  }
+  
+  const routeInData = ROUTE_DATA.find(r => r.id === highwayId);
+  if (routeInData && routeInData.mapData) {
+    routeInData.mapData.cameraLocations = cameraLocations;
+  }
+  
+  if (map && currentRoute) {
+    setTimeout(() => {
+      clearMarkers();
+      displayMarkers(currentRoute);
+    }, 100);
+  }
+}
+
+function openCameraModal(cameraName, videoUrl) {
+  let modal = document.getElementById("cameraModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "cameraModal";
+    modal.className = "hidden fixed inset-0 z-100 overflow-y-auto";
+    modal.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-85 transition-opacity" onclick="closeCameraModal()"></div>
+      <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative bg-white rounded-lg shadow-2xl max-w-[1000px] w-full overflow-hidden" style="padding: 20px;">
+          <button onclick="closeCameraModal()" class="absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 transition-colors rounded-full flex items-center justify-center" style="width: 25px; height: 25px; border: none; cursor: pointer;">
+            <span style="color: white; font-size: 14px; font-weight: 700; line-height: 1;">×</span>
+          </button>
+          <div>
+            <div class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9; margin-bottom: 0;">
+              <video id="cameraVideo" class="w-full h-full" controls autoplay style="border: 0;">
+                <source src="" type="application/x-mpegURL">
+                Trình duyệt của bạn không hỗ trợ video.
+              </video>
+            </div>
+            <h3 class="text-gray-900 text-lg font-semibold" id="cameraModalTitle" style="margin: 20px 0 0 0; padding: 0; color: #333; font-size: 18px; font-weight: 600;"></h3>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  
+  document.getElementById("cameraModalTitle").textContent = cameraName;
+  const video = document.getElementById("cameraVideo");
+  const source = video.querySelector("source");
+  source.src = videoUrl;
+  video.load();
+  
+  modal.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+window.closeCameraModal = function() {
+  const modal = document.getElementById("cameraModal");
+  if (modal) {
+    const video = document.getElementById("cameraVideo");
+    video.pause();
+    video.querySelector("source").src = "";
+    modal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+}
+
+window.openCameraFromMap = function(cameraName, videoUrl) {
+  openCameraModal(cameraName, videoUrl);
+}
+
+// ============ DATA MAPPING FUNCTION ===========
+function mapApiDataToRouteData(apiItems) {
+  return apiItems.map((item) => {
+    const locationParts = (item.location || "").split(" - ");
+    const startName = locationParts[0] || "";
+    const endName = locationParts[locationParts.length - 1] || "";
+
+    const imgUrl = item.image && item.image.link && item.image.link.href ? `${API_BASE_URL}${item.image.link.href}` : "https://placehold.co/400x165";
+
+    const startLat = parseFloat(item.startLat) || 0;
+    const startLng = parseFloat(item.startLng) || 0;
+    const endLat = parseFloat(item.endLat) || 0;
+    const endLng = parseFloat(item.endLng) || 0;
+
+    const drivingLanes = item.drivingLaneNum || "";
+    const emergencyLanes = item.emergencyLaneNum || "";
+    let lanesInfo = "";
+    if (drivingLanes) {
+      lanesInfo = `${drivingLanes} làn xe chạy`;
+      if (emergencyLanes) {
+        lanesInfo += `, ${emergencyLanes} làn dừng khẩn cấp`;
+      }
+    }
+
+    return {
+      id: item.id,
+      title: item.name || "",
+      location: item.location || "",
+      img: imgUrl,
+      info: {
+        time: "",
+        progress: "",
+        investment: "",
+        lanes: item.drivingLaneNum || "",
+        start: startName,
+        end: endName,
+      },
+      intro: item.description || "",
+      intersections: [],
+      tolls: [],
+      rests: [],
+      content: [],
+      lanesInfo: lanesInfo,
+      mapData: {
+        origin: { lat: startLat, lng: startLng, name: startName },
+        destination: { lat: endLat, lng: endLng, name: endName },
+        waypoints: [],
+        intersectionLocations: [],
+        tollLocations: [],
+        restLocations: [],
+        cameraLocations: [],
+      },
+    };
+  });
+}
+
+// ============ RENDER ROUTE CARDS FUNCTION ===========
+function renderRouteCards(routeData) {
+  const routeList = document.getElementById("routeList");
+  if (!routeList || !routeData.length) return;
+
+  routeList.innerHTML = routeData
+    .map(
+      (route, index) => `
+    <div class="td-route__card${index === 0 ? " active" : ""}" data-index="${index}">
+      <img src="${route.img}" alt="${route.title}" />
+      <div class="td-route__info">
+        <h4 title="${route.title}">${route.title}</h4>
+        <p class="route-info__row gap-1" title="${route.location}">
+          <svg class="icon icon-location inline" viewBox="0 0 11 14">
+            <path d="M4.71045 13.7175C0.737461 7.95788 0 7.36676 0 5.25C0 2.3505 2.3505 0 5.25 0C8.1495 0 10.5 2.3505 10.5 5.25C10.5 7.36676 9.76254 7.95788 5.78955 13.7175C5.52882 14.0942 4.97115 14.0941 4.71045 13.7175ZM5.25 7.4375C6.45813 7.4375 7.4375 6.45813 7.4375 5.25C7.4375 4.04187 6.45813 3.0625 5.25 3.0625C4.04187 3.0625 3.0625 4.04187 3.0625 5.25C3.0625 6.45813 4.04187 7.4375 5.25 7.4375Z" />
+          </svg>
+          ${route.location}
+        </p>
+        <span class="route-info__row gap-1" title="${route.lanesInfo}">
+          <svg class="icon icon-lane inline" viewBox="0 0 14 11">
+            <path d="M13.125 6.125C13.125 3.93066 11.7775 2.05297 9.8659 1.2682L8.75 3.5V0.4375C8.75 0.321468 8.70391 0.210188 8.62186 0.128141C8.53981 0.0460937 8.42853 0 8.3125 0H5.6875C5.57147 0 5.46019 0.0460937 5.37814 0.128141C5.29609 0.210188 5.25 0.321468 5.25 0.4375V3.5L4.1341 1.2682C2.2225 2.05297 0.875 3.93066 0.875 6.125V7.875H13.125V6.125ZM13.5625 8.75H0.4375C0.321468 8.75 0.210188 8.79609 0.128141 8.87814C0.0460936 8.96019 0 9.07147 0 9.1875L0 10.0625C0 10.1785 0.0460936 10.2898 0.128141 10.3719C0.210188 10.4539 0.321468 10.5 0.4375 10.5H13.5625C13.6785 10.5 13.7898 10.4539 13.8719 10.3719C13.9539 10.2898 14 10.1785 14 10.0625V9.1875C14 9.07147 13.9539 8.96019 13.8719 8.87814C13.7898 8.79609 13.6785 8.75 13.5625 8.75Z" />
+          </svg>
+          ${route.lanesInfo || "Chưa có thông tin"}
+        </span>
+      </div>
+    </div>
+  `
+    )
+    .join("");
+
+  attachRouteCardListeners(routeData);
+}
+
+// ============ ATTACH ROUTE CARD LISTENERS ===========
+function attachRouteCardListeners(routeDataArray) {
+  const cards = document.querySelectorAll(".td-route__card");
+  cards.forEach((card) => {
+    card.addEventListener("click", () => {
+      const index = parseInt(card.dataset.index, 10);
+      cards.forEach((c) => c.classList.remove("active"));
+      card.classList.add("active");
+      const route = routeDataArray[index];
+      if (route) {
+        renderDetail(route);
+        displayRoute(route);
+      }
+    });
+  });
+}
+
+// ============ INITIALIZE APP WITH API DATA ===========
+async function initializeApp() {
+  const dateFilter = document.getElementById("dateFilter");
+  if (dateFilter) {
+    const today = new Date().toISOString().split("T")[0];
+    dateFilter.value = today;
+  }
+
+  const apiItems = await fetchHighwaysData();
+  ROUTE_DATA = mapApiDataToRouteData(apiItems);
+  filteredRouteData = [...ROUTE_DATA];
+
+
+  if (ROUTE_DATA.length > 0) {
+    populateRouteSelect(ROUTE_DATA);
+    renderRouteCards(ROUTE_DATA);
+    renderDetail(ROUTE_DATA[0]);
+    setupFilterListeners();
+
+    for (let index = 0; index < ROUTE_DATA.length; index++) {
+      const route = ROUTE_DATA[index];
+      if (route.id) {
+        const tollLocations = await fetchTollDetail(route.id);
+        ROUTE_DATA[index].mapData.tollLocations = tollLocations;
+      }
+    }
+    
+    if (map) {      
+      renderCameras(42753);
+      displayRoute(ROUTE_DATA[0]);
+    }
+  }
+}
+
+// ============ FILTER FUNCTIONALITY ============
+let filteredRouteData = [];
+
+function populateRouteSelect(routes) {
+
+  const routeSelect = document.getElementById("routeSelect");
+  if (!routeSelect) return;
+
+  routeSelect.innerHTML = '<option value="">Tất cả tuyến đường</option>';
+
+  routes.forEach((route, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = route.title;
+    routeSelect.appendChild(option);
+  });
+}
+
+function filterRoutes() {
+
+  const routeSelect = document.getElementById("routeSelect");
+  const dateFilter = document.getElementById("dateFilter");
+
+  const selectedRoute = routeSelect?.value || "";
+  const selectedDate = dateFilter?.value || "";
+
+  if (selectedRoute !== "") {
+    const index = parseInt(selectedRoute, 10);
+    if (index >= 0 && index < ROUTE_DATA.length) {
+      const route = ROUTE_DATA[index];
+      filteredRouteData = [route];
+      renderRouteCards(filteredRouteData);
+      selectRouteCard(0);
+      renderDetail(route);
+      displayRoute(route);
+      renderCameras(route.id);
+      return;
+    }
+  }
+
+  if (searchTerm) {
+    filteredRouteData = ROUTE_DATA.filter((route) => {
+      const titleMatch = route.title.toLowerCase().includes(searchTerm);
+      const locationMatch = route.location.toLowerCase().includes(searchTerm);
+      const introMatch = (route.intro || "").toLowerCase().includes(searchTerm);
+      return titleMatch || locationMatch || introMatch;
+    });
+  } else {
+    filteredRouteData = [...ROUTE_DATA];
+  }
+
+  if (filteredRouteData.length > 0) {
+    renderRouteCards(filteredRouteData);
+    selectRouteCard(0);
+    renderDetail(filteredRouteData[0]);
+    displayRoute(filteredRouteData[0]);
+  } else {
+    const routeList = document.getElementById("routeList");
+    if (routeList) {
+      routeList.innerHTML = '<div class="p-4 text-gray-500">Không tìm thấy tuyến đường phù hợp</div>';
+    }
+  }
+}
+
+function selectRouteCard(index) {
+  const cards = document.querySelectorAll(".td-route__card");
+  cards.forEach((card, i) => {
+    if (i === index) {
+      card.classList.add("active");
+    } else {
+      card.classList.remove("active");
+    }
+  });
+}
+
+function setupFilterListeners() {
+  const routeSelect = document.getElementById("routeSelect");
+  const dateFilter = document.getElementById("dateFilter");
+
+  let searchTimeout;
+
+  if (routeSelect) {
+    routeSelect.addEventListener("change", () => {
+      filterRoutes();
+    });
+  }
+
+  if (dateFilter) {
+    dateFilter.addEventListener("change", () => {
+      filterRoutes();
+    });
+  }
+}
+
+// ============ GOOGLE MAPS INTEGRATION ============
+let map;
+let directionsService;
+let directionsRenderer;
+let trafficLayer;
+let markers = [];
+let currentRoute = null;
+
+function initMap() {
+  const mapElement = document.getElementById("google-map");
+  if (!mapElement) {
+    console.error("Map element #google-map not found!");
+    return;
+  }
+
+  map = new google.maps.Map(mapElement, {
+    zoom: 10,
+    center: { lat: 10.8231, lng: 106.6297 },
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    styles: [
+      {
+        featureType: "poi",
+        stylers: [{ visibility: "off" }],
+      },
+    ],
+  });
+
+  trafficLayer = new google.maps.TrafficLayer();
+  trafficLayer.setMap(map);
+
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer({
+    map: map,
+    suppressMarkers: true,
+    polylineOptions: {
+      // strokeColor: "#E31C2A",
+      // strokeWeight: 5,
+      // strokeOpacity: 0.8,
+      strokeColor: "#460ffb",
+      strokeWeight: 5,
+      strokeOpacity: 0.8,
+    },
+  });
+  
+  if (ROUTE_DATA.length > 0) {
+    displayRoute(ROUTE_DATA[0]);
+  }
+}
+
+function toggleTrafficLayer(show) {
+  if (trafficLayer) {
+    trafficLayer.setMap(show ? map : null);
+  }
+}
+
+function displayRoute(routeData) {
+  if (!routeData || !routeData.mapData || !map) return;
+
+  currentRoute = routeData;
+
+  const { origin, destination, waypoints } = routeData.mapData;
+
+  const googleWaypoints = waypoints
+    ? waypoints.map((wp) => ({
+        location: new google.maps.LatLng(wp.lat, wp.lng),
+        stopover: true,
+      }))
+    : [];
+
+  const request = {
+    origin: new google.maps.LatLng(origin.lat, origin.lng),
+    destination: new google.maps.LatLng(destination.lat, destination.lng),
+    waypoints: googleWaypoints,
+    travelMode: google.maps.TravelMode.DRIVING,
+    optimizeWaypoints: false,
+  };
+
+  directionsService.route(request, (result, status) => {
+    if (status === "OK") {
+      directionsRenderer.setDirections(result);
+
+      setTimeout(() => {
+        clearMarkers();
+        displayMarkers(routeData);
+      }, 300);
+    } else {
+      console.error("Directions request failed:", status);
+      drawStraightLine(routeData);
+    }
+  });
+}
+
+function drawStraightLine(routeData) {
+  const { origin, destination, waypoints } = routeData.mapData;
+
+  const pathCoordinates = [origin, ...(waypoints || []), destination];
+
+  const polyline = new google.maps.Polyline({
+    path: pathCoordinates,
+    geodesic: true,
+    strokeColor: "#E31C2A",
+    strokeOpacity: 1.0,
+    strokeWeight: 4,
+    map: map,
+  });
+
+  const bounds = new google.maps.LatLngBounds();
+  pathCoordinates.forEach((coord) => bounds.extend(coord));
+  map.fitBounds(bounds);
+
+  displayMarkers(routeData);
+}
+
+function isOptionChecked(optionId) {
+  if (typeof dataOptions === "undefined") return true;
+  const option = dataOptions.find((opt) => opt.id === optionId);
+  return option ? option.checked : true;
+}
+
+function displayMarkers(routeData) {
+  if (!routeData || !routeData.mapData) return;
+  
+  if (!map) {
+    setTimeout(() => displayMarkers(routeData), 500);
+    return;
+  }
+
+  const {
+    intersectionLocations,
+    tollLocations,
+    restLocations,
+    cameraLocations,
+  } = routeData.mapData;
+
+  const showIntersections = isOptionChecked("intersection");
+  const showTolls = isOptionChecked("toll");
+  const showRests = isOptionChecked("stop");
+  const showConstruction = isOptionChecked("construction");
+  const showIncidents = isOptionChecked("incident");
+  const showCameras = isOptionChecked("camera");
+
+  // ===== INTERSECTIONS =====
+  if (intersectionLocations?.length) {
+    intersectionLocations.forEach((intersection) => {
+      const marker = new google.maps.Marker({
+        position: { lat: intersection.lat, lng: intersection.lng },
+        map,
+        title: intersection.name,
+        visible: showIntersections,
+        icon: {
+          url: "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+          scaledSize: new google.maps.Size(35, 35),
+        },
+      });
+      console.log('Tọa độ: ', intersection);
+      const infoWindow = new google.maps.InfoWindow({
+        content: `<strong>🔀 ${intersection.name}</strong>`,
+      });
+
+      marker.addListener("click", () => {
+        closeAllInfoWindows();
+        infoWindow.open(map, marker);
+      });
+
+      markers.push({ marker, infoWindow, type: "intersection" });
+    });
+  }
+
+  // ===== TOLLS =====
+  if (tollLocations?.length) {
+    tollLocations.forEach((toll) => {
+      const marker = new google.maps.Marker({
+        position: { lat: toll.lat, lng: toll.lng },
+        map,
+        title: toll.name,
+        visible: showTolls,
+        icon: {
+          url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+          scaledSize: new google.maps.Size(35, 35),
+        },
+      });
+
+      const infoWindow = new google.maps.InfoWindow({
+        content: `<strong>🚦 ${toll.name}</strong>`,
+      });
+
+      marker.addListener("click", () => {
+        closeAllInfoWindows();
+        infoWindow.open(map, marker);
+      });
+
+      markers.push({ marker, infoWindow, type: "toll" });
+    });
+  }
+
+  // ===== REST STATIONS =====
+  if (restLocations?.length) {
+    restLocations.forEach((rest) => {
+      console.log('Tọa độ 2: ', rest);
+      const marker = new google.maps.Marker({
+        position: { lat: rest.lat, lng: rest.lng },
+        map,
+        title: rest.name,
+        visible: showRests,
+        icon: {
+          url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+          scaledSize: new google.maps.Size(35, 35),
+        },
+      });
+
+      const infoWindow = new google.maps.InfoWindow({
+        content: `<strong>☕ ${rest.name}</strong>`,
+      });
+
+      marker.addListener("click", () => {
+        closeAllInfoWindows();
+        infoWindow.open(map, marker);
+      });
+
+      markers.push({ marker, infoWindow, type: "rest" });
+    });
+  }
+
+  // ===== CAMERAS  =====
+  if (cameraLocations?.length) {
+    cameraLocations.forEach((camera) => {
+      console.log('Tọa độ 3: ', camera);
+      const marker = new google.maps.Marker({
+        position: { lat: camera.lat, lng: camera.lng },
+        map: map,
+        title: camera.name,
+        visible: showCameras,
+        icon: {
+          url: "https://res.cloudinary.com/drwairjk5/image/upload/v1767820122/Group_1000002467_wkbbsl.svg",
+          scaledSize: new google.maps.Size(40, 40),
+        },
+        zIndex: 1000,
+      });
+
+      const infoWindow = new google.maps.InfoWindow({
+        content: `
+          <div style="min-width:160px">
+            <strong>📹 ${camera.name}</strong><br/>
+            ${
+              camera.videoUrl
+                ? `<button onclick="openCameraFromMap('${camera.name}', '${camera.videoUrl}')"
+                    style="margin-top:6px;padding:6px 10px;background:#2563eb;color:white;border:none;border-radius:4px;cursor:pointer">
+                    Xem trực tiếp
+                  </button>`
+                : `<small>Không có video</small>`
+            }
+          </div>
+        `,
+      });
+
+      marker.addListener("click", () => {
+        closeAllInfoWindows();
+        infoWindow.open(map, marker);
+      });
+
+      markers.push({ marker, infoWindow, type: "camera" });
+    });
+  }
+  
+  if (cameraLocations?.length && showCameras) {
+    const bounds = new google.maps.LatLngBounds();
+    markers.forEach(({ marker }) => {
+      if (marker.getVisible()) {
+        bounds.extend(marker.getPosition());
+      }
+    });
+    if (routeData.mapData.origin) {
+      bounds.extend(routeData.mapData.origin);
+    }
+    if (routeData.mapData.destination) {
+      bounds.extend(routeData.mapData.destination);
+    }
+    map.fitBounds(bounds);
+  }
+}
+
+function clearMarkers() {
+  markers.forEach(({ marker }) => marker.setMap(null));
+  markers = [];
+}
+
+function closeAllInfoWindows() {
+  markers.forEach(({ infoWindow }) => infoWindow.close());
+}
+
+function toggleIntersections(show) {
+  markers.forEach(({ marker, type }) => {
+    if (type === "intersection") {
+      marker.setVisible(show);
+    }
+  });
+}
+
+function toggleTollStations(show) {
+  markers.forEach(({ marker, type }) => {
+    if (type === "toll") {
+      marker.setVisible(show);
+    }
+  });
+}
+
+function toggleRestStations(show) {
+  markers.forEach(({ marker, type }) => {
+    if (type === "rest") {
+      marker.setVisible(show);
+    }
+  });
+}
+
+function toggleConstruction(show) {
+  markers.forEach(({ marker, type }) => {
+    if (type === "construction") {
+      marker.setVisible(show);
+    }
+  });
+}
+
+function toggleIncidents(show) {
+  markers.forEach(({ marker, type }) => {
+    if (type === "incident") {
+      marker.setVisible(show);
+    }
+  });
+}
+
+function toggleRoute(show) {
+  if (directionsRenderer) {
+    directionsRenderer.setMap(show ? map : null);
+  }
+}
+
+function toggleCameras(show) {
+  markers.forEach(({ marker, type }) => {
+    if (type === "camera") {
+      marker.setVisible(show);
+    }
+  });
+}
+
+// ============ RENDER DETAIL ============
+const img = document.querySelector(".td-detail__img");
+const title = document.querySelector(".td-detail h3");
+const locationEl = document.querySelector(".td-detail__location");
+
+function renderDetail(data) {
+  img.src = data.img;
+  title.textContent = data.title;
+  locationEl.textContent = "📍 " + data.location;
+  
+  if (data.id) {
+    renderCameras(data.id);
+  }
+}
+
+// ============ EVENT HANDLERS ============
+(async () => {
+  await initializeApp();
+
+  if (window.__loadGoogleMaps__) {
+    window.__loadGoogleMaps__();
+  }
+})();
+
+const dataOptions = [
+  {
+    id: "route",
+    title: "Hiển thị tuyến",
+    checked: true,
+    icon: `<svg width="20" class="text-gray-500" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clip-path="url(#clip0_647_13613)">
+      <path d="M8.40101 1.66602C4.55885 2.44593 1.66699 5.84283 1.66699 9.91516C1.66699 14.564 5.43565 18.3327 10.0845 18.3327C14.1568 18.3327 17.5537 15.4408 18.3337 11.5987" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      <path
+        d="M15.7813 15.0007C16.1013 14.9312 16.3976 14.8207 16.6667 14.6698M12.2396 14.4512C12.7359 14.6686 13.2147 14.8297 13.6709 14.9355M9.04551 12.4571C9.39007 12.699 9.75836 12.9891 10.1169 13.2394M2.5 11.5214C2.76861 11.3903 3.05859 11.2397 3.38542 11.1107M5.37587 10.834C5.84411 10.886 6.36917 11.0195 6.96453 11.27"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path d="M15.417 5.83398C15.417 5.14363 14.8573 4.58398 14.167 4.58398C13.4766 4.58398 12.917 5.14363 12.917 5.83398C12.917 6.52434 13.4766 7.08398 14.167 7.08398C14.8573 7.08398 15.417 6.52434 15.417 5.83398Z" stroke="currentColor" stroke-width="1.5" />
+      <path d="M14.1667 1.66602C16.4216 1.66602 18.3333 3.51446 18.3333 5.75699C18.3333 8.03523 16.3904 9.634 14.5958 10.7212C14.465 10.7943 14.3172 10.8327 14.1667 10.8327C14.0162 10.8327 13.8683 10.7943 13.7375 10.7212C11.9462 9.6234 10 8.04311 10 5.75699C10 3.51446 11.9118 1.66602 14.1667 1.66602Z" stroke="currentColor" stroke-width="1.5" />
+    </g>
+    <defs>
+      <clipPath id="clip0_647_13613">
+        <rect width="20" height="20" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>`,
+  },
+  {
+    id: "toll",
+    title: "Hiển thị trạm thu phí",
+    checked: true,
+    icon: `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+  </svg>`,
+  },
+  {
+    id: "stop",
+    title: "Hiển thị điểm dừng",
+    checked: false,
+    icon: `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path>
+  </svg>`,
+  },
+  {
+    id: "construction",
+    title: "Hiển thị công trường",
+    checked: false,
+    icon: `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+  </svg>`,
+  },
+  {
+    id: "incident",
+    title: "Hiển thị sự cố",
+    checked: false,
+    icon: `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+  </svg>`,
+  },
+  {
+    id: "camera",
+    title: "Camera trực tuyến",
+    checked: true,
+    icon: `<svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+  </svg>`,
+  },
+];
+
+function renderOptions() {
+  const optionsContainer = document.getElementById("optionsContainer");
+  if (!optionsContainer) return;
+
+  optionsContainer.innerHTML = dataOptions
+    .map((option) => {
+      const isChecked = option.checked;
+      const textColor = isChecked ? "text-blue-500" : "";
+      const bgColor = isChecked ? "bg-blue-50" : "";
+      const iconColor = isChecked ? "text-blue-500" : "text-gray-500";
+      const checkedAttr = isChecked ? "checked" : "";
+
+      return `
+    <div class="mt-2">
+      <label class="option-item flex items-center gap-3 rounded-lg cursor-pointer" data-option-id="${option.id}">
+      <div class="w-8 h-8 ${bgColor} rounded-lg flex items-center justify-center">
+        ${option.icon.replace("text-gray-500", iconColor)}
+      </div>
+      <span class="flex-1 text-sm ${textColor} ">${option.title}</span>
+      <div class="custom-checkbox">
+        <input type="checkbox" ${checkedAttr} />
+      </div>
+    </label></div>
+  `;
+    })
+    .join("");
+}
+
+const settingsPanel = document.getElementById("settingsPanel");
+const closeBtn = document.getElementById("closeBtn");
+const openBtn = document.getElementById("openBtn");
+settingsPanel.classList.add("hidden");
+openBtn.classList.remove("hidden");
+
+renderOptions();
+
+closeBtn.addEventListener("click", () => {
+  settingsPanel.classList.add("hidden");
+  openBtn.classList.remove("hidden");
+});
+
+openBtn.addEventListener("click", () => {
+  settingsPanel.classList.remove("hidden");
+  openBtn.classList.add("hidden");
+});
+
+const mapLayerCards = document.querySelectorAll(".map-layer-card");
+mapLayerCards.forEach((card) => {
+  card.addEventListener("click", () => {
+    mapLayerCards.forEach((c) => {
+      c.classList.remove("active");
+    });
+    card.classList.add("active");
+
+    const layer = card.dataset.layer;
+    if (map) {
+      if (layer === "street") {
+        map.setMapTypeId(google.maps.MapTypeId.ROADMAP);
+      } else if (layer === "satellite") {
+        map.setMapTypeId(google.maps.MapTypeId.HYBRID);
+      }
+    }
+  });
+});
+
+const optionsContainer = document.getElementById("optionsContainer");
+optionsContainer.addEventListener("change", (e) => {
+  if (e.target.type === "checkbox") {
+    const label = e.target.closest("label");
+    const optionId = label.dataset.optionId;
+    const icon = label.querySelector(".w-8.h-8");
+    const span = label.querySelector("span");
+
+    const option = dataOptions.find((opt) => opt.id === optionId);
+    if (option) {
+      option.checked = e.target.checked;
+    }
+
+    const isChecked = e.target.checked;
+    switch (optionId) {
+      case "route":
+        toggleRoute(isChecked);
+        break;
+      case "toll":
+        toggleTollStations(isChecked);
+        break;
+      case "stop":
+        toggleRestStations(isChecked);
+        break;
+      case "construction":
+        toggleConstruction(isChecked);
+        break;
+      case "incident":
+        toggleIncidents(isChecked);
+        break;
+      case "camera":
+        toggleCameras(isChecked);
+        break;
+    }
+
+    if (e.target.checked) {
+      span.classList.add("text-blue-500");
+      span.classList.remove("text-gray-700");
+      icon.classList.remove("bg-gray-100");
+      icon.classList.add("bg-blue-50");
+      const svg = icon.querySelector("svg");
+      if (svg) {
+        svg.classList.remove("text-gray-500");
+        svg.classList.add("text-blue-500");
+      }
+    } else {
+      span.classList.remove("text-blue-500");
+      span.classList.add("text-gray-700");
+      icon.classList.add("bg-gray-100");
+      icon.classList.remove("bg-blue-50");
+      const svg = icon.querySelector("svg");
+      if (svg) {
+        svg.classList.add("text-gray-500");
+        svg.classList.remove("text-blue-500");
+      }
+    }
+  }
+});
+
+// ============================================================
+// ADD / EDIT CAMERA MODAL  — v2
+// Features:
+//  • Mở modal: hiển thị tất cả camera hiện có, có thể chỉnh sửa (form mở sẵn)
+//  • Nút Xóa hoạt động cho cả camera cũ lẫn mới
+//  • Lưu ghi vào localStorage → F5 vẫn giữ nguyên
+// ============================================================
+
+/* ---- helpers ---- */
+function _lbl(text, req) {
+  return `<span style="display:block;font-size:11px;font-weight:600;color:#6b7280;margin-bottom:3px;letter-spacing:.3px;text-transform:uppercase">${text}${req ? ' <span style="color:#e31c2a">*</span>' : ''}</span>`;
+}
+
+function _inp(type, name, value, placeholder, extra) {
+  return `<input type="${type}" ${type === 'number' ? 'step="any"' : ''} name="${name}" value="${(value || '').toString().replace(/"/g, '&quot;')}" placeholder="${placeholder}" ${extra || ''} style="width:100%;padding:7px 10px;border:1.5px solid #e4e4e4;border-radius:7px;font-size:13px;color:#1e1e1e;outline:none;background:#fff;transition:border-color .15s" onfocus="this.style.borderColor='#0090CF'" onblur="this.style.borderColor='#e4e4e4'"/>`;
+}
+
+/* ---- build one editable camera card ---- */
+function buildCamCard(cam, uiIndex, isNew) {
+  const camId = 'camcard_' + uiIndex;
+  const badgeHtml = isNew
+    ? `<span style="font-size:10px;padding:1px 8px;border-radius:10px;background:#fef9c3;color:#b45309;font-weight:700;">Mới</span>`
+    : `<span style="font-size:10px;padding:1px 8px;border-radius:10px;background:#e8f6fd;color:#0090CF;font-weight:700;">Cam ${uiIndex + 1}</span>`;
+
+  return `
+<div class="cam-edit-card" id="${camId}" style="border:1.5px solid #e4e4e4;border-radius:12px;margin-bottom:12px;overflow:hidden;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.04)">
+  <!-- ── Header ── -->
+  <div class="cam-card-hdr" onclick="toggleCamCard('${camId}')" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#f8fafc;cursor:pointer;user-select:none;border-bottom:1px solid #f0f0f0">
+    <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0090CF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      <span class="cam-card-title" style="font-size:13px;font-weight:600;color:#1e1e1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${(cam.name || 'Camera ' + (uiIndex + 1)).replace(/</g,'&lt;')}</span>
+      ${badgeHtml}
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+      <button type="button" onclick="event.stopPropagation();deleteCamCard('${camId}')" title="Xóa camera này" style="width:26px;height:26px;border:1px solid #fca5a5;background:#fff5f5;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fff5f5'">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e31c2a" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+      </button>
+      <svg class="cam-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round" style="transition:transform .25s;transform:rotate(0deg)"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </div>
+  <!-- ── Body ── -->
+  <div class="cam-card-body" style="padding:14px;display:block;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        ${_lbl('Tên camera', true)}
+        ${_inp('text','cam_name', cam.name, 'Cam 7 - Km 45', `oninput="syncCamTitle('${camId}',this)"`)}
+      </div>
+      <div>
+        ${_lbl('ID Camera', false)}
+        ${_inp('text','cam_id', cam.live_camera_id, 'cam_007')}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        ${_lbl('Vĩ độ (Lat)', true)}
+        ${_inp('number','cam_lat', cam.lat, '10.9021')}
+      </div>
+      <div>
+        ${_lbl('Kinh độ (Lng)', true)}
+        ${_inp('number','cam_lng', cam.lng, '106.9784')}
+      </div>
+    </div>
+    <div>
+      ${_lbl('URL Video', true)}
+      ${_inp('url','cam_video_url', cam.video_url, 'https://...')}
+    </div>
+  </div>
+</div>`;
+}
+
+/* ---- toggle collapse ---- */
+window.toggleCamCard = function(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const body    = card.querySelector('.cam-card-body');
+  const chevron = card.querySelector('.cam-chevron');
+  const isOpen  = body.style.display !== 'none';
+  body.style.display    = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
+};
+
+/* ---- sync title as user types ---- */
+window.syncCamTitle = function(cardId, input) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const titleEl = card.querySelector('.cam-card-title');
+  if (titleEl) titleEl.textContent = input.value || 'Camera mới';
+};
+
+/* ---- delete a card (both existing & new) ---- */
+window.deleteCamCard = function(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  // Confirm only if card has data
+  const nameVal = card.querySelector('[name="cam_name"]')?.value?.trim();
+  if (nameVal) {
+    if (!confirm(`Bạn có chắc muốn xóa camera "${nameVal}" không?`)) return;
+  }
+  card.style.transition = 'opacity .2s,transform .2s';
+  card.style.opacity = '0';
+  card.style.transform = 'translateX(12px)';
+  setTimeout(() => card.remove(), 220);
+};
+
+/* ---- add blank new card ---- */
+window.addNewCamCard = function() {
+  const container = document.getElementById('camCardsContainer');
+  if (!container) return;
+  const uiIndex = Date.now();
+  const emptyCam = { name: '', live_camera_id: '', lat: '', lng: '', video_url: '' };
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = buildCamCard(emptyCam, uiIndex, true);
+  const newCard = wrapper.firstElementChild;
+  newCard.style.opacity = '0';
+  newCard.style.transform = 'translateY(-8px)';
+  container.appendChild(newCard);
+  requestAnimationFrame(() => {
+    newCard.style.transition = 'opacity .25s,transform .25s';
+    newCard.style.opacity = '1';
+    newCard.style.transform = 'translateY(0)';
+  });
+  // Scroll to new card
+  setTimeout(() => newCard.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+};
+
+/* ---- open modal ---- */
+window.openAddCameraModal = function() {
+  const modal = document.getElementById('addCameraModal');
+  const body  = document.getElementById('addCameraModalBody');
+  if (!modal || !body) return;
+
+  // Load: localStorage first, then currentCameras, then MOCK
+  const existing = lsLoadCameras() || (window.currentCameras && window.currentCameras.length ? window.currentCameras : MOCK_CAMERAS);
+
+  // Count indicator
+  const countBadge = `<span id="camCountBadge" style="font-size:12px;color:#6b7280;background:#f3f4f6;padding:2px 10px;border-radius:10px;font-weight:600;">${existing.length} camera</span>`;
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <p style="margin:0;font-size:13px;color:#6b7280;">Chỉnh sửa hoặc thêm camera. Dữ liệu được lưu bền vững vào trình duyệt.</p>
+      ${countBadge}
+    </div>
+    <div id="camCardsContainer">
+      ${existing.map((cam, i) => buildCamCard(cam, i, false)).join('')}
+    </div>
+    <button type="button" onclick="addNewCamCard()" style="width:100%;padding:10px;border:1.5px dashed #0090CF;border-radius:9px;background:#f0f9ff;color:#0090CF;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s;margin-top:4px" onmouseover="this.style.background='#e0f2fe'" onmouseout="this.style.background='#f0f9ff'">
+      <svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1V13M1 7H13" stroke="#0090CF" stroke-width="2.2" stroke-linecap="round"/></svg>
+      Thêm camera mới
+    </button>
+  `;
+
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+};
+
+/* ---- close modal ---- */
+window.closeAddCameraModal = function() {
+  const modal = document.getElementById('addCameraModal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = '';
+};
+
+/* ---- helper: re-render camera panel ---- */
+function reRenderCameraPanel(cameras) {
+  const cameraContent = document.querySelector('.td-camera__content');
+  if (!cameraContent) return;
+
+  if (!cameras.length) {
+    cameraContent.innerHTML = '<div style="padding:16px;color:#9ca3af;font-size:13px;">Không có camera nào.</div>';
+    return;
+  }
+
+  cameraContent.innerHTML = cameras.map(camera => `
+    <div class="camera-box" data-camera-id="${camera.live_camera_id}" data-video-url="${(camera.video_url || '').replace(/"/g,'&quot;')}">
+      <div class="camera-label">${(camera.name || 'Camera').replace(/</g,'&lt;')}</div>
+      <video class="camera-video-thumbnail" autoplay muted loop playsinline>
+        <source src="${camera.video_url || ''}" type="application/x-mpegURL">
+      </video>
+      <button class="camera-play-btn">
+        <img src="https://res.cloudinary.com/drwairjk5/image/upload/v1767609285/Variant3_e7bc0u.svg" alt="Play"/>
+      </button>
+    </div>`).join('');
+
+  cameraContent.querySelectorAll('.camera-box').forEach(box => {
+    box.addEventListener('click', () => {
+      const videoUrl  = box.getAttribute('data-video-url');
+      const cameraName = box.querySelector('.camera-label').textContent;
+      if (videoUrl) openCameraModal(cameraName, videoUrl);
+    });
+  });
+}
+
+/* ---- save cameras ---- */
+window.saveAddedCameras = function() {
+  const container = document.getElementById('camCardsContainer');
+  if (!container) return;
+
+  const cards = container.querySelectorAll('.cam-edit-card');
+  const updatedCameras = [];
+  let hasError = false;
+
+  cards.forEach((card) => {
+    const nameEl     = card.querySelector('[name="cam_name"]');
+    const idEl       = card.querySelector('[name="cam_id"]');
+    const latEl      = card.querySelector('[name="cam_lat"]');
+    const lngEl      = card.querySelector('[name="cam_lng"]');
+    const videoEl    = card.querySelector('[name="cam_video_url"]');
+
+    const name       = nameEl.value.trim();
+    const id         = idEl.value.trim();
+    const lat        = parseFloat(latEl.value);
+    const lng        = parseFloat(lngEl.value);
+    const videoUrl   = videoEl.value.trim();
+
+    // Reset borders
+    [nameEl, latEl, lngEl, videoEl].forEach(el => el.style.borderColor = '#e4e4e4');
+
+    const rowError = !name || isNaN(lat) || isNaN(lng) || !videoUrl;
+    if (rowError) {
+      if (!name)       { nameEl.style.borderColor  = '#e31c2a'; nameEl.focus(); }
+      if (isNaN(lat))  { latEl.style.borderColor   = '#e31c2a'; }
+      if (isNaN(lng))  { lngEl.style.borderColor   = '#e31c2a'; }
+      if (!videoUrl)   { videoEl.style.borderColor = '#e31c2a'; }
+      hasError = true;
+      return;
+    }
+
+    updatedCameras.push({
+      live_camera_id: id || ('cam_' + String(Date.now()).slice(-6)),
+      highway_id: 1,
+      name,
+      lat,
+      lng,
+      video_url: videoUrl
+    });
+  });
+
+  if (hasError) {
+    // Scroll first error into view
+    const firstRed = container.querySelector('input[style*="#e31c2a"]');
+    if (firstRed) firstRed.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  // 1. Persist to localStorage
+  lsSaveCameras(updatedCameras);
+
+  // 2. Update runtime globals
+  window.currentCameras = updatedCameras;
+  MOCK_CAMERAS.splice(0, MOCK_CAMERAS.length, ...updatedCameras);
+
+  // 3. Re-render camera panel
+  reRenderCameraPanel(updatedCameras);
+
+  // 4. Update map markers
+  if (map && currentRoute) {
+    const cameraLocations = updatedCameras.map(cam => ({
+      lat: cam.lat, lng: cam.lng, name: cam.name, id: cam.live_camera_id, videoUrl: cam.video_url
+    }));
+    if (currentRoute.mapData) currentRoute.mapData.cameraLocations = cameraLocations;
+    clearMarkers();
+    displayMarkers(currentRoute);
+  }
+
+  // 5. Show toast feedback
+  showToast(`Đã lưu ${updatedCameras.length} camera thành công!`);
+  closeAddCameraModal();
+};
+
+/* ---- toast notification ---- */
+function showToast(msg) {
+  let toast = document.getElementById('vecToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'vecToast';
+    toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1e1e;color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.18)';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="3" stroke-linecap="round" style="margin-right:7px;vertical-align:middle"><path d="M20 6L9 17l-5-5"/></svg>${msg}`;
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(10px)';
+  }, 2800);
+}

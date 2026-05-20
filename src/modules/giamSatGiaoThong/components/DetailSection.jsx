@@ -72,6 +72,8 @@ const IconCamera = ({ color = '#0090CF' }) => (
 
 const DetailSection = ({ route, cameras, violations, onCameraClick, onViolationClick }) => {
   const [activeTab, setActiveTab] = useState('camera');
+  const thumbnailFallbackUrl =
+    'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original';
 
   if (!route) {
     return (
@@ -122,11 +124,16 @@ const DetailSection = ({ route, cameras, violations, onCameraClick, onViolationC
             <CameraContent>
               {cameras.length > 0 ? (
                 cameras.map((camera) => (
-                  <CameraBox key={camera.live_camera_id} onClick={() => onCameraClick(camera)}>
+                  <CameraBox key={camera.camera_id} onClick={() => onCameraClick(camera)}>
                     <CameraLabel>{camera.name}</CameraLabel>
-                    <video className="camera-video-thumbnail" autoPlay muted loop playsInline>
-                      <source src={camera.video_url} type="video/mp4" />
-                    </video>
+                    <img
+                      className="camera-thumbnail"
+                      src={camera.thumbnail_url || thumbnailFallbackUrl}
+                      alt={camera.name || 'Camera'}
+                      onError={(event) => {
+                        event.currentTarget.src = thumbnailFallbackUrl;
+                      }}
+                    />
                     <PlayButton>
                       <img
                         src="https://res.cloudinary.com/drwairjk5/image/upload/v1767609285/Variant3_e7bc0u.svg"

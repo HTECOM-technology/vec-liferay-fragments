@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import HeaderSection from './HeaderSection';
 import AnalyticsSection from './AnalyticsSection';
 import MapSection from './MapSection';
@@ -7,6 +7,23 @@ import CameraModal from './CameraModal';
 import IncidentModal from './IncidentModal';
 import ViolationModal from './ViolationModal';
 import { Container, TabContainer, ContentTable } from '../style';
+
+// ============ API CONFIG ============
+
+const API_BASE_URL = '';
+const API_HEADERS = {
+  accept: 'application/json',
+};
+const API_HIGHWAYS_URL = `${API_BASE_URL}/o/c/highways/`;
+const CAMERA_HIGHWAY_ID = 44147;
+const CAMERA_API_URL = 'https://portal.tctvec.vn/o/its/api/cameras';
+
+const DEFAULT_ANALYTICS = {
+  violations: 0,
+  avgSpeed: 0,
+  animals: 0,
+  brokenCameras: 0,
+};
 
 // ============ MOCK DATA ============
 
@@ -86,57 +103,6 @@ const MOCK_ROUTES = [
       cameraLocations: [],
       incidentLocations: [],
     },
-  },
-];
-
-const MOCK_CAMERAS = [
-  {
-    live_camera_id: "cam_001",
-    highway_id: 1,
-    name: "Cam 1",
-    lat: 10.840,
-    lng: 106.700,
-    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
-  },
-  {
-    live_camera_id: "cam_002",
-    highway_id: 1,
-    name: "Cam 2",
-    lat: 10.870,
-    lng: 106.800,
-    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
-  },
-  {
-    live_camera_id: "cam_003",
-    highway_id: 1,
-    name: "Cam 3",
-    lat: 10.900,
-    lng: 106.950,
-    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
-  },
-  {
-    live_camera_id: "cam_004",
-    highway_id: 1,
-    name: "Cam 4",
-    lat: 10.920,
-    lng: 107.020,
-    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
-  },
-  {
-    live_camera_id: "cam_005",
-    highway_id: 1,
-    name: "Cam 5",
-    lat: 10.880,
-    lng: 106.850,
-    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
-  },
-  {
-    live_camera_id: "cam_006",
-    highway_id: 1,
-    name: "Cam 6",
-    lat: 10.910,
-    lng: 107.000,
-    video_url: "https://res.cloudinary.com/dvaoj8ssp/video/upload/v1770092554/602445_Cities_City_3840x2160_dzefxw.mp4"
   },
 ];
 
@@ -236,12 +202,156 @@ const MOCK_ANALYTICS = {
   },
 };
 
+async function fetchHighwaysData() {
+  try {
+    const response = await fetch(API_HIGHWAYS_URL, {
+      method: 'GET',
+      headers: API_HEADERS,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Highways API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.items || [];
+  } catch (error) {
+    console.error('Error fetching highways data:', error);
+    return [];
+  }
+}
+
+async function fetchTollDetail(highwayId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/o/c/highways/${highwayId}/stationInfoAndHighwayFK`, {
+      method: 'GET',
+      headers: API_HEADERS,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Toll detail API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return (data.items || [])
+      .map((item) => ({
+        lat: Number(item.lat),
+        lng: Number(item.lng),
+        name: item.name,
+        id: item.id,
+        img: item.image?.link?.href
+          ? `${API_BASE_URL}${item.image.link.href}`
+          : 'https://placehold.co/104x104',
+        address: item.location || item.name,
+        status: 'Mở cả ngày',
+        type: item.type?.key || 'tollStation',
+        fees: [],
+      }))
+      .filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  } catch (error) {
+    console.error(`Error fetching toll details for highway ${highwayId}:`, error);
+    return [];
+  }
+}
+
+function withCacheBust(url) {
+  const value = Date.now().toString();
+
+  try {
+    const parsedUrl = new URL(url, window.location.href);
+    parsedUrl.searchParams.set('_', value);
+    return parsedUrl.href;
+  } catch (error) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}_=${encodeURIComponent(value)}`;
+  }
+}
+
+async function fetchCameras() {
+  const response = await fetch(withCacheBust(CAMERA_API_URL), {
+    method: 'GET',
+    cache: 'no-store',
+    headers: API_HEADERS,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Camera API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return Array.isArray(data.items) ? data.items : [];
+}
+
+function getCameraCoordinate(camera, keys) {
+  for (const key of keys) {
+    const value = Number(camera[key]);
+    if (Number.isFinite(value)) return value;
+  }
+
+  return null;
+}
+
+function mapCameraLocation(camera) {
+  const lat = getCameraCoordinate(camera, ['lat', 'latitude', 'camera_lat', 'cameraLatitude']);
+  const lng = getCameraCoordinate(camera, ['lng', 'long', 'lon', 'longitude', 'camera_lng', 'camera_long', 'cameraLongitude']);
+
+  if (lat === null || lng === null) return null;
+
+  return {
+    ...camera,
+    lat,
+    lng,
+    id: camera.camera_id,
+    name: camera.name || 'Camera',
+  };
+}
+
+function mapApiDataToRouteData(apiItems) {
+  return apiItems.map((item) => {
+    const locationParts = (item.location || '').split(' - ');
+    const startName = locationParts[0] || '';
+    const endName = locationParts[locationParts.length - 1] || '';
+    const startLat = Number(item.startLat) || 0;
+    const startLng = Number(item.startLng) || 0;
+    const endLat = Number(item.endLat) || 0;
+    const endLng = Number(item.endLng) || 0;
+    const drivingLanes = item.drivingLaneNum || '';
+    const emergencyLanes = item.emergencyLaneNum || '';
+    const lanesInfo = drivingLanes
+      ? `${drivingLanes} làn xe chạy${emergencyLanes ? `, ${emergencyLanes} làn dừng khẩn cấp` : ''}`
+      : '';
+
+    return {
+      id: item.id,
+      title: item.name || '',
+      location: item.location || '',
+      img: item.image?.link?.href ? `${API_BASE_URL}${item.image.link.href}` : 'https://placehold.co/400x165',
+      description: item.description || '',
+      intro: item.description || '',
+      lanesInfo,
+      startLat,
+      startLng,
+      endLat,
+      endLng,
+      mapData: {
+        origin: { lat: startLat, lng: startLng, name: startName },
+        destination: { lat: endLat, lng: endLng, name: endName },
+        waypoints: [],
+        intersectionLocations: [],
+        tollLocations: [],
+        restLocations: [],
+        cameraLocations: [],
+        incidentLocations: [],
+      },
+    };
+  });
+}
+
 // ============ MAIN COMPONENT ============
 
 const GiamSatGiaoThong = () => {
   // State management
-  const [routes, setRoutes] = useState(MOCK_ROUTES);
-  const [filteredRoutes, setFilteredRoutes] = useState(MOCK_ROUTES);
+  const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedRouteFilter, setSelectedRouteFilter] = useState('');
@@ -265,58 +375,42 @@ const GiamSatGiaoThong = () => {
   });
 
   /**
-   * Initialize data on mount
-   */
-  useEffect(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setSelectedDate(today);
-
-    if (MOCK_ROUTES.length > 0) {
-      setSelectedRoute(MOCK_ROUTES[0]);
-      loadDataForRoute(MOCK_ROUTES[0].id);
-    }
-  }, []);
-
-  /**
    * Load cameras, violations, incidents, and analytics for selected route
    */
-  const loadDataForRoute = (routeId) => {
-    // Load cameras
-    const camerasData = MOCK_CAMERAS.filter(cam => cam.highway_id === routeId);
+  const loadDataForRoute = useCallback(async (routeId, routeSource = []) => {
+    const numericRouteId = Number(routeId);
+    let camerasData = [];
+
+    if (numericRouteId === CAMERA_HIGHWAY_ID) {
+      try {
+        camerasData = await fetchCameras();
+      } catch (error) {
+        console.error('Error fetching cameras:', error);
+      }
+    }
+
     setCameras(camerasData);
 
     // Load violations
-    const violationsData = MOCK_VIOLATIONS.filter(v => v.highway_id === routeId);
+    const violationsData = MOCK_VIOLATIONS.filter(v => v.highway_id === numericRouteId);
     setViolations(violationsData);
 
     // Load incidents
-    const incidentsData = MOCK_INCIDENTS.filter(inc => inc.highway_id === routeId);
+    const incidentsData = MOCK_INCIDENTS.filter(inc => inc.highway_id === numericRouteId);
     setIncidents(incidentsData);
 
     // Load analytics
-    const analyticsData = MOCK_ANALYTICS[routeId] || {
-      violations: 0,
-      avgSpeed: 0,
-      animals: 0,
-      brokenCameras: 0,
-    };
+    const analyticsData = MOCK_ANALYTICS[numericRouteId] || DEFAULT_ANALYTICS;
     setAnalytics(analyticsData);
 
     // Update route with camera and incident locations
-    const updateRouteData = (prevRoutes) =>
-      prevRoutes.map((route) => {
-        if (route.id === routeId) {
+    const updatedRoutes = routeSource.map((route) => {
+        if (Number(route.id) === numericRouteId) {
           return {
             ...route,
             mapData: {
               ...route.mapData,
-              cameraLocations: camerasData.map((cam) => ({
-                lat: cam.lat,
-                lng: cam.lng,
-                name: cam.name,
-                id: cam.live_camera_id,
-                videoUrl: cam.video_url,
-              })),
+              cameraLocations: camerasData.map(mapCameraLocation).filter(Boolean),
               incidentLocations: incidentsData.map((inc) => ({
                 lat: inc.lat,
                 lng: inc.lng,
@@ -327,13 +421,55 @@ const GiamSatGiaoThong = () => {
               })),
             },
           };
-        }
-        return route;
-      });
+      }
+      return route;
+    });
 
-    setRoutes(updateRouteData);
-    setFilteredRoutes(updateRouteData);
-  };
+    const updatedSelectedRoute = updatedRoutes.find((route) => Number(route.id) === numericRouteId) || null;
+
+    setRoutes(updatedRoutes);
+    setSelectedRoute(updatedSelectedRoute);
+  }, []);
+
+  /**
+   * Initialize data on mount
+   */
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeData = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      setSelectedDate(today);
+
+      const apiItems = await fetchHighwaysData();
+      const routeData = mapApiDataToRouteData(apiItems);
+      const sourceRoutes = routeData.length ? routeData : MOCK_ROUTES;
+
+      const routesWithTolls = await Promise.all(
+        sourceRoutes.map(async (route) => ({
+          ...route,
+          mapData: {
+            ...route.mapData,
+            tollLocations: route.id ? await fetchTollDetail(route.id) : route.mapData.tollLocations,
+          },
+        }))
+      );
+
+      if (!isMounted) return;
+
+      setRoutes(routesWithTolls);
+
+      if (routesWithTolls.length > 0) {
+        await loadDataForRoute(routesWithTolls[0].id, routesWithTolls);
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [loadDataForRoute]);
 
   /**
    * Handle filter changes
@@ -343,17 +479,15 @@ const GiamSatGiaoThong = () => {
       setSelectedRouteFilter(value);
 
       if (value !== '') {
-        const selectedRouteData = routes.find(r => r.id === parseInt(value));
+        const selectedRouteData = routes.find(r => String(r.id) === String(value));
         if (selectedRouteData) {
           setSelectedRoute(selectedRouteData);
-          loadDataForRoute(selectedRouteData.id);
-          setFilteredRoutes([selectedRouteData]);
+          loadDataForRoute(selectedRouteData.id, routes);
         }
       } else {
-        setFilteredRoutes(routes);
         if (routes.length > 0) {
           setSelectedRoute(routes[0]);
-          loadDataForRoute(routes[0].id);
+          loadDataForRoute(routes[0].id, routes);
         }
       }
     } else if (filterType === 'date') {
@@ -362,21 +496,20 @@ const GiamSatGiaoThong = () => {
       setSearchKeyword(value);
 
       if (value.trim() === '') {
-        setFilteredRoutes(routes);
         if (routes.length > 0) {
           setSelectedRoute(routes[0]);
-          loadDataForRoute(routes[0].id);
+          loadDataForRoute(routes[0].id, routes);
         }
       } else {
         const filtered = routes.filter(route =>
           route.title.toLowerCase().includes(value.toLowerCase()) ||
-          route.location.toLowerCase().includes(value.toLowerCase())
+          route.location.toLowerCase().includes(value.toLowerCase()) ||
+          (route.intro || '').toLowerCase().includes(value.toLowerCase())
         );
-        setFilteredRoutes(filtered);
 
         if (filtered.length > 0) {
           setSelectedRoute(filtered[0]);
-          loadDataForRoute(filtered[0].id);
+          loadDataForRoute(filtered[0].id, routes);
         } else {
           setSelectedRoute(null);
           setCameras([]);
@@ -412,7 +545,7 @@ const GiamSatGiaoThong = () => {
 
         {/* Header with search and filters */}
         <HeaderSection
-          routes={filteredRoutes}
+          routes={routes}
           selectedRoute={selectedRouteFilter}
           selectedDate={selectedDate}
           searchKeyword={searchKeyword}
@@ -425,9 +558,7 @@ const GiamSatGiaoThong = () => {
           <MapSection
             route={selectedRoute}
             options={mapOptions}
-            onCameraClick={(camera) =>
-              setCameraModalData({ name: camera.name, videoUrl: camera.videoUrl })
-            }
+            onCameraClick={(camera) => setCameraModalData(camera)}
             onIncidentClick={(incident) => {
               const fullIncident = incidents.find(inc => inc.id === incident.id);
               setIncidentModalData(fullIncident);
@@ -438,9 +569,7 @@ const GiamSatGiaoThong = () => {
             route={selectedRoute}
             cameras={cameras}
             violations={violations}
-            onCameraClick={(camera) =>
-              setCameraModalData({ name: camera.name, videoUrl: camera.video_url })
-            }
+            onCameraClick={(camera) => setCameraModalData(camera)}
             onViolationClick={(violation) => {
               setViolationModalData(violation);
             }}
@@ -451,8 +580,8 @@ const GiamSatGiaoThong = () => {
       {/* Camera Modal */}
       {cameraModalData && (
         <CameraModal
+          camera={cameraModalData}
           cameraName={cameraModalData.name}
-          videoUrl={cameraModalData.videoUrl}
           onClose={() => setCameraModalData(null)}
         />
       )}

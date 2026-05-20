@@ -72,7 +72,8 @@ const HeaderSection = ({
   selectedRoute,
   selectedDate,
   searchKeyword,
-  onFilterChange
+  onFilterChange,
+  onSearch
 }) => {
   const routeOptions = [
     { value: '', label: 'Tất cả tuyến đường' },
@@ -113,7 +114,7 @@ const HeaderSection = ({
           placeholder="15/01/2025"
         />
 
-        <SearchButton onClick={() => { }}>
+        <SearchButton onClick={onSearch}>
           Tìm kiếm
         </SearchButton>
       </Filters>

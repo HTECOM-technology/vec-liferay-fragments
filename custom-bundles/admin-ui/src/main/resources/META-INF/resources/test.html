@@ -2423,7 +2423,7 @@
 
                         // ✅ LIFERAY SPA NAVIGATION
                         if (window.Liferay) {
-                            Liferay.on("endNavigate", applySavedLanguage);
+                            window.Liferay.on("endNavigate", applySavedLanguage);
                         }
 
                     })();
@@ -3472,12 +3472,12 @@
 
                     // Liferay SPA navigation events
                     if (window.Liferay) {
-                        Liferay.on('endNavigate', function (event) {
+                        window.Liferay.on('endNavigate', function (event) {
                             setTimeout(initVecAnimations, 100);
                         });
 
                         // Liferay DXP (optional - nếu dùng phiên bản cũ hơn)
-                        Liferay.on('allPortletsReady', function (event) {
+                        window.Liferay.on('allPortletsReady', function (event) {
                             setTimeout(initVecAnimations, 100);
                         });
                     }
@@ -3562,8 +3562,8 @@
                 }
 
                 // Chỉ dùng endNavigate, bỏ portletReady để tránh reset 2 lần
-                if (typeof Liferay !== 'undefined') {
-                    Liferay.on('endNavigate', function () {
+                if (typeof window.Liferay !== 'undefined') {
+                    window.Liferay.on('endNavigate', function () {
                         resetFeeModalState();
                         // Nếu bạn có hàm fetch data, gọi lại ở đây
                         updateFeeModalContent();

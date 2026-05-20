@@ -167,6 +167,13 @@ export const CameraBox = styled.div`
     height: 100%;
     object-fit: cover;
   }
+
+  .camera-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 `;
 
 export const CameraLabel = styled.div`

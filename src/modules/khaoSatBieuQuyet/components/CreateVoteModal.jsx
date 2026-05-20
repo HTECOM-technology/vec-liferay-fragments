@@ -6,6 +6,22 @@ import styled from "styled-components";
 import dayjs from "dayjs";
 import { getOrganizations, getUsers } from "../services/surveyService";
 
+function parseDateTimeForForm(value) {
+    if (!value) {
+        return null;
+    }
+
+    const matched = String(value).match(
+        /^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}(?::\d{2})?)/
+    );
+
+    if (matched) {
+        return dayjs(`${matched[1]} ${matched[2]}`);
+    }
+
+    return dayjs(value);
+}
+
 const ModalHeader = styled.div`
     display: flex;
     align-items: center;
@@ -415,8 +431,8 @@ function CreateVoteModal({ visible, onClose, onSubmit, submitting, initialData }
         const users = participants
             .filter((item) => item.scopeType === "USER" && item.userId)
             .map((item) => item.userId);
-        const parsedStart = initialData.startDate ? dayjs(initialData.startDate) : null;
-        const parsedEnd = initialData.endDate ? dayjs(initialData.endDate) : null;
+        const parsedStart = parseDateTimeForForm(initialData.startDate);
+        const parsedEnd = parseDateTimeForForm(initialData.endDate);
         const initialOptions = (initialData.options || [])
             .map((option) => option.name)
             .filter(Boolean);

@@ -13,20 +13,54 @@ function getCurrentUserId() {
   return Number(window.Liferay.ThemeDisplay.getUserId());
 }
 
-function isExpired(endDate) {
-  return Boolean(endDate) && new Date(endDate).getTime() < Date.now();
+function parseSurveyDateTime(value) {
+  if (!value) {
+    return null;
+  }
+
+  const matched = String(value).match(
+    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?/
+  );
+
+  if (!matched) {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const [, year, month, day, hour, minute, second = "0"] = matched;
+
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  );
+}
+
+function getFallbackVoteUnavailableReason(survey) {
+  if (String(survey.status || "").toUpperCase() !== "ACTIVE") {
+    return "Cuộc bình chọn không còn hoạt động.";
+  }
+
+  const now = Date.now();
+  const startDate = parseSurveyDateTime(survey.startDate);
+  const endDate = parseSurveyDateTime(survey.endDate);
+
+  if (startDate && now < startDate.getTime()) {
+    return "Cuộc bình chọn chưa bắt đầu.";
+  }
+
+  if (endDate && now > endDate.getTime()) {
+    return "Cuộc bình chọn đã kết thúc.";
+  }
+
+  return "";
 }
 
 function normalizeStatus(survey) {
-  if (typeof survey.votingOpen === "boolean") {
-    return survey.votingOpen ? SURVEY_STATUS.OPEN : SURVEY_STATUS.CLOSED;
-  }
-
-  if (String(survey.status || "").toUpperCase() !== "ACTIVE") {
-    return SURVEY_STATUS.CLOSED;
-  }
-
-  return isExpired(survey.endDate) ? SURVEY_STATUS.CLOSED : SURVEY_STATUS.OPEN;
+  return getFallbackVoteUnavailableReason(survey) ? SURVEY_STATUS.CLOSED : SURVEY_STATUS.OPEN;
 }
 
 function normalizeOption(option) {
@@ -40,13 +74,17 @@ function normalizeOption(option) {
 function normalizeSurvey(survey) {
   const options = (survey.options || []).map(normalizeOption);
   const currentUserId = getCurrentUserId();
-  const voteUnavailableReason = survey.voteUnavailableReason || "";
+  const voteUnavailableReason =
+    survey.voteUnavailableReason || getFallbackVoteUnavailableReason(survey);
+  const status = typeof survey.votingOpen === "boolean"
+    ? (survey.votingOpen && !voteUnavailableReason ? SURVEY_STATUS.OPEN : SURVEY_STATUS.CLOSED)
+    : normalizeStatus(survey);
 
   return {
     ...survey,
     id: survey.surveyId,
     title: survey.title || "",
-    status: normalizeStatus(survey),
+    status,
     options,
     totalVotes: options.reduce((sum, option) => sum + option.votes, 0),
     createdAt: survey.createDate,
