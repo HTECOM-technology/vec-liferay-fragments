@@ -35,60 +35,60 @@ const TinTucDetailPage = () => {
   const categoryName = location.state?.categoryName || "";
 
   useEffect(() => {
-    loadData();
-  }, [id]);
+    const loadData = async () => {
+      try {
+        const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
+        setCategories(cats);
 
-  const loadData = async () => {
-    try {
-      const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
-      setCategories(cats);
+        const targetArticle = await getStructuredContentById(id);
+        setArticle(targetArticle);
 
-      const targetArticle = await getStructuredContentById(id);
-      setArticle(targetArticle);
-
-      // WeeklyHot lấy toàn bộ category trong vocabulary
-      const allItems = await Promise.all(
+        const allItems = await Promise.all(
           cats.map((cat) => getStructuredContentsByCategory(cat.id))
-      );
+        );
 
-      const hot = allItems
+        const hot = allItems
           .flat()
           .filter((a) =>
-              a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
+            a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
           )
           .sort(
-              (a, b) =>
-                  new Date(b.dateCreated || b.datePublished) -
-                  new Date(a.dateCreated || a.datePublished)
+            (a, b) =>
+              new Date(b.dateCreated || b.datePublished) -
+              new Date(a.dateCreated || a.datePublished)
           )
           .slice(0, 5);
 
-      setHotArticles(hot);
+        setHotArticles(hot);
 
-      // RelatedPosts vẫn lấy cùng category với bài đang xem
-      const currentCategoryId =
+        const currentCategoryId =
           targetArticle?.taxonomyCategoryBriefs?.[0]?.taxonomyCategoryId;
 
-      if (currentCategoryId) {
-        const sameCategory = await getStructuredContentsByCategory(
+        if (currentCategoryId) {
+          const sameCategory = await getStructuredContentsByCategory(
             currentCategoryId
-        );
+          );
 
-        const related = sameCategory
+          const related = sameCategory
             .filter((a) => String(a.id) !== String(id))
             .sort(
-                (a, b) =>
-                    new Date(b.dateCreated || b.datePublished) -
-                    new Date(a.dateCreated || a.datePublished)
+              (a, b) =>
+                new Date(b.dateCreated || b.datePublished) -
+                new Date(a.dateCreated || a.datePublished)
             )
             .slice(0, 4);
 
-        setRelatedArticles(related);
+          setRelatedArticles(related);
+        } else {
+          setRelatedArticles([]);
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+    };
+
+    loadData();
+  }, [id]);
 
   if (!article) return <div>Loading...</div>;
 

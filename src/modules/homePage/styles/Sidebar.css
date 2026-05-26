@@ -1,8 +1,8 @@
-        .vec-sidebar {
+.vec-sidebar {
   width: 300px;
   min-height: 100vh;
   background: linear-gradient(180deg, #e9f8ff, #cfefff);
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Inter', sans-serif;
   background-image: url(../assets/images/sidebarbgimag.png);
   background-position: bottom;
   background-size: contain;

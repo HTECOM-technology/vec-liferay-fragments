@@ -1,16 +1,22 @@
 import ReactDOM from "react-dom/client";
 import App from "./App";
 
+function mountApp(element) {
+  if (!element) {
+    return;
+  }
+
+  element.classList.add("vec-react-fragment-root");
+  ReactDOM.createRoot(element).render(<App />);
+}
+
 // ===== CRA DEV MODE =====
 const devRoot = document.getElementById("root");
-if (devRoot) {
-  ReactDOM.createRoot(devRoot).render(<App />);
-}
+mountApp(devRoot);
 
 // ===== LIFERAY MODE =====
 function renderApp(element) {
-  const root = ReactDOM.createRoot(element);
-  root.render(<App />);
+  mountApp(element);
 }
 
 window.ReactHelloWorldApp = {

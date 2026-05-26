@@ -74,6 +74,7 @@ const DetailSection = ({ route, cameras, violations, onCameraClick, onViolationC
   const [activeTab, setActiveTab] = useState('camera');
   const thumbnailFallbackUrl =
     'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original';
+  const routeImageSrc = route?.img || thumbnailFallbackUrl;
 
   if (!route) {
     return (
@@ -87,7 +88,13 @@ const DetailSection = ({ route, cameras, violations, onCameraClick, onViolationC
 
   return (
     <DetailContainer>
-      <DetailImage src={route.img} alt={route.title} />
+      <DetailImage
+        src={routeImageSrc}
+        alt={route.title}
+        onError={(event) => {
+          event.currentTarget.src = thumbnailFallbackUrl;
+        }}
+      />
       <DetailTitle>{route.title}</DetailTitle>
       <DetailLocation> <IconLocation /> {route.location}</DetailLocation>
 

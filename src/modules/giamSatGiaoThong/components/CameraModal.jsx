@@ -60,6 +60,29 @@ const VideoContainer = styled.div`
   }
 `;
 
+const FullscreenButton = styled.button`
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.84);
+    transform: scale(1.05);
+  }
+`;
+
 const CameraTitle = styled.h3`
   margin: 0;
   padding: 0;
@@ -76,15 +99,18 @@ const CameraStatus = styled.div`
   justify-content: center;
   padding: 20px;
   color: white;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.75);
   font-size: 14px;
   text-align: center;
+  z-index: 2;
 `;
 
 const CAMERA_API_URL = 'https://portal.tctvec.vn/o/its/api/cameras';
 const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
 const HLS_ATTACH_RETRY_COUNT = 3;
 const HLS_ATTACH_RETRY_DELAY_MS = 1200;
+const CAMERA_STARTUP_MIN_DURATION_MS = 8000;
+const CAMERA_STARTUP_STATUS = 'Đang khởi động camera...';
 
 let hlsScriptPromise = null;
 
@@ -237,8 +263,21 @@ async function attachHlsStreamWithRetry(video, hlsUrl) {
 
 const CameraModal = ({ camera, cameraName, onClose }) => {
   const videoRef = useRef(null);
+  const videoContainerRef = useRef(null);
   const sessionRef = useRef(null);
-  const [status, setStatus] = React.useState('Đang tải luồng camera...');
+  const [status, setStatus] = React.useState(CAMERA_STARTUP_STATUS);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  const handleVideoPause = React.useCallback(() => {
+    const video = videoRef.current;
+    if (!video || status) return;
+
+    video.play().catch(() => {});
+  }, [status]);
+
+  const handleVideoContextMenu = React.useCallback((event) => {
+    event.preventDefault();
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -248,8 +287,21 @@ const CameraModal = ({ camera, cameraName, onClose }) => {
   }, []);
 
   useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === videoContainerRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
     let isCurrent = true;
     const video = videoRef.current;
+    const startupStartedAt = Date.now();
 
     const releaseSession = () => {
       const session = sessionRef.current;
@@ -270,17 +322,23 @@ const CameraModal = ({ camera, cameraName, onClose }) => {
       }
     };
 
+    const waitForMinimumStartupDuration = async () => {
+      const remainingTime = CAMERA_STARTUP_MIN_DURATION_MS - (Date.now() - startupStartedAt);
+      if (remainingTime > 0) {
+        await delay(remainingTime);
+      }
+    };
+
     const openStream = async () => {
       if (!video || !camera) return;
 
       releaseSession();
-      setStatus('Đang tải luồng camera...');
+      setStatus(CAMERA_STARTUP_STATUS);
 
       try {
         const watchData = await startCameraWatch(camera);
         if (!isCurrent) return;
 
-        setStatus('Đang mở luồng camera...');
         const hls = await attachHlsStreamWithRetry(video, watchData.hls_url);
         if (!isCurrent) {
           if (hls) hls.destroy();
@@ -294,13 +352,17 @@ const CameraModal = ({ camera, cameraName, onClose }) => {
           hls,
         };
 
+        await waitForMinimumStartupDuration();
+        if (!isCurrent) return;
+
         setStatus('');
         video.play().catch(() => {});
       } catch (error) {
         console.error('Error opening camera:', error);
-        if (isCurrent) {
-          setStatus('Không mở được luồng camera');
-        }
+        await waitForMinimumStartupDuration();
+        if (!isCurrent) return;
+
+        setStatus('Không mở được luồng camera');
       }
     };
 
@@ -318,15 +380,57 @@ const CameraModal = ({ camera, cameraName, onClose }) => {
     }
   };
 
+  const handleFullscreenToggle = React.useCallback(async () => {
+    const container = videoContainerRef.current;
+    if (!container) return;
+
+    try {
+      if (document.fullscreenElement === container) {
+        await document.exitFullscreen();
+        return;
+      }
+
+      await container.requestFullscreen();
+    } catch (error) {
+      console.error('Fullscreen toggle failed:', error);
+    }
+  }, []);
+
   return (
     <ModalOverlay onClick={handleOverlayClick}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
         <CloseButton onClick={onClose}>×</CloseButton>
 
-        <VideoContainer>
-          <video ref={videoRef} controls autoPlay muted playsInline>
+        <VideoContainer ref={videoContainerRef}>
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            disablePictureInPicture
+            controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+            onPause={handleVideoPause}
+            onContextMenu={handleVideoContextMenu}
+          >
             Trình duyệt của bạn không hỗ trợ video.
           </video>
+          <FullscreenButton type="button" onClick={handleFullscreenToggle} aria-label="Toggle fullscreen">
+            {isFullscreen ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 15H5V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M15 9H19V5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 15L10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M19 9L14 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 5H5V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M15 19H19V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 9L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M19 15L14 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </FullscreenButton>
           {status && <CameraStatus>{status}</CameraStatus>}
         </VideoContainer>
 

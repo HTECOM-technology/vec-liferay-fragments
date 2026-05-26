@@ -73,27 +73,26 @@ const StatIcon = styled.div`
   }
 `;
 
-const AnalyticsSection = ({ routeId }) => {
-  // Mock data - Replace with API call later
+const AnalyticsSection = ({ analytics }) => {
   const analyticsData = [
     {
       label: 'Số lượt phương tiện vi phạm',
-      value: 24,
+      value: analytics?.violations ?? 0,
       icon: (<img src={iconPtvp} alt=""></img>),
     },
     {
       label: 'Tốc độ lưu thông trung bình (km/h)',
-      value: 120,
+      value: analytics?.avgSpeed ?? 0,
       icon: (<img src={iconTocdo} alt=""></img>),
     },
     {
       label: 'Số lượng gia súc đi vào cao tốc',
-      value: 0,
+      value: analytics?.animals ?? 0,
       icon: (<img src={iconGiasuc} alt=""></img>),
     },
     {
       label: 'Số lượng camera bị lỗi',
-      value: 0,
+      value: analytics?.brokenCameras ?? 0,
       icon: (<img src={iconCameraLoi} alt=""></img>),
     },
   ];

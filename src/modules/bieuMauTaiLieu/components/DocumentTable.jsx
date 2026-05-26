@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Table, Grid, Button, Empty, Modal, message, Spin } from "antd";
 import { TableContainer, ActionButton, ActionsCell } from "../style";
-import { ReactComponent as EyeIcon } from "../../../assets/icon/eye-icon.svg";
 import { ReactComponent as DownloadIcon } from "../../../assets/icon/download-icon.svg";
 import { LuTrash2, LuUpload, LuEye } from "react-icons/lu";
 import { getDocumentBlob } from "../../../services/documentService";

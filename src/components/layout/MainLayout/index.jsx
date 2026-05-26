@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
-import { menuItems, menuSections, paths } from "../../../router/menuConfig";
+import { menuSections } from "../../../router/menuConfig";
 import { CInput } from "../../common";
 import { SearchOutlined } from "@ant-design/icons";
 import logo from "../../../assets/layout/logo.png";

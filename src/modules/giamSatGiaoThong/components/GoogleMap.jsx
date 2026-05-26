@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import IncidentInfoCard from './IncidentInfoCard';
 
 const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
@@ -70,25 +70,171 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
   /**
    * Update map when route changes
    */
-  useEffect(() => {
-    if (!route || !mapInstanceRef.current) return;
+  const clearMarkers = useCallback(() => {
+    markersRef.current.forEach((markerObj) => {
+      markerObj.marker.setMap(null);
+    });
+    markersRef.current = [];
 
-    displayRoute(route);
-  }, [route]);
+    infoWindowsRef.current.forEach((infoWindow) => {
+      infoWindow.close();
+    });
+    infoWindowsRef.current = [];
+  }, []);
 
-  /**
-   * Update markers when options change
-   */
-  useEffect(() => {
-    if (!route || !mapInstanceRef.current) return;
+  const closeAllInfoWindows = useCallback(() => {
+    infoWindowsRef.current.forEach((infoWindow) => infoWindow.close());
+  }, []);
 
-    updateMarkers(route);
-  }, [options, route]);
+  const getIncidentIcon = useCallback((severity) => {
+    switch (severity) {
+      case 'high':
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23d32f2f"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
+      case 'medium':
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23f57c00"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
+      case 'low':
+        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23388e3c"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">ℹ</text></svg>';
+      default:
+        return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
+    }
+  }, []);
 
-  /**
-   * Display route on map
-   */
-  const displayRoute = (routeData) => {
+  const getInfoWindowContent = useCallback((type, data) => {
+    switch (type) {
+      case 'toll':
+        return `<div style="padding: 8px;"><strong>🚦 ${data.name}</strong></div>`;
+      case 'rest':
+        return `<div style="padding: 8px;"><strong>☕ ${data.name}</strong></div>`;
+      case 'camera':
+        return `
+          <div style="padding: 8px; min-width: 160px;">
+            <strong>📹 ${data.name}</strong><br/>
+            ${data.videoUrl ? '<small style="color: #0090cf; cursor: pointer;">Click để xem trực tiếp</small>' : '<small>Không có video</small>'}
+          </div>
+        `;
+      case 'incident':
+        return `
+          <div style="padding: 8px; min-width: 180px;">
+            <strong style="color: #d32f2f;">🚨 Sự cố giao thông</strong><br/>
+            <small>${data.title}</small><br/>
+            <small style="color: #0090cf; cursor: pointer; margin-top: 4px; display: inline-block;">Xem chi tiết →</small>
+          </div>
+        `;
+      default:
+        return `<div style="padding: 8px;"><strong>${data.name || 'Marker'}</strong></div>`;
+    }
+  }, []);
+
+  const createMarker = useCallback(({ position, title, icon, type, data }) => {
+    const marker = new window.google.maps.Marker({
+      position,
+      map: mapInstanceRef.current,
+      title,
+      icon,
+      zIndex: type === 'incident' ? 1000 : 100,
+    });
+
+    const infoWindow = new window.google.maps.InfoWindow({
+      content: getInfoWindowContent(type, data),
+    });
+
+    marker.addListener('click', () => {
+      closeAllInfoWindows();
+      infoWindow.open(mapInstanceRef.current, marker);
+
+      if (type === 'camera' && onCameraClick) {
+        onCameraClick(data);
+      } else if (type === 'incident' && onIncidentClick) {
+        onIncidentClick(data);
+      }
+    });
+
+    if (type === 'incident') {
+      marker.addListener('mouseover', (e) => {
+        setHoveredIncident(data);
+        setHoverPosition({
+          x: e.domEvent.clientX,
+          y: e.domEvent.clientY - 20,
+        });
+      });
+
+      marker.addListener('mouseout', () => {
+        setHoveredIncident(null);
+      });
+    }
+
+    markersRef.current.push({ marker, infoWindow, type });
+    infoWindowsRef.current.push(infoWindow);
+  }, [closeAllInfoWindows, getInfoWindowContent, onCameraClick, onIncidentClick]);
+
+  const updateMarkers = useCallback((routeData) => {
+    if (!routeData || !routeData.mapData) return;
+
+    clearMarkers();
+
+    const {
+      tollLocations,
+      restLocations,
+      cameraLocations,
+      incidentLocations,
+    } = routeData.mapData;
+
+    if (options.toll && tollLocations?.length) {
+      tollLocations.forEach((toll) => {
+        createMarker({
+          position: { lat: toll.lat, lng: toll.lng },
+          title: toll.name,
+          icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+          type: 'toll',
+          data: toll,
+        });
+      });
+    }
+
+    if (options.stop && restLocations?.length) {
+      restLocations.forEach((rest) => {
+        createMarker({
+          position: { lat: rest.lat, lng: rest.lng },
+          title: rest.name,
+          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+          type: 'rest',
+          data: rest,
+        });
+      });
+    }
+
+    if (options.camera && cameraLocations?.length) {
+      cameraLocations.forEach((camera) => {
+        createMarker({
+          position: { lat: camera.lat, lng: camera.lng },
+          title: camera.name,
+          icon: {
+            url: 'https://res.cloudinary.com/drwairjk5/image/upload/v1767820122/Group_1000002467_wkbbsl.svg',
+            scaledSize: new window.google.maps.Size(40, 40),
+          },
+          type: 'camera',
+          data: camera,
+        });
+      });
+    }
+
+    if (options.incident && incidentLocations?.length) {
+      incidentLocations.forEach((incident) => {
+        createMarker({
+          position: { lat: incident.lat, lng: incident.lng },
+          title: incident.title,
+          icon: {
+            url: getIncidentIcon(incident.severity),
+            scaledSize: new window.google.maps.Size(40, 40),
+          },
+          type: 'incident',
+          data: incident,
+        });
+      });
+    }
+  }, [clearMarkers, createMarker, getIncidentIcon, options]);
+
+  const displayRoute = useCallback((routeData) => {
     if (!routeData || !routeData.mapData || !directionsServiceRef.current) return;
 
     const { origin, destination, waypoints } = routeData.mapData;
@@ -116,207 +262,19 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
         console.error('Directions request failed:', status);
       }
     });
-  };
+  }, [updateMarkers]);
 
-  /**
-   * Clear all markers
-   */
-  const clearMarkers = () => {
-    markersRef.current.forEach((markerObj) => {
-      markerObj.marker.setMap(null);
-    });
-    markersRef.current = [];
+  useEffect(() => {
+    if (!route || !mapInstanceRef.current) return;
 
-    infoWindowsRef.current.forEach((infoWindow) => {
-      infoWindow.close();
-    });
-    infoWindowsRef.current = [];
-  };
+    displayRoute(route);
+  }, [displayRoute, route]);
 
-  /**
-   * Update markers based on options
-   */
-  const updateMarkers = (routeData) => {
-    if (!routeData || !routeData.mapData) return;
+  useEffect(() => {
+    if (!route || !mapInstanceRef.current) return;
 
-    clearMarkers();
-
-    const {
-      tollLocations,
-      restLocations,
-      cameraLocations,
-      incidentLocations,
-    } = routeData.mapData;
-
-    // Toll stations
-    if (options.toll && tollLocations?.length) {
-      tollLocations.forEach((toll) => {
-        createMarker({
-          position: { lat: toll.lat, lng: toll.lng },
-          title: toll.name,
-          icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-          type: 'toll',
-          data: toll,
-        });
-      });
-    }
-
-    // Rest stations
-    if (options.stop && restLocations?.length) {
-      restLocations.forEach((rest) => {
-        createMarker({
-          position: { lat: rest.lat, lng: rest.lng },
-          title: rest.name,
-          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-          type: 'rest',
-          data: rest,
-        });
-      });
-    }
-
-    // Cameras
-    if (options.camera && cameraLocations?.length) {
-      cameraLocations.forEach((camera) => {
-        createMarker({
-          position: { lat: camera.lat, lng: camera.lng },
-          title: camera.name,
-          icon: {
-            url: 'https://res.cloudinary.com/drwairjk5/image/upload/v1767820122/Group_1000002467_wkbbsl.svg',
-            scaledSize: new window.google.maps.Size(40, 40),
-          },
-          type: 'camera',
-          data: camera,
-        });
-      });
-    }
-
-    // Incidents
-    if (options.incident && incidentLocations?.length) {
-      incidentLocations.forEach((incident) => {
-        createMarker({
-          position: { lat: incident.lat, lng: incident.lng },
-          title: incident.title,
-          icon: {
-            url: getIncidentIcon(incident.severity),
-            scaledSize: new window.google.maps.Size(40, 40),
-          },
-          type: 'incident',
-          data: incident,
-        });
-      });
-    }
-  };
-
-  /**
-   * Get incident icon based on severity
-   */
-  const getIncidentIcon = (severity) => {
-    switch (severity) {
-      case 'high':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23d32f2f"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
-      case 'medium':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23f57c00"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
-      case 'low':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23388e3c"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">ℹ</text></svg>';
-      default:
-        return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
-    }
-  };
-
-  /**
-   * Create marker on map
-   */
-  const createMarker = ({ position, title, icon, type, data }) => {
-    const marker = new window.google.maps.Marker({
-      position,
-      map: mapInstanceRef.current,
-      title,
-      icon,
-      zIndex: type === 'incident' ? 1000 : 100,
-    });
-
-    const infoWindow = new window.google.maps.InfoWindow({
-      content: getInfoWindowContent(type, data),
-    });
-
-    // Handle marker click
-    marker.addListener('click', () => {
-      closeAllInfoWindows();
-      infoWindow.open(mapInstanceRef.current, marker);
-
-      if (type === 'camera' && onCameraClick) {
-        onCameraClick(data);
-      } else if (type === 'incident' && onIncidentClick) {
-        onIncidentClick(data);
-      }
-    });
-
-    // Handle incident hover
-    if (type === 'incident') {
-      marker.addListener('mouseover', (e) => {
-        const projection = mapInstanceRef.current.getProjection();
-        const bounds = mapInstanceRef.current.getBounds();
-        
-        if (projection && bounds) {
-          const point = projection.fromLatLngToPoint(position);
-          const scale = Math.pow(2, mapInstanceRef.current.getZoom());
-          const pixelPosition = new window.google.maps.Point(
-            point.x * scale,
-            point.y * scale
-          );
-
-          setHoveredIncident(data);
-          setHoverPosition({
-            x: e.domEvent.clientX,
-            y: e.domEvent.clientY - 20,
-          });
-        }
-      });
-
-      marker.addListener('mouseout', () => {
-        setHoveredIncident(null);
-      });
-    }
-
-    markersRef.current.push({ marker, infoWindow, type });
-    infoWindowsRef.current.push(infoWindow);
-  };
-
-  /**
-   * Get info window content based on marker type
-   */
-  const getInfoWindowContent = (type, data) => {
-    switch (type) {
-      case 'toll':
-        return `<div style="padding: 8px;"><strong>🚦 ${data.name}</strong></div>`;
-      case 'rest':
-        return `<div style="padding: 8px;"><strong>☕ ${data.name}</strong></div>`;
-      case 'camera':
-        return `
-          <div style="padding: 8px; min-width: 160px;">
-            <strong>📹 ${data.name}</strong><br/>
-            ${data.videoUrl ? '<small style="color: #0090cf; cursor: pointer;">Click để xem trực tiếp</small>' : '<small>Không có video</small>'}
-          </div>
-        `;
-      case 'incident':
-        return `
-          <div style="padding: 8px; min-width: 180px;">
-            <strong style="color: #d32f2f;">🚨 Sự cố giao thông</strong><br/>
-            <small>${data.title}</small><br/>
-            <small style="color: #0090cf; cursor: pointer; margin-top: 4px; display: inline-block;">Xem chi tiết →</small>
-          </div>
-        `;
-      default:
-        return `<div style="padding: 8px;"><strong>${data.name || 'Marker'}</strong></div>`;
-    }
-  };
-
-  /**
-   * Close all info windows
-   */
-  const closeAllInfoWindows = () => {
-    infoWindowsRef.current.forEach((infoWindow) => infoWindow.close());
-  };
+    updateMarkers(route);
+  }, [route, updateMarkers]);
 
   return (
     <>

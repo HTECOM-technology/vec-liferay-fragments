@@ -1,10 +1,5 @@
 import React from "react";
 import {
-    FormOutlined,
-    QuestionCircleOutlined,
-    BookOutlined,
-} from "@ant-design/icons";
-import {
     WidgetCard,
     WidgetHeader,
     WidgetBody,
@@ -16,7 +11,6 @@ import {
     DocumentIcon,
     TaskIcon,
     MissionIcon,
-    TrafficIcon,
     NewInComingDocumentIcon,
     NewOutgoingDocumentIcon,
     PendingDocumentsIcon,
@@ -24,10 +18,6 @@ import {
     TotalTaskIcon,
     InProgressIcon,
     CompletedIcon,
-    NumberOfViolatingVehiclesIcon,
-    AverageTrafficSpeedIcon,
-    NumberOfLivestockEnteringTheExpresswayIcon,
-    NumberOfFaultyCamerasIcon,
     FeedbackIcon,
     VotingIcon,
     SupportIcon,

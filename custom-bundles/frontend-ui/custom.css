@@ -1,5 +1,10 @@
 /* ===== CUSTOM LOGIN PAGE - VEC ===== */
 
+.portlet-login,
+body {
+    font-family: 'Inter', sans-serif;
+}
+
 /* Toàn bộ trang login */
 .portlet-login:not(#p_p_id_com_liferay_login_web_portlet_FastLoginPortlet_) {
     padding: 30px 0;
@@ -278,7 +283,7 @@
 #vec-loading-screen .vec-loading-text {
     color: #a0aec0;
     font-size: 13px;
-    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-family: 'Inter', sans-serif;
     letter-spacing: 0.5px;
 }
 

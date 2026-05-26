@@ -73,13 +73,6 @@ const NodeLabel = styled.div`
   letter-spacing: 0;
 `;
 
-const NodeMembers = styled.div`
-  font-size: 14px;
-  opacity: 0.9;
-  margin-top: 4px;
-  font-weight: lighter;
-`;
-
 const TopLeftCol = styled.div`
   display: flex;
   flex-direction: column;
@@ -123,58 +116,6 @@ const Column = styled.div`
   max-width: 280px;
 `;
 
-const ColumnHeader = styled.div`
-  margin-bottom: 0;
-  width: 100%;
-`;
-
-const ColumnList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 17px;
-  width: 100%;
-`;
-
-// --- Data (theo ảnh: từ HĐTV → phải 2 ban, xuống 1 BTGĐ) ---
-const TOP_RIGHT = [
-  { label: "BAN KIỂM SOÁT", members: 2, type: "blue" },
-  { label: "BAN KIỂM TRA VÀ <br/> KIỂM TOÁN NỘI BỘ", members: 4, type: "blue" },
-];
-
-const KHOI_BAN_THAM_MUU = [
-  { label: "VĂN PHÒNG", members: 24 },
-  { label: "BAN TỔ CHỨC - NHÂN SỰ", members: 7 },
-  { label: "VĂN PHÒNG ĐẢNG ĐOÀN", members: 5 },
-  { label: "BAN TÀI CHÍNH - KẾ TOÁN", members: 21 },
-  { label: "BAN THẨM ĐỊNH", members: 9 },
-  { label: "BAN ĐẤU THẦU", members: 7 },
-  { label: "BAN ĐẦU TƯ XÂY DỰNG", members: 6 },
-  { label: "BAN PHÁP CHẾ VÀ <br/> QUẢN TRỊ RỦI RO", members: 7 },
-  { label: "BAN QUẢN LÝ KHAI THÁC", members: 12 },
-];
-
-const KHOI_TRUNG_TAM_QLDA = [
-  { label: "BAN QUẢN LÝ DỰ ÁN CÁC ĐƯỜNG CAO TỐC PHÍA BẮC", members: 17 },
-  { label: "BAN QUẢN LÝ DỰ ÁN CÁC ĐƯỜNG CAO TỐC PHÍA NAM", members: 28 },
-  { label: "BAN QUẢN LÝ DỰ ÁN ĐCT <br/> ĐÀ NẴNG - QUẢNG NGÃI", members: 13 },
-  { label: "TRUNG TÂM NGHIÊN CỨU PHÁT TRIỂN VEC", members: 4 },
-  { label: "TRUNG TÂM GIÁM SÁT <br/> KHAI THÁC VẬN HÀNH ĐƯỜNG CAO TỐC VIỆT NAM", members: 36 },
-  { label: "TRUNG TÂM KHAI THÁC <br/> VẬN HÀNH ĐCT ĐÀ NẴNG - QUẢNG NGÃI", members: 91 },
-  { label: "TRUNG TÂM CÔNG NGHỆ THÔNG TIN", members: 10 },
-  { label: "TRUNG TÂM IMC TẠI <br/> TP. HỒ CHÍ MINH", members: null },
-];
-
-const KHOI_CONG_TY_THANH_VIEN = [
-  { label: "CÔNG TY CP DỊCH VỤ ĐƯỜNG CAO TỐC VIỆT NAM (VEC S)", members: null },
-  { label: "CÔNG TY VẬN HÀNH VÀ BẢO TRÌ ĐƯỜNG CAO TỐC VIỆT NAM (VEC O&M)", members: null },
-  { label: "CÔNG TY CP DỊCH VỤ KỸ THUẬT ĐƯỜNG CAO TỐC VIỆT NAM (VEC E)", members: null },
-  { label: "CÔNG TY CP TƯ VẤN ĐƯỜNG CAO TỐC VIỆT NAM (VEC C)", members: null },
-  { label: "CÔNG TY CP BT20 CỬU LONG", members: null },
-  { label: "CÔNG TY CP 715", members: null },
-  { label: "CÔNG TY CP CẦU CẦN THƠ", members: null },
-  { label: "CÔNG TY CP ĐẦU TƯ <br/> ĐƯỜNG CAO TỐC <br/> MỸ THUẬN - CẦN THƠ", members: null },
-];
-
 function NodeBox({ label, members, type = "white", children, onClick }) {
   return (
     <Node className={type} onClick={onClick} role={onClick ? "button" : undefined}>
@@ -191,7 +132,6 @@ const SoDoToChuc = () => {
   const [hoiDongModalOpen, setHoiDongModalOpen] = useState(false);
   const [itemsHDTV, setItemsHDTV] = useState([]);
   const [itemHDTV, setItemHDTV] = useState(null);
-  const [contentHDTV, setContentHDTV] = useState(null);
   const [blockThamMuu, setBlockThamMuu] = useState(null);
   const [blockQuanLyDuAn, setBlockQuanLyDuAn] = useState(null);
   const [blockCongTy, setBlockCongTy] = useState(null);
@@ -214,7 +154,6 @@ const SoDoToChuc = () => {
   useEffect(() => {
     const fetchData = async () => {
       const contentHDTV = await getContentById(CONTENT_ID);
-      setContentHDTV(contentHDTV);
 
       if (Array.isArray(contentHDTV) && contentHDTV.length >= 3) {
         setBlockThamMuu(contentHDTV[0]);

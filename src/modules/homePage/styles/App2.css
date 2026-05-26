@@ -1,68 +1,75 @@
 .app-layout {
   display: flex;
-  gap: 16px;              /* space between columns */
+  gap: 16px;
+  /* space between columns */
   align-items: flex-start;
 }
 
 /* Adjust widths as per UI */
 .left-panel {
-  flex: 2;                /* ~65% */
+  flex: 2;
+  /* ~65% */
 }
 
 .right-panel {
-  flex: 1;                /* ~35% */
+  flex: 1;
+  /* ~35% */
 }
 
 
 
-body { margin: 0; background: #f5f8fb; }
+body {
+  margin: 0;
+  background: #f5f8fb;
+  font-family: "Inter", sans-serif;
+}
 
 
 .app-wrapper {
-display: flex;
+  display: flex;
 }
 
 
 .sidebar {
-width: 240px;
-background: #e9f6ff;
-min-height: 100vh;
-transition: width 0.3s;
+  width: 240px;
+  background: #e9f6ff;
+  min-height: 100vh;
+  transition: width 0.3s;
 }
 
 
 .sidebar.collapsed {
-width: 70px;
+  width: 70px;
 }
 
 
 .sidebar .logo {
-padding: 15px;
-font-weight: bold;
-text-align: center;
+  padding: 15px;
+  font-weight: bold;
+  text-align: center;
 }
 
 
 .sidebar .menu li {
-padding: 12px 20px;
-display: flex;
-align-items: center;
-cursor: pointer;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
 
 .sidebar .menu li span {
-margin-left: 10px;
+  margin-left: 10px;
 }
 
 
 .sidebar.collapsed span {
-display: none;
+  display: none;
 }
 
 
 .main-content {
-flex: 1;
+  flex: 1;
 }
 
 
@@ -74,6 +81,6 @@ padding: 10px;
 
 
 .search {
-max-width: 300px;
-margin-left: 15px;
+  max-width: 300px;
+  margin-left: 15px;
 }

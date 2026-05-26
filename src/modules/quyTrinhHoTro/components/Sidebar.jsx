@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { DownOutlined, FileTextOutlined, EditOutlined } from "@ant-design/icons";
+import { DownOutlined } from "@ant-design/icons";
 import {
     SidebarWrap,
     SidebarSection,

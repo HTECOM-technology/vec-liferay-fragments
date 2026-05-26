@@ -203,7 +203,9 @@ function getIsSignedIn() {
 
 function getContainerClass(id) {
   const span = getSpan(id);
-  return span > 1 ? `dashboard-upper-card grid-col-span-${span}` : "dashboard-upper-card";
+  return span > 1
+    ? `dashboard-upper-card dashboard-card-${id} grid-col-span-${span}`
+    : `dashboard-upper-card dashboard-card-${id}`;
 }
 
 // ─── COMPONENTS ───────────────────────────────────────────────────────────────

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Input, Select, Checkbox, DatePicker, Upload } from "antd";
 import {
-    MailOutlined,
     BoldOutlined,
     ItalicOutlined,
     UnderlineOutlined,

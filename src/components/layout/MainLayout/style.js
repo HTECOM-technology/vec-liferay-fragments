@@ -55,7 +55,7 @@ export const StyledLeftMenu = styled.div`
   }
 
   .title-vn {
-    font-family: "Roboto Condensed", sans-serif !important;
+    font-family: "Inter", sans-serif !important;
     font-weight: 700;
     font-style: Bold;
     font-size: 13px;
@@ -66,7 +66,7 @@ export const StyledLeftMenu = styled.div`
     margin-bottom: 4px;
   }
   .title-us {
-    font-family: "Roboto Condensed", sans-serif !important;
+    font-family: "Inter", sans-serif !important;
     font-weight: 700;
     font-style: Bold;
     font-size: 10px;

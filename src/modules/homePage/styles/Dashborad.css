@@ -5,7 +5,7 @@
 
 body {
     background: #f5f6fa;
-    font-family: "Segoe UI", sans-serif;
+    font-family: "Inter", sans-serif;
 }
 
 /* Card */
@@ -105,6 +105,15 @@ body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
+}
+
+.dashboard-upper-cards.bottom-area {
+    grid-template-columns: minmax(0, 11fr) minmax(0, 4fr);
+}
+
+.dashboard-upper-cards.bottom-area .dashboard-card-tin-tuc,
+.dashboard-upper-cards.bottom-area .dashboard-card-camera {
+    grid-column: auto;
 }
 
 .dashboard-upper-cards.column-area-4 {

@@ -34,39 +34,39 @@ const News = () => {
   =================
   */
 
-  const loadCategories = async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setLoading(true);
 
-      const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
-      setCategories(cats);
+        const cats = await getCategoriesByVocabularyWithImage(VOCABULARY_ID);
+        setCategories(cats);
 
-      const defaultId = slug ? slug : cats[0]?.id;
-      setActiveCategoryId(defaultId);
+        const defaultId = slug || cats[0]?.id;
+        setActiveCategoryId(defaultId);
 
-      const allItems = await Promise.all(
+        const allItems = await Promise.all(
           cats.map((cat) => getStructuredContentsByCategory(cat.id))
-      );
+        );
 
-      const weeklyHot = allItems
+        const weeklyHot = allItems
           .flat()
           .filter((a) =>
-              a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
+            a.keywords?.some((k) => k.toLowerCase() === "nổi bật trong tuần")
           )
           .sort((a, b) => new Date(b.dateCreated || b.datePublished) - new Date(a.dateCreated || a.datePublished))
           .slice(0, 5);
 
-      setHotArticles(weeklyHot);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setHotArticles(weeklyHot);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
     loadCategories();
-  }, []);
+  }, [slug]);
 
   /*
   =================

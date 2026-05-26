@@ -1,26 +1,7 @@
-import React from 'react';
-import { Select, DatePicker, Input } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import React, { useEffect, useMemo } from 'react';
+import { Select } from 'antd';
 import styled from 'styled-components';
 import { Header, Title, Filters } from '../style';
-
-const SearchInput = styled(Input)`
-  width: 300px;
-  height: 40px !important;
-  border-radius: 6px !important;
-  display: flex;
-  align-items: center;
-
-  .ant-input {
-    font-size: 15px !important;
-    height: 38px !important;
-  }
-
-  .ant-input-prefix {
-    margin-right: 8px;
-  }
-`;
 
 const CustomSelect = styled(Select)`
   width: 350px;
@@ -39,84 +20,40 @@ const CustomSelect = styled(Select)`
   }
 `;
 
-const CustomDatePicker = styled(DatePicker)`
-  width: 200px;
-  height: 40px !important;
-  padding: 8px 11px !important;
-  border-radius: 6px !important;
-
-  .ant-picker-input > input {
-    font-size: 15px !important;
-  }
-`;
-
-const SearchButton = styled.button`
-  height: 40px;
-  padding: 0 24px;
-  background: #0090cf;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #007ab8;
-  }
-`;
-
 const HeaderSection = ({
   routes,
   selectedRoute,
-  selectedDate,
-  searchKeyword,
-  onFilterChange,
-  onSearch
+  onFilterChange
 }) => {
-  const routeOptions = [
-    { value: '', label: 'Tất cả tuyến đường' },
-    ...routes.map((route) => ({
-      value: route.id.toString(),
-      label: route.title,
-    }))
-  ];
+  const routeOptions = useMemo(() => {
+    return routes.map((route) => ({
+      value: String(route.id),
+      label: route.title || route.name || String(route.id),
+    }));
+  }, [routes]);
 
-  const dateValue = selectedDate ? dayjs(selectedDate) : null;
+  useEffect(() => {
+    if (selectedRoute || routeOptions.length === 0) return;
+
+    const timer = setTimeout(() => {
+      onFilterChange('route', routeOptions[0].value);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [onFilterChange, routeOptions, selectedRoute]);
 
   return (
     <Header>
       <Title>Tình trạng giao thông trên tuyến</Title>
       <Filters>
-        <SearchInput
-          placeholder="Tìm kiếm"
-          prefix={<SearchOutlined />}
-          value={searchKeyword}
-          onChange={(e) => onFilterChange('search', e.target.value)}
-          allowClear
-        />
-
         <CustomSelect
           value={selectedRoute}
           onChange={(value) => onFilterChange('route', value)}
           options={routeOptions}
           placeholder="Cao tốc TP. Hồ Chí Minh - Long..."
         />
-
-        <CustomDatePicker
-          value={dateValue}
-          onChange={(date) => {
-            const dateString = date ? date.format('YYYY-MM-DD') : '';
-            onFilterChange('date', dateString);
-          }}
-          format="DD/MM/YYYY"
-          placeholder="15/01/2025"
-        />
-
-        <SearchButton onClick={onSearch}>
-          Tìm kiếm
-        </SearchButton>
       </Filters>
     </Header>
   );
