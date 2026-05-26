@@ -325,6 +325,19 @@ function __hiddenFramentDefaultList() {
     waitForElement('a[href*="_com_liferay_fragment_web_portlet_FragmentPortlet_fragmentCollectionKey=COMMERCE_ACCOUNT_FRAGMENTS"]', hiddenElement);
 }
 
+function __redirectToHomepageIfNotCorrectLoginScreen() {
+    const pathname = window.location.pathname;
+    const screenData = __getCurrentLiferayScreen();
+
+    if (pathname.endsWith('/login') && screenData.portletId === 'com_liferay_login_web_portlet_LoginPortlet') {
+        const hasRedirect = typeof screenData.redirectUrl !== 'undefined' && !!screenData.redirectUrl;
+        if (hasRedirect) {
+            window.location.href = '/c/admin?redirect=' + screenData.redirectUrl;
+        } else {
+            window.location.href = '/';
+        }
+    }
+}
 
 async function __custom_admin_js() {
     const screen = __getCurrentLiferayScreen();
@@ -336,6 +349,7 @@ async function __custom_admin_js() {
 
     const isUsersAdminPage = screen.portletId === 'com_liferay_users_admin_web_portlet_UsersAdminPortlet';
 
+    __redirectToHomepageIfNotCorrectLoginScreen();
     __appendAIChatHistoryMenu();
     __appendCreateNewPostToLeftMenu();
     __initTheme();
