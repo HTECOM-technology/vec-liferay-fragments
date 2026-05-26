@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import CameraModal from '../../giamSatGiaoThong/components/CameraModal';
 import '../styles/Trafficcameramonitor.css';
+import {
+  CAMERA_SHOW_STATE_MODES,
+  fetchCameraShowState,
+  filterCamerasByShowState,
+} from '@/services/cameraShowStateService';
 
 const API_BASE_URL = '';
 const API_HEADERS = {
@@ -115,10 +120,18 @@ const TrafficCameraMonitor = () => {
 
       try {
         const shouldLoadRealCameras = Number(selectedRoute) === CAMERA_HIGHWAY_ID;
-        const cameraData = shouldLoadRealCameras ? await fetchCameras() : [];
+        const [cameraData, cameraShowStateResponse] = await Promise.all([
+          shouldLoadRealCameras ? fetchCameras() : Promise.resolve([]),
+          fetchCameraShowState(selectedRoute),
+        ]);
+        const visibleCameras = filterCamerasByShowState(
+          cameraData,
+          cameraShowStateResponse?.items || [],
+          CAMERA_SHOW_STATE_MODES.INTRANET
+        );
 
         if (isMounted) {
-          setCameras(cameraData);
+          setCameras(visibleCameras);
         }
       } catch (fetchError) {
         console.error('Error fetching camera data:', fetchError);

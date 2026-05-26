@@ -5,3 +5,26 @@ export const baseApiUrl = () => {
   }
   return '';
 }
+
+function callLiferayService(path, params) {
+  return new Promise((resolve, reject) => {
+    window.Liferay.Service(path, params, resolve, reject);
+  });
+}
+
+export const getUserInfo = async () => {
+  const isLogined = window.Liferay.ThemeDisplay.isSignedIn();
+  if (!isLogined) {
+    return null;
+  }
+  try {
+    const userId = window.Liferay.ThemeDisplay.getUserId();
+    return await callLiferayService(
+      "/user/get-user-by-id",
+      { userId }
+    );
+  } catch (e) {
+    console.error('getUserInfo error: ', e);
+    return null;
+  }
+}

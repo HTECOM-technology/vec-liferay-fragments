@@ -1,12 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { message } from 'antd';
 import HeaderSection from './HeaderSection';
 import AnalyticsSection from './AnalyticsSection';
 import MapSection from './MapSection';
 import DetailSection from './DetailSection';
 import CameraModal from './CameraModal';
+import CameraShowStateModal from './CameraShowStateModal';
 import IncidentModal from './IncidentModal';
 import ViolationModal from './ViolationModal';
 import { Container, TabContainer, ContentTable } from '../style';
+import {
+  CAMERA_SHOW_STATE_MODES,
+  fetchCameraShowState,
+  filterCamerasByShowState,
+  saveCameraShowState,
+} from '@/services/cameraShowStateService';
 
 // ============ API CONFIG ============
 
@@ -129,6 +137,34 @@ function mapCameraLocation(camera) {
   };
 }
 
+function mapIncidentLocation(incident) {
+  return {
+    lat: incident.lat,
+    lng: incident.lng,
+    id: incident.id,
+    title: incident.title,
+    severity: incident.severity,
+    timestamp: incident.timestamp,
+  };
+}
+
+function applyRouteMapData(routeSource, routeId, visibleCameras, incidentsData) {
+  return routeSource.map((route) => {
+    if (Number(route.id) !== Number(routeId)) {
+      return route;
+    }
+
+    return {
+      ...route,
+      mapData: {
+        ...route.mapData,
+        cameraLocations: visibleCameras.map(mapCameraLocation).filter(Boolean),
+        incidentLocations: incidentsData.map(mapIncidentLocation),
+      },
+    };
+  });
+}
+
 function mapApiDataToRouteData(apiItems) {
   return apiItems.map((item) => {
     const locationParts = (item.location || '').split(' - ');
@@ -174,13 +210,19 @@ const GiamSatGiaoThong = () => {
   const [routes, setRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState(null);
   const [selectedRouteFilter, setSelectedRouteFilter] = useState('');
+  const [allCameras, setAllCameras] = useState([]);
   const [cameras, setCameras] = useState([]);
+  const [cameraShowStates, setCameraShowStates] = useState([]);
+  const [cameraShowStateLoading, setCameraShowStateLoading] = useState(false);
+  const [cameraShowStateSaving, setCameraShowStateSaving] = useState(false);
+  const [cameraSettingsOpen, setCameraSettingsOpen] = useState(false);
   const [violations, setViolations] = useState([]);
   const [incidents, setIncidents] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [cameraModalData, setCameraModalData] = useState(null);
   const [incidentModalData, setIncidentModalData] = useState(null);
   const [violationModalData, setViolationModalData] = useState(null);
+  const [messageApi, contextHolder] = message.useMessage();
 
   const [mapOptions] = useState({
     route: true,
@@ -195,50 +237,56 @@ const GiamSatGiaoThong = () => {
     const numericRouteId = Number(routeId);
     let camerasData = [];
 
-    if (numericRouteId === CAMERA_HIGHWAY_ID) {
-      try {
-        camerasData = await fetchCameras();
-      } catch (error) {
-        console.error('Error fetching cameras:', error);
-      }
+    setCameraShowStateLoading(true);
+
+    try {
+      const [nextCamerasData, cameraShowStateResponse] = await Promise.all([
+        numericRouteId === CAMERA_HIGHWAY_ID
+          ? fetchCameras().catch((error) => {
+              console.error('Error fetching cameras:', error);
+              return [];
+            })
+          : Promise.resolve([]),
+        fetchCameraShowState(numericRouteId),
+      ]);
+
+      camerasData = nextCamerasData;
+      const nextCameraShowStates = cameraShowStateResponse?.items || [];
+      const visibleCameras = filterCamerasByShowState(
+        camerasData,
+        nextCameraShowStates,
+        CAMERA_SHOW_STATE_MODES.INTRANET
+      );
+
+      setAllCameras(camerasData);
+      setCameraShowStates(nextCameraShowStates);
+      setCameras(visibleCameras);
+
+      const violationsData = [];
+      setViolations(violationsData);
+
+      const incidentsData = [];
+      setIncidents(incidentsData);
+
+      const analyticsData = DEFAULT_ANALYTICS;
+      setAnalytics(analyticsData);
+
+      const updatedRoutes = applyRouteMapData(
+        routeSource,
+        numericRouteId,
+        visibleCameras,
+        incidentsData
+      );
+
+      const updatedSelectedRoute =
+        updatedRoutes.find((route) => Number(route.id) === numericRouteId) || null;
+
+      setRoutes(updatedRoutes);
+      setSelectedRoute(updatedSelectedRoute);
+      setSelectedRouteFilter(updatedSelectedRoute ? String(updatedSelectedRoute.id) : '');
+    } finally {
+      setCameraShowStateLoading(false);
     }
-
-    setCameras(camerasData);
-    const violationsData = [];
-    setViolations(violationsData);
-
-    const incidentsData = [];
-    setIncidents(incidentsData);
-
-    const analyticsData = DEFAULT_ANALYTICS;
-    setAnalytics(analyticsData);
-
-    const updatedRoutes = routeSource.map((route) => {
-        if (Number(route.id) === numericRouteId) {
-          return {
-            ...route,
-            mapData: {
-              ...route.mapData,
-              cameraLocations: camerasData.map(mapCameraLocation).filter(Boolean),
-              incidentLocations: incidentsData.map((inc) => ({
-                lat: inc.lat,
-                lng: inc.lng,
-                id: inc.id,
-                title: inc.title,
-                severity: inc.severity,
-                timestamp: inc.timestamp,
-              })),
-            },
-          };
-      }
-      return route;
-    });
-
-    const updatedSelectedRoute = updatedRoutes.find((route) => Number(route.id) === numericRouteId) || null;
-
-    setRoutes(updatedRoutes);
-    setSelectedRoute(updatedSelectedRoute);
-    setSelectedRouteFilter(updatedSelectedRoute ? String(updatedSelectedRoute.id) : '');
   }, []);
 
   useEffect(() => {
@@ -267,7 +315,9 @@ const GiamSatGiaoThong = () => {
       } else {
         setSelectedRoute(null);
         setSelectedRouteFilter('');
+        setAllCameras([]);
         setCameras([]);
+        setCameraShowStates([]);
         setViolations([]);
         setIncidents([]);
         setAnalytics(DEFAULT_ANALYTICS);
@@ -300,13 +350,79 @@ const GiamSatGiaoThong = () => {
     }
   };
 
+  const handleOpenCameraSettings = () => {
+    setCameraSettingsOpen(true);
+  };
+
+  const handleCloseCameraSettings = () => {
+    if (cameraShowStateSaving) {
+      return;
+    }
+
+    setCameraSettingsOpen(false);
+  };
+
+  const handleSaveCameraSettings = async (rows) => {
+    if (!selectedRoute?.id) {
+      return;
+    }
+
+    setCameraShowStateSaving(true);
+
+    try {
+      const response = await saveCameraShowState(selectedRoute.id, rows);
+      const nextCameraShowStates = response?.items || rows;
+      const nextVisibleCameras = filterCamerasByShowState(
+        allCameras,
+        nextCameraShowStates,
+        CAMERA_SHOW_STATE_MODES.INTRANET
+      );
+
+      setCameraShowStates(nextCameraShowStates);
+      setCameras(nextVisibleCameras);
+
+      setRoutes((currentRoutes) =>
+        applyRouteMapData(
+          currentRoutes,
+          selectedRoute.id,
+          nextVisibleCameras,
+          incidents
+        )
+      );
+      setSelectedRoute((currentRoute) => {
+        if (!currentRoute) {
+          return currentRoute;
+        }
+
+        const nextRoutes = applyRouteMapData(
+          [currentRoute],
+          selectedRoute.id,
+          nextVisibleCameras,
+          incidents
+        );
+
+        return nextRoutes[0];
+      });
+
+      setCameraSettingsOpen(false);
+      messageApi.success('Đã lưu cấu hình hiển thị camera.');
+    } catch (error) {
+      console.error('Error saving camera settings:', error);
+      messageApi.error(error?.message || 'Không lưu được cấu hình camera.');
+    } finally {
+      setCameraShowStateSaving(false);
+    }
+  };
+
   return (
     <Container>
+      {contextHolder}
       <TabContainer>
         <HeaderSection
           routes={routes}
           selectedRoute={selectedRouteFilter}
           onFilterChange={handleFilterChange}
+          onOpenSettings={handleOpenCameraSettings}
         />
         <AnalyticsSection
           analytics={analytics}
@@ -341,6 +457,17 @@ const GiamSatGiaoThong = () => {
           onClose={() => setCameraModalData(null)}
         />
       )}
+
+      <CameraShowStateModal
+        open={cameraSettingsOpen}
+        routeTitle={selectedRoute?.title}
+        cameras={allCameras}
+        settings={cameraShowStates}
+        loading={cameraShowStateLoading}
+        saving={cameraShowStateSaving}
+        onCancel={handleCloseCameraSettings}
+        onSave={handleSaveCameraSettings}
+      />
 
       {incidentModalData && (
         <IncidentModal
