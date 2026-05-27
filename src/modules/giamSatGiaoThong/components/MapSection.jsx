@@ -2,14 +2,13 @@ import React from 'react';
 import GoogleMap from './GoogleMap';
 import { MapContainer } from '../style';
 
-const MapSection = ({ route, options, onCameraClick, onIncidentClick }) => {
+const MapSection = ({ route, options, onCameraClick }) => {
   return (
     <MapContainer>
       <GoogleMap
         route={route}
         options={options}
         onCameraClick={onCameraClick}
-        onIncidentClick={onIncidentClick}
       />
     </MapContainer>
   );

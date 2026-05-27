@@ -139,6 +139,8 @@ const CAMERA_API_URL = "https://portal.tctvec.vn/o/its/api/cameras";
 const HLS_JS_URL = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
 const HLS_ATTACH_RETRY_COUNT = 3;
 const HLS_ATTACH_RETRY_DELAY_MS = 1200;
+const CAMERA_STARTUP_MIN_DURATION_MS = 8000;
+const CAMERA_STARTUP_STATUS = "Đang khởi động camera...";
 const CAMERA_THUMBNAIL_FALLBACK_URL = "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original";
 let cameraList = null;
 let hlsScriptPromise = null;
@@ -520,6 +522,52 @@ async function attachHlsStreamWithRetry(video, hlsUrl) {
     throw lastError;
 }
 
+function getCameraModalFullscreenIcon(isFullscreen) {
+    if (isFullscreen) {
+        return `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M9 15H5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M15 9H19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M5 15L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M19 9L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    `;
+    }
+
+    return `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M9 5H5V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M15 19H19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M5 9L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M19 15L14 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  `;
+}
+
+function syncCameraModalFullscreenButton() {
+    const videoContainer = document.getElementById("cameraModalVideoContainer");
+    const fullscreenButton = document.getElementById("cameraModalFullscreenBtn");
+    if (!videoContainer || !fullscreenButton) return;
+
+    const isFullscreen = document.fullscreenElement === videoContainer;
+    fullscreenButton.innerHTML = getCameraModalFullscreenIcon(isFullscreen);
+}
+
+async function toggleCameraModalFullscreen() {
+    const videoContainer = document.getElementById("cameraModalVideoContainer");
+    if (!videoContainer) return;
+
+    try {
+        if (document.fullscreenElement === videoContainer) {
+            await document.exitFullscreen();
+        } else {
+            await videoContainer.requestFullscreen();
+        }
+    } catch (error) {
+        console.error("Fullscreen toggle failed:", error);
+    }
+}
+
 async function openCameraModal(camera) {
     const requestId = ++cameraModalRequestId;
     let modal = document.getElementById("cameraModal");
@@ -535,10 +583,13 @@ async function openCameraModal(camera) {
             <span style="color: white; font-size: 14px; font-weight: 700; line-height: 1;">×</span>
           </button>
           <div>
-            <div class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9; margin-bottom: 0;">
-              <video id="cameraVideo" class="w-full h-full" controls autoplay muted playsinline style="border: 0;"></video>
-              <div id="cameraModalStatus" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;background:rgba(0,0,0,.35);font-size:14px;">
-                Đang tải luồng camera...
+            <div id="cameraModalVideoContainer" class="relative bg-black rounded-lg overflow-hidden" style="aspect-ratio: 16/9; margin-bottom: 0;">
+              <video id="cameraVideo" class="w-full h-full" autoplay muted playsinline disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen noremoteplayback" style="border: 0;"></video>
+              <button id="cameraModalFullscreenBtn" type="button" aria-label="Toggle fullscreen" style="position:absolute;right:16px;bottom:16px;z-index:3;width:42px;height:42px;border:none;border-radius:999px;background:rgba(0,0,0,.72);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s ease,transform .2s ease;">
+                ${getCameraModalFullscreenIcon(false)}
+              </button>
+              <div id="cameraModalStatus" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;background:rgba(0,0,0,.75);font-size:14px;z-index:2;">
+                ${CAMERA_STARTUP_STATUS}
               </div>
             </div>
             <h3 class="text-gray-900 text-lg font-semibold" id="cameraModalTitle" style="margin: 20px 0 0 0; padding: 0; color: #333; font-size: 18px; font-weight: 600;"></h3>
@@ -554,14 +605,48 @@ async function openCameraModal(camera) {
     document.getElementById("cameraModalTitle").textContent = camera.name || "Camera";
     const video = document.getElementById("cameraVideo");
     const status = document.getElementById("cameraModalStatus");
+    const fullscreenButton = document.getElementById("cameraModalFullscreenBtn");
+
+    if (!modal.dataset.bound) {
+        document.addEventListener("fullscreenchange", syncCameraModalFullscreenButton);
+        video.addEventListener("pause", () => {
+            if (status.style.display === "none" && !modal.classList.contains("hidden")) {
+                video.play().catch(() => { });
+            }
+        });
+        video.addEventListener("contextmenu", (event) => {
+            event.preventDefault();
+        });
+        fullscreenButton.addEventListener("click", () => {
+            toggleCameraModalFullscreen();
+        });
+        fullscreenButton.addEventListener("mouseenter", () => {
+            fullscreenButton.style.background = "rgba(0,0,0,.84)";
+            fullscreenButton.style.transform = "scale(1.05)";
+        });
+        fullscreenButton.addEventListener("mouseleave", () => {
+            fullscreenButton.style.background = "rgba(0,0,0,.72)";
+            fullscreenButton.style.transform = "scale(1)";
+        });
+        modal.dataset.bound = "true";
+    }
 
     video.pause();
     video.removeAttribute("src");
     video.load();
-    status.textContent = "Đang tải luồng camera...";
+    status.textContent = CAMERA_STARTUP_STATUS;
     status.style.display = "flex";
     modal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
+    syncCameraModalFullscreenButton();
+
+    const startupStartedAt = Date.now();
+    const waitForMinimumStartupDuration = async () => {
+        const remainingTime = CAMERA_STARTUP_MIN_DURATION_MS - (Date.now() - startupStartedAt);
+        if (remainingTime > 0) {
+            await delay(remainingTime);
+        }
+    };
 
     try {
         const watchData = await startCameraWatch(camera);
@@ -569,7 +654,6 @@ async function openCameraModal(camera) {
             return;
         }
 
-        status.textContent = "Đang mở luồng camera...";
         const hls = await attachHlsStreamWithRetry(video, watchData.hls_url);
         if (requestId !== cameraModalRequestId) {
             if (hls) hls.destroy();
@@ -585,10 +669,20 @@ async function openCameraModal(camera) {
             hls,
         };
 
+        await waitForMinimumStartupDuration();
+        if (requestId !== cameraModalRequestId) {
+            return;
+        }
+
         status.style.display = "none";
         video.play().catch(() => { });
     } catch (error) {
         console.error("Error opening camera:", error);
+        await waitForMinimumStartupDuration();
+        if (requestId !== cameraModalRequestId) {
+            return;
+        }
+
         status.textContent = "Không mở được luồng camera";
     }
 }
@@ -599,6 +693,16 @@ window.closeCameraModal = async function () {
     if (modal) {
         releaseActiveCameraWatch();
         const video = document.getElementById("cameraVideo");
+        const videoContainer = document.getElementById("cameraModalVideoContainer");
+
+        if (document.fullscreenElement === videoContainer) {
+            try {
+                await document.exitFullscreen();
+            } catch (error) {
+                console.error("Exit fullscreen failed:", error);
+            }
+        }
+
         video.pause();
         video.removeAttribute("src");
         video.load();

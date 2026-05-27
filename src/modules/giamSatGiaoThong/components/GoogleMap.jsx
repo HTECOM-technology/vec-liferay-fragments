@@ -1,15 +1,12 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import IncidentInfoCard from './IncidentInfoCard';
+import React, { useCallback, useEffect, useRef } from 'react';
 
-const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
+const GoogleMap = ({ route, options, onCameraClick }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const directionsServiceRef = useRef(null);
   const directionsRendererRef = useRef(null);
   const markersRef = useRef([]);
   const infoWindowsRef = useRef([]);
-  const [hoveredIncident, setHoveredIncident] = useState(null);
-  const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
 
   /**
    * Load Google Maps script
@@ -86,38 +83,24 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
     infoWindowsRef.current.forEach((infoWindow) => infoWindow.close());
   }, []);
 
-  const getIncidentIcon = useCallback((severity) => {
-    switch (severity) {
-      case 'high':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23d32f2f"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
-      case 'medium':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23f57c00"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">⚠</text></svg>';
-      case 'low':
-        return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="%23388e3c"/><text x="20" y="28" fontSize="20" textAnchor="middle" fill="white">ℹ</text></svg>';
-      default:
-        return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
-    }
-  }, []);
-
   const getInfoWindowContent = useCallback((type, data) => {
     switch (type) {
-      case 'toll':
-        return `<div style="padding: 8px;"><strong>🚦 ${data.name}</strong></div>`;
-      case 'rest':
-        return `<div style="padding: 8px;"><strong>☕ ${data.name}</strong></div>`;
       case 'camera':
+        const cameraButtonId = `camera-map-open-${data.id || data.camera_id}`;
         return `
           <div style="padding: 8px; min-width: 160px;">
             <strong>📹 ${data.name}</strong><br/>
-            ${data.videoUrl ? '<small style="color: #0090cf; cursor: pointer;">Click để xem trực tiếp</small>' : '<small>Không có video</small>'}
-          </div>
-        `;
-      case 'incident':
-        return `
-          <div style="padding: 8px; min-width: 180px;">
-            <strong style="color: #d32f2f;">🚨 Sự cố giao thông</strong><br/>
-            <small>${data.title}</small><br/>
-            <small style="color: #0090cf; cursor: pointer; margin-top: 4px; display: inline-block;">Xem chi tiết →</small>
+            ${
+              data.id || data.camera_id
+                ? `<button
+                    id="${cameraButtonId}"
+                    type="button"
+                    style="margin-top:6px;padding:6px 10px;background:#2563eb;color:white;border:none;border-radius:4px;cursor:pointer"
+                  >
+                    Xem trực tiếp
+                  </button>`
+                : '<small style="color: #0090cf;">Camera trên tuyến</small>'
+            }
           </div>
         `;
       default:
@@ -141,70 +124,35 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
     marker.addListener('click', () => {
       closeAllInfoWindows();
       infoWindow.open(mapInstanceRef.current, marker);
-
-      if (type === 'camera' && onCameraClick) {
-        onCameraClick(data);
-      } else if (type === 'incident' && onIncidentClick) {
-        onIncidentClick(data);
-      }
     });
 
-    if (type === 'incident') {
-      marker.addListener('mouseover', (e) => {
-        setHoveredIncident(data);
-        setHoverPosition({
-          x: e.domEvent.clientX,
-          y: e.domEvent.clientY - 20,
-        });
-      });
+    if (type === 'camera' && onCameraClick) {
+      infoWindow.addListener('domready', () => {
+        const button = document.getElementById(`camera-map-open-${data.id || data.camera_id}`);
+        if (!button || button.dataset.bound === 'true') return;
 
-      marker.addListener('mouseout', () => {
-        setHoveredIncident(null);
+        button.dataset.bound = 'true';
+        button.addEventListener('click', () => {
+          onCameraClick(data);
+        });
       });
     }
 
     markersRef.current.push({ marker, infoWindow, type });
     infoWindowsRef.current.push(infoWindow);
-  }, [closeAllInfoWindows, getInfoWindowContent, onCameraClick, onIncidentClick]);
+  }, [closeAllInfoWindows, getInfoWindowContent, onCameraClick]);
 
   const updateMarkers = useCallback((routeData) => {
     if (!routeData || !routeData.mapData) return;
 
     clearMarkers();
 
-    const {
-      tollLocations,
-      restLocations,
-      cameraLocations,
-      incidentLocations,
-    } = routeData.mapData;
-
-    if (options.toll && tollLocations?.length) {
-      tollLocations.forEach((toll) => {
-        createMarker({
-          position: { lat: toll.lat, lng: toll.lng },
-          title: toll.name,
-          icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
-          type: 'toll',
-          data: toll,
-        });
-      });
-    }
-
-    if (options.stop && restLocations?.length) {
-      restLocations.forEach((rest) => {
-        createMarker({
-          position: { lat: rest.lat, lng: rest.lng },
-          title: rest.name,
-          icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-          type: 'rest',
-          data: rest,
-        });
-      });
-    }
+    const { cameraLocations, origin, destination } = routeData.mapData;
 
     if (options.camera && cameraLocations?.length) {
       cameraLocations.forEach((camera) => {
+        if (!Number.isFinite(camera.lat) || !Number.isFinite(camera.lng)) return;
+
         createMarker({
           position: { lat: camera.lat, lng: camera.lng },
           title: camera.name,
@@ -218,21 +166,19 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
       });
     }
 
-    if (options.incident && incidentLocations?.length) {
-      incidentLocations.forEach((incident) => {
-        createMarker({
-          position: { lat: incident.lat, lng: incident.lng },
-          title: incident.title,
-          icon: {
-            url: getIncidentIcon(incident.severity),
-            scaledSize: new window.google.maps.Size(40, 40),
-          },
-          type: 'incident',
-          data: incident,
-        });
+    if (options.camera && cameraLocations?.length && mapInstanceRef.current) {
+      const bounds = new window.google.maps.LatLngBounds();
+
+      markersRef.current.forEach(({ marker }) => {
+        bounds.extend(marker.getPosition());
       });
+
+      if (origin) bounds.extend(origin);
+      if (destination) bounds.extend(destination);
+
+      mapInstanceRef.current.fitBounds(bounds);
     }
-  }, [clearMarkers, createMarker, getIncidentIcon, options]);
+  }, [clearMarkers, createMarker, options.camera]);
 
   const displayRoute = useCallback((routeData) => {
     if (!routeData || !routeData.mapData || !directionsServiceRef.current) return;
@@ -277,21 +223,14 @@ const GoogleMap = ({ route, options, onCameraClick, onIncidentClick }) => {
   }, [route, updateMarkers]);
 
   return (
-    <>
-      <div
-        ref={mapRef}
-        style={{
-          width: '100%',
-          height: '100%',
-          borderRadius: '8px',
-        }}
-      />
-
-      {/* Incident hover card */}
-      {hoveredIncident && (
-        <IncidentInfoCard incident={hoveredIncident} position={hoverPosition} />
-      )}
-    </>
+    <div
+      ref={mapRef}
+      style={{
+        width: '100%',
+        height: '100%',
+        borderRadius: '8px',
+      }}
+    />
   );
 };
 

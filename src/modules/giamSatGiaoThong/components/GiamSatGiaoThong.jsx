@@ -226,10 +226,10 @@ const GiamSatGiaoThong = () => {
 
   const [mapOptions] = useState({
     route: true,
-    toll: true,
+    toll: false,
     stop: false,
     construction: false,
-    incident: true,
+    incident: false,
     camera: true,
   });
 
@@ -354,6 +354,10 @@ const GiamSatGiaoThong = () => {
     setCameraSettingsOpen(true);
   };
 
+  const handleCameraClick = useCallback((camera) => {
+    setCameraModalData(camera);
+  }, []);
+
   const handleCloseCameraSettings = () => {
     if (cameraShowStateSaving) {
       return;
@@ -431,18 +435,14 @@ const GiamSatGiaoThong = () => {
           <MapSection
             route={selectedRoute}
             options={mapOptions}
-            onCameraClick={(camera) => setCameraModalData(camera)}
-            onIncidentClick={(incident) => {
-              const fullIncident = incidents.find(inc => inc.id === incident.id);
-              setIncidentModalData(fullIncident);
-            }}
+            onCameraClick={handleCameraClick}
           />
 
           <DetailSection
             route={selectedRoute}
             cameras={cameras}
             violations={violations}
-            onCameraClick={(camera) => setCameraModalData(camera)}
+            onCameraClick={handleCameraClick}
             onViolationClick={(violation) => {
               setViolationModalData(violation);
             }}
