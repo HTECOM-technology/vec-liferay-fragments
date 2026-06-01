@@ -57,7 +57,7 @@ function NhanSuTable({
             title: "Phòng ban",
             dataIndex: "phongBan",
             key: "phongBan",
-            width: 180,
+            width: 250,
             align: "center",
         },
         {

@@ -12,45 +12,7 @@ import {
     SearchButton,
 } from "./styleNhanSu";
 
-const chucVuOptions = [
-    { value: "", label: "Chức vụ" },
-    { value: "gd", label: "Giám đốc" },
-    { value: "pgd", label: "Phó Giám đốc" },
-    { value: "tp", label: "Trưởng phòng" },
-    { value: "cv", label: "Chuyên viên" },
-    { value: "nv", label: "Nhân viên" },
-];
-
-const phongBanOptions = [
-    { value: "", label: "Phòng ban" },
-    { value: "hdtv", label: "Hội Đồng thành viên" },
-    { value: "btgd", label: "Ban Tổng Giám đốc" },
-    { value: "vp", label: "Văn phòng" },
-    { value: "tckt", label: "Tài chính kế toán" },
-    { value: "nhansu", label: "Nhân sự" },
-];
-
-const donViOptions = [
-    { value: "", label: "Đơn vị" },
-    { value: "vec", label: "VEC" },
-    { value: "vec-e", label: "VEC E" },
-    { value: "vec-o", label: "VEC O" },
-];
-
-const gioiTinhOptions = [
-    { value: "", label: "Giới tính" },
-    { value: "nam", label: "Nam" },
-    { value: "nu", label: "Nữ" },
-];
-
-const tinhTrangOptions = [
-    { value: "", label: "Tình trạng" },
-    { value: "danglamviec", label: "Đang làm việc" },
-    { value: "nghiviec", label: "Nghỉ việc" },
-    { value: "nghiphep", label: "Nghỉ phép" },
-];
-
-function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
+function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch, filterOptions }) {
     return (
         <HeaderRow>
             <TitleSection>
@@ -64,6 +26,7 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
                         prefix={<SearchOutlined style={{ color: "#999" }} />}
                         value={filters.search}
                         onChange={(e) => onFilterChange("search", e.target.value)}
+                        onPressEnter={onSearch}
                     />
                 </SearchInput>
 
@@ -71,8 +34,8 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
                     <Select
                         value={filters.chucVu}
                         onChange={(value) => onFilterChange("chucVu", value)}
-                        options={chucVuOptions}
-                        style={{ width: 170 }}
+                        options={filterOptions.chucVuOptions}
+                        style={{ width: 250 }}
                     />
                 </FilterSelect>
 
@@ -80,8 +43,8 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
                     <Select
                         value={filters.phongBan}
                         onChange={(value) => onFilterChange("phongBan", value)}
-                        options={phongBanOptions}
-                        style={{ width: 170 }}
+                        options={filterOptions.phongBanOptions}
+                        style={{ width: 250 }}
                     />
                 </FilterSelect>
 
@@ -89,7 +52,7 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
                     <Select
                         value={filters.donVi}
                         onChange={(value) => onFilterChange("donVi", value)}
-                        options={donViOptions}
+                        options={filterOptions.donViOptions}
                         style={{ width: 170 }}
                     />
                 </FilterSelect>
@@ -98,7 +61,7 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
                     <Select
                         value={filters.gioiTinh}
                         onChange={(value) => onFilterChange("gioiTinh", value)}
-                        options={gioiTinhOptions}
+                        options={filterOptions.gioiTinhOptions}
                         style={{ width: 170 }}
                     />
                 </FilterSelect>
@@ -107,7 +70,7 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch }) {
                     <Select
                         value={filters.tinhTrang}
                         onChange={(value) => onFilterChange("tinhTrang", value)}
-                        options={tinhTrangOptions}
+                        options={filterOptions.tinhTrangOptions}
                         style={{ width: 170 }}
                     />
                 </FilterSelect>
@@ -123,6 +86,13 @@ NhanSuFilter.propTypes = {
     filters: PropTypes.object,
     onFilterChange: PropTypes.func,
     onSearch: PropTypes.func,
+    filterOptions: PropTypes.shape({
+        chucVuOptions: PropTypes.array,
+        phongBanOptions: PropTypes.array,
+        donViOptions: PropTypes.array,
+        gioiTinhOptions: PropTypes.array,
+        tinhTrangOptions: PropTypes.array,
+    }),
 };
 
 NhanSuFilter.defaultProps = {
@@ -130,6 +100,13 @@ NhanSuFilter.defaultProps = {
     filters: {},
     onFilterChange: () => { },
     onSearch: () => { },
+    filterOptions: {
+        chucVuOptions: [{ value: "", label: "Chức vụ" }],
+        phongBanOptions: [{ value: "", label: "Phòng ban" }],
+        donViOptions: [{ value: "", label: "Đơn vị" }],
+        gioiTinhOptions: [{ value: "", label: "Giới tính" }],
+        tinhTrangOptions: [{ value: "", label: "Tình trạng" }],
+    },
 };
 
 export default NhanSuFilter;

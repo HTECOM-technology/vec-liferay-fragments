@@ -1,14 +1,19 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { Avatar, Badge, Button, Flex, Layout, Popover, theme } from "antd";
+import { Avatar, Badge, Button, Flex, Layout, Popover, theme, message } from "antd";
 import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
+import HrmNotificationsModal from "./components/HrmNotificationsModal";
 import { menuSections } from "../../../router/menuConfig";
 import { CInput } from "../../common";
 import { SearchOutlined } from "@ant-design/icons";
 import logo from "../../../assets/layout/logo.png";
 import styled from "styled-components";
 import { TitleNotiWrapper, TitleNoti, QuantityNoti, TitlePopover } from "./notistyle";
+import { ttnsService } from "../../../services/ttnsService";
+
+const HRM_NOTIFICATION_PAGE_SIZE = 10;
+const HRM_GROUP_KEYS = new Set(["18", "31", "33", "97", "99", "97_99"]);
 
 const LogoutItem = styled.div`
   cursor: pointer;
@@ -41,11 +46,34 @@ const LinkItem = styled.div`
   }
 `;
 
+function isHrmNotification(item) {
+  const groupCode = String(
+    item?.group_code ??
+    item?.notify_group_code ??
+    item?.groupCode ??
+    item?.notify?.group_code ??
+    ""
+  ).trim();
+
+  if (!groupCode) {
+    return true;
+  }
+
+  return HRM_GROUP_KEYS.has(groupCode);
+}
+
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [notifyPopoverOpen, setNotifyPopoverOpen] = useState(false);
+  const [hrmNotificationCount, setHrmNotificationCount] = useState(0);
+  const [hrmModalOpen, setHrmModalOpen] = useState(false);
+  const [hrmNotifications, setHrmNotifications] = useState([]);
+  const [hrmNotificationsTotal, setHrmNotificationsTotal] = useState(0);
+  const [hrmNotificationsPage, setHrmNotificationsPage] = useState(1);
+  const [hrmNotificationsLoading, setHrmNotificationsLoading] = useState(false);
+  const [hrmNotificationsLoadingMore, setHrmNotificationsLoadingMore] = useState(false);
 
   const handleLogout = useCallback(() => {
     setPopoverOpen(false);
@@ -62,12 +90,69 @@ function MainLayout() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");
-  const notifications = [
-    { title: "Thông báo mới", count: 1 },
-    { title: "Tổng hợp nhân sự", count: 2 },
-    { title: "Công việc", count: 3 },
-  ];
+  const currentUserId = useMemo(() => {
+    return Number(window.Liferay?.ThemeDisplay?.getUserId?.() || 0);
+  }, []);
+  const notifications = useMemo(() => ([
+    { key: "general", title: "Thông báo mới", count: 0 },
+    { key: "hrm", title: "Tổng hợp nhân sự", count: hrmNotificationCount },
+    { key: "work", title: "Công việc", count: 0 },
+  ]), [hrmNotificationCount]);
   const totalCount = notifications.reduce((sum, item) => sum + item.count, 0);
+
+  const hasMoreHrmNotifications = hrmNotifications.length < hrmNotificationsTotal;
+
+  const fetchHrmNotifications = useCallback(async ({ page, append }) => {
+    if (!currentUserId) {
+      return;
+    }
+
+    if (append) {
+      setHrmNotificationsLoadingMore(true);
+    } else {
+      setHrmNotificationsLoading(true);
+    }
+
+    try {
+      const response = await ttnsService.getNotifications({
+        userId: currentUserId,
+        page,
+        pageSize: HRM_NOTIFICATION_PAGE_SIZE,
+      });
+
+      const nextItems = (response?.items || []).filter(isHrmNotification);
+
+      setHrmNotifications((prev) => (append ? [...prev, ...nextItems] : nextItems));
+      setHrmNotificationsTotal(Number(response?.total) || 0);
+      setHrmNotificationsPage(Number(response?.page) || page);
+    } catch (error) {
+      message.error(ttnsService.getErrorMessage(error));
+    } finally {
+      if (append) {
+        setHrmNotificationsLoadingMore(false);
+      } else {
+        setHrmNotificationsLoading(false);
+      }
+    }
+  }, [currentUserId]);
+
+  const handleOpenHrmModal = useCallback(() => {
+    setNotifyPopoverOpen(false);
+    setHrmModalOpen(true);
+    fetchHrmNotifications({ page: 1, append: false });
+  }, [fetchHrmNotifications]);
+
+  const handleCloseHrmModal = useCallback(() => {
+    setHrmModalOpen(false);
+  }, []);
+
+  const handleLoadMoreHrmNotifications = useCallback(() => {
+    if (!hasMoreHrmNotifications || hrmNotificationsLoadingMore) {
+      return;
+    }
+
+    fetchHrmNotifications({ page: hrmNotificationsPage + 1, append: true });
+  }, [fetchHrmNotifications, hasMoreHrmNotifications, hrmNotificationsLoadingMore, hrmNotificationsPage]);
 
   useEffect(() => {
     if (window.Liferay) {
@@ -102,6 +187,37 @@ function MainLayout() {
     }
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadHrmCounter = async () => {
+      if (!currentUserId) {
+        return;
+      }
+
+      try {
+        const response = await ttnsService.getUnreadCount({ userId: currentUserId });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setHrmNotificationCount(Number(response?.unread_count) || 0);
+      } catch (error) {
+        if (isMounted) {
+          setHrmNotificationCount(0);
+          console.error("[MainLayout] Failed to load HRM notification counter:", error);
+        }
+      }
+    };
+
+    loadHrmCounter();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUserId]);
+
   return (
 
     <StyledLayout>
@@ -114,7 +230,7 @@ function MainLayout() {
           <img src={logo} alt="logo" className="logo" />
 
           <Flex vertical={false} align="center" justify="center">
-            <Badge count={1}>
+            <Badge count={totalCount}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
                 <path
@@ -213,7 +329,7 @@ function MainLayout() {
                     <TitlePopover>Thông báo</TitlePopover>
                     <hr style={{ marginBottom: "10px" }} />
                     {notifications.map((item, index) => (
-                      <TitleNotiWrapper key={index}>
+                      <TitleNotiWrapper key={index} onClick={item.key === "hrm" ? handleOpenHrmModal : undefined}>
                         <TitleNoti>{item.title}</TitleNoti>
                         <div className="count-number">
                           <QuantityNoti>{item.count}</QuantityNoti>
@@ -249,6 +365,15 @@ function MainLayout() {
       <StyledDrawer width={"90vw"} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
         <LeftMenu collapsed={false} setShowDrawer={setShowDrawer} isMobile={true} showDrawer={showDrawer} />
       </StyledDrawer>
+      <HrmNotificationsModal
+        open={hrmModalOpen}
+        notifications={hrmNotifications}
+        loading={hrmNotificationsLoading}
+        loadingMore={hrmNotificationsLoadingMore}
+        hasMore={hasMoreHrmNotifications}
+        onLoadMore={handleLoadMoreHrmNotifications}
+        onClose={handleCloseHrmModal}
+      />
     </StyledLayout>
   );
 }
