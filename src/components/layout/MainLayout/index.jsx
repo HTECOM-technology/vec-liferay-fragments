@@ -11,6 +11,7 @@ import logo from "../../../assets/layout/logo.png";
 import styled from "styled-components";
 import { TitleNotiWrapper, TitleNoti, QuantityNoti, TitlePopover } from "./notistyle";
 import { ttnsService } from "../../../services/ttnsService";
+import { getTtnsUserId, getUserInfo } from "../../../utils";
 
 const HRM_NOTIFICATION_PAGE_SIZE = 10;
 const HRM_GROUP_KEYS = new Set(["18", "31", "33", "97", "99", "97_99"]);
@@ -90,9 +91,7 @@ function MainLayout() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");
-  const currentUserId = useMemo(() => {
-    return Number(window.Liferay?.ThemeDisplay?.getUserId?.() || 0);
-  }, []);
+  const [currentUserId, setCurrentUserId] = useState(0);
   const notifications = useMemo(() => ([
     { key: "general", title: "Thông báo mới", count: 0 },
     { key: "hrm", title: "Tổng hợp nhân sự", count: hrmNotificationCount },
@@ -155,36 +154,44 @@ function MainLayout() {
   }, [fetchHrmNotifications, hasMoreHrmNotifications, hrmNotificationsLoadingMore, hrmNotificationsPage]);
 
   useEffect(() => {
-    if (window.Liferay) {
-      window.Liferay.Service(
-        "/user/get-user-by-id",
-        { userId: window.Liferay.ThemeDisplay.getUserId() },
-        (user) => {
-          if (user) {
-            const firstName = user.firstName || "";
-            const lastName = user.lastName || "";
-            const email = user.emailAddress || "";
-            const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
-            const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
+    let isMounted = true;
 
-            const fullName = `${lastName} ${firstName}`.trim();
-            const shortName = `${lastInitial}${firstInitial}`;
+    const loadUser = async () => {
+      const user = await getUserInfo();
 
-            if (fullName) {
-              setUserName(fullName);
-            }
+      if (!isMounted || !user) {
+        return;
+      }
 
-            if (email) {
-              setUserEmail(email);
-            }
+      const firstName = user.firstName || "";
+      const lastName = user.lastName || "";
+      const email = user.emailAddress || "";
+      const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
+      const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
 
-            if (shortName) {
-              setUserInitials(shortName);
-            }
-          }
-        }
-      );
-    }
+      const fullName = `${lastName} ${firstName}`.trim();
+      const shortName = `${lastInitial}${firstInitial}`;
+
+      setCurrentUserId(getTtnsUserId(user));
+
+      if (fullName) {
+        setUserName(fullName);
+      }
+
+      if (email) {
+        setUserEmail(email);
+      }
+
+      if (shortName) {
+        setUserInitials(shortName);
+      }
+    };
+
+    loadUser();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {

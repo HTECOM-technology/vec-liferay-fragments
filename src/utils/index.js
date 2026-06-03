@@ -28,3 +28,9 @@ export const getUserInfo = async () => {
     return null;
   }
 }
+
+export const getTtnsUserId = (user) => {
+  const ldapServerId = Number(user?.ldapServerId || 0)
+
+  return Number.isFinite(ldapServerId) && ldapServerId > 0 ? ldapServerId : 0
+}

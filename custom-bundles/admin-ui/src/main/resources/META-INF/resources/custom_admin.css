@@ -87,3 +87,15 @@ fieldset#categorization.show {
   opacity: 0;
   transition: all .2s;
 }
+
+[data-searchcontainerid="_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTasks"] thead th {
+    font-size: 18px;
+}
+
+[data-searchcontainerid="_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTasks"] tbody tr.table-divider td {
+    font-weight: 700;
+    font-size: 17px;
+    padding-top: 2rem;
+    padding-bottom: 1rem;
+    text-transform: math-auto;
+}

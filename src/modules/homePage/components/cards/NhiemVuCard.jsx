@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import GripHandle from "./GripHandle";
 import useUserInfo from "@/hooks/useUserInfo";
+import { getTtnsUserId } from "@/utils";
 import { ttnsService } from "@/services/ttnsService";
 
 const DEFAULT_GROUP_COUNTS = {
@@ -14,9 +15,7 @@ const DEFAULT_GROUP_COUNTS = {
 function NhiemVuCard({ dragHandleProps }) {
   const { user } = useUserInfo();
   const [groupCounts, setGroupCounts] = useState(DEFAULT_GROUP_COUNTS);
-  const userId = useMemo(() => {
-    return Number(user?.userId || user?.id || window.Liferay?.ThemeDisplay?.getUserId?.() || 0);
-  }, [user?.id, user?.userId]);
+  const userId = useMemo(() => getTtnsUserId(user), [user]);
 
   useEffect(() => {
     let isMounted = true;
