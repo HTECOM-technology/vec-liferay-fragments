@@ -23,11 +23,11 @@ fieldset#categorization a[href^=https\:\/\/learn\.liferay\.com] {
   display: none !important;
 }
 
-fieldset#categorization .lfr-tooltip-scope > div:last-child:not(#_com_liferay_journal_web_portlet_JournalPortlet_zomp___assetTagsSelector) {
+fieldset#categorization .lfr-tooltip-scope>div:last-child:not(#_com_liferay_journal_web_portlet_JournalPortlet_zomp___assetTagsSelector) {
   display: none !important;
 }
 
-#categorizationContent .panel-body > div:last-child {
+#categorizationContent .panel-body>div:last-child {
   display: none !important;
 }
 
@@ -48,7 +48,7 @@ fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields #_com_liferay_jo
   display: none !important;
 }
 
-[name="_com_liferay_journal_web_portlet_JournalPortlet_displayDateYear"] ~ div {
+[name="_com_liferay_journal_web_portlet_JournalPortlet_displayDateYear"]~div {
   display: none !important;
 }
 
@@ -89,13 +89,28 @@ fieldset#categorization.show {
 }
 
 [data-searchcontainerid="_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTasks"] thead th {
-    font-size: 18px;
+  font-size: 18px;
 }
 
 [data-searchcontainerid="_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTasks"] tbody tr.table-divider td {
-    font-weight: 700;
-    font-size: 17px;
-    padding-top: 2rem;
-    padding-bottom: 1rem;
-    text-transform: math-auto;
+  font-weight: 700;
+  font-size: 17px;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  text-transform: math-auto;
+}
+
+.table-scrollable-horizotal {
+  overflow: auto;
+  cursor: grab;
+}
+
+.table-scrollable-horizotal.is-dragging {
+  cursor: grabbing;
+}
+
+html.table-horizontal-dragging,
+html.table-horizontal-dragging * {
+  user-select: none !important;
+  cursor: grabbing !important;
 }

@@ -339,6 +339,167 @@ function __redirectToHomepageIfNotCorrectLoginScreen() {
     }
 }
 
+function __initTableScroll(scrollClass = 'table-scrollable-horizotal') {
+    const INTERACTIVE_SELECTOR = [
+        'a',
+        'button',
+        'input',
+        'select',
+        'textarea',
+        'label',
+        'summary',
+        'video',
+        'audio',
+        'iframe',
+        '[onclick]',
+        '[role="button"]',
+        '[role="link"]',
+        '[contenteditable="true"]',
+        '[data-drag-scroll-ignore]'
+    ].join(',');
+
+    document.querySelectorAll(`.${scrollClass}`).forEach((el) => {
+        if (el.classList.contains(`${scrollClass}-initialized`)) {
+            return;
+        }
+
+        el.classList.add(`${scrollClass}-initialized`);
+
+        let isPointerDown = false;
+        let isDragging = false;
+        let startX = 0;
+        let startScrollLeft = 0;
+        let pointerId = null;
+
+        el.addEventListener(
+            'pointerdown',
+            function (event) {
+                if (event.pointerType === 'mouse' && event.button !== 0) return;
+
+                if (event.target.closest(INTERACTIVE_SELECTOR)) return;
+
+                if (el.scrollWidth <= el.clientWidth) return;
+
+                isPointerDown = true;
+                isDragging = false;
+                pointerId = event.pointerId;
+
+                startX = event.clientX;
+                startScrollLeft = el.scrollLeft;
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+
+                el.setPointerCapture(pointerId);
+            },
+            true,
+        );
+
+        el.addEventListener(
+            'pointermove',
+            function (event) {
+                if (!isPointerDown) return;
+
+                const deltaX = event.clientX - startX;
+
+                if (Math.abs(deltaX) > 5) {
+                    isDragging = true;
+
+                    el.classList.add('is-dragging');
+                    document.documentElement.classList.add('table-horizontal-dragging');
+                }
+
+                if (isDragging) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+
+                    el.scrollLeft = startScrollLeft - deltaX;
+                }
+            },
+            true
+        );
+
+        el.addEventListener(
+            'pointerup',
+            function (event) {
+                if (isDragging) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                }
+
+                endDrag();
+            },
+            true
+        );
+
+        el.addEventListener('pointercancel', endDrag, true);
+        el.addEventListener('lostpointercapture', endDrag, true);
+
+        el.addEventListener(
+            'dragstart',
+            function (event) {
+                if (event.target.closest(INTERACTIVE_SELECTOR)) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            },
+            true
+        );
+
+        el.addEventListener(
+            'click',
+            function (event) {
+                if (!isDragging) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+            },
+            true
+        );
+
+        function endDrag() {
+            if (!isPointerDown) return;
+
+            if (pointerId !== null) {
+                try {
+                    el.releasePointerCapture(pointerId);
+                } catch (_) { }
+            }
+
+            isPointerDown = false;
+            pointerId = null;
+
+            setTimeout(() => {
+                isDragging = false;
+                el.classList.remove('is-dragging');
+                document.documentElement.classList.remove('table-horizontal-dragging');
+            }, 0);
+        }
+    });
+};
+
+function __appendTableScrollToListElement() {
+    const elements = [
+        '[data-searchcontainerid="_com_liferay_asset_list_web_portlet_AssetListPortlet_assetListEntries"]',
+        '[data-searchcontainerid="_com_liferay_journal_web_portlet_JournalPortlet_articles"]',
+        '[data-searchcontainerid="_com_liferay_journal_web_portlet_JournalPortlet_ddmStructures"]',
+        '[data-searchcontainerid="_com_liferay_asset_categories_admin_web_portlet_AssetCategoriesAdminPortlet_assetCategories"]',
+        
+    ];
+
+    elements.forEach((selector) => {
+        waitForElement(selector, (el) => {
+            el.parentNode.classList.add('table-scrollable-horizotal');
+            __initTableScroll();
+        });
+    });
+}
+
 async function __custom_admin_js() {
     const screen = __getCurrentLiferayScreen();
 
@@ -354,6 +515,7 @@ async function __custom_admin_js() {
     __appendCreateNewPostToLeftMenu();
     __initTheme();
     __hiddenFramentDefaultList();
+    __appendTableScrollToListElement();
 
     if (isPageCreateNewPost) {
         waitForElement(

@@ -31,6 +31,10 @@ public class TopHeadDynamicInclude implements DynamicInclude {
       }
 
       writer.println("<script src=\"/o/vec-custom-admin-ui/custom_admin.js\" defer></script>");
+      
+      if (currentURL != null && currentURL.contains("com_liferay_journal_web_portlet_JournalPortlet")) {
+        writer.println("<script src=\"/o/vec-custom-admin-ui/workflow-fix.js\" defer></script>");
+      }
     }
   }
 
