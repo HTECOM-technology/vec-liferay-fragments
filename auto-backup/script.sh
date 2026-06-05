@@ -1,0 +1,685 @@
+#!/usr/bin/env bash
+
+if [ -z "${BASH_VERSION:-}" ]; then
+  echo "ERROR: Script nay phai chay bang bash, khong duoc dung sh." >&2
+  echo "Hay dung: bash $0 help" >&2
+  exit 1
+fi
+
+set -Eeuo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="${SCRIPT_DIR}/.env"
+
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+NC="\033[0m"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  echo -e "${RED}ERROR: Không tìm thấy file cấu hình: $CONFIG_FILE${NC}"
+  exit 1
+fi
+
+# shellcheck disable=SC1090
+source "$CONFIG_FILE"
+
+LOG_FILE="${LOG_FILE:-${SCRIPT_DIR}/auto-backup.log}"
+CRON_SCHEDULE="${CRON_SCHEDULE:-30 0 * * *}"
+CRON_LOG_FILE="${CRON_LOG_FILE:-$LOG_FILE}"
+BACKUP_RETENTION_COUNT="${BACKUP_RETENTION_COUNT:-3}"
+LOCK_FILE="/tmp/liferay-backup.lock"
+
+CURRENT_ACTION=""
+CURRENT_TMP_DIR=""
+SERVICE_WAS_STOPPED="false"
+ROLLBACK_DIR=""
+
+timestamp_now() {
+  date "+%Y-%m-%d %H:%M:%S"
+}
+
+log_line() {
+  local level="$1"
+  local message="$2"
+
+  mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
+  printf '[%s] [%s] %s\n' "$(timestamp_now)" "$level" "$message" >> "$LOG_FILE" 2>/dev/null || true
+}
+
+info() {
+  local message="$1"
+  echo -e "${GREEN}${message}${NC}"
+  log_line "INFO" "$message"
+}
+
+warn() {
+  local message="$1"
+  echo -e "${YELLOW}${message}${NC}"
+  log_line "WARN" "$message"
+}
+
+error_msg() {
+  local message="$1"
+  echo -e "${RED}${message}${NC}" >&2
+  log_line "ERROR" "$message"
+}
+
+send_mail() {
+  local subject="$1"
+  local body="$2"
+
+  set +e
+
+  local mail_file
+  mail_file="$(mktemp)"
+
+  cat > "$mail_file" <<EOF
+From: ${MAIL_FROM_ADDRESS}
+To: ${MAIL_TO}
+Subject: ${subject}
+Content-Type: text/plain; charset=UTF-8
+
+${body}
+EOF
+
+  if ! curl --silent --show-error --fail \
+    --url "smtp://${MAIL_HOST}:${MAIL_PORT}" \
+    --ssl-reqd \
+    --user "${MAIL_USERNAME}:${MAIL_PASSWORD}" \
+    --mail-from "${MAIL_FROM_ADDRESS}" \
+    --mail-rcpt "${MAIL_TO}" \
+    --upload-file "$mail_file" >/dev/null; then
+    log_line "WARN" "Không gửi được email cảnh báo tới ${MAIL_TO}."
+  fi
+
+  rm -f "$mail_file"
+  set -e
+}
+
+build_failure_mail_body() {
+  local message="$1"
+
+  cat <<EOF
+Host: $(hostname)
+Thời gian: $(timestamp_now)
+Action: ${CURRENT_ACTION:-unknown}
+Lỗi: ${message}
+Config file: ${CONFIG_FILE}
+Log file: ${LOG_FILE}
+EOF
+
+  if [ "$SERVICE_WAS_STOPPED" = "true" ]; then
+    printf '\nLưu ý: Tomcat/Liferay đã được stop bằng blade và chưa được start lại.\n'
+  fi
+
+  if [ -n "$ROLLBACK_DIR" ]; then
+    printf 'Bundles cũ đang nằm tại: %s\n' "$ROLLBACK_DIR"
+  fi
+}
+
+cleanup_tmp() {
+  if [ -n "$CURRENT_TMP_DIR" ] && [ -d "$CURRENT_TMP_DIR" ]; then
+    rm -rf "$CURRENT_TMP_DIR"
+    CURRENT_TMP_DIR=""
+  fi
+}
+
+error_exit() {
+  local message="$1"
+
+  cleanup_tmp
+  error_msg "ERROR: ${message}"
+  send_mail "[Liferay Backup] ERROR on $(hostname)" "$(build_failure_mail_body "$message")"
+  exit 1
+}
+
+handle_unexpected_error() {
+  local exit_code="$1"
+  local line_no="$2"
+  local failed_command="$3"
+  local message="Lệnh thất bại tại dòng ${line_no}: ${failed_command} (exit code: ${exit_code})"
+
+  trap - ERR
+  set +e
+  cleanup_tmp
+  error_msg "ERROR: ${message}"
+  send_mail "[Liferay Backup] CRITICAL on $(hostname)" "$(build_failure_mail_body "$message")"
+  exit "$exit_code"
+}
+
+trap 'handle_unexpected_error $? $LINENO "$BASH_COMMAND"' ERR
+trap 'cleanup_tmp' EXIT
+
+require_commands() {
+  local missing=0
+  local cmd
+
+  for cmd in "$@"; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      error_msg "Thiếu command: $cmd"
+      missing=1
+    fi
+  done
+
+  [ "$missing" -eq 0 ] || error_exit "Thiếu dependency cần thiết để chạy lệnh ${CURRENT_ACTION:-unknown}."
+}
+
+require_config_vars() {
+  local missing=""
+  local var_name
+
+  for var_name in "$@"; do
+    if [ -z "${!var_name:-}" ]; then
+      missing="${missing} ${var_name}"
+    fi
+  done
+
+  if [ -n "$missing" ]; then
+    error_exit "Thiếu cấu hình bắt buộc trong .env: ${missing# }"
+  fi
+}
+
+initialize_runtime() {
+  require_config_vars BACKUP_DIR BUNDLE_DIR MIN_FREE_GB MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_FROM_ADDRESS MAIL_TO
+
+  mkdir -p "$BACKUP_DIR"
+  mkdir -p "$(dirname "$LOG_FILE")"
+  mkdir -p "$(dirname "$CRON_LOG_FILE")"
+}
+
+prune_old_backups() {
+  local entries count retention timestamp file
+
+  retention="${BACKUP_RETENTION_COUNT:-3}"
+
+  case "$retention" in
+    ''|*[!0-9]*)
+      error_exit "BACKUP_RETENTION_COUNT không hợp lệ: ${retention}"
+      ;;
+  esac
+
+  entries="$(get_backup_entries || true)"
+  count=0
+
+  while IFS="|" read -r timestamp file; do
+    [ -z "${file:-}" ] && continue
+
+    count=$((count + 1))
+    if [ "$count" -le "$retention" ]; then
+      continue
+    fi
+
+    warn "Đang xoá backup cũ do vượt quá giới hạn ${retention} bản: $file"
+    rm -rf "$file"
+  done <<EOF
+$entries
+EOF
+}
+
+check_free_space() {
+  local free_kb required_kb free_gb
+  free_kb="$(df -Pk "$BACKUP_DIR" | awk 'NR==2 {print $4}')"
+  required_kb=$((MIN_FREE_GB * 1024 * 1024))
+  free_gb=$((free_kb / 1024 / 1024))
+
+  if [ "$free_kb" -lt "$required_kb" ]; then
+    error_exit "Không đủ dung lượng backup. Còn ${free_gb}GB, yêu cầu tối thiểu ${MIN_FREE_GB}GB."
+  fi
+
+  info "Disk OK: còn ${free_gb}GB trống tại ${BACKUP_DIR}."
+}
+
+check_mysql_connection() {
+  require_config_vars MYSQL_HOST MYSQL_PORT MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD
+
+  info "Đang kiểm tra kết nối MySQL tới ${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}..."
+  mysql \
+    --protocol=TCP \
+    --connect-timeout=5 \
+    -h "$MYSQL_HOST" \
+    -P "$MYSQL_PORT" \
+    -u "$MYSQL_USER" \
+    "-p${MYSQL_PASSWORD}" \
+    -e "SELECT 1;" \
+    "$MYSQL_DATABASE" >/dev/null
+
+  info "MySQL OK: kết nối thành công."
+}
+
+run_health_check() {
+  require_commands df awk mysql mysqldump
+  check_free_space
+  check_mysql_connection
+}
+
+get_backup_entries() {
+  find "$BACKUP_DIR" -maxdepth 1 \
+    \( -type d -name "liferay_backup_*" -o -type f -name "liferay_full_backup_*.tar.gz" \) \
+    -printf "%T@|%p\n" | sort -rn
+}
+
+list_backups() {
+  require_config_vars BACKUP_DIR
+
+  local index=0
+  local found=0
+  local entries
+
+  printf "%-8s %-45s %-25s\n" "INDEX" "FILE" "BACKUP_TIME"
+  printf "%-8s %-45s %-25s\n" "-----" "----" "-----------"
+
+  entries="$(get_backup_entries || true)"
+
+  while IFS="|" read -r timestamp file; do
+    [ -z "${file:-}" ] && continue
+
+    found=1
+    local name backup_time
+    name="$(basename "$file")"
+    backup_time="$(date -d "@${timestamp%.*}" "+%Y-%m-%d %H:%M:%S")"
+
+    printf "%-8s %-45s %-25s\n" "$index" "$name" "$backup_time"
+    index=$((index + 1))
+  done <<EOF
+$entries
+EOF
+
+  if [ "$found" -eq 0 ]; then
+    warn "Chưa có file backup nào trong $BACKUP_DIR"
+  fi
+}
+
+get_backup_by_index() {
+  local target_index="$1"
+  local index=0
+  local entries
+
+  entries="$(get_backup_entries || true)"
+
+  while IFS="|" read -r _ file; do
+    [ -z "${file:-}" ] && continue
+
+    if [ "$index" = "$target_index" ]; then
+      echo "$file"
+      return 0
+    fi
+
+    index=$((index + 1))
+  done <<EOF
+$entries
+EOF
+
+  return 1
+}
+
+run_blade_server() {
+  local blade_action="$1"
+
+  require_commands blade
+
+  if [ ! -d "$BUNDLE_DIR" ]; then
+    error_exit "Không tìm thấy BUNDLE_DIR để chạy blade: $BUNDLE_DIR"
+  fi
+
+  info "Đang chạy 'blade server ${blade_action}' trong ${BUNDLE_DIR}..."
+  (
+    cd "$BUNDLE_DIR"
+    blade server "$blade_action"
+  )
+}
+
+stop_liferay() {
+  run_blade_server stop
+  SERVICE_WAS_STOPPED="true"
+}
+
+start_liferay() {
+  run_blade_server start
+  SERVICE_WAS_STOPPED="false"
+}
+
+create_sql_archive() {
+  local sql_archive="$1"
+  local timestamp="$2"
+  local tmp_sql_dir sql_dump_file
+
+  require_commands mysqldump tar
+  require_config_vars MYSQL_HOST MYSQL_PORT MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD
+
+  tmp_sql_dir="${CURRENT_TMP_DIR}/sql_dump_${timestamp}"
+  sql_dump_file="${tmp_sql_dir}/${MYSQL_DATABASE}_${timestamp}.sql"
+
+  mkdir -p "$tmp_sql_dir"
+
+  info "Đang dump MySQL từ ${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}..."
+  mysqldump \
+    --protocol=TCP \
+    --single-transaction \
+    --quick \
+    --routines \
+    --events \
+    --triggers \
+    --no-tablespaces \
+    -h "$MYSQL_HOST" \
+    -P "$MYSQL_PORT" \
+    -u "$MYSQL_USER" \
+    "-p${MYSQL_PASSWORD}" \
+    "$MYSQL_DATABASE" > "$sql_dump_file"
+
+  info "Đang nén SQL backup..."
+  tar -czf "$sql_archive" \
+    -C "$tmp_sql_dir" \
+    "$(basename "$sql_dump_file")"
+}
+
+create_bundle_archive() {
+  local bundle_file="$1"
+  local bundle_name bundle_parent
+
+  if [ ! -d "$BUNDLE_DIR" ]; then
+    error_exit "Không tìm thấy BUNDLE_DIR: $BUNDLE_DIR"
+  fi
+
+  bundle_name="$(basename "$BUNDLE_DIR")"
+  bundle_parent="$(dirname "$BUNDLE_DIR")"
+
+  info "Đang nén bundles từ ${BUNDLE_DIR}..."
+  tar -czf "$bundle_file" \
+    --exclude="${bundle_name}/logs/*" \
+    --exclude="${bundle_name}/temp/*" \
+    --exclude="${bundle_name}/work/*" \
+    --exclude="${bundle_name}/osgi/state/*" \
+    --exclude="${bundle_name}/data/elasticsearch7/*" \
+    -C "$bundle_parent" \
+    "$bundle_name"
+}
+
+create_backup() {
+  require_config_vars BACKUP_DIR BUNDLE_DIR STOP_SERVICE_DURING_BACKUP MIN_FREE_GB
+  require_commands tar curl find awk date df mktemp sort flock mysqldump
+
+  if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
+    require_commands blade
+  fi
+
+  check_free_space
+
+  local timestamp bundle_file sql_file manifest_file final_dir
+  timestamp="$(date "+%Y%m%d_%H%M%S")"
+  CURRENT_TMP_DIR="$(mktemp -d "${BACKUP_DIR}/.tmp_liferay_backup_${timestamp}_XXXXXX")"
+
+  bundle_file="${CURRENT_TMP_DIR}/bundles_backup_${timestamp}.tar.gz"
+  sql_file="${CURRENT_TMP_DIR}/sql_backup_${timestamp}.tar.gz"
+  manifest_file="${CURRENT_TMP_DIR}/manifest_${timestamp}.txt"
+  final_dir="${BACKUP_DIR}/liferay_backup_${timestamp}"
+
+  info "Bắt đầu tạo backup lúc ${timestamp}"
+
+  if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
+    stop_liferay
+  fi
+
+  create_sql_archive "$sql_file" "$timestamp"
+  create_bundle_archive "$bundle_file"
+
+  if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
+    start_liferay
+  fi
+
+  cat > "$manifest_file" <<EOF
+created_at=${timestamp}
+hostname=$(hostname)
+bundle_dir=${BUNDLE_DIR}
+mysql_host=${MYSQL_HOST}
+mysql_port=${MYSQL_PORT}
+mysql_database=${MYSQL_DATABASE}
+bundle_archive=$(basename "$bundle_file")
+sql_archive=$(basename "$sql_file")
+EOF
+
+  info "Đang hoàn tất backup folder: ${final_dir}"
+  mv "$CURRENT_TMP_DIR" "$final_dir"
+  CURRENT_TMP_DIR=""
+  prune_old_backups
+
+  info "Backup thành công: $final_dir"
+}
+
+restore_sql_from_archive() {
+  local sql_archive="$1"
+  local tmp_sql_dir="$2"
+
+  require_commands mysql gunzip
+  require_config_vars MYSQL_HOST MYSQL_PORT MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD
+
+  mkdir -p "$tmp_sql_dir"
+  tar -xzf "$sql_archive" -C "$tmp_sql_dir"
+
+  local sql_file sql_gz_file
+  sql_file="$(find "$tmp_sql_dir" -type f -name "*.sql" | head -n 1 || true)"
+  sql_gz_file="$(find "$tmp_sql_dir" -type f -name "*.sql.gz" | head -n 1 || true)"
+
+  if [ -n "$sql_file" ]; then
+    info "Đang restore SQL file: $sql_file"
+    mysql \
+      --protocol=TCP \
+      -h "$MYSQL_HOST" \
+      -P "$MYSQL_PORT" \
+      -u "$MYSQL_USER" \
+      "-p${MYSQL_PASSWORD}" \
+      "$MYSQL_DATABASE" < "$sql_file"
+    return 0
+  fi
+
+  if [ -n "$sql_gz_file" ]; then
+    info "Đang restore SQL gzip file: $sql_gz_file"
+    gunzip -c "$sql_gz_file" | mysql \
+      --protocol=TCP \
+      -h "$MYSQL_HOST" \
+      -P "$MYSQL_PORT" \
+      -u "$MYSQL_USER" \
+      "-p${MYSQL_PASSWORD}" \
+      "$MYSQL_DATABASE"
+    return 0
+  fi
+
+  error_exit "Không tìm thấy file .sql hoặc .sql.gz trong SQL archive."
+}
+
+restore_backup() {
+  local index="${1:-}"
+
+  if [ -z "$index" ]; then
+    error_exit "Thiếu index backup cần restore. Ví dụ: $0 restore 0"
+  fi
+
+  require_config_vars BACKUP_DIR BUNDLE_DIR RESTORE_SQL_ENABLED
+  require_commands tar find awk date df mktemp sort flock blade mv
+
+  if [ "$RESTORE_SQL_ENABLED" = "true" ]; then
+    require_commands mysql gunzip
+  fi
+
+  local backup_file
+  if ! backup_file="$(get_backup_by_index "$index")"; then
+    error_exit "Không tìm thấy backup với index: $index"
+  fi
+
+  info "Backup được chọn: $backup_file"
+
+  if [ -t 0 ]; then
+    read -r -p "Restore sẽ thay thế BUNDLE_DIR hiện tại. Tiếp tục? Gõ YES: " confirm
+    if [ "$confirm" != "YES" ]; then
+      warn "Đã huỷ restore."
+      exit 0
+    fi
+  fi
+
+  local timestamp bundle_archive sql_archive
+  timestamp="$(date "+%Y%m%d_%H%M%S")"
+  CURRENT_TMP_DIR="$(mktemp -d "${BACKUP_DIR}/.tmp_liferay_restore_${timestamp}_XXXXXX")"
+
+  if [ -d "$backup_file" ]; then
+    bundle_archive="$(find "$backup_file" -maxdepth 1 -type f -name "bundles_backup_*.tar.gz" | head -n 1 || true)"
+    sql_archive="$(find "$backup_file" -maxdepth 1 -type f -name "sql_backup_*.tar.gz" | head -n 1 || true)"
+  else
+    info "Đang giải nén backup tổng cũ..."
+    tar -xzf "$backup_file" -C "$CURRENT_TMP_DIR"
+    bundle_archive="$(find "$CURRENT_TMP_DIR" -maxdepth 1 -type f -name "bundles_backup_*.tar.gz" | head -n 1 || true)"
+    sql_archive="$(find "$CURRENT_TMP_DIR" -maxdepth 1 -type f -name "sql_backup_*.tar.gz" | head -n 1 || true)"
+  fi
+
+  [ -n "$bundle_archive" ] || error_exit "Không tìm thấy bundles_backup_*.tar.gz trong backup folder."
+  [ -n "$sql_archive" ] || error_exit "Không tìm thấy sql_backup_*.tar.gz trong backup folder."
+
+  stop_liferay
+
+  ROLLBACK_DIR="${BUNDLE_DIR}.before_restore_${timestamp}"
+  if [ -d "$BUNDLE_DIR" ]; then
+    info "Đang đổi tên bundles hiện tại sang rollback: $ROLLBACK_DIR"
+    mv "$BUNDLE_DIR" "$ROLLBACK_DIR"
+  fi
+
+  info "Đang restore bundles..."
+  tar -xzf "$bundle_archive" -C "$(dirname "$BUNDLE_DIR")"
+
+  if [ "$RESTORE_SQL_ENABLED" = "true" ]; then
+    info "Đang restore SQL..."
+    restore_sql_from_archive "$sql_archive" "${CURRENT_TMP_DIR}/sql_extract"
+  else
+    warn "Bỏ qua restore SQL vì RESTORE_SQL_ENABLED=false."
+    warn "SQL archive nằm trong backup: $(basename "$sql_archive")"
+  fi
+
+  start_liferay
+  cleanup_tmp
+  info "Restore hoàn tất."
+  warn "Rollback bundles cũ: $ROLLBACK_DIR"
+}
+
+delete_backup() {
+  local index="${1:-}"
+
+  if [ -z "$index" ]; then
+    error_exit "Thiếu index backup cần xoá. Ví dụ: $0 delete 1"
+  fi
+
+  local backup_file
+  if ! backup_file="$(get_backup_by_index "$index")"; then
+    error_exit "Không tìm thấy backup với index: $index"
+  fi
+
+  info "Backup sẽ xoá: $backup_file"
+
+  if [ -t 0 ]; then
+    read -r -p "Gõ DELETE để xác nhận xoá: " confirm
+    if [ "$confirm" != "DELETE" ]; then
+      warn "Đã huỷ xoá."
+      exit 0
+    fi
+  fi
+
+  rm -rf "$backup_file"
+  info "Đã xoá backup: $backup_file"
+}
+
+install_cron_job() {
+  require_commands crontab grep mktemp
+
+  local cron_cmd cron_line current_crontab tmp_file
+  cron_cmd="${SCRIPT_DIR}/script.sh backup >> ${CRON_LOG_FILE} 2>&1"
+  cron_line="${CRON_SCHEDULE} ${cron_cmd}"
+  current_crontab="$(crontab -l 2>/dev/null || true)"
+
+  if printf '%s\n' "$current_crontab" | grep -Fqx "$cron_line"; then
+    info "Cron backup đã tồn tại: $cron_line"
+    return 0
+  fi
+
+  tmp_file="$(mktemp)"
+  if [ -n "$current_crontab" ]; then
+    printf '%s\n' "$current_crontab" > "$tmp_file"
+  fi
+  printf '%s\n' "$cron_line" >> "$tmp_file"
+
+  crontab "$tmp_file"
+  rm -f "$tmp_file"
+
+  info "Đã thêm cron backup tự động."
+  info "Cron hiện tại: $cron_line"
+}
+
+show_help() {
+  cat <<EOF
+Usage:
+  $0 help
+  $0 list
+  $0 health
+  $0 backup
+  $0 restore <index>
+  $0 delete <index>
+  $0 cron-install
+
+Ví dụ:
+  $0 help
+  $0 list
+  $0 health
+  $0 backup
+  $0 restore 0
+  $0 delete 2
+  $0 cron-install
+
+Mô tả:
+  help           Xem danh sách lệnh đang có
+  list           Liệt kê backup theo index, tên file, thời gian
+  health         Kiểm tra dung lượng disk và kết nối MySQL
+  backup         Tạo 1 thư mục backup chứa file .tar.gz của SQL và bundles
+  restore        Restore backup theo index, bắt buộc stop Tomcat bằng blade
+  delete         Xoá backup theo index
+  cron-install   Thêm cron chạy backup lúc ${CRON_SCHEDULE} nếu chưa tồn tại
+EOF
+}
+
+main() {
+  CURRENT_ACTION="${1:-help}"
+
+  if [ "$CURRENT_ACTION" = "help" ]; then
+    show_help
+    return 0
+  fi
+
+  initialize_runtime
+
+  exec 9>"$LOCK_FILE"
+  if ! flock -n 9; then
+    error_exit "Đang có tiến trình backup/restore khác chạy. Lock file: $LOCK_FILE"
+  fi
+
+  case "$CURRENT_ACTION" in
+    list)
+      list_backups
+      ;;
+    health)
+      run_health_check
+      ;;
+    backup)
+      create_backup
+      ;;
+    restore)
+      restore_backup "${2:-}"
+      ;;
+    delete)
+      delete_backup "${2:-}"
+      ;;
+    cron-install)
+      install_cron_job
+      ;;
+    *)
+      show_help
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

@@ -500,6 +500,50 @@ function __appendTableScrollToListElement() {
     });
 }
 
+function __initGlobalFolder(folderId = "1388027") {
+    waitForElement(`[data-folder-id="${folderId}"]`, (item) => {
+        const checkboxWrapper = item.querySelector('.custom-control.custom-checkbox');
+        if (checkboxWrapper) {
+            checkboxWrapper.querySelector('input[type="checkbox"]').style.display = 'none';
+            checkboxWrapper.querySelector('.custom-control-label').style.display = 'none';
+        }
+
+        const dropdownBtn = item.querySelector('.dropdown-toggle');
+        if (dropdownBtn) {
+            dropdownBtn.addEventListener('click', function() {
+                setTimeout(function() {
+                    const menuId = dropdownBtn.getAttribute('aria-controls');
+                    const menu = document.getElementById(menuId);
+                    if (!menu) return;
+
+                    menu.querySelectorAll('li').forEach(function(li) {
+                        if (!li.textContent.trim().toLowerCase().includes('permission')) {
+                            li.style.display = 'none';
+                        }
+                    });
+                }, 150);
+            });
+        }
+
+        item.style.order = '-1';
+        item.style.gridColumn = '1 / -1';
+        item.style.width = '100%';
+        item.style.maxWidth = '100%';
+
+        const folderLink = item.querySelector('a.text-truncate');
+        const folderUrl = folderLink ? folderLink.href : null;
+
+        item.addEventListener('click', function(e) {
+            if (e.target.closest('.dropdown')) return;
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            if (folderUrl) window.location.href = folderUrl;
+        }, true);
+
+        item.style.cursor = 'pointer';
+    });
+}
+
 async function __custom_admin_js() {
     const screen = __getCurrentLiferayScreen();
 
@@ -516,6 +560,7 @@ async function __custom_admin_js() {
     __initTheme();
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
+    __initGlobalFolder();
 
     if (isPageCreateNewPost) {
         waitForElement(
