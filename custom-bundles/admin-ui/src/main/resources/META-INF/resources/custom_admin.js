@@ -279,27 +279,6 @@ async function __customizeFormCreatePost() {
     });
 }
 
-async function __initTheme() {
-    const data = await fetch("/o/c/systemkeys?filter=key eq 'THEME'").then((r) => r.json());
-    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
-        return;
-    }
-
-    const theme = data.items[0].value;
-    const themeClass = `theme-${theme}`;
-    document.body.classList.add(themeClass);
-
-    waitForElement('.header-swiper', (element) => {
-        element.classList.add(themeClass);
-    });
-    waitForElement('.footer-bg', (element) => {
-        element.classList.add(themeClass);
-    });
-    waitForElement('.highway-section-2', (element) => {
-        element.classList.add(themeClass);
-    });
-}
-
 function __hiddenFramentDefaultList() {
     const hiddenElement = (element) => {
         const menubar = element.closest('.menubar');
@@ -489,7 +468,7 @@ function __appendTableScrollToListElement() {
         '[data-searchcontainerid="_com_liferay_journal_web_portlet_JournalPortlet_articles"]',
         '[data-searchcontainerid="_com_liferay_journal_web_portlet_JournalPortlet_ddmStructures"]',
         '[data-searchcontainerid="_com_liferay_asset_categories_admin_web_portlet_AssetCategoriesAdminPortlet_assetCategories"]',
-        
+        '[id^="portlet_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet"] .data-set-content-wrapper .dnd-table .dnd-tbody',
     ];
 
     elements.forEach((selector) => {
@@ -557,7 +536,6 @@ async function __custom_admin_js() {
     __redirectToHomepageIfNotCorrectLoginScreen();
     __appendAIChatHistoryMenu();
     __appendCreateNewPostToLeftMenu();
-    __initTheme();
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
     __initGlobalFolder();
