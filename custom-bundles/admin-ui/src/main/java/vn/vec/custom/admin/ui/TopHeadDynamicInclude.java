@@ -1,6 +1,8 @@
 package vn.vec.custom.admin.ui;
 
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
@@ -22,6 +24,11 @@ public class TopHeadDynamicInclude implements DynamicInclude {
     PrintWriter writer = response.getWriter();
 
     if (key.contains("top_head")) {
+      String requestURI = request.getRequestURI();
+      if (requestURI != null && requestURI.startsWith("/o/vec-custom-admin-ui/")) {
+        return;
+      }
+
       writer.println("<link rel=\"stylesheet\" href=\"/o/vec-custom-admin-ui/custom_admin.css\">");
 
       String currentURL = (String) request.getAttribute(WebKeys.CURRENT_URL);
@@ -31,6 +38,13 @@ public class TopHeadDynamicInclude implements DynamicInclude {
       }
 
       writer.println("<script src=\"/o/vec-custom-admin-ui/custom_admin.js\" defer></script>");
+
+      ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+        WebKeys.THEME_DISPLAY);
+      User user = themeDisplay == null ? null : themeDisplay.getUser();
+      if ((user != null) && "admin".equals(user.getScreenName())) {
+        writer.println("<script src=\"/o/vec-custom-admin-ui/backup_admin.js\" defer></script>");
+      }
       
       if (currentURL != null && currentURL.contains("com_liferay_journal_web_portlet_JournalPortlet")) {
         writer.println("<script src=\"/o/vec-custom-admin-ui/workflow-fix.js\" defer></script>");

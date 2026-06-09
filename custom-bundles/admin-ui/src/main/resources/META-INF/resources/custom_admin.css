@@ -114,3 +114,16 @@ html.table-horizontal-dragging * {
   user-select: none !important;
   cursor: grabbing !important;
 }
+
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=1135686"],
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=31407"],
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=31408"],
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=31406"] {
+  display: none !important;
+}
+
+a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_exportimport_web_portlet_ExportPortlet,
+a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_exportimport_web_portlet_ImportPortlet,
+a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_staging_processes_web_portlet_StagingProcessesPortlet {
+  display: none !important;
+}

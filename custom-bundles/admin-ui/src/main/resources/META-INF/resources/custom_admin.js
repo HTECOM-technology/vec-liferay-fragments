@@ -19,6 +19,10 @@ function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}
 
 window.waitForElement = waitForElement;
 
+function __isCustomAdminStandalonePage() {
+    return window.location.pathname.startsWith('/o/vec-custom-admin-ui/');
+}
+
 function __reactJs_setValueForInput(input, value) {
     const proto = input instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
     const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value').set;
@@ -334,7 +338,8 @@ function __initTableScroll(scrollClass = 'table-scrollable-horizotal') {
         '[role="button"]',
         '[role="link"]',
         '[contenteditable="true"]',
-        '[data-drag-scroll-ignore]'
+        '[data-drag-scroll-ignore]',
+        '.dnd-th-resizer',
     ].join(',');
 
     document.querySelectorAll(`.${scrollClass}`).forEach((el) => {
@@ -524,6 +529,10 @@ function __initGlobalFolder(folderId = "1388027") {
 }
 
 async function __custom_admin_js() {
+    if (__isCustomAdminStandalonePage()) {
+        return;
+    }
+
     const screen = __getCurrentLiferayScreen();
 
     const isPageCreateNewPost = screen.portletId === 'com_liferay_journal_web_portlet_JournalPortlet';
@@ -576,6 +585,10 @@ async function __custom_admin_js() {
 
 // === CKEditor Custom Override ===
 (function loadCKEditorOverride() {
+    if (__isCustomAdminStandalonePage()) {
+        return;
+    }
+
     function load() {
         var script = document.createElement('script');
         script.src = '/o/vec-custom-admin-ui/js/ckeditor_override.js?v=' + Date.now();

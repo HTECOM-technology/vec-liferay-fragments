@@ -460,6 +460,15 @@ restore_sql_from_archive() {
   sql_file="$(find "$tmp_sql_dir" -type f -name "*.sql" | head -n 1 || true)"
   sql_gz_file="$(find "$tmp_sql_dir" -type f -name "*.sql.gz" | head -n 1 || true)"
 
+  info "Đang drop và tạo lại database ${MYSQL_DATABASE} với charset utf8mb4..."
+  mysql \
+    --protocol=TCP \
+    -h "$MYSQL_HOST" \
+    -P "$MYSQL_PORT" \
+    -u "$MYSQL_USER" \
+    "-p${MYSQL_PASSWORD}" \
+    -e "DROP DATABASE IF EXISTS \`${MYSQL_DATABASE}\`; CREATE DATABASE \`${MYSQL_DATABASE}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
   if [ -n "$sql_file" ]; then
     info "Đang restore SQL file: $sql_file"
     mysql \
@@ -588,7 +597,7 @@ install_cron_job() {
   require_commands crontab grep mktemp
 
   local cron_cmd cron_line current_crontab tmp_file
-  cron_cmd="${SCRIPT_DIR}/script.sh backup >> ${CRON_LOG_FILE} 2>&1"
+  cron_cmd="/bin/bash /opt/vec-backup/script.sh backup >> ${CRON_LOG_FILE} 2>&1"
   cron_line="${CRON_SCHEDULE} ${cron_cmd}"
   current_crontab="$(crontab -l 2>/dev/null || true)"
 

@@ -1,0 +1,128 @@
+<div class="fragment_15254">
+	<div class="backup-restore-main-section auth-checking">
+		<div class="shell">
+			<section class="hero">
+				<div>
+					<h1>Backup & Restore</h1>
+					<p>
+						Điều khiển script backup Liferay tại một chỗ: xem trạng thái auto backup,
+						tạo bản mới, khôi phục, xóa và tải riêng file <strong>bundles</strong> hoặc <strong>database</strong>.
+					</p>
+				</div>
+				<div class="hero-meta">
+					<div class="hero-chip" id="userChip">Đang kiểm tra quyền truy cập…</div>
+					<div class="hero-chip" id="scriptChip">Chưa xác định script</div>
+				</div>
+			</section>
+
+			<section class="grid">
+				<div class="panel span-12">
+					<div class="panel-body">
+						<div class="warning-bar" id="warningBar">
+							<div class="warning-mark">!</div>
+							<div id="warningText">Đang tải cảnh báo retention…</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Trạng Thái Hệ Thống</h2>
+						<p class="panel-desc">Kiểm tra nhanh tình trạng script, auto backup và thư mục backup hiện tại.</p>
+					</div>
+					<div class="panel-body">
+						<div class="status-band">
+							<article class="status-card">
+								<div class="status-kicker">Auto Backup</div>
+								<p class="status-value" id="autoBackupValue">--</p>
+								<p class="status-copy" id="autoBackupCopy">Đang tải…</p>
+							</article>
+							<article class="status-card">
+								<div class="status-kicker">Script</div>
+								<p class="status-value" id="scriptValue">--</p>
+								<p class="status-copy" id="scriptCopy">Đang tải…</p>
+							</article>
+							<article class="status-card">
+								<div class="status-kicker">Kho Backup</div>
+								<p class="status-value" id="backupCountValue">--</p>
+								<p class="status-copy" id="backupCountCopy">Đang tải…</p>
+							</article>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-8">
+					<div class="panel-head">
+						<h2 class="panel-title">Chức Năng Script</h2>
+						<p class="panel-desc">Danh sách lệnh mà script hiện hỗ trợ. Các lệnh `restore` và `delete` được kích hoạt trực tiếp trên từng dòng backup bên dưới.</p>
+					</div>
+					<div class="panel-body">
+						<div class="action-grid" id="actionGrid"></div>
+					</div>
+				</div>
+
+				<div class="panel span-4">
+					<div class="panel-head">
+						<h2 class="panel-title">Help Output</h2>
+						<p class="panel-desc">Nội dung `script.sh help` để đối chiếu trực tiếp với script trên server.</p>
+					</div>
+					<div class="panel-body">
+						<pre class="code-panel" id="helpText">Đang tải…</pre>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Danh Sách Backup</h2>
+						<p class="panel-desc">Hiển thị đầy đủ bản backup, dung lượng riêng của database và bundles, kèm hành động tải xuống hoặc khôi phục.</p>
+					</div>
+					<div class="panel-body">
+						<div class="table-wrap">
+							<table>
+								<thead>
+									<tr>
+										<th>#</th>
+										<th>Backup</th>
+										<th>Thời gian</th>
+										<th>Bundles</th>
+										<th>Database</th>
+										<th>Tổng dung lượng</th>
+										<th>Hành động</th>
+									</tr>
+								</thead>
+								<tbody id="backupTableBody">
+									<tr><td colspan="7" class="muted">Đang tải dữ liệu backup…</td></tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Tiến Trình Gần Đây</h2>
+						<p class="panel-desc">Theo dõi lệnh đang chạy nền hoặc vừa hoàn tất. Output sẽ tự refresh vài giây một lần khi còn job `queued` hoặc `running`.</p>
+					</div>
+					<div class="panel-body">
+						<div class="watch-panel" id="watchPanel">
+							<div class="watch-head">
+								<div>
+									<h3 class="watch-title" id="watchTitle">Live Watch</h3>
+									<p class="watch-subtitle" id="watchSubtitle">Trang sẽ tự ghi nhớ job đang theo dõi, nên F5 xong vẫn quay lại đúng màn hình watch nếu job còn tồn tại.</p>
+								</div>
+								<div class="btn-row">
+									<button class="btn-secondary" id="btnWatchNewest">Theo dõi job mới nhất</button>
+									<button class="btn-secondary" id="btnClearWatch">Bỏ theo dõi</button>
+								</div>
+							</div>
+							<pre class="watch-console" id="watchConsole">Chưa chọn job để theo dõi.</pre>
+						</div>
+						<div class="job-list" id="jobList">
+							<div class="empty">Chưa có tiến trình nào.</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+</div>
