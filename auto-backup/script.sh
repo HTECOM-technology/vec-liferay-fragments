@@ -181,7 +181,7 @@ require_config_vars() {
 }
 
 initialize_runtime() {
-  require_config_vars BACKUP_DIR BUNDLE_DIR MIN_FREE_GB MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_FROM_ADDRESS MAIL_TO
+  require_config_vars BACKUP_DIR MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_FROM_ADDRESS MAIL_TO
 
   mkdir -p "$BACKUP_DIR"
   mkdir -p "$(dirname "$LOG_FILE")"
@@ -395,17 +395,34 @@ create_bundle_archive() {
     "$bundle_name"
 }
 
-create_backup() {
-  require_config_vars BACKUP_DIR BUNDLE_DIR STOP_SERVICE_DURING_BACKUP MIN_FREE_GB
-  require_commands tar curl find awk date df mktemp sort flock mysqldump
+create_backup_with_options() {
+  local include_database="$1"
+  local include_bundles="$2"
+  local action_label="$3"
+  local timestamp bundle_file sql_file manifest_file final_dir bundle_archive_name sql_archive_name
+
+  require_config_vars BACKUP_DIR STOP_SERVICE_DURING_BACKUP MIN_FREE_GB
+  require_commands tar curl find awk date df mktemp sort flock
+
+  if [ "$include_database" != "true" ] && [ "$include_bundles" != "true" ]; then
+    error_exit "Phải chọn ít nhất một thành phần để backup."
+  fi
 
   if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
     require_commands blade
   fi
 
+  if [ "$include_database" = "true" ]; then
+    require_config_vars MYSQL_HOST MYSQL_PORT MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD
+    require_commands mysqldump
+  fi
+
+  if [ "$include_bundles" = "true" ]; then
+    require_config_vars BUNDLE_DIR
+  fi
+
   check_free_space
 
-  local timestamp bundle_file sql_file manifest_file final_dir
   timestamp="$(date "+%Y%m%d_%H%M%S")"
   CURRENT_TMP_DIR="$(mktemp -d "${BACKUP_DIR}/.tmp_liferay_backup_${timestamp}_XXXXXX")"
 
@@ -413,15 +430,28 @@ create_backup() {
   sql_file="${CURRENT_TMP_DIR}/sql_backup_${timestamp}.tar.gz"
   manifest_file="${CURRENT_TMP_DIR}/manifest_${timestamp}.txt"
   final_dir="${BACKUP_DIR}/liferay_backup_${timestamp}"
+  bundle_archive_name=""
+  sql_archive_name=""
 
-  info "Bắt đầu tạo backup lúc ${timestamp}"
+  info "Bắt đầu tạo ${action_label} lúc ${timestamp}"
 
   if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
     stop_liferay
   fi
 
-  create_sql_archive "$sql_file" "$timestamp"
-  create_bundle_archive "$bundle_file"
+  if [ "$include_database" = "true" ]; then
+    create_sql_archive "$sql_file" "$timestamp"
+    sql_archive_name="$(basename "$sql_file")"
+  else
+    rm -f "$sql_file"
+  fi
+
+  if [ "$include_bundles" = "true" ]; then
+    create_bundle_archive "$bundle_file"
+    bundle_archive_name="$(basename "$bundle_file")"
+  else
+    rm -f "$bundle_file"
+  fi
 
   if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
     start_liferay
@@ -430,12 +460,14 @@ create_backup() {
   cat > "$manifest_file" <<EOF
 created_at=${timestamp}
 hostname=$(hostname)
-bundle_dir=${BUNDLE_DIR}
-mysql_host=${MYSQL_HOST}
-mysql_port=${MYSQL_PORT}
-mysql_database=${MYSQL_DATABASE}
-bundle_archive=$(basename "$bundle_file")
-sql_archive=$(basename "$sql_file")
+bundle_dir=${BUNDLE_DIR:-}
+mysql_host=${MYSQL_HOST:-}
+mysql_port=${MYSQL_PORT:-}
+mysql_database=${MYSQL_DATABASE:-}
+bundle_archive=${bundle_archive_name}
+sql_archive=${sql_archive_name}
+bundle_included=${include_bundles}
+sql_included=${include_database}
 EOF
 
   info "Đang hoàn tất backup folder: ${final_dir}"
@@ -444,6 +476,18 @@ EOF
   prune_old_backups
 
   info "Backup thành công: $final_dir"
+}
+
+create_backup() {
+  create_backup_with_options "true" "true" "backup đầy đủ"
+}
+
+create_database_backup() {
+  create_backup_with_options "true" "false" "backup database"
+}
+
+create_bundles_backup() {
+  create_backup_with_options "false" "true" "backup bundles"
 }
 
 restore_sql_from_archive() {
@@ -498,6 +542,8 @@ restore_sql_from_archive() {
 
 restore_backup() {
   local index="${1:-}"
+  local should_restore_bundles="false"
+  local should_restore_sql="false"
 
   if [ -z "$index" ]; then
     error_exit "Thiếu index backup cần restore. Ví dụ: $0 restore 0"
@@ -539,32 +585,57 @@ restore_backup() {
     sql_archive="$(find "$CURRENT_TMP_DIR" -maxdepth 1 -type f -name "sql_backup_*.tar.gz" | head -n 1 || true)"
   fi
 
-  [ -n "$bundle_archive" ] || error_exit "Không tìm thấy bundles_backup_*.tar.gz trong backup folder."
-  [ -n "$sql_archive" ] || error_exit "Không tìm thấy sql_backup_*.tar.gz trong backup folder."
+  if [ -n "$bundle_archive" ] && [ -f "$bundle_archive" ]; then
+    should_restore_bundles="true"
+  fi
+
+  if [ -n "$sql_archive" ] && [ -f "$sql_archive" ]; then
+    should_restore_sql="true"
+  fi
+
+  if [ "$should_restore_bundles" != "true" ] && [ "$should_restore_sql" != "true" ]; then
+    error_exit "Backup được chọn không chứa bundles hoặc database để restore."
+  fi
+
+  if [ "$should_restore_sql" = "true" ] && [ "$RESTORE_SQL_ENABLED" != "true" ]; then
+    if [ "$should_restore_bundles" = "true" ]; then
+      warn "Backup có database nhưng RESTORE_SQL_ENABLED=false, sẽ bỏ qua phần restore database."
+      should_restore_sql="false"
+    else
+      error_exit "Backup chỉ có database nhưng RESTORE_SQL_ENABLED=false nên không thể restore."
+    fi
+  fi
 
   stop_liferay
 
-  ROLLBACK_DIR="${BUNDLE_DIR}.before_restore_${timestamp}"
-  if [ -d "$BUNDLE_DIR" ]; then
-    info "Đang đổi tên bundles hiện tại sang rollback: $ROLLBACK_DIR"
-    mv "$BUNDLE_DIR" "$ROLLBACK_DIR"
+  if [ "$should_restore_bundles" = "true" ]; then
+    ROLLBACK_DIR="${BUNDLE_DIR}.before_restore_${timestamp}"
+    if [ -d "$BUNDLE_DIR" ]; then
+      info "Đang đổi tên bundles hiện tại sang rollback: $ROLLBACK_DIR"
+      mv "$BUNDLE_DIR" "$ROLLBACK_DIR"
+    fi
+
+    info "Đang restore bundles..."
+    tar -xzf "$bundle_archive" -C "$(dirname "$BUNDLE_DIR")"
+  else
+    ROLLBACK_DIR=""
+    warn "Backup này không có bundles, sẽ bỏ qua restore bundles."
   fi
 
-  info "Đang restore bundles..."
-  tar -xzf "$bundle_archive" -C "$(dirname "$BUNDLE_DIR")"
-
-  if [ "$RESTORE_SQL_ENABLED" = "true" ]; then
+  if [ "$should_restore_sql" = "true" ]; then
     info "Đang restore SQL..."
     restore_sql_from_archive "$sql_archive" "${CURRENT_TMP_DIR}/sql_extract"
   else
-    warn "Bỏ qua restore SQL vì RESTORE_SQL_ENABLED=false."
-    warn "SQL archive nằm trong backup: $(basename "$sql_archive")"
+    warn "Backup này không có database, sẽ bỏ qua restore database."
   fi
 
   start_liferay
   cleanup_tmp
   info "Restore hoàn tất."
-  warn "Rollback bundles cũ: $ROLLBACK_DIR"
+
+  if [ -n "$ROLLBACK_DIR" ]; then
+    warn "Rollback bundles cũ: $ROLLBACK_DIR"
+  fi
 }
 
 delete_backup() {
@@ -626,6 +697,8 @@ Usage:
   $0 list
   $0 health
   $0 backup
+  $0 backup-database
+  $0 backup-bundles
   $0 restore <index>
   $0 delete <index>
   $0 cron-install
@@ -635,18 +708,22 @@ Ví dụ:
   $0 list
   $0 health
   $0 backup
+  $0 backup-database
+  $0 backup-bundles
   $0 restore 0
   $0 delete 2
   $0 cron-install
 
 Mô tả:
-  help           Xem danh sách lệnh đang có
-  list           Liệt kê backup theo index, tên file, thời gian
-  health         Kiểm tra dung lượng disk và kết nối MySQL
-  backup         Tạo 1 thư mục backup chứa file .tar.gz của SQL và bundles
-  restore        Restore backup theo index, bắt buộc stop Tomcat bằng blade
-  delete         Xoá backup theo index
-  cron-install   Thêm cron chạy backup lúc ${CRON_SCHEDULE} nếu chưa tồn tại
+  help            Xem danh sách lệnh đang có
+  list            Liệt kê backup theo index, tên file, thời gian
+  health          Kiểm tra dung lượng disk và kết nối MySQL
+  backup          Tạo 1 thư mục backup chứa file .tar.gz của SQL và bundles
+  backup-database Tạo backup chỉ chứa database, giữ nguyên cấu trúc thư mục backup
+  backup-bundles  Tạo backup chỉ chứa bundles, giữ nguyên cấu trúc thư mục backup
+  restore         Restore backup theo index, bắt buộc stop Tomcat bằng blade
+  delete          Xoá backup theo index
+  cron-install    Thêm cron chạy backup lúc ${CRON_SCHEDULE} nếu chưa tồn tại
 EOF
 }
 
@@ -674,6 +751,12 @@ main() {
       ;;
     backup)
       create_backup
+      ;;
+    backup-database)
+      create_database_backup
+      ;;
+    backup-bundles)
+      create_bundles_backup
       ;;
     restore)
       restore_backup "${2:-}"

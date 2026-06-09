@@ -18,6 +18,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import java.net.URLEncoder;
+
 import java.nio.charset.StandardCharsets;
 
 import java.text.SimpleDateFormat;
@@ -112,7 +114,6 @@ public class BackupAdminResource {
 			result.put("autoBackup", _toAutoBackupJson(scriptFile, config));
 			result.put("warning", _toWarningJson(config));
 			result.put("functions", _toFunctionsJson());
-			result.put("helpText", _getHelpText(scriptFile));
 			result.put("backups", _toBackupsJson(config));
 			result.put("activeJob", _jobStore.toJsonObject(_jobStore.getActiveJob()));
 			result.put("hasActiveJob", _jobStore.getActiveJob() != null);
@@ -174,6 +175,7 @@ public class BackupAdminResource {
 
 		try {
 			File scriptFile = _resolveScriptFile();
+			Map<String, String> config = _loadConfig(scriptFile);
 			BackupJob activeJob = _jobStore.getActiveJob();
 
 			if (scriptFile == null) {
@@ -198,18 +200,29 @@ public class BackupAdminResource {
 
 			JSONObject payload = _toJson(body);
 			List<String> commandArgs = new ArrayList<>();
-			String index = "";
+			String backupName = "";
 
 			commandArgs.add(action);
 
 			if ("restore".equals(action) || "delete".equals(action)) {
-				index = payload.getString("index");
+				backupName = payload.getString("backupName");
 
-				if (index == null || index.trim().isEmpty()) {
-					return _badRequest("Thiếu index backup cho action " + action);
+				if (backupName != null && !backupName.trim().isEmpty()) {
+					int resolvedIndex = _resolveBackupIndexByName(
+						backupName, _getBackupEntries(config));
+
+					commandArgs.add(String.valueOf(resolvedIndex));
 				}
+				else {
+					String index = payload.getString("index");
 
-				commandArgs.add(index.trim());
+					if (index == null || index.trim().isEmpty()) {
+						return _badRequest(
+							"Thiếu tên backup cho action " + action);
+					}
+
+					commandArgs.add(index.trim());
+				}
 			}
 
 			BackupJob job = _jobStore.createJobIfIdle(
@@ -243,6 +256,9 @@ public class BackupAdminResource {
 					.entity(result.toString())
 			).build();
 		}
+		catch (IllegalArgumentException e) {
+			return _badRequest(e.getMessage());
+		}
 		catch (Exception e) {
 			_log.error("Error queueing backup action: " + e.getMessage(), e);
 
@@ -251,10 +267,11 @@ public class BackupAdminResource {
 	}
 
 	@GET
-	@Path("/backups/{index}/download")
+	@Path("/backups/{backupName}/download")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response downloadBackup(
-		@Context HttpServletRequest request, @PathParam("index") int index,
+		@Context HttpServletRequest request,
+		@PathParam("backupName") String backupName,
 		@QueryParam("type") String type, @QueryParam("token") String token) {
 
 		try {
@@ -262,7 +279,7 @@ public class BackupAdminResource {
 
 			if (token != null && !token.trim().isEmpty()) {
 				downloadGrant = _downloadTokenStore.consume(
-					token.trim(), index, type);
+					token.trim(), backupName, type);
 
 				if (downloadGrant == null) {
 					return _forbidden("Token tải file không hợp lệ hoặc đã hết hạn.");
@@ -279,7 +296,7 @@ public class BackupAdminResource {
 					return _forbidden("Chỉ user admin mới được tải backup.");
 				}
 
-				downloadGrant = _buildDownloadGrant(index, type);
+				downloadGrant = _buildDownloadGrant(backupName, type);
 			}
 
 			File downloadFile = downloadGrant.file;
@@ -317,6 +334,9 @@ public class BackupAdminResource {
 					.header("Content-Length", String.valueOf(finalFile.length()))
 			).build();
 		}
+		catch (IllegalArgumentException e) {
+			return _badRequest(e.getMessage());
+		}
 		catch (Exception e) {
 			_log.error("Error downloading backup file: " + e.getMessage(), e);
 
@@ -325,10 +345,11 @@ public class BackupAdminResource {
 	}
 
 	@POST
-	@Path("/backups/{index}/download-token")
+	@Path("/backups/{backupName}/download-token")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response createDownloadToken(
-		@Context HttpServletRequest request, @PathParam("index") int index,
+		@Context HttpServletRequest request,
+		@PathParam("backupName") String backupName,
 		@QueryParam("type") String type) {
 
 		User user = _getSignedInUser(_getSignedInUserId(request));
@@ -342,15 +363,16 @@ public class BackupAdminResource {
 		}
 
 		try {
-			DownloadGrant downloadGrant = _buildDownloadGrant(index, type);
+			DownloadGrant downloadGrant = _buildDownloadGrant(backupName, type);
 			String token = _downloadTokenStore.create(downloadGrant);
 			JSONObject result = JSONFactoryUtil.createJSONObject();
+			String encodedBackupName = _encodePathSegment(backupName);
 
 			result.put("token", token);
 			result.put(
 				"downloadUrl",
-				"/o/vec-backup-admin/backups/" + index + "/download?type=" +
-					downloadGrant.type + "&token=" + token);
+				"/o/vec-backup-admin/backups/" + encodedBackupName +
+					"/download?type=" + downloadGrant.type + "&token=" + token);
 			result.put(
 				"expiresAt",
 				_formatDate(downloadGrant.expiresAt));
@@ -476,29 +498,19 @@ public class BackupAdminResource {
 				true, false));
 		items.put(
 			_toFunction(
-				"restore", "Khôi phục backup",
-				"Khôi phục theo từng bản backup trong danh sách bên dưới.",
-				true, true));
+				"backup-database", "Chỉ backup database",
+				"Tạo một bản backup mới chỉ chứa database, vẫn giữ nguyên cấu trúc thư mục backup.",
+				true, false));
 		items.put(
 			_toFunction(
-				"delete", "Xóa backup",
-				"Xóa một bản backup cụ thể trong danh sách bên dưới.",
-				true, true));
+				"backup-bundles", "Chỉ backup bundles",
+				"Tạo một bản backup mới chỉ chứa bundles, vẫn giữ nguyên cấu trúc thư mục backup.",
+				true, false));
 		items.put(
 			_toFunction(
 				"cron-install", "Bật auto backup",
 				"Thêm cron job chạy backup tự động nếu chưa tồn tại.",
 				true, false));
-		items.put(
-			_toFunction(
-				"list", "Danh sách backup",
-				"Liệt kê tất cả bản backup hiện có theo thứ tự mới nhất.",
-				false, false));
-		items.put(
-			_toFunction(
-				"help", "Trợ giúp script",
-				"Hiển thị đầy đủ các lệnh mà script backup hiện hỗ trợ.",
-				false, false));
 
 		return items;
 	}
@@ -580,16 +592,14 @@ public class BackupAdminResource {
 		return entries;
 	}
 
-	private DownloadGrant _buildDownloadGrant(int index, String type) {
+	private DownloadGrant _buildDownloadGrant(
+		String backupName, String type) {
+
 		Map<String, String> config = _loadConfig(_resolveScriptFile());
 		List<BackupEntry> entries = _getBackupEntries(config);
-
-		if (index < 0 || index >= entries.size()) {
-			throw new IllegalArgumentException(
-				"Không tìm thấy backup với index " + index);
-		}
-
+		int index = _resolveBackupIndexByName(backupName, entries);
 		BackupEntry entry = entries.get(index);
+
 		String safeType = _normalizeDownloadType(type);
 		File downloadFile;
 
@@ -607,7 +617,7 @@ public class BackupAdminResource {
 
 		DownloadGrant downloadGrant = new DownloadGrant();
 
-		downloadGrant.backupIndex = index;
+		downloadGrant.backupName = entry.name;
 		downloadGrant.type = safeType;
 		downloadGrant.file = downloadFile;
 		downloadGrant.expiresAt =
@@ -758,6 +768,8 @@ public class BackupAdminResource {
 
 	private boolean _isSupportedAction(String action) {
 		return "health".equals(action) || "backup".equals(action) ||
+			"backup-database".equals(action) ||
+			"backup-bundles".equals(action) ||
 			"restore".equals(action) || "delete".equals(action) ||
 			"cron-install".equals(action);
 	}
@@ -884,22 +896,31 @@ public class BackupAdminResource {
 		return value.trim();
 	}
 
-	private String _getHelpText(File scriptFile) {
-		if (scriptFile == null) {
-			return "";
+	private int _resolveBackupIndexByName(
+		String backupName, List<BackupEntry> entries) {
+
+		String safeBackupName = backupName == null ? "" : backupName.trim();
+
+		if (safeBackupName.isEmpty()) {
+			throw new IllegalArgumentException("Thiếu tên backup.");
 		}
 
-		try {
-			CommandResult commandResult = _runScriptCommand(
-				scriptFile, Collections.singletonList("help"), 15);
+		for (int i = 0; i < entries.size(); i++) {
+			BackupEntry entry = entries.get(i);
 
-			return commandResult.output.trim();
+			if (entry != null && safeBackupName.equals(entry.name)) {
+				return i;
+			}
 		}
-		catch (Exception e) {
-			_log.warn("Cannot load backup help text: " + e.getMessage());
 
-			return "";
-		}
+		throw new IllegalArgumentException(
+			"Không tìm thấy backup với tên " + safeBackupName);
+	}
+
+	private String _encodePathSegment(String value) throws Exception {
+		return URLEncoder.encode(
+			value == null ? "" : value, StandardCharsets.UTF_8.name()
+		).replace("+", "%20");
 	}
 
 	private static CommandResult _runScriptCommand(
@@ -1173,6 +1194,7 @@ public class BackupAdminResource {
 			JSONObject result = JSONFactoryUtil.createJSONObject();
 
 			result.put("index", index);
+			result.put("backupName", name);
 			result.put("name", name);
 			result.put("path", path);
 			result.put("directory", directory);
@@ -1223,7 +1245,7 @@ public class BackupAdminResource {
 
 	private static class DownloadGrant {
 
-		private int backupIndex;
+		private String backupName = "";
 		private long expiresAt;
 		private File file;
 		private String type = "";
@@ -1436,7 +1458,7 @@ public class BackupAdminResource {
 			return token;
 		}
 
-		public DownloadGrant consume(String token, int backupIndex, String type) {
+		public DownloadGrant consume(String token, String backupName, String type) {
 			cleanupExpired();
 
 			DownloadGrant downloadGrant = _tokens.remove(token);
@@ -1449,7 +1471,7 @@ public class BackupAdminResource {
 				return null;
 			}
 
-			if (downloadGrant.backupIndex != backupIndex) {
+			if (!downloadGrant.backupName.equals(backupName)) {
 				return null;
 			}
 

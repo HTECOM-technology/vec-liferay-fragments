@@ -270,8 +270,6 @@ function renderOverview(data) {
 		? 'Bundle dir: <code>' + escHtml(script.bundleDir || '--') + '</code>'
 	: 'Chưa có backup nào trong thư mục hiện tại.';
 
-	document.getElementById('helpText').textContent = data.helpText || 'Không lấy được output từ `script.sh help`.';
-
 	renderActionGrid(functions, script.available, hasActiveJob, activeJob);
 	renderBackupTable(backups, script.available, hasActiveJob, activeJob);
 	renderWatchPanel(jobs, activeJob);
@@ -300,7 +298,11 @@ function renderActionGrid(functions, scriptAvailable, hasActiveJob, activeJob) {
 			'<p>' + escHtml(item.description) + '</p>' +
 			'<div class="btn-row">' +
 			(item.executable
-			 ? '<button class="' + (item.key === 'backup' ? 'btn-primary' : 'btn-secondary') + '" ' +
+			 ? '<button class="' + (
+				(item.key === 'backup' || item.key === 'backup-database' || item.key === 'backup-bundles')
+					? 'btn-primary'
+					: 'btn-secondary'
+			) + '" ' +
 			 (disabled ? 'disabled ' : '') +
 			 'data-action="' + escHtml(item.key) + '">' + buttonLabel + '</button>'
 			 : '<span class="badge ok">Thông tin</span>') +
@@ -331,6 +333,8 @@ function renderBackupTable(backups, scriptAvailable, hasActiveJob, activeJob) {
 				? rawIndex
 				: fallbackIndex
 		);
+		const backupName = String(item && (item.backupName || item.name) ? (item.backupName || item.name) : '');
+		const canRestore = Boolean(item.hasBundleArchive || item.hasDatabaseArchive);
 
 		return '' +
 			'<tr>' +
@@ -362,10 +366,10 @@ function renderBackupTable(backups, scriptAvailable, hasActiveJob, activeJob) {
 			'<td><strong>' + escHtml(item.totalSizeLabel || '0 B') + '</strong></td>' +
 			'<td>' +
 			'<div class="btn-row">' +
-			'<button class="btn-secondary" ' + (!item.hasBundleArchive ? 'disabled ' : '') + 'data-download="bundles" data-index="' + escHtml(backupIndex) + '">Tải bundles</button>' +
-			'<button class="btn-secondary" ' + (!item.hasDatabaseArchive ? 'disabled ' : '') + 'data-download="database" data-index="' + escHtml(backupIndex) + '">Tải database</button>' +
-			'<button class="btn-primary" ' + (!scriptAvailable || hasActiveJob ? 'disabled ' : '') + 'data-row-action="restore" data-index="' + escHtml(backupIndex) + '">Restore</button>' +
-			'<button class="btn-danger" ' + (!scriptAvailable || hasActiveJob ? 'disabled ' : '') + 'data-row-action="delete" data-index="' + escHtml(backupIndex) + '">Xóa</button>' +
+			'<button class="btn-secondary" ' + (!item.hasBundleArchive ? 'disabled ' : '') + 'data-download="bundles" data-name="' + escHtml(backupName) + '">Tải bundles</button>' +
+			'<button class="btn-secondary" ' + (!item.hasDatabaseArchive ? 'disabled ' : '') + 'data-download="database" data-name="' + escHtml(backupName) + '">Tải database</button>' +
+			'<button class="btn-primary" ' + (!scriptAvailable || hasActiveJob || !canRestore ? 'disabled ' : '') + 'data-row-action="restore" data-name="' + escHtml(backupName) + '">Restore</button>' +
+			'<button class="btn-danger" ' + (!scriptAvailable || hasActiveJob ? 'disabled ' : '') + 'data-row-action="delete" data-name="' + escHtml(backupName) + '">Xóa</button>' +
 			(hasActiveJob ? '<span class="badge warn">Khóa do job `' + escHtml(activeJob && activeJob.action ? activeJob.action : 'running') + '`</span>' : '') +
 			'</div>' +
 			'</td>' +
@@ -374,11 +378,11 @@ function renderBackupTable(backups, scriptAvailable, hasActiveJob, activeJob) {
 
 	tbody.querySelectorAll('button[data-download]').forEach((button) => {
 		button.addEventListener('click', async () => {
-			const index = (button.getAttribute('data-index') || '').trim();
+			const backupName = (button.getAttribute('data-name') || '').trim();
 			const type = button.getAttribute('data-download');
 
-			if (!index && index !== '0') {
-				alert('Không xác định được index backup để tải file.');
+			if (!backupName) {
+				alert('Không xác định được tên backup để tải file.');
 				return;
 			}
 
@@ -386,7 +390,7 @@ function renderBackupTable(backups, scriptAvailable, hasActiveJob, activeJob) {
 				button.disabled = true;
 
 				const data = await fetchJson(
-					API + '/backups/' + encodeURIComponent(index) +
+					API + '/backups/' + encodeURIComponent(backupName) +
 					'/download-token?type=' + encodeURIComponent(type),
 					{ method: 'POST' }
 				);
@@ -407,14 +411,14 @@ function renderBackupTable(backups, scriptAvailable, hasActiveJob, activeJob) {
 	tbody.querySelectorAll('button[data-row-action]').forEach((button) => {
 		button.addEventListener('click', () => {
 			const action = button.getAttribute('data-row-action');
-			const index = (button.getAttribute('data-index') || '').trim();
+			const backupName = (button.getAttribute('data-name') || '').trim();
 
-			if (!index && index !== '0') {
-				alert('Không xác định được index backup.');
+			if (!backupName) {
+				alert('Không xác định được tên backup.');
 				return;
 			}
 
-			runRowAction(action, index);
+			runRowAction(action, backupName);
 		});
 	});
 }
@@ -508,16 +512,16 @@ async function runAction(action) {
 	await queueAction(action, {});
 }
 
-async function runRowAction(action, index) {
+async function runRowAction(action, backupName) {
 	const confirmed = action === 'restore'
-	? window.confirm('Restore backup #' + index + '. Thao tác này sẽ thay thế bundles hiện tại và có thể restore database nếu script đang bật tuỳ chọn đó. Tiếp tục?')
-	: window.confirm('Xóa backup #' + index + '? Thao tác này không thể hoàn tác.');
+	? window.confirm('Restore backup `' + backupName + '`. Hệ thống sẽ tự kiểm tra backup này đang có bundles, database hay cả hai rồi chỉ restore đúng phần hiện diện. Tiếp tục?')
+	: window.confirm('Xóa backup `' + backupName + '`? Thao tác này không thể hoàn tác.');
 
 	if (!confirmed) {
 		return;
 	}
 
-	await queueAction(action, { index: String(index) });
+	await queueAction(action, { backupName: String(backupName) });
 }
 
 async function queueAction(action, payload) {

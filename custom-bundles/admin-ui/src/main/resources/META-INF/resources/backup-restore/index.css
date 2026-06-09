@@ -1,18 +1,19 @@
 :root {
-	--bg: #f3f6f1;
-	--panel: #fbfcf7;
+	--bg: #edf7fd;
+	--panel: #f7fcff;
 	--panel-strong: #ffffff;
-	--ink: #153128;
-	--muted: #5f7469;
-	--line: #d8e2d5;
-	--brand: #1d6b52;
-	--brand-deep: #0e4837;
-	--accent: #d7a738;
-	--danger: #bd3f32;
-	--danger-soft: #fbe7e4;
-	--warn-soft: #fff4d8;
-	--ok-soft: #e5f4ec;
-	--shadow: 0 20px 60px rgba(17, 49, 37, 0.08);
+	--ink: #10384b;
+	--muted: #587384;
+	--line: #d3e7f1;
+	--brand: #0090cf;
+	--brand-deep: #006f9f;
+	--brand-soft: #e3f4fb;
+	--accent: #33b6ec;
+	--danger: #c54d3f;
+	--danger-soft: #fde9e6;
+	--warn-soft: #e8f7ff;
+	--ok-soft: #e4f8ef;
+	--shadow: 0 24px 60px rgba(0, 103, 151, 0.12);
 }
 
 * { box-sizing: border-box; }
@@ -21,8 +22,9 @@ body {
 	margin: 0;
 	font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
 	background:
-		radial-gradient(circle at top left, rgba(215, 167, 56, 0.18), transparent 28%),
-		linear-gradient(180deg, #eef4ea 0%, #f8faf6 38%, #edf3ee 100%);
+		radial-gradient(circle at top left, rgba(51, 182, 236, 0.18), transparent 28%),
+		radial-gradient(circle at right center, rgba(0, 144, 207, 0.12), transparent 24%),
+		linear-gradient(180deg, #f2fbff 0%, #f8fdff 38%, #edf7fd 100%);
 	color: var(--ink);
 	min-height: 100vh;
 }
@@ -38,8 +40,8 @@ body.auth-checking {
 }
 
 .hero {
-	background: linear-gradient(135deg, #123c30 0%, #1d6b52 55%, #2c8667 100%);
-	color: #f9fff8;
+	background: linear-gradient(135deg, #035c83 0%, #0090cf 55%, #34b5ea 100%);
+	color: #f6fcff;
 	border-radius: 28px;
 	padding: 30px 32px;
 	box-shadow: var(--shadow);
@@ -59,7 +61,7 @@ body.auth-checking {
 .hero p {
 	margin: 0;
 	max-width: 760px;
-	color: rgba(249, 255, 248, 0.82);
+	color: rgba(246, 252, 255, 0.86);
 	font-size: 15px;
 	line-height: 1.6;
 }
@@ -74,9 +76,9 @@ body.auth-checking {
 .hero-chip {
 	padding: 10px 14px;
 	border-radius: 999px;
-	background: rgba(255, 255, 255, 0.12);
+	background: rgba(255, 255, 255, 0.14);
 	font-size: 13px;
-	color: #f4fff7;
+	color: #f4fbff;
 	backdrop-filter: blur(10px);
 }
 
@@ -89,7 +91,7 @@ body.auth-checking {
 
 .panel {
 	background: rgba(255, 255, 255, 0.82);
-	border: 1px solid rgba(216, 226, 213, 0.9);
+	border: 1px solid rgba(211, 231, 241, 0.92);
 	border-radius: 24px;
 	box-shadow: var(--shadow);
 	backdrop-filter: blur(12px);
@@ -134,6 +136,7 @@ body.auth-checking {
 	border-radius: 20px;
 	padding: 18px;
 	min-height: 156px;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .status-kicker {
@@ -168,22 +171,34 @@ body.auth-checking {
 	gap: 14px;
 	align-items: flex-start;
 	background: var(--warn-soft);
-	border: 1px solid rgba(215, 167, 56, 0.38);
+	border: 1px solid rgba(0, 144, 207, 0.18);
 	border-radius: 18px;
 	padding: 16px 18px;
-	color: #614b14;
+	color: #0f597b;
 }
 
 .warning-mark {
 	width: 34px;
 	height: 34px;
 	border-radius: 50%;
-	background: rgba(215, 167, 56, 0.18);
+	background: rgba(0, 144, 207, 0.12);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	font-weight: 700;
 	flex-shrink: 0;
+}
+
+.script-workspace {
+	display: grid;
+	grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+	gap: 18px;
+	align-items: stretch;
+}
+
+.script-actions,
+.script-watch {
+	min-width: 0;
 }
 
 .action-grid {
@@ -193,7 +208,7 @@ body.auth-checking {
 }
 
 .action-card {
-	background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(246,249,244,0.94));
+	background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(236,248,254,0.98));
 	border: 1px solid var(--line);
 	border-radius: 20px;
 	padding: 18px;
@@ -251,14 +266,14 @@ button:disabled {
 
 .btn-primary {
 	background: var(--brand);
-	color: #f7fffb;
-	box-shadow: 0 12px 24px rgba(29, 107, 82, 0.22);
+	color: #f7fdff;
+	box-shadow: 0 12px 24px rgba(0, 144, 207, 0.26);
 }
 
 .btn-secondary {
-	background: #ecf3ee;
+	background: #eef8fd;
 	color: var(--brand-deep);
-	border: 1px solid rgba(29, 107, 82, 0.14);
+	border: 1px solid rgba(0, 144, 207, 0.16);
 }
 
 .btn-danger {
@@ -289,7 +304,7 @@ th, td {
 }
 
 th {
-	background: rgba(234, 242, 236, 0.9);
+	background: rgba(231, 246, 253, 0.92);
 	color: var(--brand-deep);
 	font-size: 12px;
 	text-transform: uppercase;
@@ -297,7 +312,7 @@ th {
 }
 
 tbody tr:hover {
-	background: rgba(236, 243, 238, 0.78);
+	background: rgba(238, 248, 253, 0.84);
 }
 
 td code, pre {
@@ -327,12 +342,12 @@ td code, pre {
 
 .badge.ok {
 	background: var(--ok-soft);
-	color: #245238;
+	color: #206447;
 }
 
 .badge.warn {
 	background: var(--warn-soft);
-	color: #735a1e;
+	color: #0a668f;
 }
 
 .badge.fail {
@@ -346,11 +361,11 @@ td code, pre {
 }
 
 .watch-panel {
-	margin-bottom: 18px;
-	border: 1px solid rgba(29, 107, 82, 0.16);
+	height: 100%;
+	border: 1px solid rgba(0, 144, 207, 0.16);
 	border-radius: 20px;
-	background: linear-gradient(180deg, rgba(16, 53, 41, 0.96), rgba(20, 36, 29, 0.98));
-	color: #e5fff0;
+	background: linear-gradient(180deg, rgba(3, 87, 125, 0.96), rgba(7, 54, 78, 0.98));
+	color: #eafaff;
 	overflow: hidden;
 }
 
@@ -371,7 +386,7 @@ td code, pre {
 
 .watch-subtitle {
 	margin: 0;
-	color: rgba(229, 255, 240, 0.72);
+	color: rgba(234, 250, 255, 0.76);
 	font-size: 13px;
 	line-height: 1.6;
 }
@@ -382,8 +397,8 @@ td code, pre {
 	min-height: 280px;
 	max-height: 480px;
 	overflow: auto;
-	background: rgba(6, 16, 12, 0.72);
-	color: #d2ffe0;
+	background: rgba(4, 26, 37, 0.72);
+	color: #d8f5ff;
 	font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
 	font-size: 12px;
 	line-height: 1.7;
@@ -413,8 +428,8 @@ td code, pre {
 }
 
 .job-card.active-watch {
-	border-color: rgba(29, 107, 82, 0.44);
-	box-shadow: 0 0 0 2px rgba(29, 107, 82, 0.14);
+	border-color: rgba(0, 144, 207, 0.42);
+	box-shadow: 0 0 0 2px rgba(0, 144, 207, 0.12);
 }
 
 .job-meta {
@@ -430,8 +445,8 @@ td code, pre {
 	margin: 0;
 	padding: 14px;
 	border-radius: 14px;
-	background: #f4f7f1;
-	color: #274438;
+	background: #f2fafe;
+	color: #18465d;
 	font-size: 12px;
 	line-height: 1.55;
 	max-height: 260px;
@@ -461,7 +476,7 @@ td code, pre {
 }
 
 .empty {
-	background: #f4f7f2;
+	background: #f2fafe;
 	color: var(--muted);
 }
 
@@ -482,7 +497,7 @@ td code, pre {
 .auth-card {
 	width: min(560px, 100%);
 	background: rgba(255, 255, 255, 0.94);
-	border: 1px solid rgba(216, 226, 213, 0.92);
+	border: 1px solid rgba(211, 231, 241, 0.92);
 	border-radius: 24px;
 	box-shadow: var(--shadow);
 	padding: 28px;
@@ -507,7 +522,8 @@ td code, pre {
 @media (max-width: 1080px) {
 	.hero,
 	.status-band,
-	.action-grid {
+	.action-grid,
+	.script-workspace {
 		grid-template-columns: 1fr;
 	}
 
