@@ -20,8 +20,10 @@ import java.io.Serializable;
 
 import java.net.URLEncoder;
 
+import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import java.util.ArrayDeque;
@@ -104,6 +106,7 @@ public class BackupAdminResource {
 			File scriptFile = _resolveScriptFile();
 			Map<String, String> config = _loadConfig(scriptFile);
 			JSONObject auth = JSONFactoryUtil.createJSONObject();
+			JSONObject autoBackup = _toAutoBackupJson(scriptFile, config);
 
 			auth.put("userId", user.getUserId());
 			auth.put("screenName", user.getScreenName());
@@ -111,13 +114,15 @@ public class BackupAdminResource {
 
 			result.put("auth", auth);
 			result.put("script", _toScriptJson(scriptFile, config));
-			result.put("autoBackup", _toAutoBackupJson(scriptFile, config));
+			result.put("autoBackup", autoBackup);
 			result.put("warning", _toWarningJson(config));
-			result.put("functions", _toFunctionsJson());
+			result.put("functions", _toFunctionsJson(autoBackup.getBoolean("enabled")));
 			result.put("backups", _toBackupsJson(config));
 			result.put("activeJob", _jobStore.toJsonObject(_jobStore.getActiveJob()));
 			result.put("hasActiveJob", _jobStore.getActiveJob() != null);
 			result.put("jobs", _jobStore.toJsonArray());
+			result.put("defaultLogDate", _todayDate());
+			result.put("serverTimeZone", TimeZone.getDefault().getID());
 
 			return _ok(result);
 		}
@@ -149,6 +154,89 @@ public class BackupAdminResource {
 		result.put("items", _jobStore.toJsonArray());
 
 		return _ok(result);
+	}
+
+	@GET
+	@Path("/logs")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response logs(
+		@Context HttpServletRequest request, @QueryParam("date") String date) {
+
+		User user = _getSignedInUser(_getSignedInUserId(request));
+
+		if (user == null) {
+			return _unauthorized();
+		}
+
+		if (!_isAdminUser(user)) {
+			return _forbidden("Chỉ user admin mới được xem log backup.");
+		}
+
+		try {
+			File scriptFile = _resolveScriptFile();
+			Map<String, String> config = _loadConfig(scriptFile);
+			String resolvedDate = _normalizeLogDate(date);
+			File logFile = _resolveDailyLogFile(
+				config, scriptFile, resolvedDate,
+				_resolveActionLogBaseName(config), "actions.log");
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+
+			result.put("date", resolvedDate);
+			result.put("timeZone", TimeZone.getDefault().getID());
+			result.put("available", logFile.isFile());
+			result.put("logFile", logFile.getAbsolutePath());
+			result.put("output", _readTextFile(logFile));
+
+			return _ok(result);
+		}
+		catch (Exception e) {
+			_log.error("Error loading backup logs: " + e.getMessage(), e);
+
+			return _serverError();
+		}
+	}
+
+	@GET
+	@Path("/restore-history")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response restoreHistory(
+		@Context HttpServletRequest request, @QueryParam("date") String date) {
+
+		User user = _getSignedInUser(_getSignedInUserId(request));
+
+		if (user == null) {
+			return _unauthorized();
+		}
+
+		if (!_isAdminUser(user)) {
+			return _forbidden("Chỉ user admin mới được xem lịch sử restore.");
+		}
+
+		try {
+			File scriptFile = _resolveScriptFile();
+			Map<String, String> config = _loadConfig(scriptFile);
+			String resolvedDate = _normalizeLogDate(date);
+			File historyFile = _resolveDailyLogFile(
+				config, scriptFile, resolvedDate,
+				_value(
+					config, "RESTORE_HISTORY_FILE_BASENAME",
+					"restore-history.log"),
+				"restore-history.log");
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+
+			result.put("date", resolvedDate);
+			result.put("timeZone", TimeZone.getDefault().getID());
+			result.put("available", historyFile.isFile());
+			result.put("logFile", historyFile.getAbsolutePath());
+			result.put("items", _toRestoreHistoryJson(historyFile));
+
+			return _ok(result);
+		}
+		catch (Exception e) {
+			_log.error("Error loading restore history: " + e.getMessage(), e);
+
+			return _serverError();
+		}
 	}
 
 	@POST
@@ -428,33 +516,13 @@ public class BackupAdminResource {
 			String scriptPath = scriptFile == null ? "" : scriptFile.getAbsolutePath();
 			String[] lines = commandResult.output.split("\\r?\\n");
 
-			if (!scriptPath.isEmpty()) {
-				for (String line : lines) {
-					if (line.contains(scriptPath + " backup")) {
-						enabled = true;
-						cronLine = line.trim();
-						break;
-					}
-				}
-			}
+			for (String line : lines) {
+				String trimmed = line.trim();
 
-			if (!enabled) {
-				for (String line : lines) {
-					if (line.contains("script.sh backup")) {
-						enabled = true;
-						cronLine = line.trim();
-						break;
-					}
-				}
-			}
-
-			if (!enabled) {
-				for (String line : lines) {
-					if (line.contains(schedule) && line.contains("backup")) {
-						enabled = true;
-						cronLine = line.trim();
-						break;
-					}
+				if (_isAutoBackupCronLine(trimmed, scriptPath, schedule)) {
+					enabled = true;
+					cronLine = trimmed;
+					break;
 				}
 			}
 		}
@@ -465,7 +533,15 @@ public class BackupAdminResource {
 		result.put("enabled", enabled);
 		result.put("schedule", schedule);
 		result.put("cronLine", cronLine);
-		result.put("cronLogFile", _value(config, "CRON_LOG_FILE"));
+		result.put(
+			"toggleAction", enabled ? "cron-uninstall" : "cron-install");
+		result.put(
+			"toggleLabel", enabled ? "Tắt auto backup" : "Bật auto backup");
+		result.put(
+			"toggleDescription",
+			enabled
+				? "Gỡ cron job backup tự động đang tồn tại."
+				: "Thêm cron job chạy backup tự động nếu chưa tồn tại.");
 
 		return result;
 	}
@@ -483,7 +559,7 @@ public class BackupAdminResource {
 		return result;
 	}
 
-	private JSONArray _toFunctionsJson() {
+	private JSONArray _toFunctionsJson(boolean autoBackupEnabled) {
 		JSONArray items = JSONFactoryUtil.createJSONArray();
 
 		items.put(
@@ -508,8 +584,11 @@ public class BackupAdminResource {
 				true, false));
 		items.put(
 			_toFunction(
-				"cron-install", "Bật auto backup",
-				"Thêm cron job chạy backup tự động nếu chưa tồn tại.",
+				autoBackupEnabled ? "cron-uninstall" : "cron-install",
+				autoBackupEnabled ? "Tắt auto backup" : "Bật auto backup",
+				autoBackupEnabled
+					? "Gỡ cron job backup tự động đang tồn tại."
+					: "Thêm cron job chạy backup tự động nếu chưa tồn tại.",
 				true, false));
 
 		return items;
@@ -642,12 +721,17 @@ public class BackupAdminResource {
 
 	private BackupEntry _toBackupEntry(int index, File file) {
 		BackupEntry entry = new BackupEntry();
+		String manifestCreatedAt = _readManifestValue(file, "created_at");
+		String manifestCreatedAtLocal = _readManifestValue(
+			file, "created_at_local");
+		String manifestCompletedAtLocal = _readManifestValue(
+			file, "completed_at_local");
+		String fallbackCreatedAt = _formatBackupNameTimestamp(file.getName());
 
 		entry.index = index;
 		entry.name = file.getName();
 		entry.path = file.getAbsolutePath();
 		entry.modifiedTime = file.lastModified();
-		entry.modifiedLabel = _formatDate(file.lastModified());
 		entry.directory = file.isDirectory();
 		entry.totalSizeBytes = _calculateSize(file);
 		entry.totalSizeLabel = _humanSize(entry.totalSizeBytes);
@@ -657,11 +741,11 @@ public class BackupAdminResource {
 		entry.bundleSizeLabel = _humanSize(entry.bundleSizeBytes);
 		entry.databaseSizeBytes = entry.databaseArchive == null ? 0 : entry.databaseArchive.length();
 		entry.databaseSizeLabel = _humanSize(entry.databaseSizeBytes);
-		entry.createdAt = _readManifestValue(file, "created_at");
-
-		if (entry.createdAt.isEmpty()) {
-			entry.createdAt = entry.modifiedLabel;
-		}
+		entry.createdAt = _firstNonBlank(
+			manifestCreatedAtLocal, _formatCompactTimestamp(manifestCreatedAt),
+			fallbackCreatedAt, _formatDate(file.lastModified()));
+		entry.modifiedLabel = _firstNonBlank(
+			manifestCompletedAtLocal, entry.createdAt, _formatDate(file.lastModified()));
 
 		return entry;
 	}
@@ -771,7 +855,8 @@ public class BackupAdminResource {
 			"backup-database".equals(action) ||
 			"backup-bundles".equals(action) ||
 			"restore".equals(action) || "delete".equals(action) ||
-			"cron-install".equals(action);
+			"cron-install".equals(action) ||
+			"cron-uninstall".equals(action);
 	}
 
 	private File _resolveScriptFile() {
@@ -917,6 +1002,261 @@ public class BackupAdminResource {
 			"Không tìm thấy backup với tên " + safeBackupName);
 	}
 
+	private boolean _isAutoBackupCronLine(
+		String line, String scriptPath, String schedule) {
+
+		if (line == null || line.isEmpty()) {
+			return false;
+		}
+
+		if (line.contains("# vec-liferay-auto-backup")) {
+			return true;
+		}
+
+		if (!scriptPath.isEmpty() && line.contains(scriptPath + " backup")) {
+			return true;
+		}
+
+		if (line.contains("script.sh backup")) {
+			return true;
+		}
+
+		return line.contains(schedule) && line.contains(" backup");
+	}
+
+	private String _todayDate() {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd", Locale.US);
+
+		dateFormat.setTimeZone(TimeZone.getDefault());
+
+		return dateFormat.format(new Date());
+	}
+
+	private String _normalizeLogDate(String date) throws ParseException {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd", Locale.US);
+
+		dateFormat.setLenient(false);
+		dateFormat.setTimeZone(TimeZone.getDefault());
+
+		if (date == null || date.trim().isEmpty()) {
+			return _todayDate();
+		}
+
+		Date parsed = dateFormat.parse(date.trim());
+
+		return dateFormat.format(parsed);
+	}
+
+	private File _resolveLogDir(File scriptFile, Map<String, String> config) {
+		String explicitLogDir = _value(config, "LOG_DIR");
+
+		if (!explicitLogDir.isEmpty()) {
+			return new File(explicitLogDir);
+		}
+
+		String legacyLogFile = _value(config, "LOG_FILE");
+
+		if (!legacyLogFile.isEmpty()) {
+			File legacyFile = new File(legacyLogFile);
+			File parent = legacyFile.getParentFile();
+
+			if (parent != null) {
+				return parent;
+			}
+		}
+
+		File baseDir = scriptFile == null ? null : scriptFile.getParentFile();
+
+		if (baseDir == null) {
+			baseDir = new File(".");
+		}
+
+		return new File(baseDir, "logs");
+	}
+
+	private String _resolveActionLogBaseName(Map<String, String> config) {
+		String logBaseName = _value(config, "LOG_FILE_BASENAME");
+
+		if (!logBaseName.isEmpty()) {
+			return logBaseName;
+		}
+
+		String legacyLogFile = _value(config, "LOG_FILE");
+
+		if (!legacyLogFile.isEmpty()) {
+			return new File(legacyLogFile).getName();
+		}
+
+		return "actions.log";
+	}
+
+	private File _resolveDailyLogFile(
+		Map<String, String> config, File scriptFile, String date,
+		String baseName, String defaultBaseName) {
+
+		File logDir = _resolveLogDir(scriptFile, config);
+		String safeBaseName = baseName == null || baseName.trim().isEmpty() ?
+			defaultBaseName : baseName.trim();
+
+		return new File(new File(logDir, date), safeBaseName);
+	}
+
+	private String _readTextFile(File file) {
+		if (file == null || !file.isFile()) {
+			return "";
+		}
+
+		try {
+			return new String(
+				Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+		}
+		catch (Exception e) {
+			_log.warn("Cannot read file " + file.getAbsolutePath(), e);
+
+			return "";
+		}
+	}
+
+	private JSONArray _toRestoreHistoryJson(File historyFile) {
+		JSONArray items = JSONFactoryUtil.createJSONArray();
+
+		if (historyFile == null || !historyFile.isFile()) {
+			return items;
+		}
+
+		try (BufferedReader reader = new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(historyFile), StandardCharsets.UTF_8))) {
+
+			List<JSONObject> rows = new ArrayList<>();
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				JSONObject row = _parseRestoreHistoryLine(line);
+
+				if (!row.getString("backupName").isEmpty() ||
+					!row.getString("startedAt").isEmpty()) {
+
+					rows.add(0, row);
+				}
+			}
+
+			for (JSONObject row : rows) {
+				items.put(row);
+			}
+		}
+		catch (Exception e) {
+			_log.warn(
+				"Cannot read restore history " + historyFile.getAbsolutePath(), e);
+		}
+
+		return items;
+	}
+
+	private JSONObject _parseRestoreHistoryLine(String line) {
+		JSONObject item = JSONFactoryUtil.createJSONObject();
+
+		if (line == null || line.trim().isEmpty()) {
+			return item;
+		}
+
+		String[] parts = line.split("\\|");
+
+		for (String part : parts) {
+			int separatorIndex = part.indexOf('=');
+
+			if (separatorIndex <= 0) {
+				continue;
+			}
+
+			String key = part.substring(0, separatorIndex).trim();
+			String value = part.substring(separatorIndex + 1).trim();
+
+			if ("started_at".equals(key)) {
+				item.put("startedAt", value);
+			}
+			else if ("finished_at".equals(key)) {
+				item.put("finishedAt", value);
+			}
+			else if ("backup_name".equals(key)) {
+				item.put("backupName", value);
+			}
+			else if ("restore_mode".equals(key)) {
+				item.put("restoreMode", value);
+			}
+			else if ("status".equals(key)) {
+				item.put("status", value);
+			}
+			else if ("log_file".equals(key)) {
+				item.put("logFile", value);
+			}
+		}
+
+		return item;
+	}
+
+	private String _formatBackupNameTimestamp(String backupName) {
+		if (backupName == null) {
+			return "";
+		}
+
+		String normalizedName = backupName;
+
+		if (normalizedName.endsWith(".tar.gz")) {
+			normalizedName = normalizedName.substring(
+				0, normalizedName.length() - ".tar.gz".length());
+		}
+
+		int separatorIndex = normalizedName.lastIndexOf("backup_");
+
+		if (separatorIndex < 0) {
+			return "";
+		}
+
+		return _formatCompactTimestamp(
+			normalizedName.substring(separatorIndex + "backup_".length()));
+	}
+
+	private String _formatCompactTimestamp(String value) {
+		if (value == null || value.trim().isEmpty()) {
+			return "";
+		}
+
+		SimpleDateFormat inputFormat = new SimpleDateFormat(
+			"yyyyMMdd_HHmmss", Locale.US);
+		SimpleDateFormat outputFormat = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss", Locale.US);
+
+		inputFormat.setLenient(false);
+		inputFormat.setTimeZone(TimeZone.getDefault());
+		outputFormat.setTimeZone(TimeZone.getDefault());
+
+		try {
+			Date parsed = inputFormat.parse(value.trim());
+
+			return outputFormat.format(parsed);
+		}
+		catch (ParseException e) {
+			return "";
+		}
+	}
+
+	private String _firstNonBlank(String... values) {
+		if (values == null) {
+			return "";
+		}
+
+		for (String value : values) {
+			if (value != null && !value.trim().isEmpty()) {
+				return value.trim();
+			}
+		}
+
+		return "";
+	}
+
 	private String _encodePathSegment(String value) throws Exception {
 		return URLEncoder.encode(
 			value == null ? "" : value, StandardCharsets.UTF_8.name()
@@ -1016,7 +1356,7 @@ public class BackupAdminResource {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss", Locale.US);
 
-		dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+		dateFormat.setTimeZone(TimeZone.getDefault());
 
 		return dateFormat.format(new Date(time));
 	}
@@ -1519,7 +1859,7 @@ public class BackupAdminResource {
 		SimpleDateFormat dateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss", Locale.US);
 
-		dateFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+		dateFormat.setTimeZone(TimeZone.getDefault());
 
 		return dateFormat.format(new Date(time));
 	}

@@ -24,50 +24,219 @@ fi
 # shellcheck disable=SC1090
 source "$CONFIG_FILE"
 
-LOG_FILE="${LOG_FILE:-${SCRIPT_DIR}/auto-backup.log}"
+LEGACY_LOG_FILE="${LOG_FILE:-}"
+if [ -n "$LEGACY_LOG_FILE" ]; then
+  LOG_DIR="${LOG_DIR:-$(dirname "$LEGACY_LOG_FILE")}"
+  LOG_FILE_BASENAME="${LOG_FILE_BASENAME:-$(basename "$LEGACY_LOG_FILE")}"
+else
+  LOG_DIR="${LOG_DIR:-${SCRIPT_DIR}/logs}"
+  LOG_FILE_BASENAME="${LOG_FILE_BASENAME:-actions.log}"
+fi
+
+RESTORE_HISTORY_FILE_BASENAME="${RESTORE_HISTORY_FILE_BASENAME:-restore-history.log}"
 CRON_SCHEDULE="${CRON_SCHEDULE:-30 0 * * *}"
-CRON_LOG_FILE="${CRON_LOG_FILE:-$LOG_FILE}"
 BACKUP_RETENTION_COUNT="${BACKUP_RETENTION_COUNT:-3}"
 LOCK_FILE="/tmp/liferay-backup.lock"
+CRON_MARKER="# vec-liferay-auto-backup"
 
 CURRENT_ACTION=""
 CURRENT_TMP_DIR=""
 SERVICE_WAS_STOPPED="false"
+SERVICE_RESTART_ATTEMPTED="false"
 ROLLBACK_DIR=""
+ACTION_LOG_FILE=""
+RESTORE_HISTORY_FILE=""
+ACTION_STARTED_AT=""
+ACTION_FINISHED_AT=""
+ACTION_FAILURE_MESSAGE=""
+LOGGING_READY="false"
+RESTORE_HISTORY_PENDING="false"
+RESTORE_BACKUP_NAME=""
+RESTORE_MODE="unknown"
+RESTORE_STARTED_AT=""
+RESTORE_FINISHED_AT=""
 
 timestamp_now() {
   date "+%Y-%m-%d %H:%M:%S"
 }
 
-log_line() {
+timestamp_compact() {
+  date "+%Y%m%d_%H%M%S"
+}
+
+timestamp_timezone() {
+  date "+%Z %z"
+}
+
+print_line() {
   local level="$1"
   local message="$2"
 
-  mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
-  printf '[%s] [%s] %s\n' "$(timestamp_now)" "$level" "$message" >> "$LOG_FILE" 2>/dev/null || true
+  printf '[%s] [%s] %s\n' "$(timestamp_now)" "$level" "$message"
+}
+
+append_file_line() {
+  local file_path="$1"
+  local message="$2"
+
+  mkdir -p "$(dirname "$file_path")" 2>/dev/null || true
+  printf '%s\n' "$message" >> "$file_path" 2>/dev/null || true
 }
 
 info() {
   local message="$1"
-  echo -e "${GREEN}${message}${NC}"
-  log_line "INFO" "$message"
+  print_line "INFO" "$message"
 }
 
 warn() {
   local message="$1"
-  echo -e "${YELLOW}${message}${NC}"
-  log_line "WARN" "$message"
+  print_line "WARN" "$message"
 }
 
 error_msg() {
   local message="$1"
-  echo -e "${RED}${message}${NC}" >&2
-  log_line "ERROR" "$message"
+  print_line "ERROR" "$message" >&2
+}
+
+prepare_log_files() {
+  local log_date daily_dir
+
+  log_date="$(date "+%Y-%m-%d")"
+  daily_dir="${LOG_DIR}/${log_date}"
+
+  mkdir -p "$daily_dir"
+
+  ACTION_LOG_FILE="${daily_dir}/${LOG_FILE_BASENAME}"
+  RESTORE_HISTORY_FILE="${daily_dir}/${RESTORE_HISTORY_FILE_BASENAME}"
+  LOG_FILE="$ACTION_LOG_FILE"
+}
+
+setup_logging() {
+  if [ "$LOGGING_READY" = "true" ]; then
+    return 0
+  fi
+
+  LOGGING_READY="true"
+  ACTION_STARTED_AT="$(timestamp_now)"
+
+  exec > >(tee -a "$ACTION_LOG_FILE") 2>&1
+
+  printf '========== [%s] started at %s ==========\n' \
+    "${CURRENT_ACTION:-unknown}" "$ACTION_STARTED_AT"
+  printf 'Command: /bin/bash %s %s\n' "$0" "$*"
+  printf 'Log file: %s\n' "$ACTION_LOG_FILE"
+}
+
+record_restore_history() {
+  local status="$1"
+
+  if [ "$CURRENT_ACTION" != "restore" ] || [ "$RESTORE_HISTORY_PENDING" != "true" ]; then
+    return 0
+  fi
+
+  if [ -z "$RESTORE_FINISHED_AT" ]; then
+    RESTORE_FINISHED_AT="$(timestamp_now)"
+  fi
+
+  append_file_line \
+    "$RESTORE_HISTORY_FILE" \
+    "started_at=${RESTORE_STARTED_AT:-$ACTION_STARTED_AT}|finished_at=${RESTORE_FINISHED_AT}|backup_name=${RESTORE_BACKUP_NAME:-unknown}|restore_mode=${RESTORE_MODE:-unknown}|status=${status}|log_file=${ACTION_LOG_FILE}"
+
+  RESTORE_HISTORY_PENDING="false"
+}
+
+run_blade_server_safe() {
+  local blade_action="$1"
+
+  if ! command -v blade >/dev/null 2>&1; then
+    error_msg "Thiếu command: blade"
+    return 1
+  fi
+
+  if [ ! -d "${BUNDLE_DIR:-}" ]; then
+    error_msg "Không tìm thấy BUNDLE_DIR để chạy blade: ${BUNDLE_DIR:-}"
+    return 1
+  fi
+
+  info "Đang chạy 'blade server ${blade_action}' trong ${BUNDLE_DIR}..."
+  (
+    cd "$BUNDLE_DIR" || exit 1
+    blade server "$blade_action"
+  )
+}
+
+ensure_service_running_after_failure() {
+  local errexit_was_on="false"
+  local restart_exit_code
+
+  if [ "$SERVICE_WAS_STOPPED" != "true" ] || [ "$SERVICE_RESTART_ATTEMPTED" = "true" ]; then
+    return 0
+  fi
+
+  SERVICE_RESTART_ATTEMPTED="true"
+
+  case "$-" in
+    *e*)
+      errexit_was_on="true"
+      ;;
+  esac
+
+  trap - ERR
+  set +e
+
+  warn "Tiến trình kết thúc lỗi khi server đang dừng. Đang thử start lại server..."
+  run_blade_server_safe start
+  restart_exit_code=$?
+
+  if [ "$restart_exit_code" -eq 0 ]; then
+    SERVICE_WAS_STOPPED="false"
+    info "Đã start lại server sau khi restore/backup lỗi."
+  else
+    error_msg "Không thể start lại server tự động. Vui lòng kiểm tra thủ công."
+  fi
+
+  trap 'handle_unexpected_error $? $LINENO "$BASH_COMMAND"' ERR
+
+  if [ "$errexit_was_on" = "true" ]; then
+    set -e
+  fi
+}
+
+handle_exit() {
+  local exit_code="$?"
+
+  if [ "$exit_code" -ne 0 ]; then
+    ensure_service_running_after_failure
+  fi
+
+  ACTION_FINISHED_AT="$(timestamp_now)"
+
+  if [ "$LOGGING_READY" = "true" ]; then
+    printf '========== [%s] finished at %s (exit=%s) ==========\n' \
+      "${CURRENT_ACTION:-unknown}" "$ACTION_FINISHED_AT" "$exit_code"
+    if [ -n "$ACTION_FAILURE_MESSAGE" ]; then
+      printf 'Failure: %s\n' "$ACTION_FAILURE_MESSAGE"
+    fi
+  fi
+
+  if [ "$exit_code" -eq 0 ]; then
+    record_restore_history "success"
+  else
+    record_restore_history "failed"
+  fi
+
+  cleanup_tmp
 }
 
 send_mail() {
   local subject="$1"
   local body="$2"
+
+  if [ -z "${MAIL_HOST:-}" ] || [ -z "${MAIL_PORT:-}" ] || \
+    [ -z "${MAIL_USERNAME:-}" ] || [ -z "${MAIL_PASSWORD:-}" ] || \
+    [ -z "${MAIL_FROM_ADDRESS:-}" ] || [ -z "${MAIL_TO:-}" ]; then
+    return 0
+  fi
 
   set +e
 
@@ -90,7 +259,7 @@ EOF
     --mail-from "${MAIL_FROM_ADDRESS}" \
     --mail-rcpt "${MAIL_TO}" \
     --upload-file "$mail_file" >/dev/null; then
-    log_line "WARN" "Không gửi được email cảnh báo tới ${MAIL_TO}."
+    append_file_line "$LOG_FILE" "[${CURRENT_ACTION:-unknown}] WARN Không gửi được email cảnh báo tới ${MAIL_TO}."
   fi
 
   rm -f "$mail_file"
@@ -106,7 +275,7 @@ Thời gian: $(timestamp_now)
 Action: ${CURRENT_ACTION:-unknown}
 Lỗi: ${message}
 Config file: ${CONFIG_FILE}
-Log file: ${LOG_FILE}
+Log file: ${ACTION_LOG_FILE:-$LOG_FILE}
 EOF
 
   if [ "$SERVICE_WAS_STOPPED" = "true" ]; then
@@ -128,7 +297,7 @@ cleanup_tmp() {
 error_exit() {
   local message="$1"
 
-  cleanup_tmp
+  ACTION_FAILURE_MESSAGE="$message"
   error_msg "ERROR: ${message}"
   send_mail "[Liferay Backup] ERROR on $(hostname)" "$(build_failure_mail_body "$message")"
   exit 1
@@ -142,14 +311,14 @@ handle_unexpected_error() {
 
   trap - ERR
   set +e
-  cleanup_tmp
+  ACTION_FAILURE_MESSAGE="$message"
   error_msg "ERROR: ${message}"
   send_mail "[Liferay Backup] CRITICAL on $(hostname)" "$(build_failure_mail_body "$message")"
   exit "$exit_code"
 }
 
 trap 'handle_unexpected_error $? $LINENO "$BASH_COMMAND"' ERR
-trap 'cleanup_tmp' EXIT
+trap 'handle_exit' EXIT
 
 require_commands() {
   local missing=0
@@ -184,8 +353,7 @@ initialize_runtime() {
   require_config_vars BACKUP_DIR MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_FROM_ADDRESS MAIL_TO
 
   mkdir -p "$BACKUP_DIR"
-  mkdir -p "$(dirname "$LOG_FILE")"
-  mkdir -p "$(dirname "$CRON_LOG_FILE")"
+  mkdir -p "$LOG_DIR"
 }
 
 prune_old_backups() {
@@ -322,11 +490,7 @@ run_blade_server() {
     error_exit "Không tìm thấy BUNDLE_DIR để chạy blade: $BUNDLE_DIR"
   fi
 
-  info "Đang chạy 'blade server ${blade_action}' trong ${BUNDLE_DIR}..."
-  (
-    cd "$BUNDLE_DIR"
-    blade server "$blade_action"
-  )
+  run_blade_server_safe "$blade_action"
 }
 
 stop_liferay() {
@@ -399,7 +563,7 @@ create_backup_with_options() {
   local include_database="$1"
   local include_bundles="$2"
   local action_label="$3"
-  local timestamp bundle_file sql_file manifest_file final_dir bundle_archive_name sql_archive_name
+  local timestamp started_at completed_at bundle_file sql_file manifest_file final_dir bundle_archive_name sql_archive_name
 
   require_config_vars BACKUP_DIR STOP_SERVICE_DURING_BACKUP MIN_FREE_GB
   require_commands tar curl find awk date df mktemp sort flock
@@ -423,7 +587,8 @@ create_backup_with_options() {
 
   check_free_space
 
-  timestamp="$(date "+%Y%m%d_%H%M%S")"
+  timestamp="$(timestamp_compact)"
+  started_at="$(timestamp_now)"
   CURRENT_TMP_DIR="$(mktemp -d "${BACKUP_DIR}/.tmp_liferay_backup_${timestamp}_XXXXXX")"
 
   bundle_file="${CURRENT_TMP_DIR}/bundles_backup_${timestamp}.tar.gz"
@@ -433,7 +598,7 @@ create_backup_with_options() {
   bundle_archive_name=""
   sql_archive_name=""
 
-  info "Bắt đầu tạo ${action_label} lúc ${timestamp}"
+  info "Bắt đầu tạo ${action_label} lúc ${started_at}"
 
   if [ "$STOP_SERVICE_DURING_BACKUP" = "true" ]; then
     stop_liferay
@@ -457,8 +622,13 @@ create_backup_with_options() {
     start_liferay
   fi
 
+  completed_at="$(timestamp_now)"
+
   cat > "$manifest_file" <<EOF
 created_at=${timestamp}
+created_at_local=${started_at}
+completed_at_local=${completed_at}
+timezone=${TZ:-$(timestamp_timezone)}
 hostname=$(hostname)
 bundle_dir=${BUNDLE_DIR:-}
 mysql_host=${MYSQL_HOST:-}
@@ -561,6 +731,9 @@ restore_backup() {
     error_exit "Không tìm thấy backup với index: $index"
   fi
 
+  RESTORE_STARTED_AT="$(timestamp_now)"
+  RESTORE_BACKUP_NAME="$(basename "$backup_file")"
+
   info "Backup được chọn: $backup_file"
 
   if [ -t 0 ]; then
@@ -571,8 +744,11 @@ restore_backup() {
     fi
   fi
 
+  RESTORE_HISTORY_PENDING="true"
+  RESTORE_MODE="detecting"
+
   local timestamp bundle_archive sql_archive
-  timestamp="$(date "+%Y%m%d_%H%M%S")"
+  timestamp="$(timestamp_compact)"
   CURRENT_TMP_DIR="$(mktemp -d "${BACKUP_DIR}/.tmp_liferay_restore_${timestamp}_XXXXXX")"
 
   if [ -d "$backup_file" ]; then
@@ -606,6 +782,14 @@ restore_backup() {
     fi
   fi
 
+  if [ "$should_restore_bundles" = "true" ] && [ "$should_restore_sql" = "true" ]; then
+    RESTORE_MODE="bundles+database"
+  elif [ "$should_restore_bundles" = "true" ]; then
+    RESTORE_MODE="bundles"
+  else
+    RESTORE_MODE="database"
+  fi
+
   stop_liferay
 
   if [ "$should_restore_bundles" = "true" ]; then
@@ -630,6 +814,7 @@ restore_backup() {
   fi
 
   start_liferay
+  RESTORE_FINISHED_AT="$(timestamp_now)"
   cleanup_tmp
   info "Restore hoàn tất."
 
@@ -668,7 +853,7 @@ install_cron_job() {
   require_commands crontab grep mktemp
 
   local cron_cmd cron_line current_crontab tmp_file
-  cron_cmd="/bin/bash /opt/vec-backup/script.sh backup >> ${CRON_LOG_FILE} 2>&1"
+  cron_cmd="/bin/bash ${SCRIPT_DIR}/script.sh backup >> /dev/null 2>&1 ${CRON_MARKER}"
   cron_line="${CRON_SCHEDULE} ${cron_cmd}"
   current_crontab="$(crontab -l 2>/dev/null || true)"
 
@@ -679,7 +864,17 @@ install_cron_job() {
 
   tmp_file="$(mktemp)"
   if [ -n "$current_crontab" ]; then
-    printf '%s\n' "$current_crontab" > "$tmp_file"
+    while IFS= read -r line; do
+      case "$line" in
+        *"${CRON_MARKER}"*|*"${SCRIPT_DIR}/script.sh backup"*|*"script.sh backup"*)
+          continue
+          ;;
+      esac
+
+      printf '%s\n' "$line" >> "$tmp_file"
+    done <<EOF
+$current_crontab
+EOF
   fi
   printf '%s\n' "$cron_line" >> "$tmp_file"
 
@@ -688,6 +883,44 @@ install_cron_job() {
 
   info "Đã thêm cron backup tự động."
   info "Cron hiện tại: $cron_line"
+}
+
+uninstall_cron_job() {
+  require_commands crontab mktemp
+
+  local current_crontab tmp_file found=0
+  current_crontab="$(crontab -l 2>/dev/null || true)"
+
+  if [ -z "$current_crontab" ]; then
+    info "Chưa có cron nào được cấu hình."
+    return 0
+  fi
+
+  tmp_file="$(mktemp)"
+
+  while IFS= read -r line; do
+    case "$line" in
+      *"${CRON_MARKER}"*|*"${SCRIPT_DIR}/script.sh backup"*|*"script.sh backup"*)
+        found=1
+        continue
+        ;;
+    esac
+
+    printf '%s\n' "$line" >> "$tmp_file"
+  done <<EOF
+$current_crontab
+EOF
+
+  if [ "$found" -eq 0 ]; then
+    rm -f "$tmp_file"
+    info "Không tìm thấy cron auto backup để gỡ."
+    return 0
+  fi
+
+  crontab "$tmp_file"
+  rm -f "$tmp_file"
+
+  info "Đã tắt cron auto backup."
 }
 
 show_help() {
@@ -713,6 +946,7 @@ Ví dụ:
   $0 restore 0
   $0 delete 2
   $0 cron-install
+  $0 cron-uninstall
 
 Mô tả:
   help            Xem danh sách lệnh đang có
@@ -724,6 +958,7 @@ Mô tả:
   restore         Restore backup theo index, bắt buộc stop Tomcat bằng blade
   delete          Xoá backup theo index
   cron-install    Thêm cron chạy backup lúc ${CRON_SCHEDULE} nếu chưa tồn tại
+  cron-uninstall  Gỡ cron chạy auto backup hiện tại
 EOF
 }
 
@@ -735,6 +970,8 @@ main() {
     return 0
   fi
 
+  prepare_log_files
+  setup_logging "$@"
   initialize_runtime
 
   exec 9>"$LOCK_FILE"
@@ -766,6 +1003,9 @@ main() {
       ;;
     cron-install)
       install_cron_job
+      ;;
+    cron-uninstall)
+      uninstall_cron_job
       ;;
     *)
       show_help

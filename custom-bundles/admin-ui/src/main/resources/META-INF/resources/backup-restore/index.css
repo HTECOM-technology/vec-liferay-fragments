@@ -237,6 +237,40 @@ body.auth-checking {
 	flex-wrap: wrap;
 }
 
+.toolbar-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: end;
+	gap: 14px;
+	flex-wrap: wrap;
+	margin-bottom: 14px;
+}
+
+.filter-field {
+	display: grid;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--muted);
+}
+
+.filter-field input {
+	min-width: 220px;
+	padding: 11px 14px;
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	background: #fff;
+	color: var(--ink);
+	font: inherit;
+}
+
+.inline-meta {
+	margin: 0 0 12px;
+	color: var(--muted);
+	font-size: 13px;
+	line-height: 1.6;
+}
+
 button,
 .btn-link {
 	border: 0;
@@ -406,6 +440,23 @@ td code, pre {
 	word-break: break-word;
 }
 
+.daily-log-console {
+	margin: 0;
+	padding: 18px;
+	min-height: 260px;
+	max-height: 520px;
+	overflow: auto;
+	border: 1px solid var(--line);
+	border-radius: 18px;
+	background: linear-gradient(180deg, #fbfeff 0%, #eef8fd 100%);
+	color: #17445a;
+	font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+	font-size: 12px;
+	line-height: 1.7;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
 .job-card {
 	background: rgba(255, 255, 255, 0.92);
 	border: 1px solid var(--line);
@@ -535,6 +586,11 @@ td code, pre {
 
 	.hero-meta {
 		align-items: flex-start;
+	}
+
+	.filter-field input {
+		min-width: 0;
+		width: 100%;
 	}
 }
 

@@ -110,11 +110,54 @@
 				<div class="panel span-12">
 					<div class="panel-head">
 						<h2 class="panel-title">Tiến Trình Gần Đây</h2>
-						<p class="panel-desc">Danh sách job gần đây để tra lại lịch sử chạy lệnh. Output sẽ tự refresh vài giây một lần khi còn job `queued` hoặc `running`.</p>
+						<p class="panel-desc">Xem toàn bộ log thao tác của một ngày cụ thể. Phần này đọc trực tiếp file log hằng ngày nên vẫn xem lại được sau khi job đã kết thúc.</p>
 					</div>
 					<div class="panel-body">
-						<div class="job-list" id="jobList">
-							<div class="empty">Chưa có tiến trình nào.</div>
+						<div class="toolbar-row">
+							<label class="filter-field" for="dailyLogDate">
+								<span>Ngày log</span>
+								<input type="date" id="dailyLogDate">
+							</label>
+							<div class="btn-row">
+								<button class="btn-secondary" id="btnReloadDailyLog">Xem log</button>
+							</div>
+						</div>
+						<p class="inline-meta" id="dailyLogMeta">Đang tải log…</p>
+						<pre class="daily-log-console" id="dailyLogConsole">Đang tải log thao tác…</pre>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Lịch Sử Restore</h2>
+						<p class="panel-desc">Theo dõi riêng các lần restore trong ngày, gồm file restore, thời gian bắt đầu, thời gian kết thúc và loại dữ liệu đã khôi phục.</p>
+					</div>
+					<div class="panel-body">
+						<div class="toolbar-row">
+							<label class="filter-field" for="restoreHistoryDate">
+								<span>Ngày restore</span>
+								<input type="date" id="restoreHistoryDate">
+							</label>
+							<div class="btn-row">
+								<button class="btn-secondary" id="btnReloadRestoreHistory">Xem lịch sử</button>
+							</div>
+						</div>
+						<div class="table-wrap">
+							<table>
+								<thead>
+									<tr>
+										<th>Backup</th>
+										<th>Restore</th>
+										<th>Bắt đầu</th>
+										<th>Kết thúc</th>
+										<th>Trạng thái</th>
+										<th>Log</th>
+									</tr>
+								</thead>
+								<tbody id="restoreHistoryBody">
+									<tr><td colspan="6" class="muted">Đang tải lịch sử restore…</td></tr>
+								</tbody>
+							</table>
 						</div>
 					</div>
 				</div>

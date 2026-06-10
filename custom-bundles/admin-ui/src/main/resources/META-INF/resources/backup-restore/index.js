@@ -1,10 +1,14 @@
 const API = '/o/vec-backup-admin';
 const WATCH_STORAGE_KEY = 'vec-backup-watch-job-id';
 const WATCH_NONE = '__NONE__';
+
 let pollTimer = null;
 let currentJobs = [];
 let currentActiveJob = null;
 let selectedWatchJobId = '';
+let defaultLogDate = '';
+let currentDailyLogDate = '';
+let currentRestoreHistoryDate = '';
 
 function getAppRoot() {
 	return document.querySelector('.backup-restore-main-section') || document.body;
@@ -13,7 +17,7 @@ function getAppRoot() {
 function getLiferayAuthToken() {
 	return window.Liferay && window.Liferay.authToken
 		? window.Liferay.authToken
-	: '';
+		: '';
 }
 
 function buildApiUrl(url) {
@@ -48,6 +52,18 @@ function buildRequestOptions(options) {
 	mergedOptions.headers = mergedHeaders;
 
 	return mergedOptions;
+}
+
+function escHtml(value) {
+	return String(value || '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
+function badge(label, tone) {
+	return '<span class="badge ' + tone + '">' + escHtml(label) + '</span>';
 }
 
 function showUnauthorizedScreen() {
@@ -121,16 +137,33 @@ function resolveSelectedWatchJob(jobs, activeJob) {
 	return null;
 }
 
-function escHtml(value) {
-	return String(value || '')
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;');
+function fallbackDateString() {
+	return new Date().toISOString().slice(0, 10);
 }
 
-function badge(label, tone) {
-	return '<span class="badge ' + tone + '">' + escHtml(label) + '</span>';
+function resolveLogDate(preferredDate) {
+	return preferredDate || defaultLogDate || fallbackDateString();
+}
+
+function syncDateInput(inputId, value) {
+	const input = document.getElementById(inputId);
+
+	if (input && value) {
+		input.value = value;
+	}
+}
+
+function formatRestoreMode(mode) {
+	switch (String(mode || '').toLowerCase()) {
+		case 'bundles+database':
+			return 'Bundles + database';
+		case 'bundles':
+			return 'Chỉ bundles';
+		case 'database':
+			return 'Chỉ database';
+		default:
+			return mode || '--';
+	}
 }
 
 async function fetchJson(url, options) {
@@ -143,6 +176,7 @@ async function fetchJson(url, options) {
 
 	let payload = null;
 	const text = await res.text();
+
 	if (text) {
 		try {
 			payload = JSON.parse(text);
@@ -181,10 +215,8 @@ async function init() {
 			}
 			return;
 		}
-		if (error.message !== 'UNAUTHORIZED') {
-			if (appRoot) {
-				appRoot.innerHTML = '<div class="shell"><div class="error-box">Không thể tải dữ liệu Backup & Restore: ' + escHtml(error.message) + '</div></div>';
-			}
+		if (error.message !== 'UNAUTHORIZED' && appRoot) {
+			appRoot.innerHTML = '<div class="shell"><div class="error-box">Không thể tải dữ liệu Backup & Restore: ' + escHtml(error.message) + '</div></div>';
 		}
 	}
 }
@@ -193,9 +225,19 @@ async function loadOverview(silent) {
 	try {
 		const data = await fetchJson(API + '/overview');
 		renderOverview(data);
+		await loadJobs(true, false);
 	} catch (error) {
 		if (!silent && error.message !== 'UNAUTHORIZED') {
-			document.getElementById('jobList').innerHTML = '<div class="error-box">' + escHtml(error.message) + '</div>';
+			const consoleEl = document.getElementById('dailyLogConsole');
+			const metaEl = document.getElementById('dailyLogMeta');
+
+			if (metaEl) {
+				metaEl.textContent = 'Không thể tải dữ liệu tổng quan.';
+			}
+
+			if (consoleEl) {
+				consoleEl.textContent = error.message;
+			}
 		}
 	}
 }
@@ -209,15 +251,19 @@ async function loadJobs(silent, refreshOverviewWhenSettled) {
 		currentJobs = jobs;
 		currentActiveJob = activeJob;
 		renderWatchPanel(jobs, activeJob);
-		renderJobs(jobs);
 		schedulePolling(jobs);
+		await Promise.all([loadDailyLog(true), loadRestoreHistory(true)]);
 
 		if (refreshOverviewWhenSettled && !hasRunningJobs(jobs)) {
 			await loadOverview(true);
 		}
 	} catch (error) {
 		if (!silent && error.message !== 'UNAUTHORIZED') {
-			document.getElementById('jobList').innerHTML = '<div class="error-box">' + escHtml(error.message) + '</div>';
+			const consoleEl = document.getElementById('watchConsole');
+
+			if (consoleEl) {
+				consoleEl.textContent = error.message;
+			}
 		}
 	}
 }
@@ -242,38 +288,43 @@ function renderOverview(data) {
 	const activeJob = data.activeJob && data.activeJob.id ? data.activeJob : null;
 	const hasActiveJob = Boolean(data.hasActiveJob);
 
+	defaultLogDate = data.defaultLogDate || defaultLogDate || fallbackDateString();
+	currentDailyLogDate = currentDailyLogDate || defaultLogDate;
+	currentRestoreHistoryDate = currentRestoreHistoryDate || defaultLogDate;
 	currentJobs = jobs;
 	currentActiveJob = activeJob;
 
+	syncDateInput('dailyLogDate', currentDailyLogDate);
+	syncDateInput('restoreHistoryDate', currentRestoreHistoryDate);
+
 	document.getElementById('userChip').textContent = auth.screenName
 		? ('Đăng nhập: ' + auth.screenName + (auth.fullName ? ' · ' + auth.fullName : ''))
-	: 'Không xác định user';
+		: 'Không xác định user';
 
 	document.getElementById('scriptChip').textContent = script.available
 		? ('Script: ' + script.path)
-	: 'Chưa tìm thấy script backup';
+		: 'Chưa tìm thấy script backup';
 
 	document.getElementById('warningText').textContent = warning.message || 'Hệ thống đang dùng chính sách retention mặc định.';
 
-	document.getElementById('autoBackupValue').textContent = autoBackup.enabled ? 'Đang bật' : 'Chưa bật';
+	document.getElementById('autoBackupValue').textContent = autoBackup.enabled ? 'Đang bật' : 'Đang tắt';
 	document.getElementById('autoBackupCopy').innerHTML = autoBackup.enabled
 		? 'Cron hiện tại: <code>' + escHtml(autoBackup.cronLine || autoBackup.schedule || '') + '</code>'
-	: 'Chưa phát hiện cron backup. Có thể dùng lệnh <code>cron-install</code> để thêm.';
+		: 'Chưa phát hiện cron backup. Bạn có thể bật trực tiếp ở nhóm chức năng bên dưới.';
 
 	document.getElementById('scriptValue').textContent = script.available ? 'Sẵn sàng' : 'Thiếu script';
 	document.getElementById('scriptCopy').innerHTML = script.available
 		? 'Config: <code>' + escHtml(script.configPath || 'Không thấy file .env') + '</code><br>Backup dir: <code>' + escHtml(script.backupDir || '--') + '</code>'
-	: 'Có thể cấu hình bằng biến môi trường <code>VEC_BACKUP_SCRIPT_PATH</code>.';
+		: 'Có thể cấu hình bằng biến môi trường <code>VEC_BACKUP_SCRIPT_PATH</code>.';
 
 	document.getElementById('backupCountValue').textContent = String(backups.length);
 	document.getElementById('backupCountCopy').innerHTML = backups.length
 		? 'Bundle dir: <code>' + escHtml(script.bundleDir || '--') + '</code>'
-	: 'Chưa có backup nào trong thư mục hiện tại.';
+		: 'Chưa có backup nào trong thư mục hiện tại.';
 
 	renderActionGrid(functions, script.available, hasActiveJob, activeJob);
 	renderBackupTable(backups, script.available, hasActiveJob, activeJob);
 	renderWatchPanel(jobs, activeJob);
-	renderJobs(jobs);
 	schedulePolling(jobs);
 }
 
@@ -287,10 +338,13 @@ function renderActionGrid(functions, scriptAvailable, hasActiveJob, activeJob) {
 
 	container.innerHTML = functions.map((item) => {
 		const disabled = !scriptAvailable || !item.executable || item.requiresBackupSelection || hasActiveJob;
-		const buttonLabel = item.requiresBackupSelection ? 'Dùng ở bảng backup' : 'Chạy lệnh';
+		const isCronToggle = String(item.key || '').indexOf('cron-') === 0;
+		const buttonLabel = item.requiresBackupSelection
+			? 'Dùng ở bảng backup'
+			: (isCronToggle ? item.title : 'Chạy lệnh');
 		const lockMessage = hasActiveJob
-		? '<span class="badge warn">Đang khóa do job `' + escHtml(activeJob && activeJob.action ? activeJob.action : 'running') + '`</span>'
-		: '';
+			? '<span class="badge warn">Đang khóa do job `' + escHtml(activeJob && activeJob.action ? activeJob.action : 'running') + '`</span>'
+			: '';
 
 		return '' +
 			'<article class="action-card">' +
@@ -298,14 +352,14 @@ function renderActionGrid(functions, scriptAvailable, hasActiveJob, activeJob) {
 			'<p>' + escHtml(item.description) + '</p>' +
 			'<div class="btn-row">' +
 			(item.executable
-			 ? '<button class="' + (
-				(item.key === 'backup' || item.key === 'backup-database' || item.key === 'backup-bundles')
-					? 'btn-primary'
-					: 'btn-secondary'
-			) + '" ' +
-			 (disabled ? 'disabled ' : '') +
-			 'data-action="' + escHtml(item.key) + '">' + buttonLabel + '</button>'
-			 : '<span class="badge ok">Thông tin</span>') +
+				? '<button class="' + (
+					(item.key === 'backup' || item.key === 'backup-database' || item.key === 'backup-bundles')
+						? 'btn-primary'
+						: 'btn-secondary'
+				) + '" ' +
+					(disabled ? 'disabled ' : '') +
+					'data-action="' + escHtml(item.key) + '">' + escHtml(buttonLabel) + '</button>'
+				: '<span class="badge ok">Thông tin</span>') +
 			lockMessage +
 			'</div>' +
 			'</article>';
@@ -348,7 +402,7 @@ function renderBackupTable(backups, scriptAvailable, hasActiveJob, activeJob) {
 			'<td>' +
 			'<div class="meta-stack">' +
 			'<span>Tạo lúc: ' + escHtml(item.createdAt || '--') + '</span>' +
-			'<span class="muted">Sửa cuối: ' + escHtml(item.modifiedAt || '--') + '</span>' +
+			'<span class="muted">Hoàn tất: ' + escHtml(item.modifiedAt || '--') + '</span>' +
 			'</div>' +
 			'</td>' +
 			'<td>' +
@@ -443,67 +497,129 @@ function renderWatchPanel(jobs, activeJob) {
 		'Đang theo dõi job #' + watchJob.id + ' (' + suffix + '). ' +
 		'F5 xong trang sẽ cố mở lại đúng job này nếu backend vẫn còn giữ trong bộ nhớ.';
 	consoleEl.textContent = watchJob.output || (watchJob.running
-																							? 'Đang chờ output từ tiến trình...'
-																							: 'Job này chưa có output.');
+		? 'Đang chờ output từ tiến trình...'
+		: 'Job này chưa có output.');
 
 	if (watchJob.running) {
 		consoleEl.scrollTop = consoleEl.scrollHeight;
 	}
 }
 
-function renderJobs(jobs) {
-	const container = document.getElementById('jobList');
+async function loadDailyLog(silent) {
+	const requestedDate = resolveLogDate(
+		(document.getElementById('dailyLogDate') || {}).value || currentDailyLogDate
+	);
 
-	if (!jobs.length) {
-		container.innerHTML = '<div class="empty">Chưa có tiến trình nào được ghi nhận.</div>';
+	try {
+		const data = await fetchJson(API + '/logs?date=' + encodeURIComponent(requestedDate));
+		currentDailyLogDate = data.date || requestedDate;
+		syncDateInput('dailyLogDate', currentDailyLogDate);
+		renderDailyLog(data);
+	} catch (error) {
+		if (!silent && error.message !== 'UNAUTHORIZED') {
+			renderDailyLog({
+				date: requestedDate,
+				available: false,
+				output: '',
+				logFile: '',
+				error: error.message
+			});
+		}
+	}
+}
+
+function renderDailyLog(data) {
+	const metaEl = document.getElementById('dailyLogMeta');
+	const consoleEl = document.getElementById('dailyLogConsole');
+	const requestedDate = data.date || currentDailyLogDate || defaultLogDate;
+
+	if (!metaEl || !consoleEl) {
 		return;
 	}
 
-	container.innerHTML = jobs.map((job) => {
-		const tone = job.status === 'success'
-		? 'ok'
-		: (job.status === 'failed' ? 'fail' : 'warn');
+	if (data.error) {
+		metaEl.textContent = 'Không thể tải log cho ngày ' + requestedDate + '.';
+		consoleEl.textContent = data.error;
+		return;
+	}
 
-		const output = job.output
-		? escHtml(job.output)
-		: (job.running ? 'Đang chờ output từ tiến trình...' : 'Chưa có output.');
+	if (!data.available || !data.output) {
+		metaEl.textContent = 'Không có log cho ngày ' + requestedDate + '.';
+		consoleEl.textContent = 'Empty';
+		return;
+	}
+
+	metaEl.innerHTML = 'Log file: <code>' + escHtml(data.logFile || '--') + '</code>';
+	consoleEl.textContent = data.output;
+	consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+async function loadRestoreHistory(silent) {
+	const requestedDate = resolveLogDate(
+		(document.getElementById('restoreHistoryDate') || {}).value || currentRestoreHistoryDate
+	);
+
+	try {
+		const data = await fetchJson(API + '/restore-history?date=' + encodeURIComponent(requestedDate));
+		currentRestoreHistoryDate = data.date || requestedDate;
+		syncDateInput('restoreHistoryDate', currentRestoreHistoryDate);
+		renderRestoreHistory(data);
+	} catch (error) {
+		if (!silent && error.message !== 'UNAUTHORIZED') {
+			renderRestoreHistory({
+				date: requestedDate,
+				available: false,
+				items: [],
+				error: error.message
+			});
+		}
+	}
+}
+
+function renderRestoreHistory(data) {
+	const tbody = document.getElementById('restoreHistoryBody');
+	const items = Array.isArray(data.items) ? data.items : [];
+
+	if (!tbody) {
+		return;
+	}
+
+	if (data.error) {
+		tbody.innerHTML = '<tr><td colspan="6" class="error-box">' + escHtml(data.error) + '</td></tr>';
+		return;
+	}
+
+	if (!items.length) {
+		tbody.innerHTML = '<tr><td colspan="6" class="muted">Empty</td></tr>';
+		return;
+	}
+
+	tbody.innerHTML = items.map((item) => {
+		const status = String(item.status || '').toLowerCase();
+		const tone = status === 'success' ? 'ok' : 'fail';
 
 		return '' +
-			'<article class="job-card ' + (job.id === selectedWatchJobId ? 'active-watch' : '') + '">' +
-			'<header>' +
-			'<h4>' + escHtml(job.action || 'unknown') + '</h4>' +
-			'<div class="btn-row">' +
-			badge(job.status || 'unknown', tone) +
-			'<button class="btn-secondary" data-watch-job="' + escHtml(job.id || '') + '">Watch</button>' +
-			'</div>' +
-			'</header>' +
-			'<div class="job-meta">' +
-			'<span>ID: <code>' + escHtml(job.id || '') + '</code></span>' +
-			'<span>Lệnh: <code>' + escHtml(job.commandLine || '--') + '</code></span>' +
-			'<span>Người chạy: <strong>' + escHtml(job.requestedBy || '--') + '</strong></span>' +
-			'<span>Tạo: ' + escHtml(job.createdAt || '--') + '</span>' +
-			'<span>Bắt đầu: ' + escHtml(job.startedAt || '--') + '</span>' +
-			'<span>Kết thúc: ' + escHtml(job.finishedAt || '--') + '</span>' +
-			'<span>Cập nhật cuối: ' + escHtml(job.updatedAt || '--') + '</span>' +
-			'<span>Exit code: ' + escHtml(job.exitCode >= 0 ? job.exitCode : '--') + '</span>' +
-			'</div>' +
-			'<pre class="job-output">' + output + '</pre>' +
-			'</article>';
+			'<tr>' +
+			'<td><strong>' + escHtml(item.backupName || '--') + '</strong></td>' +
+			'<td>' + escHtml(formatRestoreMode(item.restoreMode)) + '</td>' +
+			'<td>' + escHtml(item.startedAt || '--') + '</td>' +
+			'<td>' + escHtml(item.finishedAt || '--') + '</td>' +
+			'<td>' + badge(status || 'unknown', tone) + '</td>' +
+			'<td><code>' + escHtml(item.logFile || '--') + '</code></td>' +
+			'</tr>';
 	}).join('');
-
-	container.querySelectorAll('button[data-watch-job]').forEach((button) => {
-		button.addEventListener('click', () => {
-			setSelectedWatchJobId(button.getAttribute('data-watch-job'));
-			renderWatchPanel(currentJobs, currentActiveJob);
-			renderJobs(currentJobs);
-		});
-	});
 }
 
 async function runAction(action) {
-	const confirmed = action === 'backup'
-	? window.confirm('Tạo một bản backup mới ngay bây giờ?')
-	: true;
+	let confirmed = true;
+
+	if (action === 'backup') {
+		confirmed = window.confirm('Tạo một bản backup mới ngay bây giờ?');
+	} else if (action === 'cron-install') {
+		confirmed = window.confirm('Bật auto backup bằng cron job theo cấu hình hiện tại?');
+	} else if (action === 'cron-uninstall') {
+		confirmed = window.confirm('Tắt auto backup và gỡ cron job hiện tại?');
+	}
 
 	if (!confirmed) {
 		return;
@@ -514,8 +630,8 @@ async function runAction(action) {
 
 async function runRowAction(action, backupName) {
 	const confirmed = action === 'restore'
-	? window.confirm('Restore backup `' + backupName + '`. Hệ thống sẽ tự kiểm tra backup này đang có bundles, database hay cả hai rồi chỉ restore đúng phần hiện diện. Tiếp tục?')
-	: window.confirm('Xóa backup `' + backupName + '`? Thao tác này không thể hoàn tác.');
+		? window.confirm('Restore backup `' + backupName + '`. Hệ thống sẽ tự kiểm tra backup này đang có bundles, database hay cả hai rồi chỉ restore đúng phần hiện diện, sau đó start lại server. Tiếp tục?')
+		: window.confirm('Xóa backup `' + backupName + '`? Thao tác này không thể hoàn tác.');
 
 	if (!confirmed) {
 		return;
@@ -532,19 +648,17 @@ async function queueAction(action, payload) {
 			body: JSON.stringify(payload || {})
 		});
 		await loadOverview(true);
-		await loadJobs(true, false);
 	} catch (error) {
 		if (error.status === 409) {
 			const activeJob = error.payload && error.payload.activeJob && error.payload.activeJob.id
-			? error.payload.activeJob
-			: null;
+				? error.payload.activeJob
+				: null;
 
 			if (activeJob) {
 				setSelectedWatchJobId(activeJob.id);
 			}
 
 			await loadOverview(true);
-			await loadJobs(true, false);
 		}
 		alert(error.message);
 	}
@@ -568,13 +682,31 @@ document.getElementById('btnWatchNewest').addEventListener('click', () => {
 
 	setSelectedWatchJobId(newestJob && newestJob.id ? newestJob.id : '');
 	renderWatchPanel(currentJobs, currentActiveJob);
-	renderJobs(currentJobs);
 });
 
 document.getElementById('btnClearWatch').addEventListener('click', () => {
 	setSelectedWatchJobId('');
 	renderWatchPanel(currentJobs, currentActiveJob);
-	renderJobs(currentJobs);
+});
+
+document.getElementById('btnReloadDailyLog').addEventListener('click', () => {
+	currentDailyLogDate = (document.getElementById('dailyLogDate') || {}).value || currentDailyLogDate || defaultLogDate;
+	loadDailyLog(false);
+});
+
+document.getElementById('btnReloadRestoreHistory').addEventListener('click', () => {
+	currentRestoreHistoryDate = (document.getElementById('restoreHistoryDate') || {}).value || currentRestoreHistoryDate || defaultLogDate;
+	loadRestoreHistory(false);
+});
+
+document.getElementById('dailyLogDate').addEventListener('change', (event) => {
+	currentDailyLogDate = event.target.value || defaultLogDate || fallbackDateString();
+	loadDailyLog(false);
+});
+
+document.getElementById('restoreHistoryDate').addEventListener('change', (event) => {
+	currentRestoreHistoryDate = event.target.value || defaultLogDate || fallbackDateString();
+	loadRestoreHistory(false);
 });
 
 init();
