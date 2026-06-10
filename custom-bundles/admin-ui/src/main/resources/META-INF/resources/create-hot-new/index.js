@@ -96,10 +96,18 @@ function __chn_forceSetDisplayPage() {
     }
 
     get('#_fast_publish_custom', (elBtn) => {
-      elBtn.addEventListener('click', () => {
+      elBtn.addEventListener('click', async () => {
         const btns = document.querySelectorAll('[type="button"][form="_com_liferay_journal_web_portlet_JournalPortlet_fm1"]');
         for (const btn of btns) {
           if (btn.closest('#_com_liferay_journal_web_portlet_JournalPortlet_fm1')) {
+            continue;
+          }
+          const inputTitle = await get('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text05273714]');
+          if (!inputTitle) {
+            continue;
+          }
+          if (inputTitle.value.trim() === '') {
+            alert('Hãy nhập tiêu đề của Tin vắn trước!');
             continue;
           }
           btn.click();
