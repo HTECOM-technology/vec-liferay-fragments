@@ -102,7 +102,7 @@ function __chn_forceSetDisplayPage() {
           if (btn.closest('#_com_liferay_journal_web_portlet_JournalPortlet_fm1')) {
             continue;
           }
-          const inputTitle = await get('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text05273714]');
+          const inputTitle = await get('[name^="_com_liferay_journal_web_portlet_JournalPortlet_ddm$$Text05273714"]');
           if (!inputTitle) {
             continue;
           }
