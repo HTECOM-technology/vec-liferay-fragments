@@ -192,6 +192,28 @@ function __appendCreateNewPostToLeftMenu() {
     );
 }
 
+function __appendWebContentStatisticsMenu() {
+    const screenData = __getCurrentLiferayScreen();
+    if (screenData.portletId !== 'com_liferay_journal_web_portlet_JournalPortlet') {
+        return;
+    }
+
+    const token = window.Liferay.authToken || 'IwcBcpOP';
+    const groupId = screenData.groupId || '';
+    const href = `/o/vec-admin/v1.0/webcontent-statistics/export.xlsx?groupId=${encodeURIComponent(groupId)}&status=-1&latestOnly=true&includeRawData=false&p_auth=${encodeURIComponent(token)}`;
+
+    waitForElement('[data-qa-id="creationMenuNewButton"]', (btn) => {
+        const liParent = btn.closest('li');
+        liParent.insertAdjacentHTML('beforebegin', `
+            <li class="nav-item">
+                <a href="${href}" class="btn btn-success btn-sm">
+                    Xuất báo cáo
+                </a>
+            </li>
+        `);
+    });
+}
+
 function __appendButtonImportCourtFee() {
     waitForElement('[data-testid="fdsCreationActionButton"]', (buttonCreate) => {
         const parentUl = buttonCreate.closest('ul');
@@ -550,6 +572,7 @@ async function __custom_admin_js() {
     __redirectToHomepageIfNotCorrectLoginScreen();
     __appendAIChatHistoryMenu();
     __appendCreateNewPostToLeftMenu();
+    __appendWebContentStatisticsMenu();
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
     __initGlobalFolder();
