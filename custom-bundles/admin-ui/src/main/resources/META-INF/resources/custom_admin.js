@@ -25,11 +25,16 @@ function __isCustomAdminStandalonePage() {
 
 function __reactJs_setValueForInput(input, value) {
     const proto = input instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
-    const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value').set;
-    nativeSetter.call(input, value);
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('blur', { bubbles: true }));
+    let nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (nativeSetter && nativeSetter.set) {
+        nativeSetter = nativeSetter.set;
+        nativeSetter.call(input, value);
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('blur', { bubbles: true }));
+    } else {
+        input.value = value;
+    }
 }
 
 function __getCurrentLiferayScreen() {
@@ -173,8 +178,8 @@ function __appendAIChatHistoryMenu() {
 }
 
 function __appendCreateNewPostToLeftMenu() {
-    const html = `<a aria-expanded="false" class="nav-link list-group-heading panel-header collapsed" href="/group/guest/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_journal_web_portlet_JournalPortlet_mvcRenderCommandName=%2Fjournal%2Fedit_article&_com_liferay_journal_web_portlet_JournalPortlet_redirect=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURL=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURLTitle=B%C3%A0i+vi%E1%BA%BFt-C%E1%BA%A5u+tr%C3%BAc-Bi%E1%BB%83u+m%E1%BA%ABu&_com_liferay_journal_web_portlet_JournalPortlet_ddmStructureId=38305&_com_liferay_journal_web_portlet_JournalPortlet_folderId=719056&_com_liferay_journal_web_portlet_JournalPortlet_groupId=20117&_com_liferay_journal_web_portlet_JournalPortlet_showSelectFolder=false&p_p_auth=iLMlc0kw" role="menuitem" tabindex="0">
-            Tạo nhanh Tin tức hoạt động
+    const html = `<a aria-expanded="false" class="nav-link list-group-heading panel-header collapsed" href="/group/guest/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_journal_web_portlet_JournalPortlet_mvcRenderCommandName=%2Fjournal%2Fedit_article&_com_liferay_journal_web_portlet_JournalPortlet_redirect=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURL=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURLTitle=B%C3%A0i+vi%E1%BA%BFt-C%E1%BA%A5u+tr%C3%BAc-Bi%E1%BB%83u+m%E1%BA%ABu&_com_liferay_journal_web_portlet_JournalPortlet_ddmStructureId=38305&_com_liferay_journal_web_portlet_JournalPortlet_folderId=719056&_com_liferay_journal_web_portlet_JournalPortlet_groupId=20117&_com_liferay_journal_web_portlet_JournalPortlet_showSelectFolder=false&p_p_auth=iLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_isCreateHotNew=1" role="menuitem" tabindex="0">
+            Tạo Tin vắn
         </a>`;
 
     waitForElement(
@@ -494,13 +499,13 @@ function __initGlobalFolder(folderId = "1388027") {
 
         const dropdownBtn = item.querySelector('.dropdown-toggle');
         if (dropdownBtn) {
-            dropdownBtn.addEventListener('click', function() {
-                setTimeout(function() {
+            dropdownBtn.addEventListener('click', function () {
+                setTimeout(function () {
                     const menuId = dropdownBtn.getAttribute('aria-controls');
                     const menu = document.getElementById(menuId);
                     if (!menu) return;
 
-                    menu.querySelectorAll('li').forEach(function(li) {
+                    menu.querySelectorAll('li').forEach(function (li) {
                         if (!li.textContent.trim().toLowerCase().includes('permission')) {
                             li.style.display = 'none';
                         }
@@ -517,7 +522,7 @@ function __initGlobalFolder(folderId = "1388027") {
         const folderLink = item.querySelector('a.text-truncate');
         const folderUrl = folderLink ? folderLink.href : null;
 
-        item.addEventListener('click', function(e) {
+        item.addEventListener('click', function (e) {
             if (e.target.closest('.dropdown')) return;
             e.stopImmediatePropagation();
             e.preventDefault();

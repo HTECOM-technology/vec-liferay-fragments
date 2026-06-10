@@ -30,6 +30,7 @@ public class TopHeadDynamicInclude implements DynamicInclude {
       }
 
       writer.println("<link rel=\"stylesheet\" href=\"/o/vec-custom-admin-ui/custom_admin.css\">");
+      writer.println("<script src=\"/o/vec-custom-admin-ui/custom_admin.js\" defer></script>");
 
       String currentURL = (String) request.getAttribute(WebKeys.CURRENT_URL);
       if (currentURL != null && currentURL.contains("UsersAdminPortlet")) {
@@ -37,7 +38,10 @@ public class TopHeadDynamicInclude implements DynamicInclude {
         writer.println("<script src=\"/o/vec-custom-admin-ui/user_admin.js\" defer></script>");
       }
 
-      writer.println("<script src=\"/o/vec-custom-admin-ui/custom_admin.js\" defer></script>");
+      if (currentURL != null && currentURL.contains("JournalPortlet_isCreateHotNew=1")) {
+        writer.println("<link rel=\"stylesheet\" href=\"/o/vec-custom-admin-ui/create-hot-new/index.css\">");
+        writer.println("<script src=\"/o/vec-custom-admin-ui/create-hot-new/index.js\" defer></script>");
+      }
 
       ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
         WebKeys.THEME_DISPLAY);

@@ -1,0 +1,20 @@
+body {
+  position: relative;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_metadata {
+  display: none;
+}
+
+.contextual-sidebar.contextual-sidebar-visible.always-hidden {
+  transform: translateX(100%);
+  visibility: hidden;
+}
+
+.contextual-sidebar-visible.always-hidden .contextual-sidebar-content, .contextual-sidebar-visible.always-hidden+.contextual-sidebar-content {
+  padding-right: 0;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_fm1 [type="button"][form="_com_liferay_journal_web_portlet_JournalPortlet_fm1"] {
+  display: none;
+}
