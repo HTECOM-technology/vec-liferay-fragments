@@ -19,6 +19,17 @@ function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}
 
 window.waitForElement = waitForElement;
 
+function __getUserRole() {
+    return new Promise((resolve) => {
+        window.Liferay.Service(
+            "/role/get-user-roles",
+            { userId: window.Liferay.ThemeDisplay.getUserId() },
+            resolve,
+            () => resolve([]),
+        );
+    })
+}
+
 function __isCustomAdminStandalonePage() {
     return window.location.pathname.startsWith('/o/vec-custom-admin-ui/');
 }
@@ -177,10 +188,28 @@ function __appendAIChatHistoryMenu() {
     });
 }
 
-function __appendCreateNewPostToLeftMenu() {
+async function __appendCreateNewPostToLeftMenu() {
+    const userRole = await __getUserRole();
+    const roleCanAccess = [
+        '20100',
+        '1384085'
+    ];
+
+    let canAccess = false;
+    for (const role of userRole) {
+        if (roleCanAccess.includes(role.roleId)) {
+            canAccess = true;
+            break;
+        }
+    }
+
+    if (!canAccess) {
+        return;
+    }
+
     const html = `<a aria-expanded="false" class="nav-link list-group-heading panel-header collapsed" href="/group/guest/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_journal_web_portlet_JournalPortlet_mvcRenderCommandName=%2Fjournal%2Fedit_article&_com_liferay_journal_web_portlet_JournalPortlet_redirect=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURL=%2Fgroup%2Fguest%2F%7E%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D719056%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DiLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_backURLTitle=B%C3%A0i+vi%E1%BA%BFt-C%E1%BA%A5u+tr%C3%BAc-Bi%E1%BB%83u+m%E1%BA%ABu&_com_liferay_journal_web_portlet_JournalPortlet_ddmStructureId=38305&_com_liferay_journal_web_portlet_JournalPortlet_folderId=719056&_com_liferay_journal_web_portlet_JournalPortlet_groupId=20117&_com_liferay_journal_web_portlet_JournalPortlet_showSelectFolder=false&p_p_auth=iLMlc0kw&_com_liferay_journal_web_portlet_JournalPortlet_isCreateHotNew=1" role="menuitem" tabindex="0">
-            Tạo Tin vắn
-        </a>`;
+        Tạo Tin vắn
+    </a>`;
 
     waitForElement(
         '#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_site_administration_panel li',
