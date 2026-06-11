@@ -108,7 +108,7 @@ body {
 }
 
 .dashboard-upper-cards.bottom-area {
-    grid-template-columns: minmax(0, 11fr) minmax(0, 4fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 .dashboard-upper-cards.bottom-area .dashboard-card-tin-tuc,

@@ -25,11 +25,12 @@
 /* Tabs */
 .news-tabs {
   display: flex;
-  gap: 15px;
-
+  gap: 25px;
   list-style: none;
   padding: 0;
-  /* border-bottom: 1px solid #e5e7eb; */
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  min-width: max-content;
 }
 
 ul.news-tabs {
@@ -126,26 +127,80 @@ ul.news-tabs {
 }
 
 .news-tabs-div {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  /* max-width: 70%; */
-  gap: 6px;
-
   overflow-x: auto;
-  white-space: nowrap;
   scroll-behavior: smooth;
   scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
 }
 
-.news-tabs {
-  display: flex;
-  gap: 12px;
-  width: 100%;
-  justify-content: space-between;
-  flex-wrap: nowrap;
+.news-tabs-div:active {
+  cursor: grabbing;
 }
 
 .no-pointer {
   pointer-events: none;
+}
+
+/* ─── Tab scroll wrapper & arrows ──────────────────────────────────────────── */
+
+.news-tabs-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.news-tabs-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E1E1E;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-right: 4px;
+  border-right: 2px solid #d0e8f5;
+}
+
+.news-tabs-scrollable {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 4px;
+}
+
+.news-tab-arrow {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #d0e8f5;
+  background: #fff;
+  color: #0090CF;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, background 0.15s, color 0.15s;
+}
+
+.news-tab-arrow.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.news-tab-arrow:hover {
+  background: #0090CF;
+  color: #fff;
 }

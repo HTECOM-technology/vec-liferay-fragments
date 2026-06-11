@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   getVocabulariesBySite,
@@ -34,6 +34,66 @@ const News = () => {
 
   /** List of fetched news articles */
   const [blogs, setBlogs] = useState([]);
+
+  // ─── Tab scroll & drag ────────────────────────────────────────────────────
+  const tabsRef = useRef(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(false);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragScrollLeft = useRef(0);
+  const dragDistance = useRef(0);
+
+  const checkArrows = useCallback(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setShowLeftArrow(el.scrollLeft > 0);
+    setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    checkArrows();
+    el.addEventListener("scroll", checkArrows);
+    const ro = new ResizeObserver(checkArrows);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", checkArrows);
+      ro.disconnect();
+    };
+  }, [checkArrows]);
+
+  useEffect(() => { checkArrows(); }, [categories, checkArrows]);
+
+  const handleTabMouseDown = (e) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+    dragScrollLeft.current = el.scrollLeft;
+    dragDistance.current = 0;
+  };
+
+  const handleTabMouseMove = (e) => {
+    if (!isDragging.current || !tabsRef.current) return;
+    e.preventDefault();
+    const walk = e.clientX - dragStartX.current;
+    dragDistance.current = Math.abs(walk);
+    tabsRef.current.scrollLeft = dragScrollLeft.current - walk;
+    checkArrows();
+  };
+
+  const handleTabMouseUp = () => { isDragging.current = false; };
+
+  const scrollTabs = (direction) => {
+    const el = tabsRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * 160, behavior: "smooth" });
+    setTimeout(checkArrows, 350);
+  };
+
+  const isTabClick = () => dragDistance.current < 5;
 
   /** Loading lần đầu (toàn trang) */
   const [loading, setLoading] = useState(true);
@@ -149,25 +209,44 @@ const News = () => {
         </div> */}
 
         {/* Category Tabs */}
-        <div className="news-tabs-div">
-          <ul className="news-tabs">
-            <li className="no-pointer">Tin tức - Sự kiện</li>
-            <li
-              className={activeCategoryId === "latest" ? "active" : ""}
-              onClick={() => setActiveCategoryId("latest")}
+        <div className="news-tabs-wrapper">
+          <span className="news-tabs-title">Tin tức - Sự kiện</span>
+          <div className="news-tabs-scrollable">
+            <button
+              className={`news-tab-arrow news-tab-arrow-left${showLeftArrow ? " visible" : ""}`}
+              onClick={() => scrollTabs(-1)}
+            >‹</button>
+            <div
+              className="news-tabs-div"
+              ref={tabsRef}
+              onMouseDown={handleTabMouseDown}
+              onMouseMove={handleTabMouseMove}
+              onMouseUp={handleTabMouseUp}
+              onMouseLeave={handleTabMouseUp}
             >
-              Mới nhất
-            </li>
-            {categories.map((cat) => (
-              <li
-                key={cat.id}
-                className={activeCategoryId === cat.id ? "active" : ""}
-                onClick={() => setActiveCategoryId(cat.id)}
-              >
-                {cat.name}
-              </li>
-            ))}
-          </ul>
+              <ul className="news-tabs">
+                <li
+                  className={activeCategoryId === "latest" ? "active" : ""}
+                  onClick={() => { if (isTabClick()) setActiveCategoryId("latest"); }}
+                >
+                  Mới nhất
+                </li>
+                {categories.map((cat) => (
+                  <li
+                    key={cat.id}
+                    className={activeCategoryId === cat.id ? "active" : ""}
+                    onClick={() => { if (isTabClick()) setActiveCategoryId(cat.id); }}
+                  >
+                    {cat.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button
+              className={`news-tab-arrow news-tab-arrow-right${showRightArrow ? " visible" : ""}`}
+              onClick={() => scrollTabs(1)}
+            >›</button>
+          </div>
         </div>
       </div>
 
