@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Select, Table, Pagination, DatePicker } from "antd";
 import { FiList, FiRefreshCw, FiEye } from "react-icons/fi";
 import {
@@ -11,34 +11,59 @@ import {
     TableSummary,
     StatusBadge,
     PriorityBadge,
-    RequestIdText,
     RequestTitleText,
     TablePaginationWrap,
 } from "../style";
 import {
-    MOCK_MY_REQUESTS,
-    REQUEST_STATUS_OPTIONS,
-    REQUEST_STATUS_CONFIG,
+    MOCK_SUPPORT_REQUESTS,
     PRIORITY_CONFIG,
     PRIORITY_OPTIONS,
-    PROCESS_OPTIONS,
+    SUB_PROCESS_OPTIONS,
+    REQUEST_STATUS_CONFIG,
+    REQUEST_STATUS_OPTIONS,
 } from "./constants";
-import MyRequestDetail from "./MyRequestDetail";
+import SupportRequestDetail from "./SupportRequestDetail";
 
 const { RangePicker } = DatePicker;
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 15;
 
-function MyRequests() {
-    const [data, setData] = useState(MOCK_MY_REQUESTS);
+const ROW_STATUS_OPTIONS = REQUEST_STATUS_OPTIONS.filter((o) => o.value !== "all");
+
+// Lấy label sub-process từ key sidebar
+const getSubProcessLabel = (itemKey) => {
+    if (!itemKey) return "all";
+    for (const opts of Object.values(SUB_PROCESS_OPTIONS)) {
+        const found = opts.find((o) => o.value === itemKey);
+        if (found) return found.label;
+    }
+    return "all";
+};
+
+// Tất cả sub-process options (dùng label làm value để match với mock data)
+const SUB_PROCESS_FILTER_OPTS = [
+    { value: "all", label: "Tất cả quy trình" },
+    ...Object.values(SUB_PROCESS_OPTIONS)
+        .flat()
+        .map((o) => ({ value: o.label, label: o.label })),
+];
+
+function SupportRequestList({ activeItem, activeSection }) {
+    const [data, setData] = useState(MOCK_SUPPORT_REQUESTS);
     const [filters, setFilters] = useState({
         status: "all",
         priority: "all",
-        process: "all",
+        subProcess: getSubProcessLabel(activeItem),
         dateRange: null,
     });
     const [page, setPage] = useState(1);
     const [selectedId, setSelectedId] = useState(null);
+
+    // Khi sidebar thay đổi → cập nhật filter sub-process
+    useEffect(() => {
+        setFilters((prev) => ({ ...prev, subProcess: getSubProcessLabel(activeItem) }));
+        setPage(1);
+    }, [activeItem]);
 
     const handleStatusChange = (id, newStatus) => {
         setData((prev) =>
@@ -52,7 +77,12 @@ function MyRequests() {
     };
 
     const handleReset = () => {
-        setFilters({ status: "all", priority: "all", process: "all", dateRange: null });
+        setFilters({
+            status: "all",
+            priority: "all",
+            subProcess: getSubProcessLabel(activeItem),
+            dateRange: null,
+        });
         setPage(1);
     };
 
@@ -60,15 +90,12 @@ function MyRequests() {
         return data.filter((item) => {
             if (filters.status !== "all" && item.status !== filters.status) return false;
             if (filters.priority !== "all" && item.priority !== filters.priority) return false;
-            if (filters.process !== "all") {
-                const processLabel = PROCESS_OPTIONS.find((p) => p.value === filters.process)?.label;
-                if (processLabel && item.process !== processLabel) return false;
-            }
+            if (filters.subProcess !== "all" && item.subProcess !== filters.subProcess) return false;
             if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
-                const created = new Date(item.createdAt);
+                const due = new Date(item.dueDate);
                 const from = filters.dateRange[0].startOf("day").toDate();
                 const to = filters.dateRange[1].endOf("day").toDate();
-                if (created < from || created > to) return false;
+                if (due < from || due > to) return false;
             }
             return true;
         });
@@ -83,7 +110,7 @@ function MyRequests() {
     const selectedRecord = selectedId ? data.find((item) => item.id === selectedId) : null;
     if (selectedRecord) {
         return (
-            <MyRequestDetail
+            <SupportRequestDetail
                 record={selectedRecord}
                 onBack={() => setSelectedId(null)}
                 onStatusChange={handleStatusChange}
@@ -93,12 +120,23 @@ function MyRequests() {
 
     const columns = [
         {
-            title: "Mã yêu cầu",
-            dataIndex: "id",
-            key: "id",
-            width: 120,
-            render: (text, record) => (
-                <RequestIdText onClick={() => setSelectedId(record.id)}>{text}</RequestIdText>
+            title: "STT",
+            key: "stt",
+            width: 52,
+            align: "center",
+            render: (_, __, index) => (
+                <span style={{ fontSize: 13, color: "#888" }}>
+                    {(page - 1) * PAGE_SIZE + index + 1}
+                </span>
+            ),
+        },
+        {
+            title: "Tên quy trình",
+            dataIndex: "subProcess",
+            key: "subProcess",
+            width: 180,
+            render: (text) => (
+                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
             ),
         },
         {
@@ -106,47 +144,10 @@ function MyRequests() {
             dataIndex: "title",
             key: "title",
             render: (text, record) => (
-                <RequestTitleText onClick={() => setSelectedId(record.id)}>{text}</RequestTitleText>
+                <RequestTitleText onClick={() => setSelectedId(record.id)}>
+                    {text}
+                </RequestTitleText>
             ),
-        },
-        {
-            title: "Quy trình",
-            dataIndex: "process",
-            key: "process",
-            width: 130,
-            render: (text) => (
-                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
-            ),
-        },
-        {
-            title: "Ưu tiên",
-            dataIndex: "priority",
-            key: "priority",
-            width: 100,
-            align: "center",
-            render: (value) => {
-                const cfg = PRIORITY_CONFIG[value] || {};
-                return (
-                    <PriorityBadge $color={cfg.color} $bg={cfg.bg}>
-                        {cfg.label}
-                    </PriorityBadge>
-                );
-            },
-        },
-        {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
-            width: 120,
-            align: "center",
-            render: (value) => {
-                const cfg = REQUEST_STATUS_CONFIG[value] || {};
-                return (
-                    <StatusBadge $color={cfg.color} $bg={cfg.bg}>
-                        {cfg.label}
-                    </StatusBadge>
-                );
-            },
         },
         {
             title: "Người xử lý",
@@ -158,22 +159,70 @@ function MyRequests() {
             ),
         },
         {
-            title: "Ngày tạo",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            width: 100,
+            title: "Người theo dõi",
+            dataIndex: "watcher",
+            key: "watcher",
+            width: 130,
+            render: (text) => (
+                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
+            ),
+        },
+        {
+            title: "Ngày cần hoàn thành",
+            dataIndex: "dueDate",
+            key: "dueDate",
+            width: 160,
             render: (text) => (
                 <span style={{ fontSize: 13, color: "#666" }}>{text}</span>
             ),
         },
         {
-            title: "Hạn xử lý",
-            dataIndex: "dueDate",
-            key: "dueDate",
-            width: 100,
-            render: (text) => (
-                <span style={{ fontSize: 13, color: "#666" }}>{text}</span>
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            width: 140,
+            align: "center",
+            render: (value, record) => (
+                <Select
+                    value={value}
+                    options={ROW_STATUS_OPTIONS}
+                    onChange={(v) => handleStatusChange(record.id, v)}
+                    size="small"
+                    style={{ width: 120 }}
+                    styles={{ popup: { root: { minWidth: 130 } } }}
+                    labelRender={({ value: v }) => {
+                        const c = REQUEST_STATUS_CONFIG[v] || {};
+                        return (
+                            <span style={{ color: c.color, fontWeight: 500, fontSize: 13 }}>
+                                {c.label}
+                            </span>
+                        );
+                    }}
+                    optionRender={(opt) => {
+                        const c = REQUEST_STATUS_CONFIG[opt.value] || {};
+                        return (
+                            <StatusBadge $color={c.color} $bg={c.bg}>
+                                {c.label}
+                            </StatusBadge>
+                        );
+                    }}
+                />
             ),
+        },
+        {
+            title: "Mức độ ưu tiên",
+            dataIndex: "priority",
+            key: "priority",
+            width: 130,
+            align: "center",
+            render: (value) => {
+                const cfg = PRIORITY_CONFIG[value] || {};
+                return (
+                    <PriorityBadge $color={cfg.color} $bg={cfg.bg}>
+                        {cfg.label}
+                    </PriorityBadge>
+                );
+            },
         },
         {
             title: "",
@@ -205,16 +254,12 @@ function MyRequests() {
         { value: "all", label: "Tất cả ưu tiên" },
         ...PRIORITY_OPTIONS,
     ];
-    const processOpts = [
-        { value: "all", label: "Tất cả quy trình" },
-        ...PROCESS_OPTIONS,
-    ];
 
     return (
         <MyRequestsWrap>
             <MyRequestsHeader>
                 <FiList size={16} color="rgba(0,144,207,1)" />
-                <span className="mr-title">Yêu cầu của tôi</span>
+                <span className="mr-title">Danh sách yêu cầu hỗ trợ</span>
             </MyRequestsHeader>
 
             <MyRequestsFilter>
@@ -242,16 +287,16 @@ function MyRequests() {
 
                 <FilterGroup>
                     <Select
-                        value={filters.process}
-                        options={processOpts}
-                        onChange={(v) => handleFilterChange("process", v)}
-                        style={{ width: 180 }}
+                        value={filters.subProcess}
+                        options={SUB_PROCESS_FILTER_OPTS}
+                        onChange={(v) => handleFilterChange("subProcess", v)}
+                        style={{ width: 220 }}
                         size="small"
                     />
                 </FilterGroup>
 
                 <FilterGroup $flex={1}>
-                    <span className="filter-label">Ngày tạo:</span>
+                    <span className="filter-label">Ngày hoàn thành:</span>
                     <RangePicker
                         size="small"
                         format="DD/MM/YYYY"
@@ -304,4 +349,4 @@ function MyRequests() {
     );
 }
 
-export default MyRequests;
+export default SupportRequestList;

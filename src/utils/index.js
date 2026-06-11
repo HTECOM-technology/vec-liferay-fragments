@@ -12,18 +12,7 @@ function callLiferayService(path, params) {
   });
 }
 
-export const getUserInfo = async () => {if (!window.Liferay?.ThemeDisplay) {
-  if (process.env.REACT_APP_FORCE_ADMIN === 'true') {
-      return {
-        userId: 0,
-        firstName: 'Dev',
-        lastName: 'Admin',
-        emailAddress: 'admin@dev.local',
-        ldapServerId: 0,
-      };
-    }
-    return null;
-  }
+export const getUserInfo = async () => {
   const isLogined = window.Liferay.ThemeDisplay.isSignedIn();
   if (!isLogined) {
     return null;
