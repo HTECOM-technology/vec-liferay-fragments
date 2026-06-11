@@ -86,14 +86,45 @@ const News = () => {
 
   const handleTabMouseUp = () => { isDragging.current = false; };
 
+  const isTabClick = () => dragDistance.current < 5;
+
+  const smoothScroll = (el, targetLeft, duration = 500) => {
+    const target = Math.round(targetLeft);
+    const start = el.scrollLeft;
+    const distance = target - start;
+    if (Math.abs(distance) < 1) {
+      requestAnimationFrame(checkArrows);
+      return;
+    }
+    const startTime = performance.now();
+    const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      el.scrollLeft = start + distance * easeInOut(progress);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.scrollLeft = target;
+        requestAnimationFrame(checkArrows);
+      }
+    };
+    requestAnimationFrame(step);
+  };
+
+  const scrollToTab = (tabEl) => {
+    if (!tabEl || !tabsRef.current) return;
+    const container = tabsRef.current;
+    const tabLeft = tabEl.getBoundingClientRect().left - container.getBoundingClientRect().left + container.scrollLeft;
+    const target = tabLeft - container.clientWidth / 2 + tabEl.offsetWidth / 2;
+    smoothScroll(container, Math.max(0, target));
+  };
+
   const scrollTabs = (direction) => {
     const el = tabsRef.current;
     if (!el) return;
-    el.scrollBy({ left: direction * 160, behavior: "smooth" });
-    setTimeout(checkArrows, 350);
+    smoothScroll(el, el.scrollLeft + direction * 160);
   };
-
-  const isTabClick = () => dragDistance.current < 5;
 
   /** Loading lần đầu (toàn trang) */
   const [loading, setLoading] = useState(true);
@@ -215,7 +246,12 @@ const News = () => {
             <button
               className={`news-tab-arrow news-tab-arrow-left${showLeftArrow ? " visible" : ""}`}
               onClick={() => scrollTabs(-1)}
-            >‹</button>
+            >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M15.8051 5.40705C15.4776 4.96235 14.8516 4.86736 14.4069 5.19488C14.0615 5.44927 13.7332 5.70372 13.4472 5.92689C12.8764 6.3724 12.1118 6.98572 11.3444 7.65208C10.5819 8.31412 9.79361 9.04815 9.18811 9.73344C8.88637 10.0749 8.60888 10.4279 8.4014 10.7721C8.21046 11.0888 8 11.524 8 12.0001C8 12.4762 8.21046 12.9115 8.4014 13.2282C8.60888 13.5724 8.88637 13.9253 9.18811 14.2668C9.79361 14.9521 10.5819 15.6861 11.3444 16.3482C12.1118 17.0145 12.8764 17.6278 13.4472 18.0734C13.7332 18.2965 14.0615 18.551 14.4069 18.8054C14.8516 19.1329 15.4776 19.0379 15.8051 18.5932C15.9368 18.4144 16.0002 18.2064 16 18.0002V12.0001V6.00007C16.0002 5.79387 15.9368 5.58581 15.8051 5.40705Z" fill="#141B34"/>
+</svg>
+
+            </button>
             <div
               className="news-tabs-div"
               ref={tabsRef}
@@ -227,7 +263,7 @@ const News = () => {
               <ul className="news-tabs">
                 <li
                   className={activeCategoryId === "latest" ? "active" : ""}
-                  onClick={() => { if (isTabClick()) setActiveCategoryId("latest"); }}
+                  onClick={(e) => { if (isTabClick()) { setActiveCategoryId("latest"); scrollToTab(e.currentTarget); } }}
                 >
                   Mới nhất
                 </li>
@@ -235,7 +271,7 @@ const News = () => {
                   <li
                     key={cat.id}
                     className={activeCategoryId === cat.id ? "active" : ""}
-                    onClick={() => { if (isTabClick()) setActiveCategoryId(cat.id); }}
+                    onClick={(e) => { if (isTabClick()) { setActiveCategoryId(cat.id); scrollToTab(e.currentTarget); } }}
                   >
                     {cat.name}
                   </li>
@@ -245,7 +281,12 @@ const News = () => {
             <button
               className={`news-tab-arrow news-tab-arrow-right${showRightArrow ? " visible" : ""}`}
               onClick={() => scrollTabs(1)}
-            >›</button>
+            >
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.19486 5.40705C8.52237 4.96235 9.14837 4.86736 9.59306 5.19488C9.93847 5.44927 10.2668 5.70372 10.5528 5.92689C11.1236 6.3724 11.8882 6.98573 12.6556 7.65208C13.4181 8.31412 14.2064 9.04815 14.8119 9.73344C15.1136 10.0749 15.3911 10.4279 15.5986 10.7721C15.7895 11.0888 16 11.524 16 12.0001C16 12.4762 15.7895 12.9115 15.5986 13.2282C15.3911 13.5724 15.1136 13.9253 14.8119 14.2668C14.2064 14.9521 13.4181 15.6861 12.6556 16.3482C11.8882 17.0145 11.1236 17.6278 10.5528 18.0734C10.2668 18.2965 9.93847 18.551 9.59307 18.8054C9.14837 19.1329 8.52237 19.0379 8.19486 18.5932C8.0632 18.4144 7.99983 18.2064 8.00001 18.0002L8 12.0001L8 6.00007C7.99983 5.79387 8.0632 5.58581 8.19486 5.40705Z" fill="#141B34"/>
+</svg>
+
+            </button>
           </div>
         </div>
       </div>
