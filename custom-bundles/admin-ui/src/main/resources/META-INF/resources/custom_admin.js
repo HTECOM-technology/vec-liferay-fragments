@@ -11,7 +11,7 @@ function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}
             if (el) {
                 clearInterval(timer);
                 callback?.(el);
-                resolve(true);
+                resolve(el);
             }
         }, interval);
     });
