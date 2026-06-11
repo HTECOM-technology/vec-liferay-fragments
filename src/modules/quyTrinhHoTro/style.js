@@ -86,7 +86,7 @@ export const SectionHeader = styled.div`
     }
 
     .section-icon {
-        font-size: 12px;
+        font-size: 13px;
         color: #666;
         transition: transform 0.2s;
         transform: ${(props) => (props.$expanded ? "rotate(180deg)" : "rotate(0)")};
@@ -313,7 +313,7 @@ export const ToolbarSelect = styled.div`
 
         .ant-select-selection-item {
             line-height: 26px !important;
-            font-size: 12px;
+            font-size: 13px;
         }
     }
 `;
@@ -412,7 +412,7 @@ export const UploadButton = styled.button`
 `;
 
 export const UploadHint = styled.div`
-    font-size: 12px;
+    font-size: 13px;
     color: #999;
 `;
 
@@ -530,7 +530,7 @@ export const StatusBadge = styled.span`
     align-items: center;
     padding: 2px 10px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     background: ${(props) => props.$bg || "#F5F5F5"};
     color: ${(props) => props.$color || "#666"};
@@ -542,7 +542,7 @@ export const PriorityBadge = styled.span`
     align-items: center;
     padding: 2px 10px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     background: ${(props) => props.$bg || "#F5F5F5"};
     color: ${(props) => props.$color || "#666"};
@@ -550,7 +550,7 @@ export const PriorityBadge = styled.span`
 `;
 
 export const RequestIdText = styled.span`
-    font-size: 12px;
+    font-size: 13px;
     color: rgba(0, 144, 207, 1);
     font-weight: 500;
     cursor: pointer;
@@ -606,6 +606,217 @@ export const DetailRow = styled.div`
     .detail-value {
         color: #333;
         flex: 1;
+    }
+`;
+
+// ── Support Request Detail Page ───────────────────────────────────────────────
+
+export const DetailPageWrap = styled.div`
+    flex: 1;
+    background: #fff;
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+`;
+
+export const DetailPageHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(229, 247, 255, 1);
+    border-bottom: 1px solid rgba(0, 144, 207, 0.2);
+
+    .detail-page-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+`;
+
+export const BackBtn = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid rgba(0, 144, 207, 0.4);
+    border-radius: 4px;
+    background: #fff;
+    color: rgba(0, 144, 207, 1);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(0, 144, 207, 0.08);
+    }
+`;
+
+export const DetailPageBody = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 2px; }
+`;
+
+export const DetailInfoCard = styled.div`
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+`;
+
+export const DetailInfoCardTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(0, 144, 207, 1);
+    padding: 10px 16px;
+    background: rgba(229, 247, 255, 0.6);
+    border-bottom: 1px solid rgba(229, 231, 235, 1);
+`;
+
+export const DetailInfoCardBody = styled.div`
+    padding: 16px 16px 4px;
+`;
+
+export const CommentSectionWrap = styled.div`
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+`;
+
+export const CommentListWrap = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    max-height: 380px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 2px; }
+`;
+
+export const CommentItemWrap = styled.div`
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+`;
+
+export const CommentAvatar = styled.div`
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(0, 144, 207, 1);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    user-select: none;
+`;
+
+export const CommentBubble = styled.div`
+    flex: 1;
+    background: #f5f5f5;
+    border-radius: 0 10px 10px 10px;
+    padding: 8px 12px;
+
+    .comment-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .comment-author {
+        font-size: 13px;
+        font-weight: 600;
+        color: #222;
+    }
+
+    .comment-time {
+        font-size: 11px;
+        color: #aaa;
+    }
+
+    .comment-content {
+        font-size: 13px;
+        color: #333;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+        line-height: 1.5;
+    }
+`;
+
+export const CommentInputArea = styled.div`
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(229, 231, 235, 1);
+    background: #fafafa;
+`;
+
+export const CommentTextarea = styled.textarea`
+    flex: 1;
+    resize: none;
+    border: 1px solid #d9d9d9;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #333;
+    outline: none;
+    line-height: 1.5;
+    background: #fff;
+    transition: border-color 0.2s;
+
+    &::placeholder { color: #bbb; }
+    &:focus { border-color: rgba(0, 144, 207, 0.6); }
+`;
+
+export const CommentSendBtn = styled.button`
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 144, 207, 1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) { background: #007bb5; }
+
+    &:disabled {
+        background: #e0e0e0;
+        color: #aaa;
+        cursor: not-allowed;
     }
 `;
 

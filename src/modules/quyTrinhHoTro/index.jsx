@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sidebar, RequestForm, MyRequests } from "./components";
+import { Sidebar, RequestForm, MyRequests, SupportRequestList, MENU_SECTIONS } from "./components";
 import {
     PageWrap,
     PageHeader,
@@ -8,15 +8,70 @@ import {
 } from "./style";
 
 function QuyTrinhHoTroPage() {
-    const [activeSection, setActiveSection] = useState("dich-vu-cntt");
-    const [activeItem, setActiveItem] = useState("gop-y-cai-tien");
-    const [showMyRequests, setShowMyRequests] = useState(false);
+    // State cho màn danh sách (list view)
+    const [listActiveSection, setListActiveSection] = useState("dich-vu-cntt");
+    const [listActiveItem, setListActiveItem] = useState(null);
+
+    // State cho màn tạo mới (form view) — độc lập với list
+    const [formActiveSection, setFormActiveSection] = useState("dich-vu-cntt");
+    const [formActiveItem, setFormActiveItem] = useState(null);
+
+    // "support-list" | "form" | "my-requests"
+    const [view, setView] = useState("support-list");
+
+    // Sidebar hiển thị active theo view hiện tại
+    const sidebarActiveSection = view === "support-list" ? listActiveSection : formActiveSection;
+    const sidebarActiveItem = view === "support-list" ? listActiveItem : formActiveItem;
 
     const handleItemSelect = (sectionKey, itemKey) => {
-        setActiveSection(sectionKey);
-        setActiveItem(itemKey);
-        setShowMyRequests(false);
+        if (view === "support-list") {
+            // Ở list view → chỉ filter danh sách, không chuyển view
+            setListActiveSection(sectionKey);
+            setListActiveItem(itemKey);
+        } else {
+            // Ở form / my-requests → cập nhật form state và đảm bảo về form view
+            setFormActiveSection(sectionKey);
+            setFormActiveItem(itemKey);
+            if (view !== "form") setView("form");
+        }
     };
+
+    const handleCreateNew = () => {
+        if (view === "form") {
+            // Đang ở form → quay lại danh sách (giữ nguyên list state)
+            setView("support-list");
+        } else {
+            // Đang ở list hoặc my-requests → mở form
+            // Khởi tạo form state từ list state, nếu list chưa chọn mục nào thì lấy mục đầu tiên
+            if (listActiveItem) {
+                setFormActiveSection(listActiveSection);
+                setFormActiveItem(listActiveItem);
+            } else {
+                const firstSection = MENU_SECTIONS[0];
+                setFormActiveSection(firstSection.key);
+                setFormActiveItem(firstSection.items[0].key);
+            }
+            setView("form");
+        }
+    };
+
+    const headerTitle = view === "my-requests"
+        ? "Yêu cầu của tôi"
+        : view === "form"
+        ? "Tạo yêu cầu hỗ trợ"
+        : "Danh sách yêu cầu hỗ trợ";
+
+    const CreateIcon = () => (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 3v10M3 8h10" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+    );
+
+    const SupportListIcon = () => (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 4h12M2 8h12M2 12h8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+    );
 
     const MySupportIcon = () => (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,28 +85,37 @@ function QuyTrinhHoTroPage() {
     return (
         <PageWrap>
             <PageHeader>
-                <span className="header-title">
-                    {showMyRequests ? "Yêu cầu của tôi" : "Chọn yêu cầu hỗ trợ"}
-                </span>
-                <MyRequestButton
-                    onClick={() => setShowMyRequests((prev) => !prev)}
-                    style={showMyRequests ? { background: "#007bb5" } : {}}
-                >
-                    <MySupportIcon />
-                    {showMyRequests ? "Tạo yêu cầu mới" : "Yêu cầu của tôi"}
-                </MyRequestButton>
+                <span className="header-title">{headerTitle}</span>
+                <div style={{ display: "flex", gap: 8 }}>
+                    <MyRequestButton
+                        onClick={handleCreateNew}
+                        style={view === "form" ? { background: "#007bb5" } : {}}
+                    >
+                        {view === "form" ? <SupportListIcon /> : <CreateIcon />}
+                        {view === "form" ? "Danh sách" : "Tạo mới yêu cầu hỗ trợ"}
+                    </MyRequestButton>
+                    <MyRequestButton
+                        onClick={() => setView((v) => v === "my-requests" ? "support-list" : "my-requests")}
+                        style={view === "my-requests" ? { background: "#007bb5" } : {}}
+                    >
+                        <MySupportIcon />
+                        {view === "my-requests" ? "Quay lại danh sách" : "Yêu cầu của tôi"}
+                    </MyRequestButton>
+                </div>
             </PageHeader>
 
             <ContentWrap>
                 <Sidebar
-                    activeSection={activeSection}
-                    activeItem={activeItem}
+                    activeSection={sidebarActiveSection}
+                    activeItem={sidebarActiveItem}
                     onItemSelect={handleItemSelect}
                 />
-                {showMyRequests ? (
+                {view === "my-requests" ? (
                     <MyRequests />
+                ) : view === "form" ? (
+                    <RequestForm activeItem={formActiveItem} activeSection={formActiveSection} />
                 ) : (
-                    <RequestForm activeItem={activeItem} activeSection={activeSection} />
+                    <SupportRequestList activeItem={listActiveItem} activeSection={listActiveSection} />
                 )}
             </ContentWrap>
         </PageWrap>
