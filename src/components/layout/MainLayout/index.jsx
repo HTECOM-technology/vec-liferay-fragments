@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme, message } from "antd";
-import { StyledLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
+import { StyledLayout, StyledInnerLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
 import HrmNotificationsModal from "./components/HrmNotificationsModal";
 import { menuSections } from "../../../router/menuConfig";
@@ -232,7 +232,7 @@ function MainLayout() {
         <div className="demo-logo-vertical" />
         <LeftMenu collapsed={collapsed} />
       </StyledSider>
-      <Layout>
+      <StyledInnerLayout>
         <StyledHeaderMobile>
           <img src={logo} alt="logo" className="logo" />
 
@@ -368,7 +368,7 @@ function MainLayout() {
           <Outlet />
         </StyledContent>
         <StyledFooter>© 2026. Bản quyền thuộc về VEC</StyledFooter>
-      </Layout>
+      </StyledInnerLayout>
       <StyledDrawer width={"90vw"} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
         <LeftMenu collapsed={false} setShowDrawer={setShowDrawer} isMobile={true} showDrawer={showDrawer} />
       </StyledDrawer>
