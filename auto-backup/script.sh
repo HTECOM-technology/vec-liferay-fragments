@@ -34,7 +34,13 @@ else
 fi
 
 RESTORE_HISTORY_FILE_BASENAME="${RESTORE_HISTORY_FILE_BASENAME:-restore-history.log}"
-CRON_SCHEDULE="${CRON_SCHEDULE:-30 0 * * *}"
+CRON_SCHEDULE="${CRON_SCHEDULE:-30 17 * * *}"
+CRON_TIMEZONE="${CRON_TIMEZONE:-Asia/Ho_Chi_Minh}"
+STATUS_HOST="${STATUS_HOST:-0.0.0.0}"
+STATUS_PORT="${STATUS_PORT:-18080}"
+STATUS_LOG_LINES="${STATUS_LOG_LINES:-300}"
+STATUS_TOKEN="${STATUS_TOKEN:-}"
+APP_HEALTH_URL="${APP_HEALTH_URL:-http://127.0.0.1:8080}"
 BACKUP_RETENTION_COUNT="${BACKUP_RETENTION_COUNT:-3}"
 LOCK_FILE="/tmp/liferay-backup.lock"
 CRON_MARKER="# vec-liferay-auto-backup"
@@ -419,6 +425,50 @@ run_health_check() {
   require_commands df awk mysql mysqldump
   check_free_space
   check_mysql_connection
+}
+
+run_status_command() {
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: Thieu command: python3" >&2
+    exit 1
+  fi
+
+  STATUS_SCRIPT_DIR="$SCRIPT_DIR" \
+  CONFIG_FILE="$CONFIG_FILE" \
+  LOG_DIR="$LOG_DIR" \
+  LOG_FILE_BASENAME="$LOG_FILE_BASENAME" \
+  RESTORE_HISTORY_FILE_BASENAME="$RESTORE_HISTORY_FILE_BASENAME" \
+  LOCK_FILE="$LOCK_FILE" \
+  BUNDLE_DIR="${BUNDLE_DIR:-}" \
+  STATUS_HOST="$STATUS_HOST" \
+  STATUS_PORT="$STATUS_PORT" \
+  STATUS_LOG_LINES="$STATUS_LOG_LINES" \
+  STATUS_TOKEN="$STATUS_TOKEN" \
+  APP_HEALTH_URL="$APP_HEALTH_URL" \
+  TZ="${TZ:-$CRON_TIMEZONE}" \
+    python3 "${SCRIPT_DIR}/status_server.py" --once
+}
+
+run_status_server() {
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: Thieu command: python3" >&2
+    exit 1
+  fi
+
+  STATUS_SCRIPT_DIR="$SCRIPT_DIR" \
+  CONFIG_FILE="$CONFIG_FILE" \
+  LOG_DIR="$LOG_DIR" \
+  LOG_FILE_BASENAME="$LOG_FILE_BASENAME" \
+  RESTORE_HISTORY_FILE_BASENAME="$RESTORE_HISTORY_FILE_BASENAME" \
+  LOCK_FILE="$LOCK_FILE" \
+  BUNDLE_DIR="${BUNDLE_DIR:-}" \
+  STATUS_HOST="$STATUS_HOST" \
+  STATUS_PORT="$STATUS_PORT" \
+  STATUS_LOG_LINES="$STATUS_LOG_LINES" \
+  STATUS_TOKEN="$STATUS_TOKEN" \
+  APP_HEALTH_URL="$APP_HEALTH_URL" \
+  TZ="${TZ:-$CRON_TIMEZONE}" \
+    exec python3 "${SCRIPT_DIR}/status_server.py"
 }
 
 get_backup_entries() {
@@ -853,7 +903,7 @@ install_cron_job() {
   require_commands crontab grep mktemp
 
   local cron_cmd cron_line current_crontab tmp_file
-  cron_cmd="/bin/bash ${SCRIPT_DIR}/script.sh backup >> /dev/null 2>&1 ${CRON_MARKER}"
+  cron_cmd="TZ=${CRON_TIMEZONE} /bin/bash ${SCRIPT_DIR}/script.sh backup >> /dev/null 2>&1 ${CRON_MARKER}"
   cron_line="${CRON_SCHEDULE} ${cron_cmd}"
   current_crontab="$(crontab -l 2>/dev/null || true)"
 
@@ -932,6 +982,8 @@ Usage:
   $0 backup
   $0 backup-database
   $0 backup-bundles
+  $0 status
+  $0 status-server
   $0 restore <index>
   $0 delete <index>
   $0 cron-install
@@ -943,6 +995,8 @@ Ví dụ:
   $0 backup
   $0 backup-database
   $0 backup-bundles
+  $0 status
+  $0 status-server
   $0 restore 0
   $0 delete 2
   $0 cron-install
@@ -955,9 +1009,11 @@ Mô tả:
   backup          Tạo 1 thư mục backup chứa file .tar.gz của SQL và bundles
   backup-database Tạo backup chỉ chứa database, giữ nguyên cấu trúc thư mục backup
   backup-bundles  Tạo backup chỉ chứa bundles, giữ nguyên cấu trúc thư mục backup
+  status          In trạng thái backup/restore, log mới nhất và trạng thái app
+  status-server   Mở web status độc lập tại ${STATUS_HOST}:${STATUS_PORT}
   restore         Restore backup theo index, bắt buộc stop Tomcat bằng blade
   delete          Xoá backup theo index
-  cron-install    Thêm cron chạy backup lúc ${CRON_SCHEDULE} nếu chưa tồn tại
+  cron-install    Thêm cron chạy backup lúc 00:30 hằng ngày nếu chưa tồn tại
   cron-uninstall  Gỡ cron chạy auto backup hiện tại
 EOF
 }
@@ -967,6 +1023,16 @@ main() {
 
   if [ "$CURRENT_ACTION" = "help" ]; then
     show_help
+    return 0
+  fi
+
+  if [ "$CURRENT_ACTION" = "status" ]; then
+    run_status_command
+    return 0
+  fi
+
+  if [ "$CURRENT_ACTION" = "status-server" ]; then
+    run_status_server
     return 0
   fi
 

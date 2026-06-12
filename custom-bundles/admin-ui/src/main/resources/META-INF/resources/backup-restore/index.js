@@ -1,4 +1,6 @@
 const API = '/o/vec-backup-admin';
+const RESTORE_STATUS_PATH = '/sys/restore-status';
+const RESTORE_STATUS_PORT = '18080';
 const WATCH_STORAGE_KEY = 'vec-backup-watch-job-id';
 const WATCH_NONE = '__NONE__';
 
@@ -12,6 +14,20 @@ let currentRestoreHistoryDate = '';
 
 function getAppRoot() {
 	return document.querySelector('.backup-restore-main-section') || document.body;
+}
+
+function isIpHostname(hostname) {
+	return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(String(hostname || ''));
+}
+
+function getRestoreStatusUrl() {
+	const hostname = window.location.hostname;
+
+	if (isIpHostname(hostname)) {
+		return window.location.protocol + '//' + hostname + ':' + RESTORE_STATUS_PORT + '/';
+	}
+
+	return RESTORE_STATUS_PATH;
 }
 
 function getLiferayAuthToken() {
@@ -637,7 +653,11 @@ async function runRowAction(action, backupName) {
 		return;
 	}
 
-	await queueAction(action, { backupName: String(backupName) });
+	const queued = await queueAction(action, { backupName: String(backupName) });
+
+	if (queued && action === 'restore') {
+		window.location.href = getRestoreStatusUrl();
+	}
 }
 
 async function queueAction(action, payload) {
@@ -648,6 +668,7 @@ async function queueAction(action, payload) {
 			body: JSON.stringify(payload || {})
 		});
 		await loadOverview(true);
+		return true;
 	} catch (error) {
 		if (error.status === 409) {
 			const activeJob = error.payload && error.payload.activeJob && error.payload.activeJob.id
@@ -661,6 +682,7 @@ async function queueAction(action, payload) {
 			await loadOverview(true);
 		}
 		alert(error.message);
+		return false;
 	}
 }
 
