@@ -6,6 +6,13 @@ export const StyledLayout = styled(Layout)`
   min-height: 100vh;
 `;
 
+export const StyledInnerLayout = styled(Layout)`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+`;
+
 export const StyledHeader = styled(Layout.Header)`
   padding: 7px 24px 7px 14px !important;
   height: 70px;
@@ -35,10 +42,12 @@ export const StyledHeader = styled(Layout.Header)`
 export const StyledContent = styled(Layout.Content)`
   margin: 12px;
   padding: 12px;
-  min-height: 280px;
   background: #fff;
   border-radius: 8px;
   border: 1px solid #0090cf33;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 `;
 
 export const StyledLeftMenu = styled.div`
@@ -171,6 +180,7 @@ export const StyledFooter = styled(Layout.Footer)`
   background: #0090cf;
   line-height: 29px;
   color: #fff;
+  flex-shrink: 0;
 `;
 
 export const StyledSider = styled(Sider)`
