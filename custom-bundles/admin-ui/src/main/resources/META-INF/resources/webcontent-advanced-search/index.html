@@ -6,195 +6,165 @@
     <title>Tìm kiếm nâng cao Web Content</title>
 </head>
 <body>
-    <div class="vec-webcontent-advanced-search">
-        <div class="vec-page-shell">
-            <header class="vec-page-header">
-                <div class="vec-hero-copy">
-                    <p class="vec-kicker">Quản trị Nhật ký Web Content</p>
-                    <h1>Tìm kiếm nâng cao Web Content</h1>
-                    <p class="vec-subtitle">Màn tìm kiếm Web Content nâng cao với filter ngày chạy backend trước phân trang, giữ số lượng và phân trang đúng theo điều kiện lọc.</p>
-                    <div class="vec-hero-chips">
-                        <span class="vec-hero-chip">Từ khóa + Site + Folder</span>
-                        <span class="vec-hero-chip">Lọc khoảng ngày ở backend</span>
-                        <span class="vec-hero-chip">Liên kết sửa trang gốc</span>
+<div class="was-root">
+
+    <div class="was-topbar">
+        <div class="was-topbar-left">
+            <p class="was-eyebrow">Quản trị Bài viết</p>
+            <h1 class="was-title">Tìm kiếm nâng cao</h1>
+        </div>
+        <a id="backLink" class="was-btn was-btn--ghost" href="#" rel="noopener noreferrer">← Quay lại</a>
+    </div>
+
+    <div class="was-card was-filter-card">
+        <form id="searchForm" class="was-form">
+            <div class="was-form-grid">
+
+                <div class="was-field">
+                    <label class="was-label" for="keyword">Từ khóa</label>
+                    <input class="was-input" id="keyword" name="keyword" type="text" placeholder="Tìm theo tiêu đề, articleId, URL thân thiện...">
+                </div>
+
+                <div class="was-field">
+                    <label class="was-label" for="userId-input">Người dùng</label>
+                    <div class="was-ss-wrap">
+                        <input class="was-input" id="userId-input" type="text" placeholder="Tất cả người dùng" autocomplete="off">
+                        <input id="userId" name="userId" type="hidden">
+                        <ul class="was-ss-list hidden" id="userId-list"></ul>
                     </div>
                 </div>
-                <div class="vec-hero-panel">
-                    <p class="vec-hero-note-title">Gợi ý nhanh</p>
-                    <p class="vec-hero-note">Dùng ngày sửa đổi khi cần tìm nội dung vừa thay đổi, hoặc ngày hiển thị khi muốn dò bài theo lịch xuất bản.</p>
-                    <div class="vec-header-actions">
-                        <a class="vec-link-button" href="/group/guest/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&p_p_lifecycle=0&p_p_state=maximized" rel="noopener noreferrer">Quay lại trang gốc</a>
-                    </div>
+
+                <div class="was-field">
+                    <label class="was-label" for="sortField">Sắp xếp theo</label>
+                    <select class="was-input" id="sortField" name="sortField">
+                        <option value="modifiedDate">Ngày sửa đổi</option>
+                        <option value="createDate">Ngày tạo</option>
+                        <option value="displayDate">Ngày hiển thị</option>
+                        <option value="title">Tiêu đề</option>
+                        <option value="status">Trạng thái</option>
+                        <option value="userName">Tên tác giả</option>
+                    </select>
                 </div>
-            </header>
+                <div class="was-field">
+                    <label class="was-label" for="sortOrder">Loại sắp xếp</label>
+                    <select class="was-input" id="sortOrder" name="sortOrder">
+                        <option value="desc">Giảm dần</option>
+                        <option value="asc">Tăng dần</option>
+                    </select>
+                </div>
 
-            <div class="vec-content-grid">
-                <aside class="vec-toolbar-card vec-toolbar-card--sticky">
-                    <div class="vec-card-heading">
-                        <h2>Bộ lọc tìm kiếm</h2>
-                        <p>Điền điều kiện ở đây, hệ thống sẽ truy vấn trực tiếp từ backend trước khi phân trang.</p>
-                    </div>
+                <div class="was-field">
+                    <label class="was-label" for="groupId">Site / Mã nhóm</label>
+                    <input class="was-input" id="groupId" name="groupId" type="number" min="0" step="1" placeholder="VD: 20117" readonly>
+                    <span class="was-field-info" id="groupId-info"></span>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="folderId">Thư mục</label>
+                    <input class="was-input" id="folderId" name="folderId" type="number" min="0" step="1" placeholder="Tất cả" readonly>
+                    <span class="was-field-info" id="folderId-info"></span>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="status">Trạng thái</label>
+                    <select class="was-input" id="status" name="status">
+                        <option value="-1">Tất cả</option>
+                        <option value="0">Đã duyệt</option>
+                        <option value="1">Từ chối</option>
+                        <option value="2">Bản nháp</option>
+                        <option value="3">Hết hạn</option>
+                        <option value="4">Chờ duyệt</option>
+                        <option value="5">Lên lịch</option>
+                        <option value="6">Chưa hoàn tất</option>
+                        <option value="7">Thùng rác</option>
+                        <option value="8">Trong thùng rác</option>
+                    </select>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="structureId">Mã cấu trúc</label>
+                    <input class="was-input" id="structureId" name="structureId" type="number" min="0" step="1" placeholder="Nếu cần lọc">
+                </div>
 
-                    <form id="searchForm" class="vec-search-form">
-                        <div class="vec-field vec-field-full">
-                            <label for="keyword">Từ khóa</label>
-                            <input id="keyword" name="keyword" type="text" placeholder="Tìm theo tiêu đề, articleId, đường dẫn thân thiện">
-                        </div>
+                <div class="was-field">
+                    <label class="was-label" for="dateField">Trường ngày lọc</label>
+                    <select class="was-input" id="dateField" name="dateField">
+                        <option value="modifiedDate">Ngày sửa đổi</option>
+                        <option value="createDate">Ngày tạo</option>
+                        <option value="displayDate">Ngày hiển thị</option>
+                    </select>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="fromDate">Từ ngày</label>
+                    <input class="was-input" id="fromDate" name="fromDate" type="date">
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="toDate">Đến ngày</label>
+                    <input class="was-input" id="toDate" name="toDate" type="date">
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="pageSize">Dòng / trang</label>
+                    <select class="was-input" id="pageSize" name="pageSize">
+                        <option value="20">20</option>
+                        <option value="10">10</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
 
-                        <div class="vec-search-grid">
-                            <div class="vec-field">
-                                <label for="groupId">Site / Mã nhóm</label>
-                                <input id="groupId" name="groupId" type="number" min="0" step="1" placeholder="Ví dụ: 20117">
-                            </div>
-                            <div class="vec-field">
-                                <label for="folderId">Mã thư mục</label>
-                                <input id="folderId" name="folderId" type="number" min="0" step="1" placeholder="Tất cả thư mục">
-                            </div>
-                            <div class="vec-field">
-                                <label for="status">Trạng thái</label>
-                                <select id="status" name="status">
-                                    <option value="-1">Tất cả</option>
-                                    <option value="0">Đã duyệt</option>
-                                    <option value="1">Từ chối</option>
-                                    <option value="2">Bản nháp</option>
-                                    <option value="3">Hết hạn</option>
-                                    <option value="4">Chờ duyệt</option>
-                                    <option value="5">Lên lịch</option>
-                                    <option value="6">Chưa hoàn tất</option>
-                                    <option value="7">Thùng rác</option>
-                                    <option value="8">Trong thùng rác</option>
-                                </select>
-                            </div>
-                            <div class="vec-field">
-                                <label for="structureId">Mã cấu trúc</label>
-                                <input id="structureId" name="structureId" type="number" min="0" step="1" placeholder="Nếu cần lọc">
-                            </div>
-                            <div class="vec-field">
-                                <label for="userId-input">Người dùng</label>
-                                <div class="ss-wrap" id="userId-wrap">
-                                    <input class="ss-input" id="userId-input" type="text" placeholder="Tất cả" autocomplete="off">
-                                    <input id="userId" name="userId" type="hidden">
-                                    <ul class="ss-list hidden" id="userId-list"></ul>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="vec-filter-block">
-                            <div class="vec-filter-block-head">
-                                <h3>Lọc theo ngày</h3>
-                                <span>Gồm cả ngày đầu và cuối</span>
-                            </div>
-                            <div class="vec-search-grid vec-search-grid-dates">
-                                <div class="vec-field">
-                                    <label for="dateField">Trường ngày</label>
-                                    <select id="dateField" name="dateField">
-                                        <option value="modifiedDate">Ngày sửa đổi</option>
-                                        <option value="createDate">Ngày tạo</option>
-                                        <option value="displayDate">Ngày hiển thị</option>
-                                    </select>
-                                </div>
-                                <div class="vec-field">
-                                    <label for="fromDate">Từ ngày</label>
-                                    <input id="fromDate" name="fromDate" type="date">
-                                </div>
-                                <div class="vec-field">
-                                    <label for="toDate">Đến ngày</label>
-                                    <input id="toDate" name="toDate" type="date">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="vec-filter-block">
-                            <div class="vec-filter-block-head">
-                                <h3>Sắp xếp và phân trang</h3>
-                                <span>Xử lý phía máy chủ</span>
-                            </div>
-                            <div class="vec-search-grid">
-                                <div class="vec-field">
-                                    <label for="sortField">Trường sắp xếp</label>
-                                    <select id="sortField" name="sortField">
-                                        <option value="modifiedDate">Ngày sửa đổi</option>
-                                        <option value="createDate">Ngày tạo</option>
-                                        <option value="displayDate">Ngày hiển thị</option>
-                                        <option value="title">Tiêu đề</option>
-                                        <option value="status">Trạng thái</option>
-                                        <option value="userName">Tên người dùng</option>
-                                    </select>
-                                </div>
-                                <div class="vec-field">
-                                    <label for="sortOrder">Thứ tự sắp xếp</label>
-                                    <select id="sortOrder" name="sortOrder">
-                                        <option value="desc">Giảm dần</option>
-                                        <option value="asc">Tăng dần</option>
-                                    </select>
-                                </div>
-                                <div class="vec-field">
-                                    <label for="pageSize">Số dòng mỗi trang</label>
-                                    <select id="pageSize" name="pageSize">
-                                        <option value="20">20</option>
-                                        <option value="10">10</option>
-                                        <option value="50">50</option>
-                                        <option value="100">100</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="vec-form-actions">
-                            <button type="submit" class="vec-button vec-button-primary">Tìm kiếm</button>
-                            <button type="button" id="resetButton" class="vec-button vec-button-secondary">Đặt lại</button>
-                        </div>
-                        <p id="formMessage" class="vec-form-message" role="alert"></p>
-                    </form>
-                </aside>
-
-                <section class="vec-results-card">
-                    <div class="vec-results-header">
-                        <div>
-                            <span class="vec-section-kicker">Kết quả tra cứu Journal</span>
-                            <h2>Kết quả tìm kiếm</h2>
-                            <p id="resultSummary">Chưa tải dữ liệu.</p>
-                        </div>
-                        <div class="vec-results-side">
-                            <div id="loadingState" class="vec-loading hidden">Đang tải...</div>
-                        </div>
-                    </div>
-
-                    <div id="errorState" class="vec-error hidden"></div>
-
-                    <div class="vec-table-wrap">
-                        <table class="vec-table">
-                            <thead>
-                                <tr>
-                                    <th>Tiêu đề</th>
-                                    <th>Mã bài viết</th>
-                                    <th>Phiên bản</th>
-                                    <th>Trạng thái</th>
-                                    <th>Tác giả</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Ngày sửa đổi</th>
-                                    <th>Ngày hiển thị</th>
-                                    <th>Thư mục</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resultTableBody">
-                                <tr>
-                                    <td colspan="10" class="vec-empty-cell">Chưa có dữ liệu.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="vec-pagination-bar">
-                        <div id="paginationMeta" class="vec-pagination-meta"></div>
-                        <div id="pagination" class="vec-pagination"></div>
-                    </div>
-                </section>
             </div>
+
+            <div class="was-form-footer">
+                <p id="formMessage" class="was-error-text" role="alert"></p>
+                <div class="was-form-actions">
+                    <button type="button" id="resetButton" class="was-btn was-btn--ghost">Đặt lại</button>
+                    <button type="submit" class="was-btn was-btn--primary">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="was-card was-results-card">
+        <div class="was-results-header">
+            <div>
+                <p class="was-eyebrow">Kết quả tra cứu Bài viết</p>
+                <p id="resultSummary" class="was-result-summary">Chưa tải dữ liệu.</p>
+            </div>
+            <div id="loadingState" class="was-spinner hidden">
+                <span class="was-spinner-dot"></span>
+                Đang tải...
+            </div>
+        </div>
+
+        <div id="errorState" class="was-alert hidden"></div>
+
+        <div class="was-table-wrap">
+            <table class="was-table">
+                <thead>
+                    <tr>
+                        <th>Tiêu đề</th>
+                        <th>Mã bài viết</th>
+                        <th>Phiên bản</th>
+                        <th>Trạng thái</th>
+                        <th>Tác giả</th>
+                        <th>Ngày tạo</th>
+                        <th>Ngày sửa đổi</th>
+                        <th>Ngày hiển thị</th>
+                        <th>Thư mục</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTableBody">
+                    <tr>
+                        <td colspan="9" class="was-empty-cell">Chưa có dữ liệu.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="was-pagination-bar">
+            <p id="paginationMeta" class="was-pagination-meta"></p>
+            <div id="pagination" class="was-pagination"></div>
         </div>
     </div>
 
-    <script src="/o/vec-custom-admin-ui/webcontent-advanced-search/index.js"></script>
+</div>
 </body>
 </html>

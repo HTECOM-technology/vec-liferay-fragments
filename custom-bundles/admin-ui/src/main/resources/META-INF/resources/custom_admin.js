@@ -319,6 +319,7 @@ function __appendWebContentAdvancedSearchMenu() {
     params.set('sortField', 'modifiedDate');
     params.set('sortOrder', 'desc');
 
+    params.set('backUrl', window.location.href);
     const href = '/web/guest/web-content-advance-search?' + params.toString();
 
     waitForElement('[data-qa-id="creationMenuNewButton"]', (button) => {

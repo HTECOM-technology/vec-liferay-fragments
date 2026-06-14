@@ -99,9 +99,9 @@ public class WebContentAdvancedSearchRepository {
 		sql.append(
 			"on latest.resourcePrimKey = ja.resourcePrimKey and latest.maxVersion = ja.version ");
 		sql.append(
-			"left join JournalArticleLocalization jal on jal.articlePK = ja.id and jal.languageId = ? ");
+			"left join JournalArticleLocalization jal on jal.articlePK = ja.id_ and jal.languageId = ? ");
 		sql.append(
-			"left join JournalArticleLocalization jalDefault on jalDefault.articlePK = ja.id and jalDefault.languageId = ja.defaultLanguageId ");
+			"left join JournalArticleLocalization jalDefault on jalDefault.articlePK = ja.id_ and jalDefault.languageId = ja.defaultLanguageId ");
 		sql.append("where ja.companyId = ? and ja.ctCollectionId = 0");
 
 		parameters.add(query.getCompanyId());

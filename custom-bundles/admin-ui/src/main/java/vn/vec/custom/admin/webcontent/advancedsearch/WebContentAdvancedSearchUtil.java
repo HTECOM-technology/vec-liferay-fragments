@@ -37,36 +37,43 @@ public class WebContentAdvancedSearchUtil {
 			return "";
 		}
 
-		Group targetGroup = group;
+		try {
+			Group targetGroup = group;
 
-		if (group.isCompany()) {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)httpServletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
+			if (group.isCompany()) {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
 
-			if ((themeDisplay != null) && (themeDisplay.getScopeGroup() != null)) {
-				targetGroup = themeDisplay.getScopeGroup();
+				if ((themeDisplay != null) &&
+					(themeDisplay.getScopeGroup() != null)) {
+
+					targetGroup = themeDisplay.getScopeGroup();
+				}
 			}
+
+			String referer = httpServletRequest.getHeader("referer");
+			PortletURL portletURL = PortletURLBuilder.create(
+				PortalUtil.getControlPanelPortletURL(
+					httpServletRequest, targetGroup, JournalPortletKeys.JOURNAL,
+					0, 0, PortletRequest.RENDER_PHASE)
+			).setMVCRenderCommandName(
+				"/journal/edit_article"
+			).setParameter(
+				"articleId", articleId
+			).setParameter(
+				"groupId", groupId
+			).setParameter(
+				"version", version
+			).setParameter(
+				"redirect", Validator.isNotNull(referer) ? referer : null
+			).buildPortletURL();
+
+			return portletURL.toString();
 		}
-
-		String referer = httpServletRequest.getHeader("referer");
-		PortletURL portletURL = PortletURLBuilder.create(
-			PortalUtil.getControlPanelPortletURL(
-				httpServletRequest, targetGroup, JournalPortletKeys.JOURNAL, 0, 0,
-				PortletRequest.RENDER_PHASE)
-		).setMVCRenderCommandName(
-			"/journal/edit_article"
-		).setParameter(
-			"articleId", articleId
-		).setParameter(
-			"groupId", groupId
-		).setParameter(
-			"version", version
-		).setParameter(
-			"redirect", Validator.isNotNull(referer) ? referer : null
-		).buildPortletURL();
-
-		return portletURL.toString();
+		catch (Exception exception) {
+			return "";
+		}
 	}
 
 	public static Date parseEndDateExclusive(String value) {
