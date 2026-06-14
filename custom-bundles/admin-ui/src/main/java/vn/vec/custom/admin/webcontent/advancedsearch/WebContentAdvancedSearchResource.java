@@ -1,5 +1,6 @@
 package vn.vec.custom.admin.webcontent.advancedsearch;
 
+import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -9,9 +10,12 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -143,9 +147,23 @@ public class WebContentAdvancedSearchResource {
 				"fromDate không được lớn hơn toDate.");
 		}
 
+		List<Long> folderIds = Collections.emptyList();
+
+		if (parsedFolderId > 0) {
+			folderIds = new ArrayList<>();
+			folderIds.add(parsedFolderId);
+
+			try {
+				JournalFolderLocalServiceUtil.getSubfolderIds(
+					folderIds, requestedGroupId, parsedFolderId);
+			}
+			catch (Exception exception) {
+			}
+		}
+
 		return new WebContentAdvancedSearchQuery(
 			PortalUtil.getCompanyId(httpServletRequest), requestedGroupId,
-			parsedFolderId, parsedStatus, parsedStructureId, parsedUserId,
+			folderIds, parsedStatus, parsedStructureId, parsedUserId,
 			WebContentAdvancedSearchUtil.sanitizeKeyword(userName),
 			WebContentAdvancedSearchUtil.sanitizeKeyword(keyword),
 			normalizedDateField, parsedFromDate, parsedToDateExclusive,

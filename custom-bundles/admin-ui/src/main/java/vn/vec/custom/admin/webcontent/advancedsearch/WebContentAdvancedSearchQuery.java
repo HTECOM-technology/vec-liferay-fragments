@@ -7,7 +7,7 @@ import java.util.List;
 public class WebContentAdvancedSearchQuery {
 
 	public WebContentAdvancedSearchQuery(
-		long companyId, long groupId, long folderId, int status,
+		long companyId, long groupId, List<Long> folderIds, int status,
 		long structureId, long userId, String userName, String keyword,
 		String dateField, Date fromDate, Date toDateExclusive, int page,
 		int pageSize, String sortField, String sortOrder, String languageId,
@@ -15,7 +15,8 @@ public class WebContentAdvancedSearchQuery {
 
 		_companyId = companyId;
 		_groupId = groupId;
-		_folderId = folderId;
+		_folderIds = (folderIds == null) ? Collections.emptyList() :
+			Collections.unmodifiableList(folderIds);
 		_status = status;
 		_structureId = structureId;
 		_userId = userId;
@@ -46,8 +47,8 @@ public class WebContentAdvancedSearchQuery {
 		return _dateField;
 	}
 
-	public long getFolderId() {
-		return _folderId;
+	public List<Long> getFolderIds() {
+		return _folderIds;
 	}
 
 	public Date getFromDate() {
@@ -113,7 +114,7 @@ public class WebContentAdvancedSearchQuery {
 	private final List<Long> _allowedGroupIds;
 	private final long _companyId;
 	private final String _dateField;
-	private final long _folderId;
+	private final List<Long> _folderIds;
 	private final Date _fromDate;
 	private final long _groupId;
 	private final String _keyword;

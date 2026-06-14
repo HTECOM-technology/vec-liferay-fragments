@@ -128,9 +128,25 @@ public class WebContentAdvancedSearchRepository {
 			parameters.add(query.getGroupId());
 		}
 
-		if (query.getFolderId() > 0) {
-			sql.append(" and ja.folderId = ?");
-			parameters.add(query.getFolderId());
+		if (!query.getFolderIds().isEmpty()) {
+			if (query.getFolderIds().size() == 1) {
+				sql.append(" and ja.folderId = ?");
+				parameters.add(query.getFolderIds().get(0));
+			}
+			else {
+				sql.append(" and ja.folderId in (");
+
+				for (int i = 0; i < query.getFolderIds().size(); i++) {
+					if (i > 0) {
+						sql.append(", ");
+					}
+
+					sql.append("?");
+					parameters.add(query.getFolderIds().get(i));
+				}
+
+				sql.append(")");
+			}
 		}
 
 		if (query.getStatus() >= 0) {
