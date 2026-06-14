@@ -8,6 +8,7 @@ public enum AuditActionType {
 	MOVE,
 	PUBLISH,
 	CONFIG_UPDATE,
+	PERMISSION_UPDATE,
 	UNKNOWN
 
 }

@@ -38,12 +38,21 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 			null, _name(nameMap), null, null, serviceContext);
 
 		try {
-			Layout layout = super.addLayout(
-				externalReferenceCode, userId, groupId, privateLayout,
-				parentLayoutId, classNameId, classPK, nameMap, titleMap,
-				descriptionMap, keywordsMap, robotsMap, type, typeSettings,
-				hidden, system, friendlyURLMap, masterLayoutPlid,
-				serviceContext);
+			Layout layout;
+
+			try {
+				AuditThreadLocal.suppressPermissionAudit();
+
+				layout = super.addLayout(
+					externalReferenceCode, userId, groupId, privateLayout,
+					parentLayoutId, classNameId, classPK, nameMap, titleMap,
+					descriptionMap, keywordsMap, robotsMap, type, typeSettings,
+					hidden, system, friendlyURLMap, masterLayoutPlid,
+					serviceContext);
+			}
+			finally {
+				AuditThreadLocal.restorePermissionAudit();
+			}
 
 			_auditLogService.completeSuccess(
 				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
@@ -75,11 +84,20 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 			null, _name(nameMap), null, null, serviceContext);
 
 		try {
-			Layout layout = super.addLayout(
-				externalReferenceCode, userId, groupId, privateLayout,
-				parentLayoutId, nameMap, titleMap, descriptionMap, keywordsMap,
-				robotsMap, type, typeSettings, hidden, system, friendlyURLMap,
-				serviceContext);
+			Layout layout;
+
+			try {
+				AuditThreadLocal.suppressPermissionAudit();
+
+				layout = super.addLayout(
+					externalReferenceCode, userId, groupId, privateLayout,
+					parentLayoutId, nameMap, titleMap, descriptionMap, keywordsMap,
+					robotsMap, type, typeSettings, hidden, system, friendlyURLMap,
+					serviceContext);
+			}
+			finally {
+				AuditThreadLocal.restorePermissionAudit();
+			}
 
 			_auditLogService.completeSuccess(
 				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),

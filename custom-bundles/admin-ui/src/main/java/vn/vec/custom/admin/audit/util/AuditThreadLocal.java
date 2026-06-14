@@ -39,7 +39,22 @@ public class AuditThreadLocal {
 			String.valueOf(auditActionType);
 	}
 
+	public static boolean isPermissionAuditSuppressed() {
+		return Boolean.TRUE.equals(_suppressPermission.get());
+	}
+
+	public static void restorePermissionAudit() {
+		_suppressPermission.remove();
+	}
+
+	public static void suppressPermissionAudit() {
+		_suppressPermission.set(Boolean.TRUE);
+	}
+
 	private static final ThreadLocal<Set<String>> _keys =
 		ThreadLocal.withInitial(HashSet::new);
+
+	private static final ThreadLocal<Boolean> _suppressPermission =
+		new ThreadLocal<>();
 
 }

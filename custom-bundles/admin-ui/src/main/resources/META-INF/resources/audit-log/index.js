@@ -25,6 +25,7 @@
         MOVE: "Di chuyển",
         PUBLISH: "Xuất bản",
         CONFIG_UPDATE: "Cập nhật cấu hình",
+        PERMISSION_UPDATE: "Cập nhật quyền",
         UNKNOWN: "Không xác định"
     };
 

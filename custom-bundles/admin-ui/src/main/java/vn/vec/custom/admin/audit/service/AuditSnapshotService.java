@@ -5,13 +5,19 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.ResourceAction;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.service.ResourceActionLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 
 import java.text.SimpleDateFormat;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -177,6 +183,51 @@ public class AuditSnapshotService {
 
 	private String _preview(String value) {
 		return AuditJsonUtil.truncate(value, 2000);
+	}
+
+	public String snapshotPermission(
+		long roleId, long actionIds, String resourceName) {
+
+		Map<String, Object> values = new LinkedHashMap<>();
+
+		values.put("roleName", _getRoleName(roleId));
+		values.put("permissions", _decodeActionIds(resourceName, actionIds));
+
+		return _sanitizeAndSerialize(values);
+	}
+
+	private List<String> _decodeActionIds(String resourceName, long actionIds) {
+		List<String> actionNames = new ArrayList<>();
+
+		try {
+			List<ResourceAction> resourceActions =
+				ResourceActionLocalServiceUtil.getResourceActions(resourceName);
+
+			for (ResourceAction resourceAction : resourceActions) {
+				if ((actionIds & resourceAction.getBitwiseValue()) != 0) {
+					actionNames.add(resourceAction.getActionId());
+				}
+			}
+		}
+		catch (Exception exception) {
+			actionNames.add(String.valueOf(actionIds));
+		}
+
+		return actionNames;
+	}
+
+	private String _getRoleName(long roleId) {
+		try {
+			Role role = RoleLocalServiceUtil.fetchRole(roleId);
+
+			if (role != null) {
+				return role.getName();
+			}
+		}
+		catch (Exception exception) {
+		}
+
+		return String.valueOf(roleId);
 	}
 
 	private String _sanitizeAndSerialize(Map<String, Object> values) {
