@@ -75,6 +75,32 @@
     loadFolderInfo();
     loadFilterOptions();
     loadData();
+    activateWebContentMenu();
+
+    /* ── Activate Web Content menu item in product sidebar ───── */
+    function activateWebContentMenu() {
+        var tries = 0;
+        function attempt() {
+            var panelId = "_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_site_administration_panel";
+            var panel = document.getElementById(panelId);
+            if (!panel) {
+                if (++tries < 50) { setTimeout(attempt, 100); }
+                return;
+            }
+            var active = panel.querySelector("li.active.nav-item");
+            if (active) { active.classList.remove("active"); }
+            var link = panel.querySelector("a[id$='journal_web_portlet_JournalPortlet']");
+            if (link) {
+                var li = link.closest("li.nav-item");
+                if (li) { li.classList.add("active"); }
+            }
+            var contentToggle = document.querySelector("a[href='#panel-manage-site_administration_content']");
+            if (contentToggle) { contentToggle.classList.remove("collapsed"); }
+            var buildPanel = document.getElementById("panel-manage-site_administration_content");
+            if (buildPanel) { buildPanel.classList.add("show"); }
+        }
+        attempt();
+    }
 
     /* ── URL builder for article edit page ───────────────────── */
     function buildEditUrl(item) {
