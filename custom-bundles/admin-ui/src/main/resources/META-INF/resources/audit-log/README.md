@@ -33,22 +33,31 @@ POST /o/vec-admin/audit-logs/client-event
 - `LayoutAuditServiceWrapper`
 - `FragmentEntryLinkAuditServiceWrapper`
 - `FragmentEntryAuditServiceWrapper`
+- `PortletPreferencesAuditServiceWrapper`
+- `PortalPreferencesAuditServiceWrapper`
 
 ## Enabled listeners
 
 - `JournalArticleAuditModelListener`
 - `LayoutAuditModelListener`
 - `FragmentEntryLinkAuditModelListener`
+- `VecConfigurationAuditModelListener`
+- `LayoutSettingsAuditModelListener`
+- `LayoutSetSettingsAuditModelListener`
+- `GroupSettingsAuditModelListener`
+- `CompanySettingsAuditModelListener`
 
 ## Not fully covered yet
 
 - Direct DB changes
 - Config files loaded before portal startup
 - Runtime changes that bypass Liferay local services
-- Generic configuration listener is scaffolded but not registered globally by default
+- Settings persisted through custom models/services outside `ConfigurationModelListener`, `PortletPreferences`, `PortalPreferences`, `LayoutSet`, `Layout`, `Group`, and `Company`
+- Page-level `Layout` updates can still mix content side effects with pure settings mutations and may need further filtering if production logs are too noisy
 
 ## Notes
 
 - Audit uu tien backend wrapper truoc khi ghi xuong service goc.
 - Sensitive keys nhu `password`, `token`, `secret`, `authorization`, `cookie` duoc mask truoc khi luu.
 - Module nay khong sua source goc Liferay.
+- `ConfigurationModelListener` duoc dang ky voi `model.class.name=*` de audit thay doi trong `System Settings`, `Instance Settings`, va `Site Settings` khi di qua Liferay Configuration Framework.

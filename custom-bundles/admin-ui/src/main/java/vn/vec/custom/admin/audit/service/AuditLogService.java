@@ -52,10 +52,15 @@ public class AuditLogService {
 		}
 
 		try {
+			String sanitizedBeforeData = _sanitize(beforeData);
+			String sanitizedAfterData = _sanitize(afterData);
+
 			_auditLogRepository.updateSuccess(
 				auditLogId, classPK, targetTitle, targetUrl,
-				_sanitize(afterData),
-				_auditDiffService.diffJson(beforeData, afterData), new Date());
+				sanitizedAfterData,
+				_auditDiffService.diffJson(
+					sanitizedBeforeData, sanitizedAfterData),
+				new Date());
 		}
 		catch (Exception exception) {
 			_log.error(
@@ -95,6 +100,17 @@ public class AuditLogService {
 		String className, String classPK, String targetTitle, String targetUrl,
 		String beforeData, ServiceContext serviceContext) {
 
+		return startPending(
+			auditActionType, auditTargetType, className, classPK, targetTitle,
+			targetUrl, beforeData, serviceContext, null, null, null, null);
+	}
+
+	public long startPending(
+		AuditActionType auditActionType, AuditTargetType auditTargetType,
+		String className, String classPK, String targetTitle, String targetUrl,
+		String beforeData, ServiceContext serviceContext, String pid,
+		String factoryPid, String scope, String changedKeys) {
+
 		try {
 			AuditContextService.AuditContext auditContext =
 				_auditContextService.build(serviceContext);
@@ -110,6 +126,10 @@ public class AuditLogService {
 			auditLogEntry.setTargetType(auditTargetType.name());
 			auditLogEntry.setClassName(className);
 			auditLogEntry.setClassPK(classPK);
+			auditLogEntry.setPid(pid);
+			auditLogEntry.setFactoryPid(factoryPid);
+			auditLogEntry.setScope(scope);
+			auditLogEntry.setChangedKeys(_sanitize(changedKeys));
 			auditLogEntry.setTargetTitle(targetTitle);
 			auditLogEntry.setTargetUrl(targetUrl);
 			auditLogEntry.setBeforeData(_sanitize(beforeData));

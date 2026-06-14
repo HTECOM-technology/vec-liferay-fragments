@@ -47,4 +47,21 @@ public class AuditDiffService {
 		return diff(beforeJson, afterJson).toString();
 	}
 
+	public String changedKeysJson(String beforeJson, String afterJson) {
+		Map<String, String> beforeValues = AuditJsonUtil.flatten(beforeJson);
+		Map<String, String> afterValues = AuditJsonUtil.flatten(afterJson);
+		TreeSet<String> keys = AuditJsonUtil.unionKeys(beforeValues, afterValues);
+		JSONArray jsonArray = JSONFactoryUtil.createJSONArray();
+
+		for (String key : keys) {
+			if (Objects.equals(beforeValues.get(key), afterValues.get(key))) {
+				continue;
+			}
+
+			jsonArray.put(key);
+		}
+
+		return jsonArray.toString();
+	}
+
 }

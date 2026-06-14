@@ -359,6 +359,9 @@ public class AuditLogResource {
 		jsonObject.put(
 			"afterData", AuditJsonUtil.toJSONObject(auditLogEntry.getAfterData()));
 		jsonObject.put(
+			"changedKeys",
+			AuditJsonUtil.toJSONArray(auditLogEntry.getChangedKeys()));
+		jsonObject.put(
 			"diffData", AuditJsonUtil.toJSONArray(auditLogEntry.getDiffData()));
 		jsonObject.put(
 			"errorMessage",
@@ -382,6 +385,9 @@ public class AuditLogResource {
 		jsonObject.put("targetType", _value(auditLogEntry.getTargetType()));
 		jsonObject.put("className", _value(auditLogEntry.getClassName()));
 		jsonObject.put("classPK", _value(auditLogEntry.getClassPK()));
+		jsonObject.put("pid", _value(auditLogEntry.getPid()));
+		jsonObject.put("factoryPid", _value(auditLogEntry.getFactoryPid()));
+		jsonObject.put("scope", _value(auditLogEntry.getScope()));
 		jsonObject.put("targetTitle", _value(auditLogEntry.getTargetTitle()));
 		jsonObject.put("targetUrl", _value(auditLogEntry.getTargetUrl()));
 		jsonObject.put("requestUri", _value(auditLogEntry.getRequestUri()));

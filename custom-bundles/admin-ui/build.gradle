@@ -26,8 +26,10 @@ dependencies {
     compileOnly files("${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib/com.liferay.petra.function.jar")
 
     compileOnly group: "javax.ws.rs", name: "javax.ws.rs-api", version: "2.1"
-    compileOnly group: "javax.portlet", name: "portlet-api", version: "3.0.1"
+    compileOnly group: "javax.portlet", name: "portlet-api", version: "2.0"
     compileOnly group: "javax.servlet", name: "javax.servlet-api", version: "3.1.0"
+    compileOnly group: "org.osgi", name: "org.osgi.core", version: "6.0.0"
+    compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 
     // portal.kernel and osgi-annotations already provided via local jars above
     compileOnly fileTree(dir: "${liferayHome}/osgi/modules", include: "com.liferay.portal.editor.configuration.api*.jar")

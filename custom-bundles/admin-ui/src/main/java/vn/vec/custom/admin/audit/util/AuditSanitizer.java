@@ -22,7 +22,7 @@ public class AuditSanitizer {
 			if (trimmed.startsWith("{")) {
 				JSONObject jsonObject = JSONFactoryUtil.createJSONObject(trimmed);
 
-				_sanitizeObject(jsonObject);
+				jsonObject = _sanitizeObject(jsonObject);
 
 				return jsonObject.toString();
 			}
@@ -30,7 +30,7 @@ public class AuditSanitizer {
 			if (trimmed.startsWith("[")) {
 				JSONArray jsonArray = JSONFactoryUtil.createJSONArray(trimmed);
 
-				_sanitizeArray(jsonArray);
+				jsonArray = _sanitizeArray(jsonArray);
 
 				return jsonArray.toString();
 			}
@@ -53,36 +53,53 @@ public class AuditSanitizer {
 		return false;
 	}
 
-	private static void _sanitizeArray(JSONArray jsonArray) {
+	private static JSONArray _sanitizeArray(JSONArray jsonArray) {
+		JSONArray sanitizedArray = JSONFactoryUtil.createJSONArray();
+
 		for (int i = 0; i < jsonArray.length(); i++) {
 			Object value = jsonArray.get(i);
 
 			if (value instanceof JSONObject) {
-				_sanitizeObject((JSONObject)value);
+				sanitizedArray.put(_sanitizeObject((JSONObject)value));
 			}
 			else if (value instanceof JSONArray) {
-				_sanitizeArray((JSONArray)value);
+				sanitizedArray.put(_sanitizeArray((JSONArray)value));
+			}
+			else if ((value != null) && _isSensitiveKey(String.valueOf(value))) {
+				sanitizedArray.put(_MASKED_VALUE);
+			}
+			else {
+				sanitizedArray.put(value);
 			}
 		}
+
+		return sanitizedArray;
 	}
 
-	private static void _sanitizeObject(JSONObject jsonObject) {
+	private static JSONObject _sanitizeObject(JSONObject jsonObject) {
+		JSONObject sanitizedObject = JSONFactoryUtil.createJSONObject();
+
 		for (String key : jsonObject.keySet()) {
 			Object value = jsonObject.get(key);
 
 			if (_isSensitiveKey(key)) {
-				jsonObject.put(key, _MASKED_VALUE);
+				sanitizedObject.put(key, _MASKED_VALUE);
 
 				continue;
 			}
 
 			if (value instanceof JSONObject) {
-				_sanitizeObject((JSONObject)value);
+				sanitizedObject.put(key, _sanitizeObject((JSONObject)value));
 			}
 			else if (value instanceof JSONArray) {
-				_sanitizeArray((JSONArray)value);
+				sanitizedObject.put(key, _sanitizeArray((JSONArray)value));
+			}
+			else {
+				sanitizedObject.put(key, value);
 			}
 		}
+
+		return sanitizedObject;
 	}
 
 	private static final String _MASKED_VALUE = "******MASKED******";

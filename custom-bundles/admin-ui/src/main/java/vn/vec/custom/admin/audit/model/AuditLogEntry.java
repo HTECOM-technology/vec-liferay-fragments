@@ -48,12 +48,24 @@ public class AuditLogEntry {
 		return _errorMessage;
 	}
 
+	public String getFactoryPid() {
+		return _factoryPid;
+	}
+
 	public long getGroupId() {
 		return _groupId;
 	}
 
+	public String getChangedKeys() {
+		return _changedKeys;
+	}
+
 	public String getIpAddress() {
 		return _ipAddress;
+	}
+
+	public String getPid() {
+		return _pid;
 	}
 
 	public String getRequestUri() {
@@ -70,6 +82,10 @@ public class AuditLogEntry {
 
 	public String getStatus() {
 		return _status;
+	}
+
+	public String getScope() {
+		return _scope;
 	}
 
 	public String getTargetTitle() {
@@ -144,12 +160,24 @@ public class AuditLogEntry {
 		_errorMessage = errorMessage;
 	}
 
+	public void setFactoryPid(String factoryPid) {
+		_factoryPid = factoryPid;
+	}
+
 	public void setGroupId(long groupId) {
 		_groupId = groupId;
 	}
 
+	public void setChangedKeys(String changedKeys) {
+		_changedKeys = changedKeys;
+	}
+
 	public void setIpAddress(String ipAddress) {
 		_ipAddress = ipAddress;
+	}
+
+	public void setPid(String pid) {
+		_pid = pid;
 	}
 
 	public void setRequestUri(String requestUri) {
@@ -166,6 +194,10 @@ public class AuditLogEntry {
 
 	public void setStatus(String status) {
 		_status = status;
+	}
+
+	public void setScope(String scope) {
+		_scope = scope;
 	}
 
 	public void setTargetTitle(String targetTitle) {
@@ -205,11 +237,15 @@ public class AuditLogEntry {
 	private long _companyId;
 	private Date _completedDate;
 	private Date _createDate;
+	private String _changedKeys;
 	private String _diffData;
 	private String _errorMessage;
+	private String _factoryPid;
 	private long _groupId;
 	private String _ipAddress;
+	private String _pid;
 	private String _requestUri;
+	private String _scope;
 	private String _sessionId;
 	private String _siteName;
 	private String _status;

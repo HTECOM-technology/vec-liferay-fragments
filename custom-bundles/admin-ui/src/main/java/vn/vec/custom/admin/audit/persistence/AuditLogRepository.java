@@ -69,11 +69,12 @@ public class AuditLogRepository {
 		String sql =
 			"insert into VEC_AUDIT_LOG (" +
 				"auditLogId, companyId, groupId, siteName, userId, userName, " +
-				"userEmail, actionType, targetType, className, classPK, " +
-				"targetTitle, targetUrl, beforeData, afterData, diffData, " +
-				"requestUri, ipAddress, userAgent, sessionId, status, " +
-				"errorMessage, createDate, completedDate" +
-			") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"userEmail, actionType, targetType, className, classPK, pid, " +
+				"factoryPid, scope, changedKeys, targetTitle, targetUrl, " +
+				"beforeData, afterData, diffData, requestUri, ipAddress, " +
+				"userAgent, sessionId, status, errorMessage, createDate, " +
+				"completedDate" +
+			") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection connection = _getConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(
@@ -92,6 +93,10 @@ public class AuditLogRepository {
 			preparedStatement.setString(index++, auditLogEntry.getTargetType());
 			preparedStatement.setString(index++, auditLogEntry.getClassName());
 			preparedStatement.setString(index++, auditLogEntry.getClassPK());
+			preparedStatement.setString(index++, auditLogEntry.getPid());
+			preparedStatement.setString(index++, auditLogEntry.getFactoryPid());
+			preparedStatement.setString(index++, auditLogEntry.getScope());
+			preparedStatement.setString(index++, auditLogEntry.getChangedKeys());
 			preparedStatement.setString(index++, auditLogEntry.getTargetTitle());
 			preparedStatement.setString(index++, auditLogEntry.getTargetUrl());
 			preparedStatement.setString(index++, auditLogEntry.getBeforeData());
@@ -209,6 +214,8 @@ public class AuditLogRepository {
 					"lower(coalesce(targetTitle, '')) like ? or " +
 					"lower(coalesce(userName, '')) like ? or " +
 					"lower(coalesce(userEmail, '')) like ? or " +
+					"lower(coalesce(pid, '')) like ? or " +
+					"lower(coalesce(factoryPid, '')) like ? or " +
 					"lower(coalesce(classPK, '')) like ? or " +
 					"lower(coalesce(requestUri, '')) like ?" +
 				")");
@@ -216,6 +223,8 @@ public class AuditLogRepository {
 			String keyword = "%" + auditLogQuery.getKeyword().trim().toLowerCase() +
 				"%";
 
+			parameters.add(keyword);
+			parameters.add(keyword);
 			parameters.add(keyword);
 			parameters.add(keyword);
 			parameters.add(keyword);
@@ -311,6 +320,10 @@ public class AuditLogRepository {
 		auditLogEntry.setTargetType(resultSet.getString("targetType"));
 		auditLogEntry.setClassName(resultSet.getString("className"));
 		auditLogEntry.setClassPK(resultSet.getString("classPK"));
+		auditLogEntry.setPid(resultSet.getString("pid"));
+		auditLogEntry.setFactoryPid(resultSet.getString("factoryPid"));
+		auditLogEntry.setScope(resultSet.getString("scope"));
+		auditLogEntry.setChangedKeys(resultSet.getString("changedKeys"));
 		auditLogEntry.setTargetTitle(resultSet.getString("targetTitle"));
 		auditLogEntry.setTargetUrl(resultSet.getString("targetUrl"));
 		auditLogEntry.setBeforeData(resultSet.getString("beforeData"));

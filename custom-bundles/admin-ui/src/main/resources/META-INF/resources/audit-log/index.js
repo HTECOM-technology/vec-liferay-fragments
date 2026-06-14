@@ -36,6 +36,7 @@
         FRAGMENT_ENTRY_LINK: "Fragment (trang)",
         FRAGMENT_ENTRY: "Fragment",
         CONFIGURATION: "Cấu hình",
+        SETTING: "Thiết lập",
         DL_FILE_ENTRY: "Tệp tin",
         DL_FOLDER: "Thư mục tệp",
         DDM_STRUCTURE: "Cấu trúc dữ liệu",
@@ -264,11 +265,17 @@
                     chip("Trạng thái", labelStatus(item.status)),
                     chip("Người dùng", item.userName || "Hệ thống"),
                     chip("Thời gian", item.createDate || ""),
-                    chip("Mã định danh", item.classPK || "")
+                    chip("Mã định danh", item.classPK || ""),
+                    chip("PID", item.pid || ""),
+                    chip("Factory PID", item.factoryPid || ""),
+                    chip("Scope", item.scope || "")
                 ].join("");
                 beforeData.textContent = JSON.stringify(item.beforeData || {}, null, 2);
                 afterData.textContent = JSON.stringify(item.afterData || {}, null, 2);
-                diffData.textContent = JSON.stringify(item.diffData || [], null, 2);
+                diffData.textContent = JSON.stringify({
+                    changedKeys: item.changedKeys || [],
+                    diff: item.diffData || []
+                }, null, 2);
             })
             .catch(function (error) {
                 detailTitle.textContent = "Không thể tải dữ liệu";
