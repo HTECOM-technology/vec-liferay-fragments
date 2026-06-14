@@ -295,6 +295,56 @@ function __appendWebContentStatisticsMenu() {
     });
 }
 
+function __appendWebContentAdvancedSearchMenu() {
+    const screenData = __getCurrentLiferayScreen();
+    const ATTR_BUTTON = 'data-vec-advanced-search-button';
+
+    if (screenData.portletId !== 'com_liferay_journal_web_portlet_JournalPortlet') {
+        return;
+    }
+
+    const params = new URLSearchParams();
+    const groupId = screenData.groupId || screenData.portletParams.groupId;
+    const folderId = screenData.portletParams && screenData.portletParams.folderId;
+
+    if (groupId) {
+        params.set('groupId', groupId);
+    }
+
+    if (folderId) {
+        params.set('folderId', folderId);
+    }
+
+    params.set('pageSize', '20');
+    params.set('sortField', 'modifiedDate');
+    params.set('sortOrder', 'desc');
+
+    const href = '/web/guest/web-content-advance-search?' + params.toString();
+
+    waitForElement('[data-qa-id="creationMenuNewButton"]', (button) => {
+        const listItem = button.closest('li');
+        const parentList = listItem ? listItem.parentNode : null;
+
+        if (!listItem || !parentList || parentList.querySelector('[' + ATTR_BUTTON + ']')) {
+            return;
+        }
+
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+
+        li.innerHTML = '' +
+            '<a ' +
+                ATTR_BUTTON + '="1" ' +
+                'href="' + href + '" ' +
+                'rel="noopener noreferrer" ' +
+                'class="btn btn-secondary btn-sm ml-2">' +
+                'Tìm kiếm nâng cao' +
+            '</a>';
+
+        listItem.insertAdjacentElement('beforebegin', li);
+    });
+}
+
 function __appendButtonImportCourtFee() {
     waitForElement('[data-testid="fdsCreationActionButton"]', (buttonCreate) => {
         const parentUl = buttonCreate.closest('ul');
@@ -704,6 +754,7 @@ async function __custom_admin_js() {
     __appendAIChatHistoryAndAuditLogMenu();
     __appendCreateNewPostToLeftMenu();
     __appendWebContentStatisticsMenu();
+    __appendWebContentAdvancedSearchMenu();
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
     __initGlobalFolder();
