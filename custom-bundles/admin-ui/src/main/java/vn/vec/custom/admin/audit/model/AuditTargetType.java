@@ -1,0 +1,19 @@
+package vn.vec.custom.admin.audit.model;
+
+public enum AuditTargetType {
+
+	JOURNAL_ARTICLE,
+	JOURNAL_FOLDER,
+	LAYOUT,
+	FRAGMENT_ENTRY_LINK,
+	FRAGMENT_ENTRY,
+	CONFIGURATION,
+	DL_FILE_ENTRY,
+	DL_FOLDER,
+	DDM_STRUCTURE,
+	DDM_TEMPLATE,
+	ASSET_CATEGORY,
+	ASSET_TAG,
+	UNKNOWN
+
+}

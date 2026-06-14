@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEC Nhật ký kiểm tra</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    <main class="audit-shell">
+        <header class="audit-header">
+            <div>
+                <p class="eyebrow">VEC Admin</p>
+                <h1>Nhật ký kiểm tra</h1>
+                <p class="subtle">
+                    Tra cứu và xem chi tiết các thay đổi trong hệ thống: bài viết, trang, fragment và cấu hình.
+                </p>
+            </div>
+        </header>
+
+        <section class="panel filters-panel">
+            <form id="filterForm" class="filters-grid">
+                <label>
+                    <span>Từ khóa</span>
+                    <input id="keyword" name="keyword" type="text" placeholder="tiêu đề, người dùng, classPK, uri">
+                </label>
+                <label>
+                    <span>Từ ngày</span>
+                    <input id="fromDate" name="fromDate" type="date">
+                </label>
+                <label>
+                    <span>Đến ngày</span>
+                    <input id="toDate" name="toDate" type="date">
+                </label>
+                <label>
+                    <span>Hành động</span>
+                    <select id="actionType" name="actionType">
+                        <option value="">Tất cả</option>
+                        <option value="ADD">Thêm mới</option>
+                        <option value="UPDATE">Cập nhật</option>
+                        <option value="DELETE">Xóa</option>
+                        <option value="MOVE">Di chuyển</option>
+                        <option value="PUBLISH">Xuất bản</option>
+                        <option value="CONFIG_UPDATE">Cập nhật cấu hình</option>
+                        <option value="UNKNOWN">Không xác định</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Đối tượng</span>
+                    <select id="targetType" name="targetType">
+                        <option value="">Tất cả</option>
+                        <option value="JOURNAL_ARTICLE">Bài viết</option>
+                        <option value="JOURNAL_FOLDER">Thư mục bài viết</option>
+                        <option value="LAYOUT">Trang</option>
+                        <option value="FRAGMENT_ENTRY_LINK">Fragment (trang)</option>
+                        <option value="FRAGMENT_ENTRY">Fragment</option>
+                        <option value="CONFIGURATION">Cấu hình</option>
+                        <option value="DL_FILE_ENTRY">Tệp tin</option>
+                        <option value="DL_FOLDER">Thư mục tệp</option>
+                        <option value="DDM_STRUCTURE">Cấu trúc dữ liệu</option>
+                        <option value="DDM_TEMPLATE">Mẫu hiển thị</option>
+                        <option value="ASSET_CATEGORY">Danh mục</option>
+                        <option value="ASSET_TAG">Nhãn</option>
+                        <option value="UNKNOWN">Không xác định</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Trạng thái</span>
+                    <select id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="PENDING">Đang xử lý</option>
+                        <option value="SUCCESS">Thành công</option>
+                        <option value="FAILED">Thất bại</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Người dùng</span>
+                    <div class="ss-wrap" id="userId-wrap">
+                        <input class="ss-input" id="userId-input" type="text" placeholder="Tất cả" autocomplete="off">
+                        <input type="hidden" id="userId" name="userId">
+                        <ul class="ss-list hidden" id="userId-list"></ul>
+                    </div>
+                </label>
+                <label>
+                    <span>Site / Nhóm</span>
+                    <select id="groupId" name="groupId">
+                        <option value="">Đang tải...</option>
+                    </select>
+                </label>
+                <div class="filter-actions">
+                    <button type="submit" class="primary">Tìm kiếm</button>
+                    <button type="button" id="resetFilters">Đặt lại</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="table-meta">
+                <div id="summary">Đang tải...</div>
+                <div id="pager" class="pager"></div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Thời gian</th>
+                            <th>Người dùng</th>
+                            <th>Hành động</th>
+                            <th>Đối tượng</th>
+                            <th>Tiêu đề</th>
+                            <th>Trạng thái</th>
+                            <th>Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="detailModal" class="vec-modal hidden" aria-hidden="true">
+        <div class="vec-modal-backdrop" data-close-modal="true"></div>
+        <section class="vec-modal-card">
+            <header class="vec-modal-header">
+                <div>
+                    <p class="eyebrow">Chi tiết kiểm tra</p>
+                    <h2 id="detailTitle">Bản ghi</h2>
+                </div>
+                <button id="closeModal" type="button" class="close-button">Đóng</button>
+            </header>
+            <div id="detailMeta" class="detail-meta"></div>
+            <article class="detail-card">
+                <h3>Thay đổi</h3>
+                <pre id="diffData"></pre>
+            </article>
+            <div class="detail-grid">
+                <article class="detail-card">
+                    <h3>Trước</h3>
+                    <pre id="beforeData"></pre>
+                </article>
+                <article class="detail-card">
+                    <h3>Sau</h3>
+                    <pre id="afterData"></pre>
+                </article>
+            </div>
+        </section>
+    </div>
+
+    <script src="./index.js"></script>
+</body>
+</html>

@@ -17,15 +17,15 @@
     return parsedUrl.toString();
   }
 
-  function remakeWithCurrentFolderIdAndNewStructId(currentFolderId, newStructId) {
-    const folderId = __fcnw_urlParam.portletParams.folderId;
+  function remakeWithCurrentFolderIdAndNewStructId(data) {
+    const folderId = __fcnw_urlParam.portletParams.folderId || '0';
+    const arrFolderWillReplace = Object.keys(data);
 
-    console.log('folderId', folderId);
-    console.log('currentFolderId', currentFolderId);
-
-    if (folderId !== currentFolderId) {
+    if (!arrFolderWillReplace.includes(folderId)) {
       return;
     }
+
+    const newStructId = data[folderId];
 
     get('[id="clay-dropdown-menu-4"] [href*="JournalPortlet_ddmStructureId=38305"]', (el) => {
       const defaultUrl = el.getAttribute('href');
@@ -70,6 +70,8 @@
   }
 
   // Hình ảnh banner ở trang chủ
-  remakeWithCurrentFolderIdAndNewStructId('102538', '104412');
-  remakeWithCurrentFolderIdAndNewStructId('1316505', '1316584');
+  remakeWithCurrentFolderIdAndNewStructId({
+    '102538': '104412',
+    '38278': '38259',
+  });
 })();

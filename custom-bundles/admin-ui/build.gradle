@@ -31,8 +31,25 @@ dependencies {
 
     // portal.kernel and osgi-annotations already provided via local jars above
     compileOnly fileTree(dir: "${liferayHome}/osgi/modules", include: "com.liferay.portal.editor.configuration.api*.jar")
+    compileOnly fileTree(
+        dir: "${liferayHome}/osgi/modules",
+        include: [
+            "com.liferay.fragment.api*.jar",
+            "com.liferay.journal.api*.jar"
+        ]
+    )
+    compileOnly fileTree(
+        dir: "${liferayHome}/osgi/portal",
+        include: [
+            "com.liferay.fragment.api*.jar",
+            "com.liferay.journal.api*.jar"
+        ]
+    )
+    compileOnly fileTree(
+        dir: "${liferayHome}/osgi/static",
+        include: "com.liferay.portal.configuration.persistence.api*.jar"
+    )
     compileOnly group: "com.liferay", name: "com.liferay.dynamic.data.mapping.api", version: "latest.release"
-    compileOnly group: "com.liferay", name: "com.liferay.journal.api", version: "latest.release"
 }
 
 tasks.named("buildCSS").configure { enabled = false }

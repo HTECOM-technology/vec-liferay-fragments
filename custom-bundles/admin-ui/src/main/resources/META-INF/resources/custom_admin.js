@@ -17,6 +17,41 @@ function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}
     });
 }
 
+function forceSetDisplayPage(assetDisplayPageId) {
+    const fields = {
+        assetDisplayPageId,
+        displayPageType: '2',
+        layoutUuid: '',
+    }
+
+    const ns = '_com_liferay_journal_web_portlet_JournalPortlet_';
+
+    function fireEvents(el) {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.dispatchEvent(new Event('blur', { bubbles: true }));
+    }
+
+    function setAllByName(name, value) {
+        const elements = [...document.querySelectorAll(`[name="${name}"]`)];
+
+        elements.forEach((el) => {
+            el.disabled = false;
+            el.removeAttribute('disabled');
+            el.value = value;
+            el.setAttribute('value', value);
+
+            fireEvents(el);
+        });
+
+        return elements;
+    }
+
+    Object.entries(fields).forEach(([key, value]) => {
+        setAllByName(`${ns}${key}`, value);
+    });
+}
+
 window.waitForElement = waitForElement;
 
 function __getUserRole() {
@@ -149,15 +184,16 @@ function __setDefaultPostTypeInNewPost() {
     }
 }
 
-function __appendAIChatHistoryMenu() {
-    const ATTR = 'data-vec-ai-history';
+function __appendAIChatHistoryAndAuditLogMenu() {
+    const ATTR_AI_CHAT = 'data-vec-ai-history';
+    const ATTR_AUDIT_LOG = 'data-vec-audit-log';
     const roleCanAccess = [
         '31923',
         '20100',
     ];
 
     if (!window.Liferay) {
-        setTimeout(__appendAIChatHistoryMenu, 50);
+        setTimeout(__appendAIChatHistoryAndAuditLogMenu, 50);
         return;
     }
 
@@ -171,17 +207,28 @@ function __appendAIChatHistoryMenu() {
         waitForElement(
             '#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_site_administration_panel',
             (panel) => {
-                if (panel.querySelector('[' + ATTR + ']')) return;
+                if (!panel.querySelector('[' + ATTR_AI_CHAT + ']')) {
+                    const link = document.createElement('a');
+                    link.setAttribute(ATTR_AI_CHAT, '1');
+                    link.className = 'nav-link list-group-heading panel-header collapsed';
+                    link.href = '/o/vec-custom-admin-ui/chat-history.html';
+                    link.target = '_blank';
+                    link.setAttribute('role', 'menuitem');
+                    link.textContent = 'Xem lịch sử AI';
 
-                const link = document.createElement('a');
-                link.setAttribute(ATTR, '1');
-                link.className = 'nav-link list-group-heading panel-header collapsed';
-                link.href = '/o/vec-custom-admin-ui/chat-history.html';
-                link.target = '_blank';
-                link.setAttribute('role', 'menuitem');
-                link.textContent = 'Xem lịch sử AI';
+                    panel.appendChild(link);
+                }
 
-                panel.appendChild(link);
+                if (!panel.querySelector('[' + ATTR_AUDIT_LOG + ']')) {
+                    const link = document.createElement('a');
+                    link.setAttribute(ATTR_AUDIT_LOG, '1');
+                    link.className = 'nav-link list-group-heading panel-header collapsed';
+                    link.href = '/web/guest/audit-log';
+                    link.setAttribute('role', 'menuitem');
+                    link.textContent = 'Nhật ký kiểm tra';
+
+                    panel.appendChild(link);
+                }
             },
             { maxTry: 200, interval: 50 }
         );
@@ -228,8 +275,13 @@ function __appendWebContentStatisticsMenu() {
     }
 
     const token = window.Liferay.authToken || 'IwcBcpOP';
-    const groupId = screenData.groupId || '';
-    const href = `/o/vec-admin/v1.0/webcontent-statistics/export.xlsx?groupId=${encodeURIComponent(groupId)}&status=-1&latestOnly=true&includeRawData=false&p_auth=${encodeURIComponent(token)}`;
+    const groupId = screenData.groupId || screenData.portletParams.groupId || '20117';
+    const folderId = screenData.portletParams?.folderId || null;
+    
+    let href = `/o/vec-admin/v1.0/webcontent-statistics/export.xlsx?groupId=${encodeURIComponent(groupId)}&status=-1&latestOnly=true&includeRawData=false&p_auth=${encodeURIComponent(token)}`;
+    if (!!folderId) {
+        href += `&folderId=${encodeURIComponent(folderId)}`;
+    }
 
     waitForElement('[data-qa-id="creationMenuNewButton"]', (btn) => {
         const liParent = btn.closest('li');
@@ -337,6 +389,53 @@ async function __customizeFormCreatePost() {
     waitForElement('#_com_liferay_journal_web_portlet_JournalPortlet_Aria', (element) => {
         element.innerText = 'Tiêu đề của Metadata';
     });
+
+    const settings = {
+        '719060': {
+            displaySettings: '181404',
+            catId: '67809',
+            catLabel: 'Tin Bộ tài chính',
+            catElId: 'namespace_assetCategoriesSelector_38320',
+        },
+        '1261944': {
+            catId: '1261925',
+            catLabel: 'Thông tin tuyên truyền',
+            catElId: 'namespace_assetCategoriesSelector_38320',
+        }
+    }
+    for (const folderId in settings) {
+        const data = settings[folderId];
+
+        if (data.displaySettings) {
+            forceSetDisplayPage(data.displaySettings);
+        }
+
+        waitForElement(`#${data.catElId}`).then((el) => {
+            const groupEl = el.querySelector('.input-group-item.d-contents');
+            if (groupEl) {
+                groupEl.insertAdjacentHTML('beforeend', `
+                    <span role="row" tabindex="-1" class="label label-secondary">
+                        <span id="clay-id-27-label-${data.catId}-span" role="gridcell" tabindex="-1" class="label-item label-item-expand" style="outline: none;">
+                            ${data.catLabel}
+                        </span>
+                        <span role="gridcell" class="label-item label-item-after">
+                            <button aria-label="Remove ${data.catLabel}" class="close" id="clay-id-27-label-${data.catId}-close" tabindex="-1" type="button">
+                                <svg class="lexicon-icon lexicon-icon-times-small" role="presentation">
+                                    <use href="/o/admin-theme/images/clay/icons.svg#times-small"></use>
+                                </svg>
+                            </button>
+                        </span>
+                    </span>
+                    <input name="_com_liferay_journal_web_portlet_JournalPortlet_assetCategoryIds_38320" type="hidden" value="${data.catId}">
+                `);
+                groupEl.querySelector(`#clay-id-27-label-${data.catId}-close`).addEventListener('click', function () {
+                    const parent = this.closest('[role="row"]');
+                    parent.nextElementSibling.remove();
+                    parent.remove();
+                });
+            }
+        });
+    }
 }
 
 function __hiddenFramentDefaultList() {
@@ -591,7 +690,10 @@ async function __custom_admin_js() {
 
     const screen = __getCurrentLiferayScreen();
 
-    const isPageCreateNewPost = screen.portletId === 'com_liferay_journal_web_portlet_JournalPortlet';
+    const isPageCreateNewPost = screen.shortId === 'JournalPortlet'
+        && screen.portletParams.articleId === undefined
+        && screen.portletParams.mvcRenderCommandName === '/journal/edit_article';
+    
     const isSettingCourtFee = screen.portletId.includes('com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet')
         && screen.groupId === '20117'
         && screen.objectDefinitionId === '42207';
@@ -599,7 +701,7 @@ async function __custom_admin_js() {
     const isUsersAdminPage = screen.portletId === 'com_liferay_users_admin_web_portlet_UsersAdminPortlet';
 
     __redirectToHomepageIfNotCorrectLoginScreen();
-    __appendAIChatHistoryMenu();
+    __appendAIChatHistoryAndAuditLogMenu();
     __appendCreateNewPostToLeftMenu();
     __appendWebContentStatisticsMenu();
     __hiddenFramentDefaultList();
