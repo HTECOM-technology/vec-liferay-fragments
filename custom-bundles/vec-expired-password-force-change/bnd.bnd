@@ -1,0 +1,11 @@
+Bundle-Name: VEC Expired Password Force Change
+Bundle-SymbolicName: vn.vec.custom.admin.password
+Bundle-Version: 1.0.0
+
+-dsannotations-options: inherit
+
+Import-Package: \
+    javax.servlet.*;version="0.0.0",\
+    *
+
+-contract: !JavaServlet
