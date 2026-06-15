@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Network Policy</title>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    <main class="policy-shell">
+        <header class="policy-header">
+            <div>
+                <p class="eyebrow">VEC Security</p>
+                <h1>Admin Network Policy</h1>
+                <p class="subtle">Quản lý whitelist IPv4/IP CIDR được phép truy cập khu vực quản trị.</p>
+            </div>
+        </header>
+
+        <div id="message" class="message hidden"></div>
+
+        <section class="policy-layout">
+            <form id="policyForm" class="panel policy-form">
+                <input id="policyId" type="hidden">
+                <div class="form-title">
+                    <h2 id="formTitle">Thêm policy</h2>
+                    <button id="cancelEdit" type="button" class="secondary hidden">Hủy sửa</button>
+                </div>
+                <label>
+                    <span>Tên policy</span>
+                    <input id="name" type="text" maxlength="255" required>
+                </label>
+                <label>
+                    <span>Địa chỉ mạng</span>
+                    <input id="networkAddress" type="text" placeholder="203.113.10.20 hoặc 192.168.1.0/24" required>
+                </label>
+                <label>
+                    <span>Ưu tiên</span>
+                    <input id="priority" type="number" min="0" max="999999" value="100">
+                </label>
+                <label>
+                    <span>Mô tả</span>
+                    <textarea id="description" maxlength="1000" rows="4"></textarea>
+                </label>
+                <label class="check-row">
+                    <input id="enabled" type="checkbox">
+                    <span>Bật policy</span>
+                </label>
+                <button id="savePolicy" type="submit" class="primary">Lưu policy</button>
+            </form>
+
+            <section class="panel list-panel">
+                <div class="list-toolbar">
+                    <form id="searchForm" class="search-form">
+                        <input id="keyword" type="search" placeholder="Tìm tên, IP/CIDR, mô tả">
+                        <button type="submit" class="secondary">Tìm</button>
+                    </form>
+                    <button id="reloadList" type="button" class="secondary">Tải lại</button>
+                </div>
+                <div class="table-meta">
+                    <div id="summary">Đang tải...</div>
+                    <div id="pager" class="pager"></div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tên</th>
+                                <th>Network</th>
+                                <th>Loại</th>
+                                <th>Trạng thái</th>
+                                <th>Ưu tiên</th>
+                                <th>Cập nhật</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="policyTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="./index.js"></script>
+</body>
+</html>

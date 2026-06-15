@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS VEC_AdminNetworkPolicy (
+  policyId BIGINT NOT NULL,
+  companyId BIGINT NOT NULL DEFAULT 0,
+  name VARCHAR(255) NOT NULL,
+  networkAddress VARCHAR(100) NOT NULL,
+  networkType VARCHAR(20) NOT NULL,
+  enabled TINYINT(1) NOT NULL DEFAULT 0,
+  description VARCHAR(1000) NULL,
+  priority INT NOT NULL DEFAULT 100,
+  createDate DATETIME(6) NULL,
+  modifiedDate DATETIME(6) NULL,
+  userId BIGINT NOT NULL DEFAULT 0,
+  userName VARCHAR(255) NULL,
+  lastModifiedByUserId BIGINT NOT NULL DEFAULT 0,
+  lastModifiedByUserName VARCHAR(255) NULL,
+  PRIMARY KEY (policyId),
+  KEY IX_VEC_ANP_COMPANY_ENABLED (companyId, enabled),
+  KEY IX_VEC_ANP_COMPANY_NETWORK (companyId, networkAddress),
+  KEY IX_VEC_ANP_PRIORITY (companyId, enabled, priority)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

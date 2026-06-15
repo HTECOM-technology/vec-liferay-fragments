@@ -12,6 +12,12 @@ buildscript {
 apply plugin: "com.liferay.plugin"
 
 def liferayHome = System.getenv("LIFERAY_HOME") ?: "/root/vec/bundles"
+def applicationListApiFiles = files(
+    fileTree(dir: "${liferayHome}/osgi/modules", include: "com.liferay.application.list.api*.jar"),
+    fileTree(dir: "${liferayHome}/osgi/portal", include: "com.liferay.application.list.api*.jar"),
+    fileTree(dir: "${liferayHome}/osgi/static", include: "com.liferay.application.list.api*.jar"),
+    fileTree(dir: "${liferayHome}/tools/sdk/dist", include: "com.liferay.application.list.api*.jar")
+)
 
 repositories {
     maven {
@@ -32,6 +38,12 @@ dependencies {
     compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 
     // portal.kernel and osgi-annotations already provided via local jars above
+    if (applicationListApiFiles.files.empty) {
+        compileOnly group: "com.liferay", name: "com.liferay.application.list.api", version: "13.1.3"
+    }
+    else {
+        compileOnly applicationListApiFiles
+    }
     compileOnly fileTree(dir: "${liferayHome}/osgi/modules", include: "com.liferay.portal.editor.configuration.api*.jar")
     compileOnly fileTree(
         dir: "${liferayHome}/osgi/modules",
