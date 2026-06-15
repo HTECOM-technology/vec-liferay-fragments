@@ -68,6 +68,7 @@ def merged_config():
         "config_file": config_file,
         "log_dir": log_dir,
         "log_file_basename": log_file_basename,
+        "backup_history_file_basename": get("BACKUP_HISTORY_FILE_BASENAME", "backup-history.log"),
         "restore_history_file_basename": get("RESTORE_HISTORY_FILE_BASENAME", "restore-history.log"),
         "lock_file": get("LOCK_FILE", "/tmp/liferay-backup.lock"),
         "bundle_dir": get("BUNDLE_DIR"),
@@ -183,6 +184,19 @@ def latest_restore_history():
     }
 
 
+def latest_backup_history():
+    history_file = latest_daily_file(
+        CONFIG["log_dir"],
+        CONFIG["backup_history_file_basename"],
+    )
+    lines = tail_lines(history_file, 20) if history_file else []
+    last = next((line for line in reversed(lines) if line.strip()), "")
+    return {
+        "file": str(history_file) if history_file else "",
+        "last": parse_history_line(last) if last else {},
+    }
+
+
 def lock_status():
     lock_path = Path(CONFIG["lock_file"])
     if not lock_path.exists():
@@ -247,6 +261,7 @@ def collect_status():
         "lock": lock,
         "app": app_health(),
         "action": action,
+        "backup_history": latest_backup_history(),
         "restore_history": latest_restore_history(),
         "log": {
             "file": str(log_file) if log_file else "",
@@ -271,6 +286,7 @@ def render_html(data):
     app_label = "UP" if app.get("up") else "DOWN"
     current = data["action"].get("last_started") or {}
     last_finished = data["action"].get("last_finished") or {}
+    backup_history = data["backup_history"].get("last") or {}
     history = data["restore_history"].get("last") or {}
     log_text = "\n".join(data["log"]["lines"])
 
@@ -312,6 +328,7 @@ def render_html(data):
     <div class="panel"><div class="label">Current action</div><div class="value">{html.escape(current.get("action", "unknown"))}</div></div>
     <div class="panel"><div class="label">Started at</div><div class="value">{html.escape(current.get("started_at", ""))}</div></div>
     <div class="panel"><div class="label">Last finished</div><div class="value">{html.escape(last_finished.get("finished_at", ""))} exit={html.escape(str(last_finished.get("exit_code", "")))}</div></div>
+    <div class="panel"><div class="label">Last backup</div><div class="value">{html.escape(backup_history.get("status", ""))} {html.escape(backup_history.get("finished_at", ""))}</div></div>
     <div class="panel"><div class="label">Last restore</div><div class="value">{html.escape(history.get("status", ""))} {html.escape(history.get("finished_at", ""))}</div></div>
   </section>
   <section class="panel">

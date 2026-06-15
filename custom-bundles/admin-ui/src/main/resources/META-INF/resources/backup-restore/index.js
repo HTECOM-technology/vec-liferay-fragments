@@ -10,6 +10,7 @@ let currentActiveJob = null;
 let selectedWatchJobId = '';
 let defaultLogDate = '';
 let currentDailyLogDate = '';
+let currentBackupHistoryDate = '';
 let currentRestoreHistoryDate = '';
 
 function getAppRoot() {
@@ -169,6 +170,22 @@ function syncDateInput(inputId, value) {
 	}
 }
 
+function formatBackupMode(mode) {
+	switch (String(mode || '').toLowerCase()) {
+		case 'backup đầy đủ':
+		case 'full':
+			return 'Đầy đủ';
+		case 'backup database':
+		case 'database':
+			return 'Chỉ database';
+		case 'backup bundles':
+		case 'bundles':
+			return 'Chỉ bundles';
+		default:
+			return mode || '--';
+	}
+}
+
 function formatRestoreMode(mode) {
 	switch (String(mode || '').toLowerCase()) {
 		case 'bundles+database':
@@ -268,7 +285,7 @@ async function loadJobs(silent, refreshOverviewWhenSettled) {
 		currentActiveJob = activeJob;
 		renderWatchPanel(jobs, activeJob);
 		schedulePolling(jobs);
-		await Promise.all([loadDailyLog(true), loadRestoreHistory(true)]);
+		await Promise.all([loadDailyLog(true), loadBackupHistory(true), loadRestoreHistory(true)]);
 
 		if (refreshOverviewWhenSettled && !hasRunningJobs(jobs)) {
 			await loadOverview(true);
@@ -306,11 +323,13 @@ function renderOverview(data) {
 
 	defaultLogDate = data.defaultLogDate || defaultLogDate || fallbackDateString();
 	currentDailyLogDate = currentDailyLogDate || defaultLogDate;
+	currentBackupHistoryDate = currentBackupHistoryDate || defaultLogDate;
 	currentRestoreHistoryDate = currentRestoreHistoryDate || defaultLogDate;
 	currentJobs = jobs;
 	currentActiveJob = activeJob;
 
 	syncDateInput('dailyLogDate', currentDailyLogDate);
+	syncDateInput('backupHistoryDate', currentBackupHistoryDate);
 	syncDateInput('restoreHistoryDate', currentRestoreHistoryDate);
 
 	document.getElementById('userChip').textContent = auth.screenName
@@ -570,6 +589,63 @@ function renderDailyLog(data) {
 	consoleEl.scrollTop = consoleEl.scrollHeight;
 }
 
+async function loadBackupHistory(silent) {
+	const requestedDate = resolveLogDate(
+		(document.getElementById('backupHistoryDate') || {}).value || currentBackupHistoryDate
+	);
+
+	try {
+		const data = await fetchJson(API + '/backup-history?date=' + encodeURIComponent(requestedDate));
+		currentBackupHistoryDate = data.date || requestedDate;
+		syncDateInput('backupHistoryDate', currentBackupHistoryDate);
+		renderBackupHistory(data);
+	} catch (error) {
+		if (!silent && error.message !== 'UNAUTHORIZED') {
+			renderBackupHistory({
+				date: requestedDate,
+				available: false,
+				items: [],
+				error: error.message
+			});
+		}
+	}
+}
+
+function renderBackupHistory(data) {
+	const tbody = document.getElementById('backupHistoryBody');
+	const items = Array.isArray(data.items) ? data.items : [];
+
+	if (!tbody) {
+		return;
+	}
+
+	if (data.error) {
+		tbody.innerHTML = '<tr><td colspan="7" class="error-box">' + escHtml(data.error) + '</td></tr>';
+		return;
+	}
+
+	if (!items.length) {
+		tbody.innerHTML = '<tr><td colspan="7" class="muted">Empty</td></tr>';
+		return;
+	}
+
+	tbody.innerHTML = items.map((item) => {
+		const status = String(item.status || '').toLowerCase();
+		const tone = status === 'success' ? 'ok' : 'fail';
+
+		return '' +
+			'<tr>' +
+			'<td><strong>' + escHtml(item.backupName || '--') + '</strong></td>' +
+			'<td>' + escHtml(formatBackupMode(item.backupMode)) + '</td>' +
+			'<td>' + escHtml(item.startedAt || '--') + '</td>' +
+			'<td>' + escHtml(item.finishedAt || '--') + '</td>' +
+			'<td>' + escHtml(item.totalSizeLabel || '--') + '</td>' +
+			'<td>' + badge(status || 'unknown', tone) + '</td>' +
+			'<td><code>' + escHtml(item.logFile || '--') + '</code></td>' +
+			'</tr>';
+	}).join('');
+}
+
 async function loadRestoreHistory(silent) {
 	const requestedDate = resolveLogDate(
 		(document.getElementById('restoreHistoryDate') || {}).value || currentRestoreHistoryDate
@@ -716,6 +792,11 @@ document.getElementById('btnReloadDailyLog').addEventListener('click', () => {
 	loadDailyLog(false);
 });
 
+document.getElementById('btnReloadBackupHistory').addEventListener('click', () => {
+	currentBackupHistoryDate = (document.getElementById('backupHistoryDate') || {}).value || currentBackupHistoryDate || defaultLogDate;
+	loadBackupHistory(false);
+});
+
 document.getElementById('btnReloadRestoreHistory').addEventListener('click', () => {
 	currentRestoreHistoryDate = (document.getElementById('restoreHistoryDate') || {}).value || currentRestoreHistoryDate || defaultLogDate;
 	loadRestoreHistory(false);
@@ -724,6 +805,11 @@ document.getElementById('btnReloadRestoreHistory').addEventListener('click', () 
 document.getElementById('dailyLogDate').addEventListener('change', (event) => {
 	currentDailyLogDate = event.target.value || defaultLogDate || fallbackDateString();
 	loadDailyLog(false);
+});
+
+document.getElementById('backupHistoryDate').addEventListener('change', (event) => {
+	currentBackupHistoryDate = event.target.value || defaultLogDate || fallbackDateString();
+	loadBackupHistory(false);
 });
 
 document.getElementById('restoreHistoryDate').addEventListener('change', (event) => {

@@ -71,7 +71,7 @@ fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields #_com_liferay_jo
   display: none !important;
 }
 
-fieldset#categorization {
+/* fieldset#categorization {
   height: 0 !important;
   overflow: hidden !important;
   opacity: 0;
@@ -81,7 +81,7 @@ fieldset#categorization {
 fieldset#categorization.show {
   height: auto !important;
   opacity: 1;
-}
+} */
 
 #portlet_com_liferay_fragment_web_portlet_FragmentPortlet .col-lg-3 {
   opacity: 0;

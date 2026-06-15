@@ -197,6 +197,49 @@ public class BackupAdminResource {
 	}
 
 	@GET
+	@Path("/backup-history")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response backupHistory(
+		@Context HttpServletRequest request, @QueryParam("date") String date) {
+
+		User user = _getSignedInUser(_getSignedInUserId(request));
+
+		if (user == null) {
+			return _unauthorized();
+		}
+
+		if (!_isAdminUser(user)) {
+			return _forbidden("Chỉ user admin mới được xem lịch sử backup.");
+		}
+
+		try {
+			File scriptFile = _resolveScriptFile();
+			Map<String, String> config = _loadConfig(scriptFile);
+			String resolvedDate = _normalizeLogDate(date);
+			File historyFile = _resolveDailyLogFile(
+				config, scriptFile, resolvedDate,
+				_value(
+					config, "BACKUP_HISTORY_FILE_BASENAME",
+					"backup-history.log"),
+				"backup-history.log");
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+
+			result.put("date", resolvedDate);
+			result.put("timeZone", TimeZone.getDefault().getID());
+			result.put("available", historyFile.isFile());
+			result.put("logFile", historyFile.getAbsolutePath());
+			result.put("items", _toBackupHistoryJson(historyFile));
+
+			return _ok(result);
+		}
+		catch (Exception e) {
+			_log.error("Error loading backup history: " + e.getMessage(), e);
+
+			return _serverError();
+		}
+	}
+
+	@GET
 	@Path("/restore-history")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response restoreHistory(
@@ -1155,6 +1198,94 @@ public class BackupAdminResource {
 		return items;
 	}
 
+	private JSONArray _toBackupHistoryJson(File historyFile) {
+		JSONArray items = JSONFactoryUtil.createJSONArray();
+
+		if (historyFile == null || !historyFile.isFile()) {
+			return items;
+		}
+
+		try (BufferedReader reader = new BufferedReader(
+				new InputStreamReader(
+					new FileInputStream(historyFile), StandardCharsets.UTF_8))) {
+
+			List<JSONObject> rows = new ArrayList<>();
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				JSONObject row = _parseBackupHistoryLine(line);
+
+				if (!row.getString("backupName").isEmpty() ||
+					!row.getString("startedAt").isEmpty()) {
+
+					rows.add(0, row);
+				}
+			}
+
+			for (JSONObject row : rows) {
+				items.put(row);
+			}
+		}
+		catch (Exception e) {
+			_log.warn(
+				"Cannot read backup history " + historyFile.getAbsolutePath(), e);
+		}
+
+		return items;
+	}
+
+	private JSONObject _parseBackupHistoryLine(String line) {
+		JSONObject item = JSONFactoryUtil.createJSONObject();
+
+		if (line == null || line.trim().isEmpty()) {
+			return item;
+		}
+
+		String[] parts = line.split("\\|");
+
+		for (String part : parts) {
+			int separatorIndex = part.indexOf('=');
+
+			if (separatorIndex <= 0) {
+				continue;
+			}
+
+			String key = part.substring(0, separatorIndex).trim();
+			String value = part.substring(separatorIndex + 1).trim();
+
+			if ("started_at".equals(key)) {
+				item.put("startedAt", value);
+			}
+			else if ("finished_at".equals(key)) {
+				item.put("finishedAt", value);
+			}
+			else if ("backup_name".equals(key)) {
+				item.put("backupName", value);
+			}
+			else if ("backup_mode".equals(key)) {
+				item.put("backupMode", value);
+			}
+			else if ("status".equals(key)) {
+				item.put("status", value);
+			}
+			else if ("bundle_archive".equals(key)) {
+				item.put("bundleArchive", value);
+			}
+			else if ("sql_archive".equals(key)) {
+				item.put("sqlArchive", value);
+			}
+			else if ("total_size_bytes".equals(key)) {
+				item.put("totalSizeBytes", value);
+				item.put("totalSizeLabel", _humanSize(_parseLong(value)));
+			}
+			else if ("log_file".equals(key)) {
+				item.put("logFile", value);
+			}
+		}
+
+		return item;
+	}
+
 	private JSONObject _parseRestoreHistoryLine(String line) {
 		JSONObject item = JSONFactoryUtil.createJSONObject();
 
@@ -1359,6 +1490,19 @@ public class BackupAdminResource {
 		dateFormat.setTimeZone(TimeZone.getDefault());
 
 		return dateFormat.format(new Date(time));
+	}
+
+	private long _parseLong(String value) {
+		if (value == null || value.trim().isEmpty()) {
+			return 0;
+		}
+
+		try {
+			return Long.parseLong(value.trim());
+		}
+		catch (NumberFormatException numberFormatException) {
+			return 0;
+		}
 	}
 
 	private String _humanSize(long bytes) {

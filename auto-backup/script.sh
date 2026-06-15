@@ -33,6 +33,7 @@ else
   LOG_FILE_BASENAME="${LOG_FILE_BASENAME:-actions.log}"
 fi
 
+BACKUP_HISTORY_FILE_BASENAME="${BACKUP_HISTORY_FILE_BASENAME:-backup-history.log}"
 RESTORE_HISTORY_FILE_BASENAME="${RESTORE_HISTORY_FILE_BASENAME:-restore-history.log}"
 CRON_SCHEDULE="${CRON_SCHEDULE:-30 17 * * *}"
 CRON_TIMEZONE="${CRON_TIMEZONE:-Asia/Ho_Chi_Minh}"
@@ -56,6 +57,15 @@ ACTION_STARTED_AT=""
 ACTION_FINISHED_AT=""
 ACTION_FAILURE_MESSAGE=""
 LOGGING_READY="false"
+BACKUP_HISTORY_FILE=""
+BACKUP_HISTORY_PENDING="false"
+BACKUP_NAME=""
+BACKUP_MODE="unknown"
+BACKUP_STARTED_AT=""
+BACKUP_FINISHED_AT=""
+BACKUP_TOTAL_SIZE_BYTES="0"
+BACKUP_BUNDLE_ARCHIVE=""
+BACKUP_SQL_ARCHIVE=""
 RESTORE_HISTORY_PENDING="false"
 RESTORE_BACKUP_NAME=""
 RESTORE_MODE="unknown"
@@ -113,6 +123,7 @@ prepare_log_files() {
   mkdir -p "$daily_dir"
 
   ACTION_LOG_FILE="${daily_dir}/${LOG_FILE_BASENAME}"
+  BACKUP_HISTORY_FILE="${daily_dir}/${BACKUP_HISTORY_FILE_BASENAME}"
   RESTORE_HISTORY_FILE="${daily_dir}/${RESTORE_HISTORY_FILE_BASENAME}"
   LOG_FILE="$ACTION_LOG_FILE"
 }
@@ -149,6 +160,32 @@ record_restore_history() {
     "started_at=${RESTORE_STARTED_AT:-$ACTION_STARTED_AT}|finished_at=${RESTORE_FINISHED_AT}|backup_name=${RESTORE_BACKUP_NAME:-unknown}|restore_mode=${RESTORE_MODE:-unknown}|status=${status}|log_file=${ACTION_LOG_FILE}"
 
   RESTORE_HISTORY_PENDING="false"
+}
+
+record_backup_history() {
+  local status="$1"
+
+  case "$CURRENT_ACTION" in
+    backup|backup-database|backup-bundles)
+      ;;
+    *)
+      return 0
+      ;;
+  esac
+
+  if [ "$BACKUP_HISTORY_PENDING" != "true" ]; then
+    return 0
+  fi
+
+  if [ -z "$BACKUP_FINISHED_AT" ]; then
+    BACKUP_FINISHED_AT="$(timestamp_now)"
+  fi
+
+  append_file_line \
+    "$BACKUP_HISTORY_FILE" \
+    "started_at=${BACKUP_STARTED_AT:-$ACTION_STARTED_AT}|finished_at=${BACKUP_FINISHED_AT}|backup_name=${BACKUP_NAME:-unknown}|backup_mode=${BACKUP_MODE:-unknown}|status=${status}|bundle_archive=${BACKUP_BUNDLE_ARCHIVE:-}|sql_archive=${BACKUP_SQL_ARCHIVE:-}|total_size_bytes=${BACKUP_TOTAL_SIZE_BYTES:-0}|log_file=${ACTION_LOG_FILE}"
+
+  BACKUP_HISTORY_PENDING="false"
 }
 
 run_blade_server_safe() {
@@ -226,8 +263,10 @@ handle_exit() {
   fi
 
   if [ "$exit_code" -eq 0 ]; then
+    record_backup_history "success"
     record_restore_history "success"
   else
+    record_backup_history "failed"
     record_restore_history "failed"
   fi
 
@@ -613,10 +652,10 @@ create_backup_with_options() {
   local include_database="$1"
   local include_bundles="$2"
   local action_label="$3"
-  local timestamp started_at completed_at bundle_file sql_file manifest_file final_dir bundle_archive_name sql_archive_name
+  local timestamp started_at completed_at bundle_file sql_file manifest_file final_dir bundle_archive_name sql_archive_name final_size_bytes
 
   require_config_vars BACKUP_DIR STOP_SERVICE_DURING_BACKUP MIN_FREE_GB
-  require_commands tar curl find awk date df mktemp sort flock
+  require_commands tar curl find awk date df du mktemp sort flock
 
   if [ "$include_database" != "true" ] && [ "$include_bundles" != "true" ]; then
     error_exit "Phải chọn ít nhất một thành phần để backup."
@@ -639,12 +678,16 @@ create_backup_with_options() {
 
   timestamp="$(timestamp_compact)"
   started_at="$(timestamp_now)"
+  BACKUP_STARTED_AT="$started_at"
+  BACKUP_MODE="$action_label"
+  BACKUP_HISTORY_PENDING="true"
   CURRENT_TMP_DIR="$(mktemp -d "${BACKUP_DIR}/.tmp_liferay_backup_${timestamp}_XXXXXX")"
 
   bundle_file="${CURRENT_TMP_DIR}/bundles_backup_${timestamp}.tar.gz"
   sql_file="${CURRENT_TMP_DIR}/sql_backup_${timestamp}.tar.gz"
   manifest_file="${CURRENT_TMP_DIR}/manifest_${timestamp}.txt"
   final_dir="${BACKUP_DIR}/liferay_backup_${timestamp}"
+  BACKUP_NAME="$(basename "$final_dir")"
   bundle_archive_name=""
   sql_archive_name=""
 
@@ -657,6 +700,7 @@ create_backup_with_options() {
   if [ "$include_database" = "true" ]; then
     create_sql_archive "$sql_file" "$timestamp"
     sql_archive_name="$(basename "$sql_file")"
+    BACKUP_SQL_ARCHIVE="$sql_archive_name"
   else
     rm -f "$sql_file"
   fi
@@ -664,6 +708,7 @@ create_backup_with_options() {
   if [ "$include_bundles" = "true" ]; then
     create_bundle_archive "$bundle_file"
     bundle_archive_name="$(basename "$bundle_file")"
+    BACKUP_BUNDLE_ARCHIVE="$bundle_archive_name"
   else
     rm -f "$bundle_file"
   fi
@@ -673,6 +718,7 @@ create_backup_with_options() {
   fi
 
   completed_at="$(timestamp_now)"
+  BACKUP_FINISHED_AT="$completed_at"
 
   cat > "$manifest_file" <<EOF
 created_at=${timestamp}
@@ -693,6 +739,8 @@ EOF
   info "Đang hoàn tất backup folder: ${final_dir}"
   mv "$CURRENT_TMP_DIR" "$final_dir"
   CURRENT_TMP_DIR=""
+  final_size_bytes="$(du -sb "$final_dir" 2>/dev/null | awk '{print $1}' || printf '0')"
+  BACKUP_TOTAL_SIZE_BYTES="${final_size_bytes:-0}"
   prune_old_backups
 
   info "Backup thành công: $final_dir"

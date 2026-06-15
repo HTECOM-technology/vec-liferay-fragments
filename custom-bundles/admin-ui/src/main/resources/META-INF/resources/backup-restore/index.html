@@ -129,6 +129,42 @@
 
 				<div class="panel span-12">
 					<div class="panel-head">
+						<h2 class="panel-title">Lịch Sử Backup</h2>
+						<p class="panel-desc">Theo dõi các lần backup trong ngày, gồm tên backup, loại backup, thời gian thực hiện, dung lượng và trạng thái kết quả.</p>
+					</div>
+					<div class="panel-body">
+						<div class="toolbar-row">
+							<label class="filter-field" for="backupHistoryDate">
+								<span>Ngày backup</span>
+								<input type="date" id="backupHistoryDate">
+							</label>
+							<div class="btn-row">
+								<button class="btn-secondary" id="btnReloadBackupHistory">Xem lịch sử</button>
+							</div>
+						</div>
+						<div class="table-wrap">
+							<table>
+								<thead>
+									<tr>
+										<th>Backup</th>
+										<th>Loại</th>
+										<th>Bắt đầu</th>
+										<th>Kết thúc</th>
+										<th>Dung lượng</th>
+										<th>Trạng thái</th>
+										<th>Log</th>
+									</tr>
+								</thead>
+								<tbody id="backupHistoryBody">
+									<tr><td colspan="7" class="muted">Đang tải lịch sử backup…</td></tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
 						<h2 class="panel-title">Lịch Sử Restore</h2>
 						<p class="panel-desc">Theo dõi riêng các lần restore trong ngày, gồm file restore, thời gian bắt đầu, thời gian kết thúc và loại dữ liệu đã khôi phục.</p>
 					</div>
