@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Input, Select, Checkbox, DatePicker, Upload } from "antd";
+import { axiosPrivate } from "../../../common/axios";
 import {
     BoldOutlined,
     ItalicOutlined,
@@ -55,11 +56,15 @@ import {
 } from "./constants";
 
 function RequestForm({ activeItem, activeSection }) {
+    const [users, setUsers] = useState([]);
+    const [usersLoading, setUsersLoading] = useState(false);
+
     const [formData, setFormData] = useState({
         process: activeSection || "dich-vu-cntt",
         subProcess: activeItem || "gop-y-cai-tien",
         title: "",
-        handler: "hatv,TriTX",
+        handler: [],         // mảng id user được chọn
+        handlerDetails: [],  // mảng { id, name, email, roles } để submit
         followers: [],
         notifications: ["thong-bao", "tin-nhan"],
         dueDate: null,
@@ -72,6 +77,25 @@ function RequestForm({ activeItem, activeSection }) {
         attachments: [],
         relatedRequest: "",
     });
+
+    // Fetch danh sách user từ Liferay
+    useEffect(() => {
+        const fetchUsers = async () => {
+            setUsersLoading(true);
+            try {
+                const res = await axiosPrivate.get(
+                    "/o/headless-admin-user/v1.0/user-accounts",
+                    { params: { pageSize: 50 } }
+                );
+                setUsers(res.data.items || []);
+            } catch (err) {
+                console.error("Không thể tải danh sách người dùng:", err?.response?.status, err?.response?.data || err.message);
+            } finally {
+                setUsersLoading(false);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         setFormData((prev) => ({
@@ -90,6 +114,22 @@ function RequestForm({ activeItem, activeSection }) {
 
     const handleNotificationChange = (checkedValues) => {
         handleChange("notifications", checkedValues);
+    };
+
+    const handleHandlerChange = (selectedIds) => {
+        const details = users
+            .filter((u) => selectedIds.includes(u.id))
+            .map((u) => ({
+                id: u.id,
+                name: u.name,
+                email: u.emailAddress,
+                roles: u.roleBriefs?.map((r) => r.name) || [],
+            }));
+        setFormData((prev) => ({
+            ...prev,
+            handler: selectedIds,
+            handlerDetails: details,
+        }));
     };
 
     const handleSubmit = () => {
@@ -168,9 +208,22 @@ function RequestForm({ activeItem, activeSection }) {
                             Người xử lý <span className="required">*</span>
                         </span>
                         <div className="form-control">
-                            <Input
+                            <Select
+                                mode="multiple"
+                                placeholder="Chọn người xử lý"
                                 value={formData.handler}
-                                disabled
+                                onChange={handleHandlerChange}
+                                loading={usersLoading}
+                                showSearch
+                                filterOption={(input, option) =>
+                                    option?.label?.toLowerCase().includes(input.toLowerCase())
+                                }
+                                options={users.map((u) => ({
+                                    value: u.id,
+                                    label: u.name,
+                                    emailAddress: u.emailAddress,
+                                }))}
+                                style={{ width: "100%" }}
                             />
                         </div>
                     </FormGroup>
