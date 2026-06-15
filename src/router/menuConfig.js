@@ -63,7 +63,6 @@ export const menuSections = [
     items: [
       { key: paths.tinTucSuKien, label: "Tin tức - Sự kiện", icon: "calendar" },
       { key: paths.bieuMauTaiLieu, label: "Biểu mẫu tài liệu", icon: "books" },
-      { key: paths.soTayNhanVien, label: "Sổ tay nhân viên", icon: "document" },
       { key: paths.khaoSatBieuQuyet, label: "Khảo sát nội bộ", icon: "rank" },
       { key: paths.quyTrinhHoTro, label: "Yêu cầu hỗ trợ", icon: "letter" },
       { key: "logout", label: "Đăng xuất", icon: "logout" },
