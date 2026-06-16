@@ -235,6 +235,42 @@ function __appendAIChatHistoryAndAuditLogMenu() {
     });
 }
 
+function __appendOnlyAdminMenu() {
+    const roleCanAccess = [
+        '20100', // admin role id
+    ];
+
+    if (!window.Liferay) {
+        return;
+    }
+
+    const userId = window.Liferay.ThemeDisplay.getUserId();
+    window.Liferay.Service('/role/get-user-roles', { userId }, (roles) => {
+        const isAllowed = roles.some(r => roleCanAccess.includes(r.roleId));
+        if (!isAllowed) {
+            return;
+        }
+
+        waitForElement(
+            '[aria-labelledby="panel-manage-site_administration_configuration-link"]',
+            (panel) => {
+                const ATTR_MODULE_MANAGER = 'data-vec-module-manager';
+                if (!panel.querySelector('[' + ATTR_MODULE_MANAGER + ']')) {
+                    const html = `
+                    <li class=" nav-item" role="presentation">
+                        <a data-vec-module-manager="1" id="data-vec-module-manager" class="nav-link" href="/web/guest/module-manager" role="menuitem" tabindex="-1">
+                            Quản lý module hệ thống
+                        </a>
+                    </li>`;
+
+                    panel.insertAdjacentHTML('beforeend', html);
+                }
+            },
+            { maxTry: 200, interval: 50 }
+        );
+    });
+}
+
 async function __appendCreateNewPostToLeftMenu() {
     const userRole = await __getUserRole();
     const roleCanAccess = [
@@ -752,6 +788,7 @@ async function __custom_admin_js() {
     const isUsersAdminPage = screen.portletId === 'com_liferay_users_admin_web_portlet_UsersAdminPortlet';
 
     __redirectToHomepageIfNotCorrectLoginScreen();
+    __appendOnlyAdminMenu();
     __appendAIChatHistoryAndAuditLogMenu();
     __appendCreateNewPostToLeftMenu();
     __appendWebContentStatisticsMenu();
