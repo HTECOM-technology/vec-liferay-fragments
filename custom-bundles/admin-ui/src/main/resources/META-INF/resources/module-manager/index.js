@@ -58,6 +58,7 @@
 
     loadModules();
     activateWebContentMenu();
+    requestAnimationFrame(() => window.__initTableScroll());
 
     function activateWebContentMenu() {
         var tries = 0;
