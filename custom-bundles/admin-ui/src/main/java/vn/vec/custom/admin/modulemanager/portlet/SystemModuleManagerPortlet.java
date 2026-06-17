@@ -57,14 +57,13 @@ public class SystemModuleManagerPortlet extends GenericPortlet {
 		}
 
 		String authToken = AuthTokenUtil.getToken(httpServletRequest);
-		String iframeSrc =
-			"/o/vec-custom-admin-ui/module-manager/index.html?p_auth=" +
-				URLCodec.encodeURL(authToken);
+		String targetSrc = "/web/guest/module-manager";
 
 		writer.write(
-			"<iframe title=\"System Module Manager\" " +
-				"src=\"" + iframeSrc + "\" " +
-				"style=\"border:0;width:100%;min-height:820px;\"></iframe>");
+			"<script>" +
+			"window.location.replace('" + targetSrc + "?p_auth=" + URLCodec.encodeURL(authToken) + "');" +
+			"</script>"
+		);
 	}
 
 	@Reference
