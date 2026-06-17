@@ -163,6 +163,48 @@ public class AuditLogResource {
 		return _cors(Response.ok()).build();
 	}
 
+	/**
+	 * Diagnostic endpoint: returns the HTTP status passed via {@code error_code}
+	 * so the {@code HttpErrorAuditFilter} can be exercised. Only audited status
+	 * codes (5xx, 401, 403, 429) produce an audit log entry.
+	 *
+	 * <p>Example: {@code GET /o/vec-admin/audit-logs/test-error?error_code=500}</p>
+	 */
+	@GET
+	@Path("/test-error")
+	public Response testError(
+		@Context HttpServletRequest httpServletRequest,
+		@QueryParam("error_code") @DefaultValue("500") int errorCode) {
+
+		User user = _getSignedInUser(_getSignedInUserId(httpServletRequest));
+
+		if (user == null) {
+			return _unauthorized();
+		}
+
+		if (!_isAdminUser(user)) {
+			return _forbidden("Only administrators can trigger test errors.");
+		}
+
+		if ((errorCode < 400) || (errorCode > 599)) {
+			return _jsonError(
+				Response.Status.BAD_REQUEST,
+				"error_code must be between 400 and 599.");
+		}
+
+		// Return the exact requested status so any 4xx/5xx code can be tested
+		// deterministically (a thrown exception would always collapse to 500).
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		jsonObject.put("message", "VEC audit test error");
+		jsonObject.put("status", errorCode);
+
+		return _cors(
+			Response.status(errorCode).entity(jsonObject.toString())
+		).build();
+	}
+
 	@POST
 	@Path("/client-event")
 	public Response postClientEvent(

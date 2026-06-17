@@ -15,6 +15,7 @@ public enum AuditTargetType {
 	DDM_TEMPLATE,
 	ASSET_CATEGORY,
 	ASSET_TAG,
+	HTTP_REQUEST,
 	UNKNOWN
 
 }

@@ -9,6 +9,7 @@ public enum AuditActionType {
 	PUBLISH,
 	CONFIG_UPDATE,
 	PERMISSION_UPDATE,
+	HTTP_ERROR,
 	UNKNOWN
 
 }

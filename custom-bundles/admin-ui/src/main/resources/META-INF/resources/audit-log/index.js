@@ -26,6 +26,7 @@
         PUBLISH: "Xuất bản",
         CONFIG_UPDATE: "Cập nhật cấu hình",
         PERMISSION_UPDATE: "Cập nhật quyền",
+        HTTP_ERROR: "Lỗi HTTP",
         UNKNOWN: "Không xác định"
     };
 
@@ -43,6 +44,7 @@
         DDM_TEMPLATE: "Mẫu hiển thị",
         ASSET_CATEGORY: "Danh mục",
         ASSET_TAG: "Nhãn",
+        HTTP_REQUEST: "Yêu cầu HTTP",
         UNKNOWN: "Không xác định"
     };
 

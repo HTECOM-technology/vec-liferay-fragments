@@ -72,6 +72,46 @@ public class AuditLogService {
 		return _auditLogRepository.count(auditLogQuery);
 	}
 
+	public void logHttpError(
+		int statusCode, String method, String requestPath, Throwable throwable,
+		ServiceContext serviceContext) {
+
+		try {
+			AuditContextService.AuditContext auditContext =
+				_auditContextService.build(serviceContext);
+			AuditLogEntry auditLogEntry = new AuditLogEntry();
+
+			auditLogEntry.setCompanyId(auditContext.getCompanyId());
+			auditLogEntry.setGroupId(auditContext.getGroupId());
+			auditLogEntry.setSiteName(auditContext.getSiteName());
+			auditLogEntry.setUserId(auditContext.getUserId());
+			auditLogEntry.setUserName(auditContext.getUserName());
+			auditLogEntry.setUserEmail(auditContext.getUserEmail());
+			auditLogEntry.setActionType(AuditActionType.HTTP_ERROR.name());
+			auditLogEntry.setTargetType(AuditTargetType.HTTP_REQUEST.name());
+			auditLogEntry.setClassName("HttpRequest");
+			auditLogEntry.setClassPK(String.valueOf(statusCode));
+			auditLogEntry.setTargetTitle(
+				AuditJsonUtil.truncate(
+					"HTTP " + statusCode + " " + method + " " + requestPath, 255));
+			auditLogEntry.setTargetUrl(null);
+			auditLogEntry.setRequestUri(auditContext.getRequestUri());
+			auditLogEntry.setIpAddress(auditContext.getIpAddress());
+			auditLogEntry.setUserAgent(auditContext.getUserAgent());
+			auditLogEntry.setSessionId(auditContext.getSessionId());
+			auditLogEntry.setStatus(AuditStatus.FAILED.name());
+			auditLogEntry.setErrorMessage(
+				_toHttpErrorMessage(statusCode, method, requestPath, throwable));
+			auditLogEntry.setCreateDate(new Date());
+			auditLogEntry.setCompletedDate(new Date());
+
+			_auditLogRepository.insertPending(auditLogEntry);
+		}
+		catch (Exception exception) {
+			_log.error("Unable to insert HTTP error audit log", exception);
+		}
+	}
+
 	public AuditLogEntry findById(long auditLogId) throws Exception {
 		return _auditLogRepository.findById(auditLogId);
 	}
@@ -168,6 +208,21 @@ public class AuditLogService {
 		catch (Exception exception) {
 			return throwable.toString();
 		}
+	}
+
+	private String _toHttpErrorMessage(
+		int statusCode, String method, String requestPath, Throwable throwable) {
+
+		String detail =
+			"HTTP status " + statusCode + " on " + method + " " + requestPath;
+
+		String stackTrace = _toErrorMessage(throwable);
+
+		if (stackTrace == null) {
+			return AuditJsonUtil.truncate(detail, 8000);
+		}
+
+		return AuditJsonUtil.truncate(detail + "\n\n" + stackTrace, 8000);
 	}
 
 	private String _sanitize(String value) {
