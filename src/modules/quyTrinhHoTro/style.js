@@ -445,8 +445,8 @@ export const MyRequestsFilter = styled.div`
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 8px;
+    padding: 10px 16px;
     border-bottom: 1px solid rgba(229, 231, 235, 1);
     background: #fafafa;
 
@@ -458,18 +458,28 @@ export const MyRequestsFilter = styled.div`
     }
 
     .ant-select-selector {
-        height: 32px !important;
+        height: 36px !important;
         border-radius: 4px !important;
 
         .ant-select-selection-item {
-            line-height: 30px !important;
+            line-height: 34px !important;
             font-size: 13px;
         }
     }
 
     .ant-picker {
-        height: 32px;
+        height: 36px;
         border-radius: 4px;
+    }
+
+    .ant-input-affix-wrapper {
+        height: 36px !important;
+        border-radius: 4px !important;
+        font-size: 13px;
+
+        .ant-input {
+            font-size: 13px;
+        }
     }
 `;
 
@@ -487,16 +497,17 @@ export const FilterGroup = styled.div`
 export const ResetFilterBtn = styled.button`
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 12px;
+    justify-content: center;
+    padding: 0;
+    width: 36px;
+    height: 36px;
     border: 1px solid #d9d9d9;
     border-radius: 4px;
     background: #fff;
     color: #666;
-    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    height: 32px;
+    flex-shrink: 0;
 
     &:hover {
         border-color: rgba(0, 144, 207, 1);
