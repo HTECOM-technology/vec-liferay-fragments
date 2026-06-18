@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0" xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://liferay.com"
+	xmlns:xsi="http://w3.org">
+	<name>Single Approver V2</name>
+	<description>Quy trình có bước xác nhận trung gian và màu sắc sơ đồ.</description>
+	<version>6</version>
+	<state>
+		<name>created</name>
+		<metadata>
+			<![CDATA[{"xy": [100, 50]}
+]]>
+		</metadata>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>Gửi duyệt</name>
+				<target>Đang chờ phê duyệt (Review)</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<task>
+		<name>Đang chờ phê duyệt (Review)</name>
+		<metadata>
+			<![CDATA[{"xy": [100, 200]}
+]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>set-pending-status</name>
+				<status>1</status>
+				<execution-type>onAssignment</execution-type>
+			</action>
+		</actions>
+		<assignments>
+			<user></user>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Chấp thuận (Approve)</name>
+				<target>Nội dung đã được duyệt - Chờ xuất bản</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Từ chối (Reject)</name>
+				<target>Yêu cầu chỉnh sửa (Đã từ chối)</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Nội dung đã được duyệt - Chờ xuất bản</name>
+		<metadata>
+			<![CDATA[{"xy": [400, 200]}
+]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>set-approved-visual</name>
+				<status>0</status>
+				<execution-type>onAssignment</execution-type>
+			</action>
+		</actions>
+		<assignments>
+			<user></user>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Hoàn tất xuất bản</name>
+				<target>approved-state</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Yêu cầu chỉnh sửa (Đã từ chối)</name>
+		<metadata>
+			<![CDATA[{"xy": [100, 400]}
+]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>set-denied-status</name>
+				<status>4</status>
+				<execution-type>onAssignment</execution-type>
+			</action>
+		</actions>
+		<assignments>
+			<user></user>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Gửi lại bài</name>
+				<target>Đang chờ phê duyệt (Review)</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<state>
+		<name>approved-state</name>
+		<metadata>
+			<![CDATA[{"terminal": true, "xy": [700, 200]}
+]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>final-approve</name>
+				<status>0</status>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+	</state>
+</workflow-definition>

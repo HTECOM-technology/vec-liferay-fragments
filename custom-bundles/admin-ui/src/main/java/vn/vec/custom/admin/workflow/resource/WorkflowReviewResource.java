@@ -3,13 +3,17 @@ package vn.vec.custom.admin.workflow.resource;
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.journal.model.JournalArticle;
+import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -38,6 +42,7 @@ import javax.ws.rs.core.Response;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
+import vn.vec.custom.admin.webcontent.advancedsearch.WebContentAdvancedSearchUtil;
 import vn.vec.custom.admin.workflow.model.WorkflowReviewItem;
 import vn.vec.custom.admin.workflow.model.WorkflowReviewQuery;
 import vn.vec.custom.admin.workflow.service.WorkflowReviewService;
@@ -350,14 +355,45 @@ public class WorkflowReviewResource {
 		HttpServletRequest httpServletRequest, WorkflowReviewItem item) {
 
 		String parentClassName = item.getParentClassName();
+		long parentClassPK = item.getParentClassPK();
 
-		if (Validator.isNull(parentClassName) ||
-			(item.getParentClassPK() <= 0)) {
-
+		if (Validator.isNull(parentClassName) || (parentClassPK <= 0)) {
 			return null;
 		}
 
 		try {
+			// Bình luận trên Web Content: dựng link control-panel tới bài viết
+			// (không phụ thuộc ThemeDisplay nên ổn định trên REST).
+			if ("com.liferay.journal.model.JournalArticle".equals(
+					parentClassName)) {
+
+				JournalArticle article =
+					JournalArticleLocalServiceUtil.fetchLatestArticle(
+						parentClassPK);
+
+				if (article == null) {
+					article =
+						JournalArticleLocalServiceUtil.fetchJournalArticle(
+							parentClassPK);
+				}
+
+				if (article == null) {
+					return null;
+				}
+
+				Group group = GroupLocalServiceUtil.fetchGroup(
+					article.getGroupId());
+
+				if (group == null) {
+					return null;
+				}
+
+				return WebContentAdvancedSearchUtil.buildEditUrl(
+					httpServletRequest, group, article.getArticleId(),
+					article.getGroupId(), article.getVersion());
+			}
+
+			// Các loại asset khác: dùng AssetRenderer nếu có ThemeDisplay.
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)httpServletRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
@@ -375,7 +411,7 @@ public class WorkflowReviewResource {
 			}
 
 			AssetRenderer<?> assetRenderer =
-				assetRendererFactory.getAssetRenderer(item.getParentClassPK());
+				assetRendererFactory.getAssetRenderer(parentClassPK);
 
 			if (assetRenderer == null) {
 				return null;
