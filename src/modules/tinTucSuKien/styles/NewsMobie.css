@@ -4,7 +4,8 @@ TABLET
 
 @media (max-width:1024px) {
 
-    .news-layout {
+    .news-layout,
+    .news-layout.ttsk {
         flex-direction: column;
         gap: 24px;
     }
@@ -13,7 +14,8 @@ TABLET
         max-width: 100%;
     }
 
-    .news-sidebar {
+    .news-sidebar,
+    .news-sidebar.ttsk {
         width: 100%;
     }
 
@@ -35,7 +37,7 @@ TABLET
 
     /* NEWS IMAGE */
 
-    .news-image {
+    .news-image:not(.ttsk) {
         width: 180px;
         height: 120px;
     }
@@ -49,7 +51,8 @@ MOBILE
 
 @media (max-width:768px) {
 
-    .news-layout {
+    .news-layout,
+    .news-layout.ttsk {
         flex-direction: column;
         gap: 24px;
     }
@@ -58,7 +61,8 @@ MOBILE
         max-width: 100%;
     }
 
-    .news-sidebar {
+    .news-sidebar,
+    .news-sidebar.ttsk {
         width: 100%;
     }
 
@@ -85,15 +89,16 @@ MOBILE
 
     /* NEWS ITEM */
 
-    .news-item {
+    .news-item,
+    .news-item.ttsk {
         display: flex;
         align-items: flex-start;
         gap: 12px;
-        padding: 14px 0;
-        justify-content: flex-start;
+        padding: 12px 0;
     }
 
-    .news-left {
+    .news-left,
+    .news-left.ttsk {
         flex: 1;
         min-width: 0;
     }
@@ -103,13 +108,24 @@ MOBILE
         line-height: 1.4;
     }
 
-    .news-desc {
+    .news-title.ttsk {
+        font-size: 15px;
+        line-height: 1.4;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .news-desc,
+    .news-desc.ttsk {
         display: none;
     }
 
     /* IMAGE */
 
-    .news-image {
+    .news-image:not(.ttsk) {
         width: 120px;
         height: 90px;
         flex-shrink: 0;
@@ -118,7 +134,8 @@ MOBILE
 
     /* META */
 
-    .news-meta {
+    .news-meta,
+    .news-meta.ttsk {
         flex-wrap: wrap;
         gap: 4px;
     }
@@ -127,10 +144,24 @@ MOBILE
         font-size: 13px;
     }
 
+    .news-category.ttsk,
+    .news-date.ttsk {
+        font-size: 12px;
+    }
+
+    .news-dot.ttsk {
+        width: 4px;
+        height: 4px;
+    }
+
     /* HEADER */
 
     .news-section-title {
         font-size: 18px;
+    }
+
+    .news-section-title.ttsk {
+        font-size: 16px;
     }
 
     /* SIDEBAR */
@@ -150,6 +181,12 @@ MOBILE
 
     .vec-weekly-item__title {
         font-size: 14px;
+    }
+
+    /* DETAIL PAGE */
+
+    .article-title {
+        font-size: 18px;
     }
 
 }
@@ -174,11 +211,15 @@ SMALL MOBILE
         font-size: 14px;
     }
 
+    .news-title.ttsk {
+        font-size: 14px;
+    }
+
     .news-meta span {
         font-size: 12px;
     }
 
-    .news-image {
+    .news-image:not(.ttsk) {
         width: 110px;
         height: 80px;
     }

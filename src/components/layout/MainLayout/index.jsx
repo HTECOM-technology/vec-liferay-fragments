@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme, message } from "antd";
-import { StyledLayout, StyledInnerLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
+import { StyledLayout, StyledInnerLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, StyledBottomSheet, BottomSheetHandle, BottomSheetItem, BottomSheetLogout, WrapSubHeader } from "./style";
 import LeftMenu from "./components/LeftMenu";
 import HrmNotificationsModal from "./components/HrmNotificationsModal";
 import { menuSections } from "../../../router/menuConfig";
@@ -47,6 +47,7 @@ const LinkItem = styled.div`
   }
 `;
 
+
 function isHrmNotification(item) {
   const groupCode = String(
     item?.group_code ??
@@ -66,6 +67,7 @@ function isHrmNotification(item) {
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [notifyPopoverOpen, setNotifyPopoverOpen] = useState(false);
   const [hrmNotificationCount, setHrmNotificationCount] = useState(0);
@@ -369,9 +371,42 @@ function MainLayout() {
         </StyledContent>
         <StyledFooter>© 2026. Bản quyền thuộc về VEC</StyledFooter>
       </StyledInnerLayout>
-      <StyledDrawer width={"90vw"} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
-        <LeftMenu collapsed={false} setShowDrawer={setShowDrawer} isMobile={true} showDrawer={showDrawer} />
+      <StyledDrawer width={300} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
+        <LeftMenu
+          collapsed={false}
+          setShowDrawer={setShowDrawer}
+          isMobile={true}
+          showDrawer={showDrawer}
+          userName={userName}
+          userEmail={userEmail}
+          userInitials={userInitials}
+          onAccountClick={() => setBottomSheetOpen(true)}
+        />
       </StyledDrawer>
+
+      <StyledBottomSheet
+        placement="bottom"
+        open={bottomSheetOpen}
+        onClose={() => setBottomSheetOpen(false)}
+        height="auto"
+      >
+        <BottomSheetHandle />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 16, borderBottom: "1px solid #f0f0f0", marginBottom: 8 }}>
+          <Avatar style={{ background: "#0090CF" }} size={44}>
+            {userInitials || "JD"}
+          </Avatar>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{userName || "VEC Account"}</div>
+            <div style={{ color: "#888", fontSize: 13 }}>{userEmail || "vec.account@gmail.com"}</div>
+          </div>
+        </div>
+        <BottomSheetItem onClick={() => { setBottomSheetOpen(false); window.location.href = "/web/guest/trangchu"; }}>
+          Quản trị hệ thống
+        </BottomSheetItem>
+        <BottomSheetLogout onClick={() => { setBottomSheetOpen(false); handleLogout(); }}>
+          Đăng xuất
+        </BottomSheetLogout>
+      </StyledBottomSheet>
       <HrmNotificationsModal
         open={hrmModalOpen}
         notifications={hrmNotifications}

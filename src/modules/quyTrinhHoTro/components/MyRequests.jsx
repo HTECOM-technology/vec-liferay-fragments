@@ -250,7 +250,7 @@ function MyRequests() {
                     />
                 </FilterGroup>
 
-                <FilterGroup $flex={1}>
+                <FilterGroup $flex={1} className="range-filter-group">
                     <span className="filter-label">Ngày tạo:</span>
                     <RangePicker
                         size="small"
@@ -284,6 +284,7 @@ function MyRequests() {
                     locale={{ emptyText: "Không có yêu cầu nào" }}
                     rowClassName={(_, idx) => (idx % 2 === 0 ? "" : "table-row-alt")}
                     style={{ fontSize: 13 }}
+                    scroll={{ x: "max-content" }}
                 />
 
                 <TablePaginationWrap>

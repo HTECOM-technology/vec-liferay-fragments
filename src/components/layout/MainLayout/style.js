@@ -86,7 +86,7 @@ export const StyledLeftMenu = styled.div`
   }
 
   @media (max-width: 768px) {
-    padding: 26px 14px;
+    padding: 0;
   }
 `;
 
@@ -214,12 +214,85 @@ export const StyledDrawer = styled(Drawer)`
   .ant-drawer-body {
     padding: 0;
   }
-  .ant-drawer-content-wrapper {
-    width: 300px !important;
-  }
   .ant-drawer-content {
     background: linear-gradient(180deg, #e5f7ff 0%, #88cdeb 258.57%);
   }
+`;
+
+export const DrawerHeader = styled.div`
+  position: relative;
+  background: rgba(0, 144, 207, 0.12);
+  border-bottom: 1px solid rgba(0, 144, 207, 0.2);
+  padding: 14px 48px 14px 14px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(0, 144, 207, 0.18);
+  }
+`;
+
+export const DrawerCloseBtn = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.15);
+  }
+`;
+
+export const StyledBottomSheet = styled(Drawer)`
+  .ant-drawer-content {
+    border-radius: 16px 16px 0 0;
+  }
+  .ant-drawer-header {
+    display: none;
+  }
+  .ant-drawer-body {
+    padding: 20px 16px 32px;
+  }
+`;
+
+export const BottomSheetHandle = styled.div`
+  width: 36px;
+  height: 4px;
+  background: #d9d9d9;
+  border-radius: 2px;
+  margin: 0 auto 16px;
+`;
+
+export const BottomSheetItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 14px 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #222;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+`;
+
+export const BottomSheetLogout = styled(BottomSheetItem)`
+  color: #e31c2a;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 4px;
 `;
 
 export const StyledBtnVEC = styled(Button)`

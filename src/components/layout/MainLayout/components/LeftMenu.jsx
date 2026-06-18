@@ -1,23 +1,37 @@
 import React from "react";
 import { Avatar, Flex } from "antd";
-import { StyledBgMenu, StyledBtnVEC, StyledLeftMenu } from "../style";
+import { CloseOutlined, RightOutlined } from "@ant-design/icons";
+import { StyledBgMenu, StyledBtnVEC, StyledLeftMenu, DrawerHeader, DrawerCloseBtn } from "../style";
 import bgMenu from "../../../../assets/layout/bg-menu.png";
 import logo from "../../../../assets/layout/logo.png";
 import Menu from "./Menu";
 
-const LeftMenu = ({ collapsed, isMobile, showDrawer, setShowDrawer }) => {
+const LeftMenu = ({ collapsed, isMobile, showDrawer, setShowDrawer, userName, userEmail, userInitials, onAccountClick }) => {
   return (
     <StyledLeftMenu>
       {isMobile ? (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 8px", border: "1px solid #0090CF33", borderRadius: 6, marginRight: 21, background: "#FFFFFF" }}>
-          <Avatar style={{ background: "#0090CF" }} size={40}>
-            JD
-          </Avatar>
-          <div style={{ lineHeight: "16px" }}>
-            <b>VEC Account</b> <br />
-            vec.account@gmail.com
+        <DrawerHeader onClick={onAccountClick}>
+          <DrawerCloseBtn
+            onClick={(e) => { e.stopPropagation(); setShowDrawer(false); }}
+            aria-label="Đóng menu"
+          >
+            <CloseOutlined style={{ fontSize: 13 }} />
+          </DrawerCloseBtn>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Avatar style={{ background: "#0090CF" }} size={44}>
+              {userInitials || "JD"}
+            </Avatar>
+            <div style={{ flex: 1, minWidth: 0, lineHeight: "20px" }}>
+              <b style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#1a1a1a" }}>
+                {userName || "VEC Account"}
+              </b>
+              <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 12, color: "rgba(0,0,0,0.45)" }}>
+                {userEmail || "vec.account@gmail.com"}
+              </span>
+            </div>
+            <RightOutlined style={{ fontSize: 11, color: "#bbb", flexShrink: 0 }} />
           </div>
-        </div>
+        </DrawerHeader>
       ) : (
         <Flex vertical={false}>
           <img src={logo} alt="logo" className="logo" />

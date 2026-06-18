@@ -94,6 +94,19 @@
 }
 
 /* =========================
+   TABLET
+========================= */
+
+@media (max-width:1024px) {
+
+    .related-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+}
+
+/* =========================
    MOBILE SLIDER
 ========================= */
 
@@ -121,14 +134,14 @@
     /* mỗi card full width */
 
     .related-card {
-        min-width: 100%;
+        min-width: 75%;
         scroll-snap-align: start;
     }
 
     /* ảnh to hơn cho mobile */
 
     .related-card-image {
-        height: 200px;
+        height: 180px;
     }
 
 }

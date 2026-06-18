@@ -8,12 +8,20 @@ export const Container = styled.div`
   justify-content: center;
   align-items: flex-start;
   padding: 20px;
+
+  @media (max-width: 767px) {
+    padding: 8px;
+  }
 `;
 
 export const TabSelect = styled.div`
   display: flex;
   padding: 10px 15px;
   gap: 3px;
+
+  @media (max-width: 767px) {
+    padding: 8px;
+  }
 `;
 
 export const TabContainer = styled.div`
@@ -55,6 +63,11 @@ export const Title = styled.h2`
   font-weight: 600;
   color: #1e1e1e;
   white-space: nowrap;
+
+  @media (max-width: 767px) {
+    font-size: 15px;
+    white-space: normal;
+  }
 `;
 
 export const Filters = styled.div`
@@ -88,6 +101,11 @@ export const ContentTable = styled.div`
     grid-template-rows: auto auto;
     height: auto;
   }
+
+  @media (max-width: 767px) {
+    padding: 8px;
+    gap: 8px;
+  }
 `;
 
 export const MapContainer = styled.div`
@@ -97,6 +115,10 @@ export const MapContainer = styled.div`
   overflow: hidden;
   min-height: 500px;
   height: 100%;
+
+  @media (max-width: 767px) {
+    min-height: 280px;
+  }
 `;
 
 // ... rest of the styles remain the same
@@ -226,6 +248,11 @@ export const Tab = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
+
+  @media (max-width: 767px) {
+    flex: 1;
+    font-size: 13px;
+  }
 `;
 
 export const TabContent = styled.div`
@@ -242,6 +269,10 @@ export const ViolationList = styled.div`
   padding: 10px;
   max-height: calc(100vh - 480px);
   overflow-y: auto;
+
+  @media (max-width: 1024px) {
+    max-height: 320px;
+  }
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -334,6 +365,10 @@ export const CameraContent = styled.div`
   gap: 10px;
   padding: 10px;
   overflow-y: auto;
+
+  @media (max-width: 1024px) {
+    max-height: 320px;
+  }
 
   &::-webkit-scrollbar {
     width: 6px;

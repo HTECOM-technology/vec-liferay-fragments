@@ -24,14 +24,15 @@ export const LayoutContainer = styled.div`
 `;
 
 export const MobileTabContainer = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  padding: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
   background: #f8fafc;
   width: 100%;
   border-bottom: 1px solid #e2e8f0;
-  
+  box-sizing: border-box;
+
   @media (min-width: 993px) {
     display: none;
   }
@@ -40,34 +41,38 @@ export const MobileTabContainer = styled.div`
 export const MobileTabItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px 12px;
   border: 1px solid ${props => props.$active ? '#0090cf' : '#e2e8f0'};
   border-radius: 10px;
-  background: ${props => props.$active ? '#fff' : '#fff'};
+  background: #fff;
   color: ${props => props.$active ? '#0090cf' : '#64748b'};
   box-shadow: ${props => props.$active ? '0 4px 6px -1px rgba(0, 144, 207, 0.1)' : 'none'};
-  
+
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
-  min-height: 52px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+  flex: 0 0 auto;
+  max-width: 100%;
+
   &:active {
     transform: scale(0.97);
   }
-  
+
   svg {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     color: inherit;
     flex-shrink: 0;
   }
-  
+
   span {
     line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 `;
 
@@ -102,10 +107,19 @@ export const Header = styled.div`
     font-weight: 700;
     letter-spacing: -0.01em;
   }
-  
+
   svg {
     color: #0090cf;
     font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 767px) {
+    padding: 12px 16px;
+
+    h3 {
+      font-size: 15px;
+    }
   }
 `;
 
@@ -184,6 +198,17 @@ export const ActionButton = styled.button`
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
+
+  @media (max-width: 767px) {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+
+    svg {
+      font-size: 15px;
+    }
+  }
   
   &:hover {
     transform: translateY(-2px);
@@ -245,4 +270,8 @@ export const ActionsCell = styled.div`
   display: flex;
   gap: 10px;
   justify-content: center;
+
+  @media (max-width: 767px) {
+    gap: 6px;
+  }
 `;

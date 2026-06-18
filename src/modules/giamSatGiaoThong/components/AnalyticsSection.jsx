@@ -18,8 +18,9 @@ const AnalyticsContainer = styled.div`
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
+  @media (max-width: 767px) {
+    gap: 8px;
+    padding: 12px;
   }
 `;
 
@@ -37,6 +38,10 @@ const StatCard = styled.div`
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transform: translateY(-2px);
   }
+
+  @media (max-width: 767px) {
+    padding: 12px;
+  }
 `;
 
 const StatInfo = styled.div`
@@ -48,12 +53,21 @@ const StatLabel = styled.div`
   color: #666;
   margin-bottom: 8px;
   font-weight: 400;
+
+  @media (max-width: 767px) {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
 `;
 
 const StatValue = styled.div`
   font-size: 28px;
   font-weight: 700;
   color: #1e1e1e;
+
+  @media (max-width: 767px) {
+    font-size: 22px;
+  }
 `;
 
 const StatIcon = styled.div`
@@ -70,6 +84,12 @@ const StatIcon = styled.div`
   svg {
     width: 24px;
     height: 24px;
+  }
+
+  @media (max-width: 767px) {
+    width: 40px;
+    height: 40px;
+    margin-left: 8px;
   }
 `;
 

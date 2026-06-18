@@ -18,6 +18,17 @@ export const PageHeader = styled.div`
         font-weight: 600;
         color: rgba(30, 30, 30, 1);
     }
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px 0px;
+
+        .header-title {
+            font-size: 15px;
+        }
+    }
 `;
 
 export const MyRequestButton = styled.button`
@@ -41,6 +52,17 @@ export const MyRequestButton = styled.button`
     .anticon {
         font-size: 14px;
     }
+
+    @media (max-width: 767px) {
+        flex: 1;
+        justify-content: center;
+        font-size: 12px;
+        padding: 8px 6px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.3;
+        min-height: 40px;
+    }
 `;
 
 export const ContentWrap = styled.div`
@@ -48,6 +70,13 @@ export const ContentWrap = styled.div`
     min-height: calc(100vh - 200px);
     margin-top: 10px;
     gap: 10px;
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 0;
+        min-height: auto;
+    }
 `;
 
 // Sidebar styles
@@ -55,6 +84,11 @@ export const SidebarWrap = styled.div`
     width: 240px;
     flex-shrink: 0;
     background: #fff;
+
+    @media (max-width: 767px) {
+        width: 100%;
+        flex-shrink: 1;
+    }
 `;
 
 export const SidebarSection = styled.div`
@@ -91,6 +125,15 @@ export const SectionHeader = styled.div`
         transition: transform 0.2s;
         transform: ${(props) => (props.$expanded ? "rotate(180deg)" : "rotate(0)")};
     }
+
+    @media (max-width: 767px) {
+        padding: 10px 12px;
+        border-radius: 0;
+
+        .section-title {
+            font-size: 13px;
+        }
+    }
 `;
 
 export const SectionContent = styled.div`
@@ -122,6 +165,14 @@ export const MenuItem = styled.div`
     .menu-label {
         font-size: 13px;
         color: ${(props) => (props.$active ? "rgba(0, 144, 207, 1)" : "#333")};
+    }
+
+    @media (max-width: 767px) {
+        padding: 7px 12px 7px 20px;
+
+        .menu-label {
+            font-size: 12px;
+        }
     }
 `;
 
@@ -481,6 +532,15 @@ export const MyRequestsFilter = styled.div`
             font-size: 13px;
         }
     }
+
+    @media (max-width: 767px) {
+        padding: 8px 12px;
+        gap: 6px;
+
+        .ant-input-affix-wrapper {
+            width: 100% !important;
+        }
+    }
 `;
 
 export const FilterGroup = styled.div`
@@ -491,6 +551,24 @@ export const FilterGroup = styled.div`
 
     .filter-label {
         min-width: fit-content;
+    }
+
+    @media (max-width: 767px) {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+
+        &.range-filter-group {
+            flex: 1 1 100%;
+        }
+
+        .ant-select {
+            width: 100% !important;
+        }
+
+        .ant-picker {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
     }
 `;
 
@@ -517,6 +595,10 @@ export const ResetFilterBtn = styled.button`
 
 export const MyRequestsTable = styled.div`
     padding: 0 16px 16px;
+
+    @media (max-width: 767px) {
+        padding: 0 8px 12px;
+    }
 `;
 
 export const TableSummary = styled.div`
@@ -596,6 +678,10 @@ export const TablePaginationWrap = styled.div`
         a {
             color: rgba(0, 144, 207, 1);
         }
+    }
+
+    @media (max-width: 767px) {
+        justify-content: center;
     }
 `;
 

@@ -215,6 +215,25 @@
         order: 3;
     }
 
+    /* Typography */
+
+    .article-title {
+        font-size: 18px;
+        line-height: 1.4;
+    }
+
+    .article-content {
+        font-size: 14px;
+    }
+
+    .article-content p {
+        margin-bottom: 10px;
+    }
+
+    .detail-title-fixed {
+        font-size: 15px;
+    }
+
 }
 
 /* ===== DETAIL ARTICLE IMAGES ===== */

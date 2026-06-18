@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Select, Button } from "antd";
+import { Select, Button, Grid } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -16,6 +16,8 @@ import {
 import { CDatePicker } from "../../../../components/common";
 import { processChartData } from "./chartUtils";
 import { ChartCard, ChartCardTitle, ChartFilterRow, ChartWrap } from "./styled";
+
+const { useBreakpoint } = Grid;
 
 const LOAI_BIEU_DO_OPTIONS = [
   { value: "cot", label: "Biểu đồ cột" },
@@ -40,6 +42,9 @@ function formatYAxis(value, yUnit) {
 function BieuDoCard({ title, rawData, color, yUnit }) {
   const defaultTu = dayjs("2026-01-01");
   const defaultDen = dayjs("2026-01-08");
+
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   const [loaiBieuDo, setLoaiBieuDo] = useState("cot");
   const [thoiGian, setThoiGian] = useState("ngay");
@@ -88,20 +93,20 @@ function BieuDoCard({ title, rawData, color, yUnit }) {
           value={loaiBieuDo}
           onChange={setLoaiBieuDo}
           options={LOAI_BIEU_DO_OPTIONS}
-          style={{ width: 165, height: 38 }}
+          style={{ width: isMobile ? 140 : 165, height: 38 }}
         />
         <Select
           value={thoiGian}
           onChange={setThoiGian}
           options={THOI_GIAN_OPTIONS}
-          style={{ width: 100, height: 38 }}
+          style={{ width: isMobile ? 85 : 100, height: 38 }}
         />
         <CDatePicker
           value={tuNgay}
           onChange={setTuNgay}
           format="DD/MM/YYYY"
           suffixIcon={<CalendarOutlined />}
-          style={{ width: 120, height: 38 }}
+          style={{ width: isMobile ? 110 : 120, height: 38 }}
         />
         <span style={{ color: "rgba(0,0,0,0.45)", fontSize: 13 }}>Đến</span>
         <CDatePicker
@@ -109,12 +114,12 @@ function BieuDoCard({ title, rawData, color, yUnit }) {
           onChange={setDenNgay}
           format="DD/MM/YYYY"
           suffixIcon={<CalendarOutlined />}
-          style={{ width: 120, height: 38 }}
+          style={{ width: isMobile ? 110 : 120, height: 38 }}
         />
         <Button
           type="primary"
           onClick={handleXemBieuDo}
-          style={{ background: "#0090cf", borderColor: "#0090cf", height: 38 }}
+          style={{ background: "#0090cf", borderColor: "#0090cf", height: 38, width: isMobile ? "100%" : undefined }}
         >
           Xem biểu đồ
         </Button>
