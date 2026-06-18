@@ -9,6 +9,9 @@ public class WorkflowReviewItem {
 	private long assetPrimaryKey;
 	private String assetTitle;
 	private String assetContent;
+	private String contentHtml;
+	private String parentClassName;
+	private long parentClassPK;
 	private long creatorUserId;
 	private String creatorUserName;
 	private long assigneeUserId;
@@ -72,6 +75,30 @@ public class WorkflowReviewItem {
 
 	public void setAssetContent(String assetContent) {
 		this.assetContent = assetContent;
+	}
+
+	public String getContentHtml() {
+		return contentHtml;
+	}
+
+	public void setContentHtml(String contentHtml) {
+		this.contentHtml = contentHtml;
+	}
+
+	public String getParentClassName() {
+		return parentClassName;
+	}
+
+	public void setParentClassName(String parentClassName) {
+		this.parentClassName = parentClassName;
+	}
+
+	public long getParentClassPK() {
+		return parentClassPK;
+	}
+
+	public void setParentClassPK(long parentClassPK) {
+		this.parentClassPK = parentClassPK;
 	}
 
 	public long getCreatorUserId() {

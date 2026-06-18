@@ -84,6 +84,24 @@ public class WorkflowReviewService {
 		}
 	}
 
+	public WorkflowReviewItem getWorkflowReviewItemDetail(
+			long companyId, long workflowTaskId)
+		throws PortalException {
+
+		WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
+			companyId, workflowTaskId);
+
+		// Query rỗng -> không filter, luôn trả về item.
+		WorkflowReviewItem item = _buildWorkflowReviewItem(
+			companyId, task, new WorkflowReviewQuery());
+
+		if (item != null) {
+			_populateContentHtml(item);
+		}
+
+		return item;
+	}
+
 	public void approveWorkflowTask(
 			long companyId, long userId, long workflowTaskId,
 			String comment)
@@ -250,11 +268,72 @@ public class WorkflowReviewService {
 				item.setCreatorUserId(message.getUserId());
 				item.setCreatorUserName(message.getUserName());
 				item.setModifiedDate(message.getModifiedDate());
+
+				// Asset (bài viết...) mà bình luận đính kèm, dùng để tạo link.
+				item.setParentClassName(message.getClassName());
+				item.setParentClassPK(message.getClassPK());
 			}
 		}
 		catch (Exception exception) {
 			_log.warn(
 				"Không lấy được bình luận classPK=" + classPK, exception);
+		}
+	}
+
+	private void _populateContentHtml(WorkflowReviewItem item) {
+		String entryClassName = item.getAssetType();
+		long classPK = item.getAssetPrimaryKey();
+
+		if (entryClassName == null) {
+			return;
+		}
+
+		if (_CLASS_NAME_JOURNAL_ARTICLE.equals(entryClassName)) {
+			try {
+				JournalArticle article =
+					JournalArticleLocalServiceUtil.fetchJournalArticle(classPK);
+
+				if (article == null) {
+					article =
+						JournalArticleLocalServiceUtil.fetchLatestArticle(
+							classPK);
+				}
+
+				if (article != null) {
+					String languageId = LocaleUtil.toLanguageId(
+						LocaleUtil.getSiteDefault());
+
+					// Render nội dung Web Content theo template mặc định.
+					item.setContentHtml(
+						JournalArticleLocalServiceUtil.getArticleContent(
+							article, null, "view", languageId, null, null));
+				}
+			}
+			catch (Exception exception) {
+				_log.warn(
+					"Không render được Web Content classPK=" + classPK,
+					exception);
+
+				item.setContentHtml(item.getAssetContent());
+			}
+		}
+		else if (_CLASS_NAME_MB_DISCUSSION.equals(entryClassName) ||
+				 _CLASS_NAME_MB_MESSAGE.equals(entryClassName)) {
+
+			try {
+				MBMessage message = MBMessageLocalServiceUtil.fetchMBMessage(
+					classPK);
+
+				if (message != null) {
+					// Bình luận giữ nguyên HTML body.
+					item.setContentHtml(message.getBody());
+				}
+			}
+			catch (Exception exception) {
+				_log.warn(
+					"Không lấy được nội dung bình luận classPK=" + classPK,
+					exception);
+			}
 		}
 	}
 

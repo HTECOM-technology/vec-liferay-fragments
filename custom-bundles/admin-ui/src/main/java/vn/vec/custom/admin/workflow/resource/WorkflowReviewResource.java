@@ -1,5 +1,8 @@
 package vn.vec.custom.admin.workflow.resource;
 
+import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetRenderer;
+import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -8,7 +11,10 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.text.SimpleDateFormat;
 
@@ -100,6 +106,49 @@ public class WorkflowReviewResource {
 			result.put("items", _itemsToJSON(items));
 
 			return Response.ok(result.toString()).build();
+		} catch (Exception e) {
+			return _serverError(e);
+		}
+	}
+
+	@GET
+	@Path("/{workflowTaskId}/detail")
+	public Response getWorkflowReviewItemDetail(
+		@Context HttpServletRequest httpServletRequest,
+		@PathParam("workflowTaskId") long workflowTaskId) {
+
+		try {
+			long userId = _getSignedInUserId(httpServletRequest);
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return _unauthorized();
+			}
+
+			if (!_canAccessWorkflowReview(user)) {
+				return _forbidden(
+					"You don't have permission to access workflow reviews.");
+			}
+
+			WorkflowReviewItem item =
+				_workflowReviewService.getWorkflowReviewItemDetail(
+					user.getCompanyId(), workflowTaskId);
+
+			if (item == null) {
+				JSONObject error = JSONFactoryUtil.createJSONObject();
+				error.put("error", "Not found");
+
+				return Response.status(Response.Status.NOT_FOUND).entity(
+					error.toString()).build();
+			}
+
+			JSONObject json = _itemToDetailJSON(item);
+
+			json.put(
+				"parentUrl",
+				_getParentUrl(httpServletRequest, item));
+
+			return Response.ok(json.toString()).build();
 		} catch (Exception e) {
 			return _serverError(e);
 		}
@@ -265,6 +314,78 @@ public class WorkflowReviewResource {
 		}
 
 		return array;
+	}
+
+	private JSONObject _itemToDetailJSON(WorkflowReviewItem item) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		JSONObject json = JSONFactoryUtil.createJSONObject();
+
+		json.put("workflowTaskId", item.getWorkflowTaskId());
+		json.put("assetType", item.getAssetType());
+		json.put("assetTitle", item.getAssetTitle());
+		json.put("contentHtml", item.getContentHtml());
+		json.put("creatorUserName", item.getCreatorUserName());
+		json.put("assigneeUserName", item.getAssigneeUserName());
+		json.put("status", item.getStatus());
+		json.put("taskName", item.getTaskName());
+		json.put("reviewable", item.isReviewable());
+		json.put(
+			"createDate",
+			item.getCreateDate() != null ?
+				sdf.format(item.getCreateDate()) : null);
+		json.put(
+			"modifiedDate",
+			item.getModifiedDate() != null ?
+				sdf.format(item.getModifiedDate()) : null);
+		json.put(
+			"dueDate",
+			item.getDueDate() != null ?
+				sdf.format(item.getDueDate()) : null);
+
+		return json;
+	}
+
+	private String _getParentUrl(
+		HttpServletRequest httpServletRequest, WorkflowReviewItem item) {
+
+		String parentClassName = item.getParentClassName();
+
+		if (Validator.isNull(parentClassName) ||
+			(item.getParentClassPK() <= 0)) {
+
+			return null;
+		}
+
+		try {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+			if (themeDisplay == null) {
+				return null;
+			}
+
+			AssetRendererFactory<?> assetRendererFactory =
+				AssetRendererFactoryRegistryUtil.
+					getAssetRendererFactoryByClassName(parentClassName);
+
+			if (assetRendererFactory == null) {
+				return null;
+			}
+
+			AssetRenderer<?> assetRenderer =
+				assetRendererFactory.getAssetRenderer(item.getParentClassPK());
+
+			if (assetRenderer == null) {
+				return null;
+			}
+
+			return assetRenderer.getURLViewInContext(themeDisplay, "");
+		}
+		catch (Exception exception) {
+			return null;
+		}
 	}
 
 	private boolean _canAccessWorkflowReview(User user)

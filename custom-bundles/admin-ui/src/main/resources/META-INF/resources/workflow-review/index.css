@@ -351,6 +351,72 @@ table tbody tr:hover {
     padding: 30px;
 }
 
+.modal-content-lg {
+    max-width: 820px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content-lg .modal-body {
+    overflow-y: auto;
+}
+
+.title-cell {
+    color: #0066cc;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.title-cell:hover {
+    color: #0052a3;
+}
+
+.detail-loading {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.detail-meta {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.detail-meta dt {
+    font-weight: 600;
+    color: #666;
+}
+
+.detail-meta dd {
+    color: #222;
+}
+
+.detail-content {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 16px;
+    background: #fafafa;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: auto;
+}
+
+.detail-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.detail-content-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 8px;
+}
+
 .modal-header {
     font-size: 18px;
     font-weight: 600;

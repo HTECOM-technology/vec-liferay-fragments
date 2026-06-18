@@ -100,7 +100,7 @@ function renderWorkflowItems(items, total) {
             : `<span class="action-note">Chờ tác giả chỉnh sửa</span>`;
 
         row.innerHTML = `
-            <td title="${item.assetTitle || ''}">${truncate(item.assetTitle || 'N/A', 50)}</td>
+            <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${truncate(item.assetTitle || 'N/A', 50)}</td>
             <td><span class="asset-type-badge">${assetTypeLabel}</span></td>
             <td>${item.creatorUserName || 'N/A'}</td>
             <td>${item.assigneeUserName || 'Chưa assign'}</td>
@@ -159,6 +159,92 @@ function renderPagination(total) {
         }
     });
     container.appendChild(nextBtn);
+}
+
+async function openDetailModal(taskId) {
+    const modal = document.getElementById('detailModal');
+    const body = document.getElementById('detailModalBody');
+    const actions = document.getElementById('detailModalActions');
+
+    body.innerHTML = '<div class="detail-loading">Đang tải...</div>';
+    actions.innerHTML = '';
+    modal.classList.add('active');
+
+    try {
+        const response = await fetch(
+            `/o/vec-admin/workflow-review/${taskId}/detail`,
+            {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': getCsrfToken()
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        renderDetail(await response.json());
+    } catch (error) {
+        console.error('Error loading detail:', error);
+        body.innerHTML = '<div class="detail-loading">Không thể tải chi tiết.</div>';
+    }
+}
+
+function renderDetail(data) {
+    const body = document.getElementById('detailModalBody');
+    const actions = document.getElementById('detailModalActions');
+
+    const content = data.contentHtml || data.assetContent ||
+        '<em>Không có nội dung.</em>';
+
+    // Link tới bài viết mà bình luận đính kèm (nếu có).
+    const parentRow = data.parentUrl
+        ? `<dt>Bài viết</dt>
+           <dd><a href="${escapeHtml(data.parentUrl)}" target="_blank" rel="noopener noreferrer">Mở bài viết ↗</a></dd>`
+        : '';
+
+    body.innerHTML = `
+        <dl class="detail-meta">
+            <dt>Loại</dt>
+            <dd><span class="asset-type-badge">${getAssetTypeLabel(data.assetType)}</span></dd>
+            <dt>Tiêu đề</dt>
+            <dd>${escapeHtml(data.assetTitle || 'N/A')}</dd>
+            <dt>Tác giả</dt>
+            <dd>${escapeHtml(data.creatorUserName || 'N/A')}</dd>
+            <dt>Người xử lý</dt>
+            <dd>${escapeHtml(data.assigneeUserName || 'Chưa assign')}</dd>
+            <dt>Trạng thái</dt>
+            <dd><span class="status-badge status-${data.status}">${getStatusLabel(data.status)}</span></dd>
+            <dt>Ngày tạo</dt>
+            <dd>${formatDate(data.createDate)}</dd>
+            <dt>Cập nhật</dt>
+            <dd>${data.modifiedDate ? formatDate(data.modifiedDate) : 'N/A'}</dd>
+            <dt>Hạn duyệt</dt>
+            <dd>${data.dueDate ? formatDate(data.dueDate) : 'Không có'}</dd>
+            ${parentRow}
+        </dl>
+        <div class="detail-content-label">Nội dung</div>
+        <div class="detail-content">${content}</div>
+    `;
+
+    // Cho phép duyệt/từ chối ngay trong modal chi tiết nếu còn xử lý được.
+    if (data.reviewable) {
+        actions.innerHTML = `
+            <button type="button" class="btn-confirm-approve" data-detail-action="approve" data-task-id="${data.workflowTaskId}">Duyệt</button>
+            <button type="button" class="btn-confirm-reject" data-detail-action="reject" data-task-id="${data.workflowTaskId}">Từ chối</button>
+        `;
+    } else {
+        actions.innerHTML = '';
+    }
+}
+
+function closeDetailModal() {
+    document.getElementById('detailModal').classList.remove('active');
 }
 
 function openApproveModal(taskId) {
@@ -266,6 +352,12 @@ function truncate(text, length) {
     return text;
 }
 
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text == null ? '' : String(text);
+    return div.innerHTML;
+}
+
 function showLoading() {
     document.getElementById('loading-spinner').style.display = 'block';
     document.getElementById('table-container').style.display = 'none';
@@ -318,8 +410,16 @@ function bindEvents() {
         }
     });
 
-    // Nút Duyệt/Từ chối trong bảng (sinh động -> event delegation)
+    // Click trong bảng (sinh động -> event delegation):
+    // - click tiêu đề -> mở modal chi tiết
+    // - nút Duyệt/Từ chối
     document.getElementById('workflow-table-body').addEventListener('click', (e) => {
+        const titleCell = e.target.closest('.title-cell');
+        if (titleCell) {
+            openDetailModal(Number(titleCell.dataset.taskId));
+            return;
+        }
+
         const button = e.target.closest('button[data-action]');
         if (!button) {
             return;
@@ -334,14 +434,39 @@ function bindEvents() {
         }
     });
 
-    // Modal
+    // Modal thao tác
     document.getElementById('btn-cancel').addEventListener('click', closeActionModal);
     document.getElementById('confirmActionBtn').addEventListener('click', confirmAction);
 
-    // Đóng modal khi click ra ngoài
     document.getElementById('actionModal').addEventListener('click', (e) => {
         if (e.target.id === 'actionModal') {
             closeActionModal();
+        }
+    });
+
+    // Modal chi tiết
+    document.getElementById('btn-detail-close').addEventListener('click', closeDetailModal);
+
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailModal') {
+            closeDetailModal();
+        }
+    });
+
+    // Nút Duyệt/Từ chối bên trong modal chi tiết (event delegation)
+    document.getElementById('detailModalActions').addEventListener('click', (e) => {
+        const button = e.target.closest('button[data-detail-action]');
+        if (!button) {
+            return;
+        }
+
+        const taskId = Number(button.dataset.taskId);
+        closeDetailModal();
+
+        if (button.dataset.detailAction === 'approve') {
+            openApproveModal(taskId);
+        } else if (button.dataset.detailAction === 'reject') {
+            openRejectModal(taskId);
         }
     });
 }
