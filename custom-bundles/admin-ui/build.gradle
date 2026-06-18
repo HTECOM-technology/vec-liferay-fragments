@@ -49,14 +49,18 @@ dependencies {
         dir: "${liferayHome}/osgi/modules",
         include: [
             "com.liferay.fragment.api*.jar",
-            "com.liferay.journal.api*.jar"
+            "com.liferay.journal.api*.jar",
+            "com.liferay.message.boards.api*.jar",
+            "com.liferay.portal.workflow.api*.jar"
         ]
     )
     compileOnly fileTree(
         dir: "${liferayHome}/osgi/portal",
         include: [
             "com.liferay.fragment.api*.jar",
-            "com.liferay.journal.api*.jar"
+            "com.liferay.journal.api*.jar",
+            "com.liferay.message.boards.api*.jar",
+            "com.liferay.portal.workflow.api*.jar"
         ]
     )
     compileOnly fileTree(
