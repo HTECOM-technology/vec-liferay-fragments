@@ -23,18 +23,10 @@ import {
     REQUEST_STATUS_CONFIG,
     REQUEST_STATUS_OPTIONS,
 } from "./constants";
+import { normalize } from "../../../utils/helper";
 import SupportRequestDetail from "./SupportRequestDetail";
 
 const { RangePicker } = DatePicker;
-
-const normalize = (str) =>
-    String(str || "")
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
-        .replace(/đ/g, "d")
-        .replace(/Đ/g, "D")
-        .toLowerCase()
-        .trim();
 
 const PAGE_SIZE = 15;
 
