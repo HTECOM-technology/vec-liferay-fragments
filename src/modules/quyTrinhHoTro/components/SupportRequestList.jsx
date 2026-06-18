@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Select, Table, Pagination, DatePicker } from "antd";
+import { Input, Select, Table, Pagination, DatePicker } from "antd";
+import { FiSearch } from "react-icons/fi";
 import { FiList, FiRefreshCw, FiEye } from "react-icons/fi";
 import {
     MyRequestsWrap,
@@ -22,6 +23,7 @@ import {
     REQUEST_STATUS_CONFIG,
     REQUEST_STATUS_OPTIONS,
 } from "./constants";
+import { normalize } from "../../../utils/helper";
 import SupportRequestDetail from "./SupportRequestDetail";
 
 const { RangePicker } = DatePicker;
@@ -50,6 +52,7 @@ const SUB_PROCESS_FILTER_OPTS = [
 
 function SupportRequestList({ activeItem, activeSection }) {
     const [data, setData] = useState(MOCK_SUPPORT_REQUESTS);
+    const [search, setSearch] = useState("");
     const [filters, setFilters] = useState({
         status: "all",
         priority: "all",
@@ -77,6 +80,7 @@ function SupportRequestList({ activeItem, activeSection }) {
     };
 
     const handleReset = () => {
+        setSearch("");
         setFilters({
             status: "all",
             priority: "all",
@@ -87,6 +91,7 @@ function SupportRequestList({ activeItem, activeSection }) {
     };
 
     const filteredData = useMemo(() => {
+        const q = search.trim();
         return data.filter((item) => {
             if (filters.status !== "all" && item.status !== filters.status) return false;
             if (filters.priority !== "all" && item.priority !== filters.priority) return false;
@@ -97,9 +102,16 @@ function SupportRequestList({ activeItem, activeSection }) {
                 const to = filters.dateRange[1].endOf("day").toDate();
                 if (due < from || due > to) return false;
             }
+            if (q) {
+                const nq = normalize(q);
+                const matchTitle = normalize(item.title).includes(nq);
+                const matchHandler = normalize(item.handler).includes(nq);
+                const matchWatcher = normalize(item.watcher).includes(nq);
+                if (!matchTitle && !matchHandler && !matchWatcher) return false;
+            }
             return true;
         });
-    }, [filters, data]);
+    }, [filters, search, data]);
 
     const pagedData = useMemo(() => {
         const start = (page - 1) * PAGE_SIZE;
@@ -263,6 +275,15 @@ function SupportRequestList({ activeItem, activeSection }) {
             </MyRequestsHeader>
 
             <MyRequestsFilter>
+                <Input
+                    prefix={<FiSearch size={13} color="#999" />}
+                    placeholder="Tìm theo tiêu đề, người xử lý..."
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    allowClear
+                    style={{ width: 210 }}
+                />
+
                 <span className="filter-label">Lọc theo:</span>
 
                 <FilterGroup>
@@ -271,7 +292,6 @@ function SupportRequestList({ activeItem, activeSection }) {
                         options={statusOpts}
                         onChange={(v) => handleFilterChange("status", v)}
                         style={{ width: 160 }}
-                        size="small"
                     />
                 </FilterGroup>
 
@@ -281,7 +301,6 @@ function SupportRequestList({ activeItem, activeSection }) {
                         options={priorityOpts}
                         onChange={(v) => handleFilterChange("priority", v)}
                         style={{ width: 150 }}
-                        size="small"
                     />
                 </FilterGroup>
 
@@ -291,25 +310,21 @@ function SupportRequestList({ activeItem, activeSection }) {
                         options={SUB_PROCESS_FILTER_OPTS}
                         onChange={(v) => handleFilterChange("subProcess", v)}
                         style={{ width: 220 }}
-                        size="small"
                     />
                 </FilterGroup>
 
                 <FilterGroup $flex={1}>
-                    <span className="filter-label">Ngày hoàn thành:</span>
                     <RangePicker
-                        size="small"
                         format="DD/MM/YYYY"
                         value={filters.dateRange}
                         onChange={(dates) => handleFilterChange("dateRange", dates)}
                         placeholder={["Từ ngày", "Đến ngày"]}
-                        style={{ flex: 1, minWidth: 220 }}
+                        style={{ flex: 1, minWidth: 200 }}
                     />
                 </FilterGroup>
 
-                <ResetFilterBtn onClick={handleReset}>
-                    <FiRefreshCw size={12} />
-                    Đặt lại
+                <ResetFilterBtn onClick={handleReset} title="Đặt lại">
+                    <FiRefreshCw size={14} />
                 </ResetFilterBtn>
             </MyRequestsFilter>
 
