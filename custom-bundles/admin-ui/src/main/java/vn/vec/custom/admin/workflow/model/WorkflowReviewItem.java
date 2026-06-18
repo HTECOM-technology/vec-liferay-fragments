@@ -12,6 +12,7 @@ public class WorkflowReviewItem {
 	private String contentHtml;
 	private String parentClassName;
 	private long parentClassPK;
+	private int assetStatus = -1;
 	private long creatorUserId;
 	private String creatorUserName;
 	private long assigneeUserId;
@@ -99,6 +100,14 @@ public class WorkflowReviewItem {
 
 	public void setParentClassPK(long parentClassPK) {
 		this.parentClassPK = parentClassPK;
+	}
+
+	public int getAssetStatus() {
+		return assetStatus;
+	}
+
+	public void setAssetStatus(int assetStatus) {
+		this.assetStatus = assetStatus;
 	}
 
 	public long getCreatorUserId() {

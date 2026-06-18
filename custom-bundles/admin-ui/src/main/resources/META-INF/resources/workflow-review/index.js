@@ -203,10 +203,14 @@ function renderDetail(data) {
         '<em>Không có nội dung.</em>';
 
     // Link tới bài viết mà bình luận đính kèm (nếu có).
-    const parentRow = data.parentUrl
-        ? `<dt>Bài viết</dt>
-           <dd><a href="${escapeHtml(data.parentUrl)}" target="_blank" rel="noopener noreferrer">Mở bài viết ↗</a></dd>`
-        : '';
+    let parentRow = '';
+    if (data.parentUrl) {
+        parentRow = `<dt>Bài viết</dt>
+           <dd><a href="${escapeHtml(data.parentUrl)}" target="_blank" rel="noopener noreferrer">Mở bài viết ↗</a></dd>`;
+    } else if (data.parentClassName) {
+        parentRow = `<dt>Bài viết</dt>
+           <dd><span style="color:#999">Không tạo được link (${escapeHtml(data.parentClassName)} #${data.parentClassPK})</span></dd>`;
+    }
 
     body.innerHTML = `
         <dl class="detail-meta">

@@ -335,6 +335,8 @@ public class WorkflowReviewResource {
 		json.put("status", item.getStatus());
 		json.put("taskName", item.getTaskName());
 		json.put("reviewable", item.isReviewable());
+		json.put("parentClassName", item.getParentClassName());
+		json.put("parentClassPK", item.getParentClassPK());
 		json.put(
 			"createDate",
 			item.getCreateDate() != null ?

@@ -49,13 +49,16 @@ public class WorkflowReviewService {
 
 		// Get workflow tasks based on tab
 		if ("mine".equals(query.getTab())) {
+			// "Tôi xử lý": task đang gán cho user hiện tại.
 			tasks = WorkflowTaskManagerUtil.getWorkflowTasksByUser(
 				companyId, userId, false, query.getStart(), query.getEnd(),
 				orderByComparator);
 		} else {
-			// For "all" tab, get tasks assigned to user's roles
-			tasks = WorkflowTaskManagerUtil.getWorkflowTasksByUserRoles(
-				companyId, userId, false, query.getStart(), query.getEnd(),
+			// "Tất cả": toàn bộ task chưa hoàn thành của company (góc nhìn
+			// quản trị). Không dùng getWorkflowTasksByUserRoles vì task gán cho
+			// một user cụ thể (vd workflow comment) sẽ bị bỏ sót.
+			tasks = WorkflowTaskManagerUtil.getWorkflowTasks(
+				companyId, false, query.getStart(), query.getEnd(),
 				orderByComparator);
 		}
 
@@ -79,8 +82,8 @@ public class WorkflowReviewService {
 			return WorkflowTaskManagerUtil.getWorkflowTaskCountByUser(
 				companyId, userId, false);
 		} else {
-			return WorkflowTaskManagerUtil.getWorkflowTaskCountByUserRoles(
-				companyId, userId, false);
+			return WorkflowTaskManagerUtil.getWorkflowTaskCount(
+				companyId, false);
 		}
 	}
 
@@ -115,9 +118,12 @@ public class WorkflowReviewService {
 				companyId, userId, workflowTaskId, userId, null, null, null);
 		}
 
+		String transitionName = _resolveTransitionName(
+			companyId, userId, workflowTaskId, true);
+
 		Map<String, Serializable> workflowContext = new HashMap<>();
 		WorkflowTaskManagerUtil.completeWorkflowTask(
-			companyId, userId, workflowTaskId, "approve", comment,
+			companyId, userId, workflowTaskId, transitionName, comment,
 			workflowContext);
 	}
 
@@ -134,9 +140,12 @@ public class WorkflowReviewService {
 				companyId, userId, workflowTaskId, userId, null, null, null);
 		}
 
+		String transitionName = _resolveTransitionName(
+			companyId, userId, workflowTaskId, false);
+
 		Map<String, Serializable> workflowContext = new HashMap<>();
 		WorkflowTaskManagerUtil.completeWorkflowTask(
-			companyId, userId, workflowTaskId, "reject", comment,
+			companyId, userId, workflowTaskId, transitionName, comment,
 			workflowContext);
 	}
 
@@ -148,6 +157,41 @@ public class WorkflowReviewService {
 		WorkflowTaskManagerUtil.assignWorkflowTaskToUser(
 			companyId, userId, workflowTaskId, assigneeUserId, null, null,
 			null);
+	}
+
+	private String _resolveTransitionName(
+			long companyId, long userId, long workflowTaskId, boolean approve)
+		throws PortalException {
+
+		// Mỗi workflow đặt tên transition khác nhau (vd "approve"/"reject" và
+		// "Chấp thuận (Approve)"/"Từ chối (Reject)"). Lấy danh sách transition
+		// thực tế của task rồi chọn theo từ khoá.
+		List<String> transitionNames =
+			WorkflowTaskManagerUtil.getNextTransitionNames(
+				companyId, userId, workflowTaskId);
+
+		String[] approveKeywords = {"approve", "chấp thuận", "duyệt", "accept"};
+		String[] rejectKeywords = {"reject", "từ chối", "deny", "decline"};
+
+		String[] keywords = approve ? approveKeywords : rejectKeywords;
+
+		for (String transitionName : transitionNames) {
+			String lower = transitionName.toLowerCase();
+
+			for (String keyword : keywords) {
+				if (lower.contains(keyword)) {
+					return transitionName;
+				}
+			}
+		}
+
+		// Fallback: nếu chỉ có 1 transition thì dùng luôn, ngược lại dùng tên
+		// mặc định kiểu Single Approver.
+		if (transitionNames.size() == 1) {
+			return transitionNames.get(0);
+		}
+
+		return approve ? "approve" : "reject";
 	}
 
 	private WorkflowReviewItem _buildWorkflowReviewItem(
@@ -247,6 +291,7 @@ public class WorkflowReviewService {
 				item.setCreatorUserId(article.getUserId());
 				item.setCreatorUserName(article.getUserName());
 				item.setModifiedDate(article.getModifiedDate());
+				item.setAssetStatus(article.getStatus());
 			}
 		}
 		catch (Exception exception) {
@@ -268,6 +313,7 @@ public class WorkflowReviewService {
 				item.setCreatorUserId(message.getUserId());
 				item.setCreatorUserName(message.getUserName());
 				item.setModifiedDate(message.getModifiedDate());
+				item.setAssetStatus(message.getStatus());
 
 				// Asset (bài viết...) mà bình luận đính kèm, dùng để tạo link.
 				item.setParentClassName(message.getClassName());
@@ -341,25 +387,38 @@ public class WorkflowReviewService {
 			WorkflowReviewItem item, WorkflowTask task)
 		throws PortalException {
 
-		// Chỉ các task chưa hoàn thành mới được truy vấn về đây, nên mỗi item
-		// luôn có một task đang hoạt động. Tên task quyết định trạng thái:
-		//  - "review": đang chờ người duyệt xử lý  -> Chưa duyệt / Hết hạn
-		//  - "update": đã bị từ chối và TRẢ VỀ cho tác giả chỉnh sửa rồi
-		//    resubmit. Đây KHÔNG phải denied vĩnh viễn, workflow đã gửi email
-		//    "Creator Modification Notification" cho tác giả.
+		// Map trạng thái không phụ thuộc tên task (mỗi workflow đặt tên khác
+		// nhau). Ưu tiên trạng thái của asset; bổ sung heuristic tên task để
+		// bắt trường hợp "trả về tác giả chỉnh sửa".
+		int assetStatus = item.getAssetStatus();
+
 		String taskName = task.getName();
+		String lowerTaskName = (taskName == null) ? "" : taskName.toLowerCase();
 
-		if ("update".equals(taskName)) {
+		boolean rejectedTask =
+			lowerTaskName.contains("update") ||
+			lowerTaskName.contains("từ chối") ||
+			lowerTaskName.contains("chỉnh sửa") ||
+			lowerTaskName.contains("reject");
+
+		// Đã bị từ chối -> trả về tác giả chỉnh sửa (không phải denied vĩnh
+		// viễn). Người duyệt không thao tác tiếp -> ẩn nút.
+		if ((assetStatus == WorkflowConstants.STATUS_DENIED) || rejectedTask) {
 			item.setStatus("denied");
-
-			// Task này thuộc về tác giả để chỉnh sửa, người duyệt không thể
-			// duyệt/từ chối tiếp -> ẩn nút thao tác trên UI.
 			item.setReviewable(false);
 
 			return;
 		}
 
-		// Task "review": kiểm tra quá hạn duyệt.
+		// Đã được duyệt (có thể còn bước xuất bản) -> không cần duyệt lại.
+		if (assetStatus == WorkflowConstants.STATUS_APPROVED) {
+			item.setStatus("approved");
+			item.setReviewable(false);
+
+			return;
+		}
+
+		// Còn lại coi như đang chờ duyệt; kiểm tra quá hạn.
 		if ((task.getDueDate() != null) &&
 			task.getDueDate().before(new Date())) {
 
