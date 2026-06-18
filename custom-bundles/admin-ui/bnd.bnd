@@ -1,6 +1,8 @@
 Bundle-Name: VEC Custom Admin UI
 Bundle-SymbolicName: vn.vec.custom.admin.ui
 Bundle-Version: 1.0.1
+Bundle-Vendor: Vietnam Expressway Corporation (VEC)
+Bundle-DocURL: https://www.expressway.com.vn/
 Web-ContextPath: /vec-custom-admin-ui
 
 -dsannotations-options: inherit

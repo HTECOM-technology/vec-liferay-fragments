@@ -103,6 +103,7 @@ public class AuditLogResource {
 		@QueryParam("actionType") String actionType,
 		@QueryParam("targetType") String targetType,
 		@QueryParam("status") String status,
+		@QueryParam("errorCode") String errorCode,
 		@QueryParam("sort") @DefaultValue("createDate:desc") String sort,
 		@QueryParam("page") @DefaultValue("1") int page,
 		@QueryParam("pageSize") @DefaultValue("20") int pageSize) {
@@ -128,6 +129,7 @@ public class AuditLogResource {
 			auditLogQuery.setActionType(actionType);
 			auditLogQuery.setTargetType(targetType);
 			auditLogQuery.setStatus(status);
+			auditLogQuery.setErrorCode(errorCode);
 			auditLogQuery.setSort(sort);
 			auditLogQuery.setPage(page);
 			auditLogQuery.setPageSize(pageSize);
@@ -175,16 +177,6 @@ public class AuditLogResource {
 	public Response testError(
 		@Context HttpServletRequest httpServletRequest,
 		@QueryParam("error_code") @DefaultValue("500") int errorCode) {
-
-		User user = _getSignedInUser(_getSignedInUserId(httpServletRequest));
-
-		if (user == null) {
-			return _unauthorized();
-		}
-
-		if (!_isAdminUser(user)) {
-			return _forbidden("Only administrators can trigger test errors.");
-		}
 
 		if ((errorCode < 400) || (errorCode > 599)) {
 			return _jsonError(
@@ -409,6 +401,8 @@ public class AuditLogResource {
 			"errorMessage",
 			(auditLogEntry.getErrorMessage() != null) ?
 				auditLogEntry.getErrorMessage() : "");
+		jsonObject.put(
+			"errorCode", _value(auditLogEntry.getErrorCode()));
 
 		return jsonObject;
 	}
@@ -437,6 +431,7 @@ public class AuditLogResource {
 		jsonObject.put("userAgent", _value(auditLogEntry.getUserAgent()));
 		jsonObject.put("sessionId", _value(auditLogEntry.getSessionId()));
 		jsonObject.put("status", _value(auditLogEntry.getStatus()));
+		jsonObject.put("errorCode", _value(auditLogEntry.getErrorCode()));
 		jsonObject.put("createDate", _formatDate(auditLogEntry.getCreateDate()));
 		jsonObject.put(
 			"completedDate", _formatDate(auditLogEntry.getCompletedDate()));

@@ -44,6 +44,10 @@ public class AuditLogEntry {
 		return _diffData;
 	}
 
+	public String getErrorCode() {
+		return _errorCode;
+	}
+
 	public String getErrorMessage() {
 		return _errorMessage;
 	}
@@ -156,6 +160,10 @@ public class AuditLogEntry {
 		_diffData = diffData;
 	}
 
+	public void setErrorCode(String errorCode) {
+		_errorCode = errorCode;
+	}
+
 	public void setErrorMessage(String errorMessage) {
 		_errorMessage = errorMessage;
 	}
@@ -239,6 +247,7 @@ public class AuditLogEntry {
 	private Date _createDate;
 	private String _changedKeys;
 	private String _diffData;
+	private String _errorCode;
 	private String _errorMessage;
 	private String _factoryPid;
 	private long _groupId;

@@ -100,6 +100,7 @@ public class AuditLogService {
 			auditLogEntry.setUserAgent(auditContext.getUserAgent());
 			auditLogEntry.setSessionId(auditContext.getSessionId());
 			auditLogEntry.setStatus(AuditStatus.FAILED.name());
+			auditLogEntry.setErrorCode(String.valueOf(statusCode));
 			auditLogEntry.setErrorMessage(
 				_toHttpErrorMessage(statusCode, method, requestPath, throwable));
 			auditLogEntry.setCreateDate(new Date());
@@ -152,8 +153,16 @@ public class AuditLogService {
 		String factoryPid, String scope, String changedKeys) {
 
 		try {
-			AuditContextService.AuditContext auditContext =
-				_auditContextService.build(serviceContext);
+			AuditContextService.AuditContext auditContext = null;
+
+			try {
+				auditContext = _auditContextService.build(serviceContext);
+			}
+			catch (Exception exception) {
+				_log.warn("Failed to build audit context, using minimal context", exception);
+				auditContext = new AuditContextService.AuditContext();
+			}
+
 			AuditLogEntry auditLogEntry = new AuditLogEntry();
 
 			auditLogEntry.setCompanyId(auditContext.getCompanyId());

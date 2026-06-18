@@ -77,6 +77,18 @@
                     </select>
                 </label>
                 <label>
+                    <span>Mã lỗi</span>
+                    <select id="errorCode" name="errorCode">
+                        <option value="">Tất cả</option>
+                        <option value="401">401 - Không được phép</option>
+                        <option value="403">403 - Bị cấm</option>
+                        <option value="429">429 - Quá nhiều yêu cầu</option>
+                        <option value="500">500 - Lỗi máy chủ</option>
+                        <option value="502">502 - Gateway xấu</option>
+                        <option value="503">503 - Dịch vụ không khả dụng</option>
+                    </select>
+                </label>
+                <label>
                     <span>Người dùng</span>
                     <div class="ss-wrap" id="userId-wrap">
                         <input class="ss-input" id="userId-input" type="text" placeholder="Tất cả" autocomplete="off">

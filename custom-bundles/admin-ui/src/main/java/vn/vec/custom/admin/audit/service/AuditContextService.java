@@ -30,11 +30,9 @@ public class AuditContextService {
 		auditContext.setRequestUri(
 			AuditRequestUtil.getRequestUri(httpServletRequest));
 		auditContext.setIpAddress(
-			(resolvedServiceContext != null) ?
-				resolvedServiceContext.getRemoteAddr() : null);
+			AuditRequestUtil.getRemoteAddr(httpServletRequest));
 		auditContext.setUserAgent(
-			(resolvedServiceContext != null) ?
-				resolvedServiceContext.getUserAgent() : null);
+			AuditRequestUtil.getUserAgent(httpServletRequest));
 		auditContext.setSessionId(
 			AuditRequestUtil.getSessionId(httpServletRequest));
 		_populateGroupContext(auditContext);

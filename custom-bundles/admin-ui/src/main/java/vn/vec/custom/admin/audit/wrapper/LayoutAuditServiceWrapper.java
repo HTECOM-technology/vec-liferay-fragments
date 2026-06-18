@@ -190,34 +190,77 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 			long userId, long plid, String friendlyURL, String languageId)
 		throws PortalException {
 
-		return _updateLayout(
-			super.fetchLayout(plid), null, new UnsafeLayoutSupplier() {
+		Layout beforeLayout = super.fetchLayout(plid);
+		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
+		String classPK = _classPK(beforeLayout);
 
-				@Override
-				public Layout get() throws PortalException {
-					return LayoutAuditServiceWrapper.super.updateFriendlyURL(
-						userId, plid, friendlyURL, languageId);
-				}
+		AuditThreadLocal.markHandled(
+			Layout.class.getName(), classPK, AuditActionType.UPDATE);
 
-			}, AuditActionType.UPDATE);
+		long auditLogId = _auditLogService.startPending(
+			AuditActionType.UPDATE, AuditTargetType.LAYOUT,
+			Layout.class.getName(), classPK, _title(beforeLayout),
+			_targetUrl(beforeLayout), beforeData, null);
+
+		try {
+			Layout layout = super.updateFriendlyURL(
+				userId, plid, friendlyURL, languageId);
+
+			_auditLogService.completeSuccess(
+				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
+				beforeData, _auditSnapshotService.snapshotLayout(layout));
+
+			return layout;
+		}
+		catch (PortalException portalException) {
+			_auditLogService.completeFailure(
+				auditLogId, classPK, _title(beforeLayout), _targetUrl(beforeLayout),
+				portalException);
+
+			throw portalException;
+		}
+		finally {
+			AuditThreadLocal.consumeHandled(
+				Layout.class.getName(), classPK, AuditActionType.UPDATE);
+		}
 	}
 
 	@Override
 	public Layout updateLayout(Layout layout) {
+		Layout beforeLayout = super.fetchLayout(layout.getPlid());
+		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
+		String classPK = _classPK(beforeLayout);
+
+		AuditThreadLocal.markHandled(
+			Layout.class.getName(), classPK, AuditActionType.UPDATE);
+
+		long auditLogId = _auditLogService.startPending(
+			AuditActionType.UPDATE, AuditTargetType.LAYOUT,
+			Layout.class.getName(), classPK, _title(beforeLayout),
+			_targetUrl(beforeLayout), beforeData, null);
+
 		try {
-			return _updateLayout(
-				super.fetchLayout(layout.getPlid()), null,
-				new UnsafeLayoutSupplier() {
+			Layout updatedLayout = super.updateLayout(layout);
 
-					@Override
-					public Layout get() {
-						return LayoutAuditServiceWrapper.super.updateLayout(layout);
-					}
+			_auditLogService.completeSuccess(
+				auditLogId, _classPK(updatedLayout), _title(updatedLayout),
+				_targetUrl(updatedLayout), beforeData,
+				_auditSnapshotService.snapshotLayout(updatedLayout));
 
-				}, AuditActionType.UPDATE);
+			return updatedLayout;
 		}
-		catch (PortalException portalException) {
-			throw new RuntimeException(portalException);
+		catch (Exception exception) {
+			_auditLogService.completeFailure(
+				auditLogId, classPK, _title(beforeLayout),
+				_targetUrl(beforeLayout),
+				exception instanceof PortalException ?
+					(PortalException)exception : new PortalException(exception));
+
+			throw new RuntimeException(exception);
+		}
+		finally {
+			AuditThreadLocal.consumeHandled(
+				Layout.class.getName(), classPK, AuditActionType.UPDATE);
 		}
 	}
 
@@ -233,21 +276,43 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		return _updateLayout(
-			super.fetchLayout(groupId, privateLayout, layoutId), serviceContext,
-			new UnsafeLayoutSupplier() {
+		Layout beforeLayout = super.fetchLayout(groupId, privateLayout, layoutId);
+		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
+		String classPK = _classPK(beforeLayout);
 
-				@Override
-				public Layout get() throws PortalException {
-					return LayoutAuditServiceWrapper.super.updateLayout(
-						groupId, privateLayout, layoutId, parentLayoutId, nameMap,
-						titleMap, descriptionMap, keywordsMap, robotsMap, type,
-						hidden, friendlyURLMap, hasIconImage, iconBytes,
-						styleBookEntryId, faviconFileEntryId, masterLayoutPlid,
-						serviceContext);
-				}
+		AuditThreadLocal.markHandled(
+			Layout.class.getName(), classPK, AuditActionType.UPDATE);
 
-			}, AuditActionType.UPDATE);
+		long auditLogId = _auditLogService.startPending(
+			AuditActionType.UPDATE, AuditTargetType.LAYOUT,
+			Layout.class.getName(), classPK, _title(beforeLayout),
+			_targetUrl(beforeLayout), beforeData, serviceContext);
+
+		try {
+			Layout layout = super.updateLayout(
+				groupId, privateLayout, layoutId, parentLayoutId, nameMap,
+				titleMap, descriptionMap, keywordsMap, robotsMap, type,
+				hidden, friendlyURLMap, hasIconImage, iconBytes,
+				styleBookEntryId, faviconFileEntryId, masterLayoutPlid,
+				serviceContext);
+
+			_auditLogService.completeSuccess(
+				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
+				beforeData, _auditSnapshotService.snapshotLayout(layout));
+
+			return layout;
+		}
+		catch (PortalException portalException) {
+			_auditLogService.completeFailure(
+				auditLogId, classPK, _title(beforeLayout), _targetUrl(beforeLayout),
+				portalException);
+
+			throw portalException;
+		}
+		finally {
+			AuditThreadLocal.consumeHandled(
+				Layout.class.getName(), classPK, AuditActionType.UPDATE);
+		}
 	}
 
 	@Override
@@ -258,19 +323,41 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 			long faviconFileEntryId, long masterLayoutPlid)
 		throws PortalException {
 
-		return _updateLayout(
-			super.fetchLayout(groupId, privateLayout, layoutId), null,
-			new UnsafeLayoutSupplier() {
+		Layout beforeLayout = super.fetchLayout(groupId, privateLayout, layoutId);
+		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
+		String classPK = _classPK(beforeLayout);
 
-				@Override
-				public Layout get() throws PortalException {
-					return LayoutAuditServiceWrapper.super.updateLayout(
-						groupId, privateLayout, layoutId, typeSettings, iconBytes,
-						themeId, colorSchemeId, styleBookEntryId, css,
-						faviconFileEntryId, masterLayoutPlid);
-				}
+		AuditThreadLocal.markHandled(
+			Layout.class.getName(), classPK, AuditActionType.UPDATE);
 
-			}, AuditActionType.UPDATE);
+		long auditLogId = _auditLogService.startPending(
+			AuditActionType.UPDATE, AuditTargetType.LAYOUT,
+			Layout.class.getName(), classPK, _title(beforeLayout),
+			_targetUrl(beforeLayout), beforeData, null);
+
+		try {
+			Layout layout = super.updateLayout(
+				groupId, privateLayout, layoutId, typeSettings, iconBytes,
+				themeId, colorSchemeId, styleBookEntryId, css,
+				faviconFileEntryId, masterLayoutPlid);
+
+			_auditLogService.completeSuccess(
+				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
+				beforeData, _auditSnapshotService.snapshotLayout(layout));
+
+			return layout;
+		}
+		catch (PortalException portalException) {
+			_auditLogService.completeFailure(
+				auditLogId, classPK, _title(beforeLayout), _targetUrl(beforeLayout),
+				portalException);
+
+			throw portalException;
+		}
+		finally {
+			AuditThreadLocal.consumeHandled(
+				Layout.class.getName(), classPK, AuditActionType.UPDATE);
+		}
 	}
 
 	@Override
@@ -279,34 +366,77 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 			String colorSchemeId, String css)
 		throws PortalException {
 
-		return _updateLayout(
-			super.fetchLayout(groupId, privateLayout, layoutId), null,
-			new UnsafeLayoutSupplier() {
+		Layout beforeLayout = super.fetchLayout(groupId, privateLayout, layoutId);
+		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
+		String classPK = _classPK(beforeLayout);
 
-				@Override
-				public Layout get() throws PortalException {
-					return LayoutAuditServiceWrapper.super.updateLookAndFeel(
-						groupId, privateLayout, layoutId, themeId, colorSchemeId,
-						css);
-				}
+		AuditThreadLocal.markHandled(
+			Layout.class.getName(), classPK, AuditActionType.UPDATE);
 
-			}, AuditActionType.UPDATE);
+		long auditLogId = _auditLogService.startPending(
+			AuditActionType.UPDATE, AuditTargetType.LAYOUT,
+			Layout.class.getName(), classPK, _title(beforeLayout),
+			_targetUrl(beforeLayout), beforeData, null);
+
+		try {
+			Layout layout = super.updateLookAndFeel(
+				groupId, privateLayout, layoutId, themeId, colorSchemeId, css);
+
+			_auditLogService.completeSuccess(
+				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
+				beforeData, _auditSnapshotService.snapshotLayout(layout));
+
+			return layout;
+		}
+		catch (PortalException portalException) {
+			_auditLogService.completeFailure(
+				auditLogId, classPK, _title(beforeLayout), _targetUrl(beforeLayout),
+				portalException);
+
+			throw portalException;
+		}
+		finally {
+			AuditThreadLocal.consumeHandled(
+				Layout.class.getName(), classPK, AuditActionType.UPDATE);
+		}
 	}
 
 	@Override
 	public Layout updateName(long plid, String name, String languageId)
 		throws PortalException {
 
-		return _updateLayout(
-			super.fetchLayout(plid), null, new UnsafeLayoutSupplier() {
+		Layout beforeLayout = super.fetchLayout(plid);
+		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
+		String classPK = _classPK(beforeLayout);
 
-				@Override
-				public Layout get() throws PortalException {
-					return LayoutAuditServiceWrapper.super.updateName(
-						plid, name, languageId);
-				}
+		AuditThreadLocal.markHandled(
+			Layout.class.getName(), classPK, AuditActionType.UPDATE);
 
-			}, AuditActionType.UPDATE);
+		long auditLogId = _auditLogService.startPending(
+			AuditActionType.UPDATE, AuditTargetType.LAYOUT,
+			Layout.class.getName(), classPK, _title(beforeLayout),
+			_targetUrl(beforeLayout), beforeData, null);
+
+		try {
+			Layout layout = super.updateName(plid, name, languageId);
+
+			_auditLogService.completeSuccess(
+				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
+				beforeData, _auditSnapshotService.snapshotLayout(layout));
+
+			return layout;
+		}
+		catch (PortalException portalException) {
+			_auditLogService.completeFailure(
+				auditLogId, classPK, _title(beforeLayout), _targetUrl(beforeLayout),
+				portalException);
+
+			throw portalException;
+		}
+		finally {
+			AuditThreadLocal.consumeHandled(
+				Layout.class.getName(), classPK, AuditActionType.UPDATE);
+		}
 	}
 
 	private String _classPK(Layout layout) {
@@ -345,51 +475,6 @@ public class LayoutAuditServiceWrapper extends LayoutLocalServiceWrapper {
 		}
 
 		return layout.getNameCurrentValue();
-	}
-
-	private Layout _updateLayout(
-			Layout beforeLayout, ServiceContext serviceContext,
-			UnsafeLayoutSupplier unsafeLayoutSupplier,
-			AuditActionType auditActionType)
-		throws PortalException {
-
-		String beforeData = _auditSnapshotService.snapshotLayout(beforeLayout);
-		String classPK = _classPK(beforeLayout);
-
-		AuditThreadLocal.markHandled(
-			Layout.class.getName(), classPK, auditActionType);
-
-		long auditLogId = _auditLogService.startPending(
-			auditActionType, AuditTargetType.LAYOUT, Layout.class.getName(),
-			classPK, _title(beforeLayout), _targetUrl(beforeLayout), beforeData,
-			serviceContext);
-
-		try {
-			Layout layout = unsafeLayoutSupplier.get();
-
-			_auditLogService.completeSuccess(
-				auditLogId, _classPK(layout), _title(layout), _targetUrl(layout),
-				beforeData, _auditSnapshotService.snapshotLayout(layout));
-
-			return layout;
-		}
-		catch (PortalException portalException) {
-			_auditLogService.completeFailure(
-				auditLogId, classPK, _title(beforeLayout), _targetUrl(beforeLayout),
-				portalException);
-
-			throw portalException;
-		}
-		finally {
-			AuditThreadLocal.consumeHandled(
-				Layout.class.getName(), classPK, auditActionType);
-		}
-	}
-
-	private interface UnsafeLayoutSupplier {
-
-		public Layout get() throws PortalException;
-
 	}
 
 	@Reference

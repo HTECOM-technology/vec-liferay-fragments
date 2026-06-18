@@ -34,6 +34,14 @@ public class AuditRequestUtil {
 		return requestURI + "?" + queryString;
 	}
 
+	public static String getRemoteAddr(HttpServletRequest httpServletRequest) {
+		if (httpServletRequest == null) {
+			return null;
+		}
+
+		return httpServletRequest.getRemoteAddr();
+	}
+
 	public static String getSessionId(HttpServletRequest httpServletRequest) {
 		if (httpServletRequest == null) {
 			return null;
@@ -46,6 +54,14 @@ public class AuditRequestUtil {
 		}
 
 		return httpSession.getId();
+	}
+
+	public static String getUserAgent(HttpServletRequest httpServletRequest) {
+		if (httpServletRequest == null) {
+			return null;
+		}
+
+		return httpServletRequest.getHeader("User-Agent");
 	}
 
 	public static ServiceContext resolveServiceContext(

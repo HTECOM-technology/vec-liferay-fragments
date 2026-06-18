@@ -8,6 +8,10 @@ public class AuditLogQuery {
 		return _actionType;
 	}
 
+	public String getErrorCode() {
+		return _errorCode;
+	}
+
 	public Date getFromDate() {
 		return _fromDate;
 	}
@@ -62,6 +66,10 @@ public class AuditLogQuery {
 
 	public void setActionType(String actionType) {
 		_actionType = actionType;
+	}
+
+	public void setErrorCode(String errorCode) {
+		_errorCode = errorCode;
 	}
 
 	public void setFromDate(Date fromDate) {
@@ -140,6 +148,7 @@ public class AuditLogQuery {
 	private String _actionType;
 	private Date _fromDate;
 	private long _groupId;
+	private String _errorCode;
 	private String _keyword;
 	private int _page = 1;
 	private int _pageSize = 20;

@@ -72,9 +72,9 @@ public class AuditLogRepository {
 				"userEmail, actionType, targetType, className, classPK, pid, " +
 				"factoryPid, scope, changedKeys, targetTitle, targetUrl, " +
 				"beforeData, afterData, diffData, requestUri, ipAddress, " +
-				"userAgent, sessionId, status, errorMessage, createDate, " +
+				"userAgent, sessionId, status, errorCode, errorMessage, createDate, " +
 				"completedDate" +
-			") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try (Connection connection = _getConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(
@@ -107,6 +107,7 @@ public class AuditLogRepository {
 			preparedStatement.setString(index++, auditLogEntry.getUserAgent());
 			preparedStatement.setString(index++, auditLogEntry.getSessionId());
 			preparedStatement.setString(index++, auditLogEntry.getStatus());
+			preparedStatement.setString(index++, auditLogEntry.getErrorCode());
 			preparedStatement.setString(index++, auditLogEntry.getErrorMessage());
 			preparedStatement.setTimestamp(
 				index++, _toTimestamp(auditLogEntry.getCreateDate()));
@@ -157,7 +158,7 @@ public class AuditLogRepository {
 
 		String sql =
 			"update VEC_AUDIT_LOG set classPK = ?, targetTitle = ?, " +
-				"targetUrl = ?, status = ?, errorMessage = ?, completedDate = ? " +
+				"targetUrl = ?, status = ?, errorCode = ?, errorMessage = ?, completedDate = ? " +
 			"where auditLogId = ?";
 
 		try (Connection connection = _getConnection();
@@ -168,9 +169,10 @@ public class AuditLogRepository {
 			preparedStatement.setString(2, targetTitle);
 			preparedStatement.setString(3, targetUrl);
 			preparedStatement.setString(4, "FAILED");
-			preparedStatement.setString(5, errorMessage);
-			preparedStatement.setTimestamp(6, _toTimestamp(completedDate));
-			preparedStatement.setLong(7, auditLogId);
+			preparedStatement.setString(5, "");
+			preparedStatement.setString(6, errorMessage);
+			preparedStatement.setTimestamp(7, _toTimestamp(completedDate));
+			preparedStatement.setLong(8, auditLogId);
 			preparedStatement.executeUpdate();
 		}
 	}
@@ -183,7 +185,7 @@ public class AuditLogRepository {
 		String sql =
 			"update VEC_AUDIT_LOG set classPK = ?, targetTitle = ?, " +
 				"targetUrl = ?, afterData = ?, diffData = ?, status = ?, " +
-				"errorMessage = ?, completedDate = ? where auditLogId = ?";
+				"errorCode = ?, errorMessage = ?, completedDate = ? where auditLogId = ?";
 
 		try (Connection connection = _getConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(
@@ -195,9 +197,10 @@ public class AuditLogRepository {
 			preparedStatement.setString(4, afterData);
 			preparedStatement.setString(5, diffData);
 			preparedStatement.setString(6, "SUCCESS");
-			preparedStatement.setString(7, null);
-			preparedStatement.setTimestamp(8, _toTimestamp(completedDate));
-			preparedStatement.setLong(9, auditLogId);
+			preparedStatement.setString(7, "");
+			preparedStatement.setString(8, null);
+			preparedStatement.setTimestamp(9, _toTimestamp(completedDate));
+			preparedStatement.setLong(10, auditLogId);
 			preparedStatement.executeUpdate();
 		}
 	}
@@ -272,6 +275,13 @@ public class AuditLogRepository {
 			stringBuilder.append(" and status = ?");
 			parameters.add(auditLogQuery.getStatus().trim());
 		}
+
+		if ((auditLogQuery.getErrorCode() != null) &&
+			!auditLogQuery.getErrorCode().trim().isEmpty()) {
+
+			stringBuilder.append(" and errorCode = ?");
+			parameters.add(auditLogQuery.getErrorCode().trim());
+		}
 	}
 
 	private void _fillParameters(
@@ -334,6 +344,7 @@ public class AuditLogRepository {
 		auditLogEntry.setUserAgent(resultSet.getString("userAgent"));
 		auditLogEntry.setSessionId(resultSet.getString("sessionId"));
 		auditLogEntry.setStatus(resultSet.getString("status"));
+		auditLogEntry.setErrorCode(resultSet.getString("errorCode"));
 		auditLogEntry.setErrorMessage(resultSet.getString("errorMessage"));
 		auditLogEntry.setCreateDate(_toDate(resultSet.getTimestamp("createDate")));
 		auditLogEntry.setCompletedDate(

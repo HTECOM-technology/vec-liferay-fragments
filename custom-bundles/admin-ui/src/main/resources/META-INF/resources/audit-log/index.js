@@ -95,6 +95,7 @@
             actionType: valueOf("actionType"),
             targetType: valueOf("targetType"),
             status: valueOf("status"),
+            errorCode: valueOf("errorCode"),
             userId: valueOf("userId"),
             groupId: valueOf("groupId")
         };
