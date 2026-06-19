@@ -435,6 +435,7 @@ public class WorkflowReviewService {
 
 			if (message != null) {
 				item.setAssetContent(HtmlUtil.stripHtml(message.getBody()));
+				item.setContentHtml(message.getBody());
 				item.setAssetTitle(HtmlUtil.stripHtml(message.getBody()));
 				item.setCreatorUserId(message.getUserId());
 				item.setCreatorUserName(message.getUserName());

@@ -100,7 +100,7 @@ function renderWorkflowItems(items, total) {
                     <button type="button" class="btn-approve" data-action="approve" data-task-id="${item.workflowTaskId}">Duyệt</button>
                     <button type="button" class="btn-reject" data-action="reject" data-task-id="${item.workflowTaskId}">Từ chối</button>
                 </div>`
-            : `<span class="action-note">${getActionNote(item.status)}</span>`;
+            : getActionNoteHtml(item);
 
         row.innerHTML = `
             <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${escapeHtml(truncate(item.assetTitle || 'N/A', 50))}</td>
@@ -172,6 +172,7 @@ async function openDetailModal(taskId) {
     body.innerHTML = '<div class="detail-loading">Đang tải...</div>';
     actions.innerHTML = '';
     modal.classList.add('active');
+    syncBodyScrollLock();
 
     try {
         const response = await fetch(
@@ -202,41 +203,61 @@ function renderDetail(data) {
     const body = document.getElementById('detailModalBody');
     const actions = document.getElementById('detailModalActions');
 
-    const content = data.contentHtml || data.assetContent ||
-        '<em>Không có nội dung.</em>';
+    const content = formatDetailContent(data);
+    const typeLabel = getAssetTypeLabel(data.assetType);
+    const statusLabel = getStatusLabel(data.status);
 
     // Link tới bài viết mà bình luận đính kèm (nếu có).
     let parentRow = '';
     if (data.parentUrl) {
-        parentRow = `<dt>Bài viết</dt>
-           <dd><a href="${escapeHtml(data.parentUrl)}" target="_blank" rel="noopener noreferrer">Mở bài viết ↗</a></dd>`;
+        parentRow = `<div class="detail-meta-item">
+            <span>Bài viết</span>
+            <strong><a href="${escapeHtml(data.parentUrl)}" target="_blank" rel="noopener noreferrer">Mở bài viết</a></strong>
+        </div>`;
     } else if (data.parentClassName) {
-        parentRow = `<dt>Bài viết</dt>
-           <dd><span style="color:#999">Không tạo được link (${escapeHtml(data.parentClassName)} #${data.parentClassPK})</span></dd>`;
+        parentRow = `<div class="detail-meta-item">
+            <span>Bài viết</span>
+            <strong class="detail-muted">Không tạo được link</strong>
+        </div>`;
     }
 
     body.innerHTML = `
-        <dl class="detail-meta">
-            <dt>Loại</dt>
-            <dd><span class="asset-type-badge">${getAssetTypeLabel(data.assetType)}</span></dd>
-            <dt>Tiêu đề</dt>
-            <dd>${escapeHtml(data.assetTitle || 'N/A')}</dd>
-            <dt>Tác giả</dt>
-            <dd>${escapeHtml(data.creatorUserName || 'N/A')}</dd>
-            <dt>Người xử lý</dt>
-            <dd>${escapeHtml(data.assigneeUserName || 'Chưa assign')}</dd>
-            <dt>Trạng thái</dt>
-            <dd><span class="status-badge status-${data.status}">${getStatusLabel(data.status)}</span></dd>
-            <dt>Ngày tạo</dt>
-            <dd>${formatDate(data.createDate)}</dd>
-            <dt>Cập nhật</dt>
-            <dd>${data.modifiedDate ? formatDate(data.modifiedDate) : 'N/A'}</dd>
-            <dt>Hạn duyệt</dt>
-            <dd>${data.dueDate ? formatDate(data.dueDate) : 'Không có'}</dd>
+        <section class="detail-summary">
+            <div class="detail-title-row">
+                <span class="asset-type-badge">${escapeHtml(typeLabel)}</span>
+                <span class="status-badge status-${data.status}">${escapeHtml(statusLabel)}</span>
+            </div>
+            <h2>${escapeHtml(data.assetTitle || 'N/A')}</h2>
+        </section>
+
+        <div class="detail-meta">
+            <div class="detail-meta-item">
+                <span>Tác giả</span>
+                <strong>${escapeHtml(data.creatorUserName || 'N/A')}</strong>
+            </div>
+            <div class="detail-meta-item">
+                <span>Người xử lý</span>
+                <strong>${escapeHtml(data.assigneeUserName || 'Chưa assign')}</strong>
+            </div>
+            <div class="detail-meta-item">
+                <span>Ngày tạo</span>
+                <strong>${formatDate(data.createDate)}</strong>
+            </div>
+            <div class="detail-meta-item">
+                <span>Cập nhật</span>
+                <strong>${data.modifiedDate ? formatDate(data.modifiedDate) : 'N/A'}</strong>
+            </div>
+            <div class="detail-meta-item">
+                <span>Hạn duyệt</span>
+                <strong>${data.dueDate ? formatDate(data.dueDate) : 'Không có'}</strong>
+            </div>
             ${parentRow}
-        </dl>
-        <div class="detail-content-label">Nội dung</div>
-        <div class="detail-content">${content}</div>
+        </div>
+
+        <section class="detail-content-section">
+            <div class="detail-content-label">Nội dung</div>
+            <div class="detail-content ${isCommentAsset(data.assetType) ? 'detail-content-comment' : ''}">${content}</div>
+        </section>
     `;
 
     // Cho phép duyệt/từ chối ngay trong modal chi tiết nếu còn xử lý được.
@@ -252,6 +273,7 @@ function renderDetail(data) {
 
 function closeDetailModal() {
     document.getElementById('detailModal').classList.remove('active');
+    syncBodyScrollLock();
 }
 
 function openApproveModal(taskId) {
@@ -262,6 +284,7 @@ function openApproveModal(taskId) {
     document.getElementById('confirmActionBtn').textContent = 'Duyệt';
     document.getElementById('actionComment').value = '';
     document.getElementById('actionModal').classList.add('active');
+    syncBodyScrollLock();
 }
 
 function openRejectModal(taskId) {
@@ -272,10 +295,12 @@ function openRejectModal(taskId) {
     document.getElementById('confirmActionBtn').textContent = 'Từ chối';
     document.getElementById('actionComment').value = '';
     document.getElementById('actionModal').classList.add('active');
+    syncBodyScrollLock();
 }
 
 function closeActionModal() {
     document.getElementById('actionModal').classList.remove('active');
+    syncBodyScrollLock();
     pendingAction = null;
     pendingTaskId = null;
 }
@@ -352,14 +377,11 @@ function getStatusLabel(status) {
     return labels[status] || status;
 }
 
-function getActionNote(status) {
-    if (status === 'denied') {
-        return 'Chờ tác giả';
+function getActionNoteHtml(item) {
+    if (item.status === 'denied' && isWebContentAsset(item.assetType)) {
+        return '<span class="action-note">Chờ chỉnh sửa</span>';
     }
-    if (status === 'approved') {
-        return 'Đã duyệt';
-    }
-    return '—';
+    return '';
 }
 
 function getAssetTypeLabel(assetType) {
@@ -369,6 +391,59 @@ function getAssetTypeLabel(assetType) {
         'com.liferay.message.boards.model.MBMessage': 'Bình luận'
     };
     return labels[assetType] || assetType || 'N/A';
+}
+
+function isWebContentAsset(assetType) {
+    return assetType === 'com.liferay.journal.model.JournalArticle';
+}
+
+function isCommentAsset(assetType) {
+    return assetType === 'com.liferay.message.boards.model.MBDiscussion' ||
+        assetType === 'com.liferay.message.boards.model.MBMessage';
+}
+
+function formatDetailContent(data) {
+    const rawContent = data.contentHtml || data.assetContent || '';
+
+    if (!rawContent) {
+        return '<span class="detail-muted">Không có nội dung.</span>';
+    }
+
+    if (isCommentAsset(data.assetType)) {
+        return escapeHtml(htmlToText(rawContent)).replace(/\n/g, '<br>');
+    }
+
+    return removeEmptyHtmlTags(rawContent);
+}
+
+function htmlToText(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return (div.textContent || div.innerText || html).trim();
+}
+
+function removeEmptyHtmlTags(html) {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    let removed = true;
+
+    while (removed) {
+        removed = false;
+
+        Array.from(container.querySelectorAll('*')).reverse().forEach(element => {
+            if (
+                element.attributes.length === 0 &&
+                element.textContent.trim() === '' &&
+                element.children.length === 0
+            ) {
+                element.remove();
+                removed = true;
+            }
+        });
+    }
+
+    return container.innerHTML;
 }
 
 function formatDate(dateString) {
@@ -392,6 +467,11 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text == null ? '' : String(text);
     return div.innerHTML;
+}
+
+function syncBodyScrollLock() {
+    const hasOpenModal = Boolean(document.querySelector('.modal.active'));
+    document.body.classList.toggle('workflow-modal-open', hasOpenModal);
 }
 
 function showLoading() {
