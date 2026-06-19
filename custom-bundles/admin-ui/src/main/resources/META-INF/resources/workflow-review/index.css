@@ -9,6 +9,7 @@ body {
     color: #333;
 }
 
+html.workflow-modal-open,
 body.workflow-modal-open {
     overflow: hidden;
 }

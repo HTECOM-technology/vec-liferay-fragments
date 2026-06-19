@@ -432,11 +432,7 @@ function removeEmptyHtmlTags(html) {
         removed = false;
 
         Array.from(container.querySelectorAll('*')).reverse().forEach(element => {
-            if (
-                element.attributes.length === 0 &&
-                element.textContent.trim() === '' &&
-                element.children.length === 0
-            ) {
+            if (isEmptyHtmlElement(element)) {
                 element.remove();
                 removed = true;
             }
@@ -444,6 +440,19 @@ function removeEmptyHtmlTags(html) {
     }
 
     return container.innerHTML;
+}
+
+function isEmptyHtmlElement(element) {
+    return element.attributes.length === 0 &&
+        normalizeEmptyContent(element.textContent) === '' &&
+        element.children.length === 0;
+}
+
+function normalizeEmptyContent(content) {
+    return String(content || '')
+        .replace(/\u00a0/g, ' ')
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .trim();
 }
 
 function formatDate(dateString) {
@@ -471,6 +480,8 @@ function escapeHtml(text) {
 
 function syncBodyScrollLock() {
     const hasOpenModal = Boolean(document.querySelector('.modal.active'));
+    document.documentElement.classList.toggle(
+        'workflow-modal-open', hasOpenModal);
     document.body.classList.toggle('workflow-modal-open', hasOpenModal);
 }
 
