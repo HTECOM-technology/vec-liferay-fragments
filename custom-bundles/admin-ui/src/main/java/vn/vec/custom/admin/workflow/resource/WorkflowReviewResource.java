@@ -364,8 +364,9 @@ public class WorkflowReviewResource {
 		}
 
 		try {
-			// Bình luận trên Web Content: dựng link control-panel tới bài viết
-			// (không phụ thuộc ThemeDisplay nên ổn định trên REST).
+			// Bình luận trên Web Content: dựng URL public dạng friendly
+			// /web/{site}/w/{url-title} (không phụ thuộc ThemeDisplay nên ổn
+			// định trên REST).
 			if ("com.liferay.journal.model.JournalArticle".equals(
 					parentClassName)) {
 
@@ -390,9 +391,17 @@ public class WorkflowReviewResource {
 					return null;
 				}
 
-				return WebContentAdvancedSearchUtil.buildEditUrl(
-					httpServletRequest, group, article.getArticleId(),
-					article.getGroupId(), article.getVersion());
+				String urlTitle = article.getUrlTitle();
+
+				if (Validator.isNull(urlTitle)) {
+					// Fallback: link control-panel chỉnh sửa bài viết.
+					return WebContentAdvancedSearchUtil.buildEditUrl(
+						httpServletRequest, group, article.getArticleId(),
+						article.getGroupId(), article.getVersion());
+				}
+
+				return PortalUtil.getPortalURL(httpServletRequest) + "/web" +
+					group.getFriendlyURL() + "/w/" + urlTitle;
 			}
 
 			// Các loại asset khác: dùng AssetRenderer nếu có ThemeDisplay.

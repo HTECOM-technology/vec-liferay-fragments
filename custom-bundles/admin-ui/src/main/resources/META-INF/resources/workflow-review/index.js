@@ -29,7 +29,7 @@ function switchTab(tab, buttonEl) {
     loadWorkflowItems();
 }
 
-async function loadWorkflowItems() {
+async function loadWorkflowItems(silent) {
     const keyword = document.getElementById('keyword').value;
     const status = document.getElementById('status').value;
     const assetType = document.getElementById('assetType').value;
@@ -45,7 +45,11 @@ async function loadWorkflowItems() {
     });
 
     try {
-        showLoading();
+        // silent = true: giữ nguyên bảng hiện tại, chỉ thay nội dung khi có
+        // dữ liệu mới (dùng sau khi duyệt/từ chối, tránh nháy trắng bảng).
+        if (!silent) {
+            showLoading();
+        }
         const response = await fetch(
             `/o/vec-admin/workflow-review?${params.toString()}`,
             {
@@ -91,13 +95,12 @@ function renderWorkflowItems(items, total) {
         const assetTypeLabel = getAssetTypeLabel(item.assetType);
 
         // Chỉ cho duyệt/từ chối khi item còn ở bước review (reviewable).
-        // Item đã bị từ chối (trả về tác giả chỉnh sửa) thì không thao tác được nữa.
         const actionsHtml = item.reviewable
             ? `<div class="action-buttons">
                     <button type="button" class="btn-approve" data-action="approve" data-task-id="${item.workflowTaskId}">Duyệt</button>
                     <button type="button" class="btn-reject" data-action="reject" data-task-id="${item.workflowTaskId}">Từ chối</button>
                 </div>`
-            : `<span class="action-note">Chờ tác giả chỉnh sửa</span>`;
+            : `<span class="action-note">${getActionNote(item.status)}</span>`;
 
         row.innerHTML = `
             <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${truncate(item.assetTitle || 'N/A', 50)}</td>
@@ -283,9 +286,19 @@ async function confirmAction() {
     const comment = document.getElementById('actionComment').value;
     const endpoint = `/o/vec-admin/workflow-review/${pendingTaskId}/${pendingAction}`;
 
+    const taskId = pendingTaskId;
+    const processingCell = document.querySelector(
+        `[data-task-id="${taskId}"]`);
+    const processingRow = processingCell ? processingCell.closest('tr') : null;
+
     try {
         closeActionModal();
-        showLoading();
+
+        // Mờ ngay dòng đang xử lý để phản hồi tức thì (không reload trang).
+        if (processingRow) {
+            processingRow.style.opacity = '0.5';
+            processingRow.style.pointerEvents = 'none';
+        }
 
         const response = await fetch(endpoint, {
             method: 'POST',
@@ -306,13 +319,22 @@ async function confirmAction() {
 
         if (data.success) {
             showSuccess(data.message || 'Thao tác thành công');
-            await loadWorkflowItems();
+            // Refresh im lặng: cập nhật bảng bằng JS, không reload trang.
+            await loadWorkflowItems(true);
         } else {
             showError(data.message || 'Thao tác không thành công');
+            if (processingRow) {
+                processingRow.style.opacity = '';
+                processingRow.style.pointerEvents = '';
+            }
         }
     } catch (error) {
         console.error('Error performing action:', error);
         showError('Không thể thực hiện thao tác. Vui lòng thử lại.');
+        if (processingRow) {
+            processingRow.style.opacity = '';
+            processingRow.style.pointerEvents = '';
+        }
     }
 }
 
@@ -328,6 +350,16 @@ function getStatusLabel(status) {
         'expired': 'Đã hết hạn duyệt'
     };
     return labels[status] || status;
+}
+
+function getActionNote(status) {
+    if (status === 'denied') {
+        return 'Chờ tác giả chỉnh sửa';
+    }
+    if (status === 'approved') {
+        return 'Đã duyệt';
+    }
+    return '—';
 }
 
 function getAssetTypeLabel(assetType) {
