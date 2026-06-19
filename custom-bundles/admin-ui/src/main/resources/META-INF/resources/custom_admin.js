@@ -52,6 +52,39 @@ function forceSetDisplayPage(assetDisplayPageId) {
     });
 }
 
+function repeatCallback(callback, times = 3, intervalMs = 300) {
+  if (typeof callback !== 'function') {
+    throw new TypeError('callback must be a function');
+  }
+
+  if (times <= 0) {
+    return () => {};
+  }
+
+  let count = 0;
+  let timerId = null;
+
+  const run = () => {
+    count++;
+
+    callback(count);
+
+    if (count >= times) {
+      clearInterval(timerId);
+    }
+  };
+
+  run();
+
+  if (times > 1) {
+    timerId = setInterval(run, intervalMs);
+  }
+
+  return () => {
+    clearInterval(timerId);
+  };
+}
+
 window.waitForElement = waitForElement;
 
 function __getUserRole() {
@@ -188,7 +221,6 @@ function __appendAIChatHistoryAndAuditLogMenu() {
     const ATTR_AI_CHAT = 'data-vec-ai-history';
     const ATTR_AUDIT_LOG = 'data-vec-audit-log';
     const roleCanAccess = [
-        '31923',
         '20100',
     ];
 
@@ -565,6 +597,7 @@ function __redirectToHomepageIfNotCorrectLoginScreen() {
 }
 
 function __redirectMyWorkflowTasksLink() {
+    console.log('__redirectMyWorkflowTasksLink ran');
     const SELECTOR = 'a[href*="com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet"]';
     const ATTR_OLD = 'data-old-href';
 
@@ -822,7 +855,7 @@ async function __custom_admin_js() {
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
     __initGlobalFolder();
-    __redirectMyWorkflowTasksLink();
+    repeatCallback(__redirectMyWorkflowTasksLink, 5, 1000);
 
     if (isPageCreateNewPost) {
         waitForElement(
