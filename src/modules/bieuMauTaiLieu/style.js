@@ -16,8 +16,8 @@ export const LayoutContainer = styled.div`
   align-items: flex-start;
   max-width: 1400px;
   margin: 0 auto;
-  
-  @media (max-width: 992px) {
+
+  @media (max-width: 767px) {
     flex-direction: column;
     gap: 0;
   }
@@ -25,15 +25,19 @@ export const LayoutContainer = styled.div`
 
 export const MobileTabContainer = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #f8fafc;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 4px;
+  padding: 8px 16px;
+  background: #fff;
+  border-bottom: 2px solid #f0f0f0;
   width: 100%;
-  border-bottom: 1px solid #e2e8f0;
   box-sizing: border-box;
 
-  @media (min-width: 993px) {
+  &::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 768px) {
     display: none;
   }
 `;
@@ -41,38 +45,33 @@ export const MobileTabContainer = styled.div`
 export const MobileTabItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid ${props => props.$active ? '#0090cf' : '#e2e8f0'};
-  border-radius: 10px;
-  background: #fff;
-  color: ${props => props.$active ? '#0090cf' : '#64748b'};
-  box-shadow: ${props => props.$active ? '0 4px 6px -1px rgba(0, 144, 207, 0.1)' : 'none'};
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 20px;
+  flex-shrink: 0;
+  white-space: nowrap;
 
+  background: ${props => props.$active ? '#0090cf' : 'transparent'};
+  color: ${props => props.$active ? '#fff' : '#64748b'};
   font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
+  font-size: 13px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  flex: 0 0 auto;
-  max-width: 100%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${props => props.$active ? '#007ab0' : '#f0f9ff'};
+    color: ${props => props.$active ? '#fff' : '#0090cf'};
+  }
 
   &:active {
     transform: scale(0.97);
   }
 
   svg {
-    width: 18px;
-    height: 18px;
-    color: inherit;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
-  }
-
-  span {
-    line-height: 1.25;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    filter: ${props => props.$active ? 'brightness(0) invert(1)' : 'none'};
   }
 `;
 
@@ -85,7 +84,7 @@ export const ContentArea = styled.div`
   overflow: hidden;
   width: 100%;
   
-  @media (max-width: 992px) {
+  @media (max-width: 1199px) {
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -114,7 +113,7 @@ export const Header = styled.div`
     flex-shrink: 0;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 12px 16px;
 
     h3 {
@@ -131,7 +130,7 @@ export const TableContainer = styled.div`
     justify-content: flex-end;
     margin-bottom: 20px;
 
-    @media (max-width: 768px) {
+    @media (max-width: 1199px) {
       padding: 0 16px;
       margin-top: 16px;
       
@@ -144,7 +143,7 @@ export const TableContainer = styled.div`
     }
   }
   
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     padding: 0 0 24px 0;
   }
 
@@ -200,7 +199,7 @@ export const ActionButton = styled.button`
   height: 36px;
   flex-shrink: 0;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: 30px;
     height: 30px;
     border-radius: 6px;
@@ -271,7 +270,7 @@ export const ActionsCell = styled.div`
   gap: 10px;
   justify-content: center;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     gap: 6px;
   }
 `;

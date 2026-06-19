@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const Wrap = styled.div`
   padding: 0 24px 24px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 0 8px 16px;
   }
 `;
@@ -11,7 +11,7 @@ export const Wrap = styled.div`
 export const Section = styled.div`
   margin-bottom: 24px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     margin-bottom: 16px;
   }
 
@@ -52,7 +52,7 @@ export const Section = styled.div`
     border-right: 1px solid rgba(132, 131, 128, 0.2) !important;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     .ant-table-thead > tr > th,
     .ant-table-tbody > tr > td {
       padding: 8px !important;
@@ -74,7 +74,7 @@ export const SectionTitle = styled.div`
   color: rgba(0, 0, 0, 0.85);
   margin-bottom: 8px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 13px;
   }
 `;
@@ -87,7 +87,7 @@ export const SenderCell = styled.div`
   color: rgba(0, 0, 0, 0.65);
   font-size: 14px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 12px;
     gap: 4px;
     flex-direction: column;
@@ -105,7 +105,7 @@ export const NotificationTitle = styled.a`
   display: block;
   line-height: 1.5;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 13px;
   }
 
@@ -120,7 +120,7 @@ export const NotificationDesc = styled.div`
   font-size: 13px;
   line-height: 1.5;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 12px;
   }
 `;

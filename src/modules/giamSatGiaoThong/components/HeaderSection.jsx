@@ -21,7 +21,7 @@ const CustomSelect = styled(Select)`
     font-size: 15px !important;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     width: 100% !important;
 
     .ant-select-selection-item,

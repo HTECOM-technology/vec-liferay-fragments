@@ -46,7 +46,7 @@ export const TabsContainer = styled.div`
 export const ContentContainer = styled.div`
   padding: 16px 24px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 12px 16px;
   }
 `;
@@ -82,7 +82,7 @@ export const FilterTag = styled.button`
     height: 14px;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex: 1;
     justify-content: center;
     padding: 5px 6px;
@@ -104,7 +104,7 @@ export const HeaderRow = styled.div`
   flex-wrap: wrap;
   gap: 12px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
@@ -132,7 +132,7 @@ export const FilterSection = styled.div`
   flex: 1;
   justify-content: flex-end;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     justify-content: flex-start;
     gap: 8px;
   }
@@ -145,7 +145,7 @@ export const SearchInput = styled.div`
     border-radius: 4px;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: 100%;
 
     .ant-input-affix-wrapper {
@@ -175,7 +175,7 @@ export const FilterSelect = styled.div`
     line-height: 30px !important;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex: 1 1 calc(50% - 4px);
     min-width: 0;
 
@@ -204,7 +204,7 @@ export const SearchButton = styled.button`
     background: #007bb5;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: 100%;
     height: 36px;
   }

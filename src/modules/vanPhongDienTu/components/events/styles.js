@@ -7,7 +7,7 @@ export const EventsHeaderTitle = styled.h2`
   padding: 0;
   margin: 0;
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 14px;
     flex: 1;
     min-width: 0;
@@ -24,7 +24,7 @@ export const EventsHeaderRow = styled.div`
   flex-wrap: wrap;
   gap: 12px;
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: 100%;
   }
 `;
@@ -35,7 +35,7 @@ export const EventsCheckboxGroup = styled.div`
   gap: 12px;
   flex-wrap: wrap;
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     .ant-checkbox-wrapper {
       font-size: 13px;
     }
@@ -54,18 +54,9 @@ export const EventsActionGroup = styled.div`
     border: 1px solid #0090CF33;
   }
   
-  @media (max-width: 767px) {
-    .ant-btn {
-      min-width: 40px;
-      padding: 4px 8px;
-      
-      &.add-event-button,
-      &.ant-btn-primary {
-        span:not(.anticon) {
-          display: none;
-        }
-      }
-    }
+  @media (max-width: 1199px) {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 `;
 
@@ -81,7 +72,7 @@ export const EventsFilterRow = styled.div`
     margin-bottom: 0;
   }
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     margin-top: 12px;
     justify-content: flex-start;
   }
@@ -135,7 +126,7 @@ export const DateCell = styled.div`
   line-height: 1.5;
   font-weight: 500;
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 12px;
   }
 `;
@@ -143,7 +134,7 @@ export const DateCell = styled.div`
 export const SessionCell = styled.div`
   font-weight: 500;
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 12px;
   }
 `;
@@ -154,7 +145,7 @@ export const EventContent = styled.div`
   gap: 4px;
   text-align: left;
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     gap: 4px;
   }
 `;
@@ -163,7 +154,7 @@ export const EventTitle = styled.div`
   font-weight: 500;
   color: rgba(0, 0, 0, 0.85);
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 12px;
   }
 `;
@@ -177,7 +168,7 @@ export const EventLink = styled.a`
     text-decoration: underline;
   }
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 11px;
   }
 `;

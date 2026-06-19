@@ -97,7 +97,7 @@
    TABLET
 ========================= */
 
-@media (max-width:1024px) {
+@media (max-width:1199px) {
 
     .related-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -110,7 +110,7 @@
    MOBILE SLIDER
 ========================= */
 
-@media (max-width:768px) {
+@media (max-width:1199px) {
 
     /* chuyển grid sang slider */
 

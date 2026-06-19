@@ -205,7 +205,7 @@
    display: block;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1199px) {
     .news-item.ttsk {
         gap: 12px;
         padding: 12px 0;

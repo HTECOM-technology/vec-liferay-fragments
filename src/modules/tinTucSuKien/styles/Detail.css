@@ -169,7 +169,7 @@
    MOBILE RESPONSIVE
 ========================= */
 
-@media (max-width:768px) {
+@media (max-width:1199px) {
 
     .image-row {
         flex-direction: column;
@@ -385,7 +385,7 @@
     transform: translate(-65%, -50%) rotate(45deg);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1199px) {
     .article-images .detail-article-image-large {
         height: auto;
         aspect-ratio: 892 / 517;

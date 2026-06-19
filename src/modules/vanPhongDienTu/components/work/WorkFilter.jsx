@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Space, Grid } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import {
   CInput,
   CSelect,
@@ -8,7 +8,6 @@ import {
   CModal,
 } from "../../../../components/common";
 import { MobileFilterButton, FilterSection } from "../../style";
-import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
 import { WorkFilterWrap, WorkFilterForm, ButtonWrapper } from "./styles";
 import {
   PROJECT_OPTIONS,
@@ -85,9 +84,7 @@ function WorkFilter({ initialValues, onSearch, isIconOnly = false }) {
     </FilterSection>
   );
 
-  const filterIcon = (
-    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
-  );
+  const filterIcon = <FilterOutlined style={{ fontSize: 18, color: "#0090CF" }} />;
 
   const filterModal = (
     <CModal

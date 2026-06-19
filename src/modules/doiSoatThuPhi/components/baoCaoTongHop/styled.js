@@ -6,7 +6,7 @@ export const Wrap = styled.div`
   flex-direction: column;
   gap: 32px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 0px;
     gap: 20px;
   }
@@ -18,7 +18,7 @@ export const ChartsRow = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 
-  @media (max-width: 900px) {
+  @media (max-width: 1199px) {
     grid-template-columns: 1fr;
     gap: 16px;
   }
@@ -30,7 +30,7 @@ export const ChartCard = styled.div`
   background: #fff;
   padding: 16px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 12px;
   }
 `;
@@ -41,7 +41,7 @@ export const ChartCardTitle = styled.div`
   color: rgba(0, 0, 0, 0.85);
   margin-bottom: 12px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 14px;
     margin-bottom: 8px;
   }
@@ -54,7 +54,7 @@ export const ChartFilterRow = styled.div`
   flex-wrap: wrap;
   margin-bottom: 16px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     gap: 6px;
     margin-bottom: 12px;
 
@@ -69,7 +69,7 @@ export const FilterItem = styled.div`
   align-items: center;
   gap: 4px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex: 1 1 calc(50% - 3px);
     min-width: 0;
 
@@ -86,7 +86,7 @@ export const ChartWrap = styled.div`
   width: 100%;
   height: 220px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     height: 180px;
   }
 `;
@@ -97,7 +97,7 @@ export const TableSection = styled.div`
     white-space: nowrap;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     .ant-table {
       font-size: 12px;
     }
@@ -116,7 +116,7 @@ export const TableSectionTitle = styled.div`
   color: rgba(0, 0, 0, 0.85);
   margin-bottom: 12px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 13px;
     margin-bottom: 8px;
   }
@@ -134,7 +134,7 @@ export const StatusBadge = styled.span`
   color: ${({ $type }) =>
     $type === "done" ? "rgba(82, 196, 26, 1)" : "rgba(0, 144, 207, 1)"};
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 11px;
     padding: 2px 6px;
   }

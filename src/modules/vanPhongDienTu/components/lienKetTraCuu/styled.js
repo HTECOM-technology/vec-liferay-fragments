@@ -3,7 +3,7 @@ import styled from "styled-components";
 export const Wrap = styled.div`
   padding: 24px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 12px;
   }
 `;
@@ -18,7 +18,7 @@ export const Grid = styled.div`
     gap: 12px;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
@@ -44,7 +44,7 @@ export const Card = styled.a`
     border-color: #0090cf;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 16px 8px;
     gap: 8px;
     border-radius: 6px;
@@ -69,7 +69,7 @@ export const CardLabel = styled.div`
   font-weight: 500;
   white-space: pre-line;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 12px;
     line-height: 1.4;
   }

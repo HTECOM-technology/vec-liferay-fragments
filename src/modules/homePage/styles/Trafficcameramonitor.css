@@ -234,7 +234,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1199px) {
   .traffic-camera-monitor__grid {
     grid-template-columns: repeat(2, 1fr);
 
@@ -486,7 +486,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1199px) {
 
 
   .traffic-camera-monitor__header {
