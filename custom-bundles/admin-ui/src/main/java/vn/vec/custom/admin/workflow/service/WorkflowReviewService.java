@@ -21,16 +21,21 @@ import com.liferay.portal.workflow.comparator.WorkflowComparatorFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import vn.vec.custom.admin.workflow.model.WorkflowReviewItem;
 import vn.vec.custom.admin.workflow.model.WorkflowReviewQuery;
+import vn.vec.custom.admin.workflow.persistence.WorkflowReviewHistoryRepository;
 
 @Component(service = WorkflowReviewService.class)
 public class WorkflowReviewService {
@@ -40,25 +45,101 @@ public class WorkflowReviewService {
 		throws PortalException {
 
 		List<WorkflowReviewItem> items = new ArrayList<>();
-		List<WorkflowTask> tasks = new ArrayList<>();
+		List<WorkflowReviewItem> mergedItems = _getMergedWorkflowReviewItems(
+			companyId, userId, query);
 
-		// Order theo ngày tạo, mới nhất lên trước (ascending = false). Order
-		// ngay ở tầng query để phân trang đúng thứ tự trên toàn bộ kết quả.
+		int start = Math.max(0, query.getStart());
+		int end = query.getEnd();
+
+		if ((end <= start) || (end > mergedItems.size())) {
+			end = mergedItems.size();
+		}
+
+		if (start >= mergedItems.size()) {
+			return items;
+		}
+
+		items.addAll(mergedItems.subList(start, end));
+
+		return items;
+	}
+
+	public int getWorkflowReviewItemsCount(
+			long companyId, long userId, WorkflowReviewQuery query)
+		throws PortalException {
+
+		return _getMergedWorkflowReviewItems(companyId, userId, query).size();
+	}
+
+	public WorkflowReviewItem getWorkflowReviewItemDetail(
+			long companyId, long workflowTaskId)
+		throws PortalException {
+
+		try {
+			WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
+				companyId, workflowTaskId);
+
+			// Query rỗng -> không filter, luôn trả về item.
+			WorkflowReviewItem item = _buildWorkflowReviewItem(
+				companyId, task, new WorkflowReviewQuery());
+
+			if (item != null) {
+				_populateContentHtml(item);
+			}
+
+			return item;
+		}
+		catch (PortalException portalException) {
+			try {
+				WorkflowReviewItem item =
+					_workflowReviewHistoryRepository.getItem(
+						companyId, workflowTaskId);
+
+				if (item != null) {
+					return item;
+				}
+			}
+			catch (Exception exception) {
+				_log.warn(
+					"Không lấy được lịch sử workflow task=" + workflowTaskId,
+					exception);
+			}
+
+			throw portalException;
+		}
+	}
+
+	private List<WorkflowReviewItem> _getMergedWorkflowReviewItems(
+			long companyId, long userId, WorkflowReviewQuery query)
+		throws PortalException {
+
+		List<WorkflowReviewItem> items = new ArrayList<>();
+		List<WorkflowTask> tasks = new ArrayList<>();
+		Set<Long> workflowTaskIds = new HashSet<>();
+
+		// Lấy task Liferay theo ngày tạo để dữ liệu nguồn ổn định; sau đó merge
+		// lịch sử reject và sort lại một lần trước khi phân trang.
 		OrderByComparator<WorkflowTask> orderByComparator =
 			_workflowComparatorFactory.getTaskCreateDateComparator(false);
 
 		// Get workflow tasks based on tab
 		if ("mine".equals(query.getTab())) {
 			// "Tôi xử lý": task đang gán cho user hiện tại.
+			int taskCount = WorkflowTaskManagerUtil.getWorkflowTaskCountByUser(
+				companyId, userId, false);
+
 			tasks = WorkflowTaskManagerUtil.getWorkflowTasksByUser(
-				companyId, userId, false, query.getStart(), query.getEnd(),
+				companyId, userId, false, 0, taskCount,
 				orderByComparator);
 		} else {
 			// "Tất cả": toàn bộ task chưa hoàn thành của company (góc nhìn
 			// quản trị). Không dùng getWorkflowTasksByUserRoles vì task gán cho
 			// một user cụ thể (vd workflow comment) sẽ bị bỏ sót.
+			int taskCount = WorkflowTaskManagerUtil.getWorkflowTaskCount(
+				companyId, false);
+
 			tasks = WorkflowTaskManagerUtil.getWorkflowTasks(
-				companyId, false, query.getStart(), query.getEnd(),
+				companyId, false, 0, taskCount,
 				orderByComparator);
 		}
 
@@ -68,41 +149,31 @@ public class WorkflowReviewService {
 
 			if (item != null) {
 				items.add(item);
+				workflowTaskIds.add(item.getWorkflowTaskId());
 			}
 		}
 
+		try {
+			for (WorkflowReviewItem item :
+					_workflowReviewHistoryRepository.getItems(companyId)) {
+
+				if (workflowTaskIds.contains(item.getWorkflowTaskId()) ||
+					!_matchesHistoryTab(item, userId, query) ||
+					!_matchesQuery(item, query)) {
+
+					continue;
+				}
+
+				items.add(item);
+			}
+		}
+		catch (Exception exception) {
+			_log.warn("Không lấy được lịch sử workflow review", exception);
+		}
+
+		_sortItems(items, query);
+
 		return items;
-	}
-
-	public int getWorkflowReviewItemsCount(
-			long companyId, long userId, WorkflowReviewQuery query)
-		throws PortalException {
-
-		if ("mine".equals(query.getTab())) {
-			return WorkflowTaskManagerUtil.getWorkflowTaskCountByUser(
-				companyId, userId, false);
-		} else {
-			return WorkflowTaskManagerUtil.getWorkflowTaskCount(
-				companyId, false);
-		}
-	}
-
-	public WorkflowReviewItem getWorkflowReviewItemDetail(
-			long companyId, long workflowTaskId)
-		throws PortalException {
-
-		WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
-			companyId, workflowTaskId);
-
-		// Query rỗng -> không filter, luôn trả về item.
-		WorkflowReviewItem item = _buildWorkflowReviewItem(
-			companyId, task, new WorkflowReviewQuery());
-
-		if (item != null) {
-			_populateContentHtml(item);
-		}
-
-		return item;
 	}
 
 	public void approveWorkflowTask(
@@ -140,6 +211,29 @@ public class WorkflowReviewService {
 				companyId, userId, workflowTaskId, userId, null, null, null);
 		}
 
+		WorkflowReviewItem rejectedItem = null;
+
+		task = WorkflowTaskManagerUtil.getWorkflowTask(companyId, workflowTaskId);
+
+		if (_isCommentAsset(companyId, task)) {
+			rejectedItem = _buildWorkflowReviewItem(
+				companyId, task, new WorkflowReviewQuery());
+
+			if (rejectedItem != null) {
+				rejectedItem.setStatus("denied");
+				rejectedItem.setReviewable(false);
+				rejectedItem.setCompletedByUserId(userId);
+
+				try {
+					rejectedItem.setCompletedByUserName(
+						UserLocalServiceUtil.getUser(userId).getFullName());
+				}
+				catch (Exception exception) {
+					// Ignore, user name is only displayed as metadata.
+				}
+			}
+		}
+
 		String transitionName = _resolveTransitionName(
 			companyId, userId, workflowTaskId, false);
 
@@ -147,6 +241,17 @@ public class WorkflowReviewService {
 		WorkflowTaskManagerUtil.completeWorkflowTask(
 			companyId, userId, workflowTaskId, transitionName, comment,
 			workflowContext);
+
+		if (rejectedItem != null) {
+			try {
+				_workflowReviewHistoryRepository.saveRejectedItem(rejectedItem);
+			}
+			catch (Exception exception) {
+				_log.warn(
+					"Không lưu được lịch sử workflow task=" + workflowTaskId,
+					exception);
+			}
+		}
 	}
 
 	public void assignWorkflowTask(
@@ -200,6 +305,7 @@ public class WorkflowReviewService {
 
 		WorkflowReviewItem item = new WorkflowReviewItem();
 
+		item.setCompanyId(companyId);
 		item.setWorkflowTaskId(task.getWorkflowTaskId());
 		item.setWorkflowInstanceId(task.getWorkflowInstanceId());
 		item.setTaskName(task.getName());
@@ -263,6 +369,26 @@ public class WorkflowReviewService {
 				companyId, task.getWorkflowInstanceId());
 
 		return workflowInstance.getWorkflowContext();
+	}
+
+	private boolean _isCommentAsset(long companyId, WorkflowTask task) {
+		try {
+			Map<String, Serializable> workflowContext =
+				_getWorkflowContext(companyId, task);
+
+			String entryClassName = GetterUtil.getString(
+				workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME));
+
+			return _isCommentClassName(entryClassName);
+		}
+		catch (Exception exception) {
+			_log.warn(
+				"Không xác định được loại asset của workflow task=" +
+					task.getWorkflowTaskId(),
+				exception);
+		}
+
+		return false;
 	}
 
 	private void _populateJournalArticle(
@@ -447,7 +573,7 @@ public class WorkflowReviewService {
 		// Filter by asset type
 		if (query.getAssetType() != null &&
 			!query.getAssetType().isEmpty() &&
-			!query.getAssetType().equals(item.getAssetType())) {
+			!_matchesAssetType(query.getAssetType(), item.getAssetType())) {
 
 			return false;
 		}
@@ -476,6 +602,92 @@ public class WorkflowReviewService {
 		return true;
 	}
 
+	private boolean _matchesAssetType(String queryAssetType, String itemAssetType) {
+		if (queryAssetType.equals(itemAssetType)) {
+			return true;
+		}
+
+		if (_isCommentClassName(queryAssetType)) {
+			return _isCommentClassName(itemAssetType);
+		}
+
+		return false;
+	}
+
+	private boolean _isCommentClassName(String className) {
+		return _CLASS_NAME_MB_DISCUSSION.equals(className) ||
+			_CLASS_NAME_MB_MESSAGE.equals(className);
+	}
+
+	private boolean _matchesHistoryTab(
+		WorkflowReviewItem item, long userId, WorkflowReviewQuery query) {
+
+		if (!"mine".equals(query.getTab())) {
+			return true;
+		}
+
+		return (item.getAssigneeUserId() == userId) ||
+			(item.getCompletedByUserId() == userId);
+	}
+
+	private void _sortItems(
+		List<WorkflowReviewItem> items, WorkflowReviewQuery query) {
+
+		final boolean ascending = "asc".equalsIgnoreCase(
+			query.getOrderDirection());
+		final String orderBy = query.getOrderBy();
+
+		Collections.sort(
+			items,
+			new Comparator<WorkflowReviewItem>() {
+
+				@Override
+				public int compare(
+					WorkflowReviewItem left, WorkflowReviewItem right) {
+
+					int dateCompare = _compareDates(
+						_getOrderDate(left, orderBy),
+						_getOrderDate(right, orderBy));
+
+					if (dateCompare == 0) {
+						dateCompare = Long.compare(
+							left.getWorkflowTaskId(), right.getWorkflowTaskId());
+					}
+
+					return ascending ? dateCompare : -dateCompare;
+				}
+
+			});
+	}
+
+	private int _compareDates(Date left, Date right) {
+		if ((left == null) && (right == null)) {
+			return 0;
+		}
+
+		if (left == null) {
+			return -1;
+		}
+
+		if (right == null) {
+			return 1;
+		}
+
+		return left.compareTo(right);
+	}
+
+	private Date _getOrderDate(WorkflowReviewItem item, String orderBy) {
+		if ("modifiedDate".equals(orderBy)) {
+			return item.getModifiedDate();
+		}
+
+		if ("dueDate".equals(orderBy)) {
+			return item.getDueDate();
+		}
+
+		return item.getCreateDate();
+	}
+
 	private static final String _CLASS_NAME_JOURNAL_ARTICLE =
 		"com.liferay.journal.model.JournalArticle";
 
@@ -487,6 +699,9 @@ public class WorkflowReviewService {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		WorkflowReviewService.class);
+
+	@Reference
+	private WorkflowReviewHistoryRepository _workflowReviewHistoryRepository;
 
 	@Reference
 	private WorkflowComparatorFactory _workflowComparatorFactory;

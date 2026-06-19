@@ -103,11 +103,11 @@ function renderWorkflowItems(items, total) {
             : `<span class="action-note">${getActionNote(item.status)}</span>`;
 
         row.innerHTML = `
-            <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${truncate(item.assetTitle || 'N/A', 50)}</td>
-            <td><span class="asset-type-badge">${assetTypeLabel}</span></td>
-            <td>${item.creatorUserName || 'N/A'}</td>
-            <td>${item.assigneeUserName || 'Chưa assign'}</td>
-            <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
+            <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${escapeHtml(truncate(item.assetTitle || 'N/A', 50))}</td>
+            <td><span class="asset-type-badge">${escapeHtml(assetTypeLabel)}</span></td>
+            <td>${escapeHtml(item.creatorUserName || 'N/A')}</td>
+            <td>${escapeHtml(item.assigneeUserName || 'Chưa assign')}</td>
+            <td><span class="status-badge ${statusClass}">${escapeHtml(statusLabel)}</span></td>
             <td>${formatDate(item.createDate)}</td>
             <td>${item.dueDate ? formatDate(item.dueDate) : 'Không có'}</td>
             <td>${actionsHtml}</td>
@@ -346,15 +346,15 @@ function getStatusLabel(status) {
     const labels = {
         'pending': 'Chưa duyệt',
         'approved': 'Đã duyệt',
-        'denied': 'Đã từ chối (chờ chỉnh sửa)',
-        'expired': 'Đã hết hạn duyệt'
+        'denied': 'Đã từ chối',
+        'expired': 'Hết hạn duyệt'
     };
     return labels[status] || status;
 }
 
 function getActionNote(status) {
     if (status === 'denied') {
-        return 'Chờ tác giả chỉnh sửa';
+        return 'Chờ tác giả';
     }
     if (status === 'approved') {
         return 'Đã duyệt';

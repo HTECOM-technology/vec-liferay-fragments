@@ -1,114 +1,194 @@
 <?xml version="1.0"?>
 <workflow-definition
-	xmlns="urn:liferay.com:liferay-workflow_7.4.0" xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://liferay.com"
-	xmlns:xsi="http://w3.org">
-	<name>Single Approver V2</name>
-	<description>Quy trình có bước xác nhận trung gian và màu sắc sơ đồ.</description>
-	<version>6</version>
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0" xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<name>Approve and Reject Action</name>
+	<description>Quy trình kiểm duyệt nội dung: người duyệt có thể chấp thuận để xuất bản hoặc từ chối vĩnh viễn nội dung.</description>
+	<version>7</version>
 	<state>
 		<name>created</name>
 		<metadata>
-			<![CDATA[{"xy": [100, 50]}
+			<![CDATA[
+				{
+					"xy": [
+						100,
+						50
+					]
+				}
 ]]>
 		</metadata>
 		<initial>true</initial>
 		<transitions>
 			<transition>
 				<name>Gửi duyệt</name>
-				<target>Đang chờ phê duyệt (Review)</target>
+				<target>review</target>
 				<default>true</default>
 			</transition>
 		</transitions>
 	</state>
-	<task>
-		<name>Đang chờ phê duyệt (Review)</name>
+	<state>
+		<name>approved</name>
 		<metadata>
-			<![CDATA[{"xy": [100, 200]}
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						500,
+						120
+					]
+				}
 ]]>
 		</metadata>
 		<actions>
 			<action>
-				<name>set-pending-status</name>
+				<name>approve</name>
+				<status>0</status>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Thông báo nội dung đã được duyệt</name>
+				<template>
+					<![CDATA[
+Xin chào,
+
+Nội dung ${entryType} của bạn đã được phê duyệt và xuất bản.
+
+<#if taskComments?has_content>
+Nhận xét từ người phê duyệt: ${taskComments}
+</#if>
+
+Vui lòng đăng nhập vào hệ thống để kiểm tra trạng thái nội dung.
+
+Trân trọng,
+Vietnam Expressway Corporation (VEC)
+]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user></user>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>denied</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						500,
+						360
+					]
+				}
+]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>deny</name>
+				<status>4</status>
+				<execution-type>onEntry</execution-type>
+			</action>
+			<notification>
+				<name>Thông báo nội dung bị từ chối</name>
+				<template>
+					<![CDATA[
+Xin chào,
+
+Nội dung ${entryType} của bạn đã bị từ chối bởi ${userName}.
+
+<#if taskComments?has_content>
+Nhận xét từ người phê duyệt: ${taskComments}
+</#if>
+
+Nội dung này đã kết thúc quy trình và sẽ không được gửi lại để chỉnh sửa.
+Vui lòng đăng nhập vào hệ thống để kiểm tra trạng thái nội dung.
+
+Trân trọng,
+Vietnam Expressway Corporation (VEC)
+]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user></user>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<task>
+		<name>review</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						100,
+						240
+					]
+				}
+]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>pending</name>
 				<status>1</status>
 				<execution-type>onAssignment</execution-type>
 			</action>
+			<notification>
+				<name>Thông báo có nội dung cần phê duyệt</name>
+				<template>
+					<![CDATA[
+Xin chào,
+
+${userName} đã gửi một nội dung ${entryType} cần phê duyệt.
+
+Vui lòng kiểm tra và chọn chấp thuận hoặc từ chối trên hệ thống.
+
+Trân trọng,
+Vietnam Expressway Corporation (VEC)
+]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees></assignees>
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
 		</actions>
 		<assignments>
-			<user></user>
+			<roles>
+				<role>
+					<role-type>regular</role-type>
+					<name>Administrator</name>
+				</role>
+				<role>
+					<role-type>site</role-type>
+					<name>Site Administrator</name>
+				</role>
+				<role>
+					<role-type>regular</role-type>
+					<name>Quản trị nội dung</name>
+				</role>
+			</roles>
 		</assignments>
 		<transitions>
 			<transition>
-				<name>Chấp thuận (Approve)</name>
-				<target>Nội dung đã được duyệt - Chờ xuất bản</target>
+				<name>Chấp thuận</name>
+				<target>approved</target>
 				<default>true</default>
 			</transition>
 			<transition>
-				<name>Từ chối (Reject)</name>
-				<target>Yêu cầu chỉnh sửa (Đã từ chối)</target>
+				<name>Từ chối</name>
+				<target>denied</target>
 				<default>false</default>
 			</transition>
 		</transitions>
 	</task>
-	<task>
-		<name>Nội dung đã được duyệt - Chờ xuất bản</name>
-		<metadata>
-			<![CDATA[{"xy": [400, 200]}
-]]>
-		</metadata>
-		<actions>
-			<action>
-				<name>set-approved-visual</name>
-				<status>0</status>
-				<execution-type>onAssignment</execution-type>
-			</action>
-		</actions>
-		<assignments>
-			<user></user>
-		</assignments>
-		<transitions>
-			<transition>
-				<name>Hoàn tất xuất bản</name>
-				<target>approved-state</target>
-				<default>true</default>
-			</transition>
-		</transitions>
-	</task>
-	<task>
-		<name>Yêu cầu chỉnh sửa (Đã từ chối)</name>
-		<metadata>
-			<![CDATA[{"xy": [100, 400]}
-]]>
-		</metadata>
-		<actions>
-			<action>
-				<name>set-denied-status</name>
-				<status>4</status>
-				<execution-type>onAssignment</execution-type>
-			</action>
-		</actions>
-		<assignments>
-			<user></user>
-		</assignments>
-		<transitions>
-			<transition>
-				<name>Gửi lại bài</name>
-				<target>Đang chờ phê duyệt (Review)</target>
-				<default>true</default>
-			</transition>
-		</transitions>
-	</task>
-	<state>
-		<name>approved-state</name>
-		<metadata>
-			<![CDATA[{"terminal": true, "xy": [700, 200]}
-]]>
-		</metadata>
-		<actions>
-			<action>
-				<name>final-approve</name>
-				<status>0</status>
-				<execution-type>onEntry</execution-type>
-			</action>
-		</actions>
-	</state>
 </workflow-definition>

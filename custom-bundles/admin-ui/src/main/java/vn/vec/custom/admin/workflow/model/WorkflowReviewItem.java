@@ -3,6 +3,7 @@ package vn.vec.custom.admin.workflow.model;
 import java.util.Date;
 
 public class WorkflowReviewItem {
+	private long companyId;
 	private long workflowTaskId;
 	private long workflowInstanceId;
 	private String assetType;
@@ -28,6 +29,14 @@ public class WorkflowReviewItem {
 	private boolean reviewable;
 
 	public WorkflowReviewItem() {
+	}
+
+	public long getCompanyId() {
+		return companyId;
+	}
+
+	public void setCompanyId(long companyId) {
+		this.companyId = companyId;
 	}
 
 	public long getWorkflowTaskId() {

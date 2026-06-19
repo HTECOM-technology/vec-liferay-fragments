@@ -187,32 +187,40 @@ table tbody tr:hover {
 }
 
 .status-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 3px 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 11px;
     font-weight: 600;
-    text-transform: uppercase;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .status-pending {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: #fff7df;
+    border-color: #f4d789;
+    color: #7a5200;
 }
 
 .status-approved {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: #e8f6ec;
+    border-color: #a9ddb8;
+    color: #1f6b37;
 }
 
 .status-denied {
-    background-color: #f8d7da;
-    color: #721c24;
+    background-color: #fae7ea;
+    border-color: #e7b8c0;
+    color: #8d2638;
 }
 
 .status-expired {
-    background-color: #f5c6cb;
-    color: #721c24;
+    background-color: #f1e8ff;
+    border-color: #d2b8f0;
+    color: #613a93;
 }
 
 .asset-type-badge {
@@ -227,45 +235,55 @@ table tbody tr:hover {
 
 .action-note {
     font-size: 12px;
-    color: #999;
-    font-style: italic;
+    color: #7a7f87;
+    white-space: nowrap;
 }
 
 .action-buttons {
-    display: flex;
-    gap: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
 }
 
 .action-buttons button {
-    padding: 6px 12px;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 3px;
+    min-width: 58px;
+    min-height: 30px;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    background: #fff;
+    border-radius: 4px;
     font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s,
+        box-shadow 0.2s;
 }
 
 .action-buttons button:hover {
-    background-color: #f0f0f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .action-buttons .btn-approve {
-    border-color: #28a745;
-    color: #28a745;
+    background-color: #f0fbf2;
+    border-color: #8ad69a;
+    color: #257337;
 }
 
 .action-buttons .btn-approve:hover {
-    background-color: #f0fff4;
+    background-color: #e2f7e8;
+    border-color: #5fbd73;
 }
 
 .action-buttons .btn-reject {
-    border-color: #dc3545;
-    color: #dc3545;
+    background-color: #fff1f2;
+    border-color: #ef9aa6;
+    color: #b42135;
 }
 
 .action-buttons .btn-reject:hover {
-    background-color: #fff5f5;
+    background-color: #ffe3e6;
+    border-color: #df6676;
 }
 
 .pagination {

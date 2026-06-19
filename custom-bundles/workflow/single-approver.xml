@@ -2,8 +2,8 @@
 <workflow-definition
 	xmlns="urn:liferay.com:liferay-workflow_7.4.0" xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<name>Single Approver</name>
-	<description>A single approver can approve a workflow content.</description>
+	<name>Web-content workflow</name>
+	<description>Quy trình phê duyệt web content: người có quyền được tự duyệt, các nội dung còn lại được gửi cho quản trị nội dung phê duyệt hoặc yêu cầu chỉnh sửa.</description>
 	<version>1</version>
 	<state>
 		<name>created</name>
@@ -108,6 +108,32 @@
 				<status>0</status>
 				<execution-type>onEntry</execution-type>
 			</action>
+			<notification>
+				<name>Thông báo nội dung đã được phê duyệt</name>
+				<template>
+					<![CDATA[
+Xin chào,
+
+Nội dung ${entryType} của bạn đã được phê duyệt.
+
+<#if taskComments?has_content>
+Nhận xét từ người phê duyệt: ${taskComments}
+</#if>
+
+Vui lòng đăng nhập vào hệ thống để kiểm tra trạng thái nội dung.
+
+Trân trọng,
+Vietnam Expressway Corporation (VEC)
+]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user></user>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
 		</actions>
 	</state>
 	<task>
@@ -147,9 +173,21 @@
 				<execution-type>onAssignment</execution-type>
 			</action>
 			<notification>
-				<name>Creator Modification Notification</name>
+				<name>Thông báo yêu cầu chỉnh sửa nội dung</name>
 				<template>
-					<![CDATA[Your submission was rejected by ${userName}, please modify and resubmit.
+					<![CDATA[
+Xin chào,
+
+Nội dung ${entryType} của bạn đã bị từ chối bởi ${userName}.
+
+<#if taskComments?has_content>
+Nhận xét từ người phê duyệt: ${taskComments}
+</#if>
+
+Vui lòng đăng nhập vào hệ thống để chỉnh sửa nội dung và gửi lại để phê duyệt.
+
+Trân trọng,
+Vietnam Expressway Corporation (VEC)
 ]]>
 				</template>
 				<template-language>freemarker</template-language>
@@ -189,7 +227,15 @@
 			<notification>
 				<name>Thông báo phê duyệt nội dung</name>
 				<template>
-					<![CDATA[${userName} sent you a ${entryType} for review in the workflow.
+					<![CDATA[
+Xin chào,
+
+${userName} đã gửi một nội dung ${entryType} cần phê duyệt.
+
+Vui lòng kiểm tra và thực hiện phê duyệt hoặc từ chối trên hệ thống.
+
+Trân trọng,
+Vietnam Expressway Corporation (VEC)
 ]]>
 				</template>
 				<template-language>freemarker</template-language>
@@ -199,19 +245,6 @@
 					<assignees></assignees>
 				</recipients>
 				<execution-type>onAssignment</execution-type>
-			</notification>
-			<notification>
-				<name>Thông báo Phê duyệt đã xong</name>
-				<template>
-					<![CDATA[Your submission was reviewed<#if taskComments?has_content> and the reviewer applied the following ${taskComments}</#if>.
-]]>
-				</template>
-				<template-language>freemarker</template-language>
-				<notification-type>email</notification-type>
-				<recipients receptionType="to">
-					<user></user>
-				</recipients>
-				<execution-type>onExit</execution-type>
 			</notification>
 		</actions>
 		<assignments>
