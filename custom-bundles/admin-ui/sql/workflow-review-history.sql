@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS VEC_WorkflowReviewHistory (
   assigneeUserName VARCHAR(255) NULL,
   completedByUserId BIGINT NULL DEFAULT 0,
   completedByUserName VARCHAR(255) NULL,
+  reviewComment LONGTEXT NULL,
   status VARCHAR(50) NULL,
   taskName VARCHAR(255) NULL,
   createDate DATETIME(6) NULL,

@@ -20,6 +20,7 @@ public class WorkflowReviewItem {
 	private String assigneeUserName;
 	private long completedByUserId;
 	private String completedByUserName;
+	private String reviewComment;
 	private String status;
 	private String taskName;
 	private Date createDate;
@@ -165,6 +166,14 @@ public class WorkflowReviewItem {
 
 	public void setCompletedByUserName(String completedByUserName) {
 		this.completedByUserName = completedByUserName;
+	}
+
+	public String getReviewComment() {
+		return reviewComment;
+	}
+
+	public void setReviewComment(String reviewComment) {
+		this.reviewComment = reviewComment;
 	}
 
 	public String getStatus() {

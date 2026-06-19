@@ -64,6 +64,32 @@ public class WorkflowReviewHistoryRepository {
 		return null;
 	}
 
+	public WorkflowReviewItem getLatestItemByAsset(
+			long companyId, String assetType, long assetPrimaryKey)
+		throws Exception {
+
+		_ensureTable();
+
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"select * from VEC_WorkflowReviewHistory where companyId = ? " +
+					"and assetType = ? and assetPrimaryKey = ? " +
+					"order by completedDate desc, historyId desc limit 1")) {
+
+			preparedStatement.setLong(1, companyId);
+			preparedStatement.setString(2, assetType);
+			preparedStatement.setLong(3, assetPrimaryKey);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return _mapItem(resultSet);
+				}
+			}
+		}
+
+		return null;
+	}
+
 	public void saveCompletedItem(WorkflowReviewItem item)
 		throws Exception {
 
@@ -76,9 +102,10 @@ public class WorkflowReviewHistoryRepository {
 					"assetPrimaryKey, assetTitle, assetContent, " +
 					"parentClassName, parentClassPK, creatorUserId, " +
 					"creatorUserName, assigneeUserId, assigneeUserName, " +
-					"completedByUserId, completedByUserName, status, taskName, " +
-					"createDate, modifiedDate, dueDate, completedDate" +
-				") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+					"completedByUserId, completedByUserName, reviewComment, " +
+					"status, taskName, createDate, modifiedDate, dueDate, " +
+					"completedDate" +
+				") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
 					"?, ?, ?, CURRENT_TIMESTAMP(6)) " +
 				"on duplicate key update workflowInstanceId = values(workflowInstanceId), " +
 					"assetType = values(assetType), " +
@@ -93,6 +120,7 @@ public class WorkflowReviewHistoryRepository {
 					"assigneeUserName = values(assigneeUserName), " +
 					"completedByUserId = values(completedByUserId), " +
 					"completedByUserName = values(completedByUserName), " +
+					"reviewComment = values(reviewComment), " +
 					"status = values(status), taskName = values(taskName), " +
 					"createDate = values(createDate), " +
 					"modifiedDate = values(modifiedDate), " +
@@ -115,6 +143,7 @@ public class WorkflowReviewHistoryRepository {
 			preparedStatement.setString(index++, item.getAssigneeUserName());
 			preparedStatement.setLong(index++, item.getCompletedByUserId());
 			preparedStatement.setString(index++, item.getCompletedByUserName());
+			preparedStatement.setString(index++, item.getReviewComment());
 			preparedStatement.setString(index++, item.getStatus());
 			preparedStatement.setString(index++, item.getTaskName());
 			preparedStatement.setTimestamp(index++, _toTimestamp(item.getCreateDate()));
@@ -154,6 +183,7 @@ public class WorkflowReviewHistoryRepository {
 						"assigneeUserName VARCHAR(255) null, " +
 						"completedByUserId BIGINT null default 0, " +
 						"completedByUserName VARCHAR(255) null, " +
+						"reviewComment LONGTEXT null, " +
 						"status VARCHAR(50) null, " +
 						"taskName VARCHAR(255) null, " +
 						"createDate DATETIME(6) null, " +
@@ -177,7 +207,28 @@ public class WorkflowReviewHistoryRepository {
 				preparedStatement.executeUpdate();
 			}
 
+			_ensureReviewCommentColumn();
+
 			_tableReady = true;
+		}
+	}
+
+	private void _ensureReviewCommentColumn() throws Exception {
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"alter table VEC_WorkflowReviewHistory add column " +
+					"reviewComment LONGTEXT null after completedByUserName")) {
+
+			preparedStatement.executeUpdate();
+		}
+		catch (Exception exception) {
+			String message = exception.getMessage();
+
+			if ((message == null) ||
+				!message.toLowerCase().contains("duplicate")) {
+
+				throw exception;
+			}
 		}
 	}
 
@@ -202,6 +253,7 @@ public class WorkflowReviewHistoryRepository {
 		item.setAssigneeUserName(resultSet.getString("assigneeUserName"));
 		item.setCompletedByUserId(resultSet.getLong("completedByUserId"));
 		item.setCompletedByUserName(resultSet.getString("completedByUserName"));
+		item.setReviewComment(resultSet.getString("reviewComment"));
 		item.setStatus(resultSet.getString("status"));
 		item.setTaskName(resultSet.getString("taskName"));
 		item.setCreateDate(resultSet.getTimestamp("createDate"));

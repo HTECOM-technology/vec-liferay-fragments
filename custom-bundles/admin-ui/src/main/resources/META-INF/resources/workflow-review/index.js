@@ -206,6 +206,7 @@ function renderDetail(data) {
     const content = formatDetailContent(data);
     const typeLabel = getAssetTypeLabel(data.assetType);
     const statusLabel = getStatusLabel(data.status);
+    const reviewComment = formatReviewComment(data.reviewComment);
 
     // Link tới bài viết mà bình luận đính kèm (nếu có).
     let parentRow = '';
@@ -253,6 +254,13 @@ function renderDetail(data) {
             </div>
             ${parentRow}
         </div>
+
+        ${reviewComment ? `
+            <section class="detail-review-comment">
+                <div class="detail-content-label">Ghi chú xử lý</div>
+                <div class="detail-review-comment-body">${reviewComment}</div>
+            </section>
+        ` : ''}
 
         <section class="detail-content-section">
             <div class="detail-content-label">Nội dung</div>
@@ -422,6 +430,16 @@ function formatDetailContent(data) {
     }
 
     return removeEmptyHtmlTags(rawContent);
+}
+
+function formatReviewComment(comment) {
+    const value = normalizeEmptyContent(comment);
+
+    if (!value) {
+        return '';
+    }
+
+    return escapeHtml(value).replace(/\n/g, '<br>');
 }
 
 function htmlToText(html) {
