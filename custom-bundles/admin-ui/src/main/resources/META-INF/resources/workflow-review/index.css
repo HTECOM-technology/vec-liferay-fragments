@@ -617,6 +617,159 @@ table tbody tr:hover {
     margin-bottom: 20px;
 }
 
+/* Căn giữa nút hành động trong ô */
+.action-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Nút 3 chấm mở menu hành động */
+.btn-kebab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #e0e4ea;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 18px;
+    line-height: 1;
+    color: #4a5568;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.btn-kebab:hover {
+    background-color: #f2f5f9;
+    border-color: #c6cdd8;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Dropdown menu hành động (fixed để không bị table cắt) */
+.action-menu {
+    display: none;
+    position: fixed;
+    z-index: 1100;
+    min-width: 184px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #e3e7ee;
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+.action-menu.active {
+    display: block;
+}
+
+.action-menu .menu-item {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #2d3748;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.action-menu .menu-item:hover {
+    background-color: #f1f4f9;
+}
+
+.action-menu .menu-approve:hover {
+    background-color: #e2f7e8;
+    color: #1f6b37;
+}
+
+.action-menu .menu-reject:hover {
+    background-color: #ffe3e6;
+    color: #b42135;
+}
+
+/* Select / input trong modal */
+.modal-select,
+.modal-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+    color: #333;
+}
+
+.modal-select:focus,
+.modal-input:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+}
+
+.modal-body .modal-label-spaced {
+    margin-top: 14px;
+}
+
+/* Nút chính (xanh dương) cho Điều phối / Lưu hạn */
+.modal-footer .btn-confirm-primary {
+    background-color: #0066cc;
+    color: #fff;
+}
+
+.modal-footer .btn-confirm-primary:hover {
+    background-color: #0052a3;
+}
+
+.modal-footer .btn-duedate-clear {
+    margin-right: auto;
+}
+
+/* Footer modal chi tiết: 4 nút hành động bên trái, nút Đóng tách biệt bên phải.
+   margin-right:auto đẩy nhóm hành động sang trái, nút Đóng luôn ở bên phải kể
+   cả khi không có nút hành động (span rỗng -> ẩn). */
+#detailModalFooter {
+    flex-wrap: wrap;
+}
+
+#detailModalActions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-right: auto;
+}
+
+#detailModalActions:empty {
+    display: none;
+}
+
+.modal-footer .btn-detail-secondary {
+    background-color: #eef2f7;
+    color: #2d3748;
+    border: 1px solid #d6dce5;
+}
+
+.modal-footer .btn-detail-secondary:hover {
+    background-color: #e1e7f0;
+}
+
+#detailModalFooter .btn-cancel {
+    background-color: #fff;
+    color: #4a5568;
+    border: 1px solid #cfd6e0;
+}
+
+#detailModalFooter .btn-cancel:hover {
+    background-color: #f4f6f8;
+}
+
 @media (max-width: 720px) {
     .modal {
         padding: 12px;

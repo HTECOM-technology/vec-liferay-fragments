@@ -266,18 +266,137 @@ public class WorkflowReviewResource {
 			}
 
 			long assigneeUserId = 0;
+			String comment = "";
 			if (requestBody != null && !requestBody.isEmpty()) {
 				JSONObject json = JSONFactoryUtil.createJSONObject(
 					requestBody);
 				assigneeUserId = json.getLong("assigneeUserId");
+				comment = json.getString("comment");
+				if (comment == null) {
+					comment = "";
+				}
+			}
+
+			if (assigneeUserId <= 0) {
+				JSONObject result = JSONFactoryUtil.createJSONObject();
+				result.put("success", false);
+				result.put("message", "Vui lòng chọn người xử lý.");
+
+				return Response.ok(result.toString()).build();
 			}
 
 			_workflowReviewService.assignWorkflowTask(
-				user.getCompanyId(), userId, workflowTaskId, assigneeUserId);
+				user.getCompanyId(), userId, workflowTaskId, assigneeUserId,
+				comment);
 
 			JSONObject result = JSONFactoryUtil.createJSONObject();
 			result.put("success", true);
 			result.put("message", "Task assigned successfully");
+
+			return Response.ok(result.toString()).build();
+		} catch (Exception e) {
+			return _serverError(e);
+		}
+	}
+
+	@GET
+	@Path("/{workflowTaskId}/assignable-users")
+	public Response getAssignableUsers(
+		@Context HttpServletRequest httpServletRequest,
+		@PathParam("workflowTaskId") long workflowTaskId) {
+
+		try {
+			long userId = _getSignedInUserId(httpServletRequest);
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return _unauthorized();
+			}
+
+			if (!_canAccessWorkflowReview(user)) {
+				return _forbidden(
+					"You don't have permission to assign workflow tasks.");
+			}
+
+			long companyId = user.getCompanyId();
+
+			long currentAssigneeUserId =
+				_workflowReviewService.getAssigneeUserId(
+					companyId, workflowTaskId);
+
+			JSONArray users = JSONFactoryUtil.createJSONArray();
+
+			for (User assignableUser :
+					_workflowReviewService.getAssignableUsers(workflowTaskId)) {
+
+				JSONObject userJSON = JSONFactoryUtil.createJSONObject();
+
+				userJSON.put("userId", assignableUser.getUserId());
+				userJSON.put("screenName", assignableUser.getScreenName());
+				userJSON.put("fullName", assignableUser.getFullName());
+				userJSON.put(
+					"label",
+					assignableUser.getScreenName() + " (" +
+						assignableUser.getFullName() + ")");
+
+				users.put(userJSON);
+			}
+
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+			result.put("users", users);
+			result.put("currentAssigneeUserId", currentAssigneeUserId);
+
+			return Response.ok(result.toString()).build();
+		} catch (Exception e) {
+			return _serverError(e);
+		}
+	}
+
+	@POST
+	@Path("/{workflowTaskId}/due-date")
+	public Response updateWorkflowTaskDueDate(
+		@Context HttpServletRequest httpServletRequest,
+		@PathParam("workflowTaskId") long workflowTaskId,
+		String requestBody) {
+
+		try {
+			long userId = _getSignedInUserId(httpServletRequest);
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return _unauthorized();
+			}
+
+			if (!_canAccessWorkflowReview(user)) {
+				return _forbidden(
+					"You don't have permission to update workflow tasks.");
+			}
+
+			Date dueDate = null;
+			String comment = "";
+
+			if (requestBody != null && !requestBody.isEmpty()) {
+				JSONObject json = JSONFactoryUtil.createJSONObject(
+					requestBody);
+
+				long dueDateMillis = json.getLong("dueDate");
+
+				if (dueDateMillis > 0) {
+					dueDate = new Date(dueDateMillis);
+				}
+
+				comment = json.getString("comment");
+				if (comment == null) {
+					comment = "";
+				}
+			}
+
+			_workflowReviewService.updateWorkflowTaskDueDate(
+				user.getCompanyId(), userId, workflowTaskId, dueDate, comment);
+
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+			result.put("success", true);
+			result.put("message", "Due date updated successfully");
 
 			return Response.ok(result.toString()).build();
 		} catch (Exception e) {

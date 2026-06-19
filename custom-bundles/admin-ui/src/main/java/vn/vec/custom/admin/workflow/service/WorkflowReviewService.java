@@ -7,6 +7,7 @@ import com.liferay.message.boards.service.MBMessageLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -314,12 +315,36 @@ public class WorkflowReviewService {
 
 	public void assignWorkflowTask(
 			long companyId, long userId, long workflowTaskId,
-			long assigneeUserId)
+			long assigneeUserId, String comment)
 		throws PortalException {
 
 		WorkflowTaskManagerUtil.assignWorkflowTaskToUser(
-			companyId, userId, workflowTaskId, assigneeUserId, null, null,
+			companyId, userId, workflowTaskId, assigneeUserId, comment, null,
 			null);
+	}
+
+	public void updateWorkflowTaskDueDate(
+			long companyId, long userId, long workflowTaskId, Date dueDate,
+			String comment)
+		throws PortalException {
+
+		WorkflowTaskManagerUtil.updateDueDate(
+			companyId, userId, workflowTaskId, comment, dueDate);
+	}
+
+	public List<User> getAssignableUsers(long workflowTaskId)
+		throws PortalException {
+
+		return WorkflowTaskManagerUtil.getAssignableUsers(workflowTaskId);
+	}
+
+	public long getAssigneeUserId(long companyId, long workflowTaskId)
+		throws PortalException {
+
+		WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
+			companyId, workflowTaskId);
+
+		return task.getAssigneeUserId();
 	}
 
 	private void _ensureTaskActionable(WorkflowTask task)

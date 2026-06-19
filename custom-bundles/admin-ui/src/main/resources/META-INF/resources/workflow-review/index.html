@@ -65,13 +65,14 @@
                 <div class="empty-state-text">Không có dữ liệu</div>
             </div>
 
-            <div class="table-container" id="table-container" style="display: none;">
+            <div class="table-container table-scrollable-horizotal" id="table-container" style="display: none;">
                 <table>
                     <thead>
                         <tr>
                             <th>Tiêu đề / Nội dung</th>
                             <th>Loại</th>
                             <th>Tác giả</th>
+                            <th>Điều phối cho</th>
                             <th>Người xử lý</th>
                             <th>Trạng thái</th>
                             <th>Ngày tạo</th>
@@ -115,5 +116,42 @@
             </div>
         </div>
     </div>
+
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Điều phối xử lý</div>
+            <div class="modal-body">
+                <label for="assignUser">Người xử lý</label>
+                <select id="assignUser" class="modal-select">
+                    <option value="">Đang tải danh sách...</option>
+                </select>
+                <label for="assignComment" class="modal-label-spaced">Ghi chú (tùy chọn)</label>
+                <textarea id="assignComment" placeholder="Nhập ghi chú..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-assign-cancel" class="btn-cancel">Hủy</button>
+                <button type="button" id="btn-assign-confirm" class="btn-confirm-primary">Điều phối</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dueDateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Thời hạn xử lý</div>
+            <div class="modal-body">
+                <label for="dueDateInput">Hạn xử lý</label>
+                <input type="datetime-local" id="dueDateInput" class="modal-input">
+                <label for="dueDateComment" class="modal-label-spaced">Ghi chú (tùy chọn)</label>
+                <textarea id="dueDateComment" placeholder="Nhập ghi chú..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-duedate-clear" class="btn-cancel btn-duedate-clear">Xóa hạn</button>
+                <button type="button" id="btn-duedate-cancel" class="btn-cancel">Hủy</button>
+                <button type="button" id="btn-duedate-confirm" class="btn-confirm-primary">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="actionMenu" class="action-menu"></div>
 </body>
 </html>
