@@ -85,7 +85,18 @@ public class WorkflowReviewService {
 
 			if (item != null) {
 				_populateContentHtml(item);
-				_enrichWithLatestHistory(companyId, item);
+
+				// Task đã hoàn tất: lấy trạng thái/ghi chú chính xác từ lịch sử
+				// (theo workflowTaskId) thay vì suy đoán từ asset (asset có thể
+				// đã sang version khác). Task chưa hoàn tất thì bổ sung thông tin
+				// người xử lý gần nhất như cũ.
+				if (task.isCompleted()) {
+					item.setReviewable(false);
+					_overlayHistoryByTask(companyId, item);
+				}
+				else {
+					_enrichWithLatestHistory(companyId, item);
+				}
 			}
 
 			return item;
@@ -147,19 +158,40 @@ public class WorkflowReviewService {
 				orderByComparator);
 		}
 
+		List<WorkflowReviewItem> noAssetItems = new ArrayList<>();
+
 		for (WorkflowTask task : tasks) {
 			WorkflowReviewItem item = _buildWorkflowReviewItem(
 				companyId, task, query);
 
-			if (item != null) {
-				items.add(item);
-				workflowTaskIds.add(item.getWorkflowTaskId());
+			if (item == null) {
+				continue;
+			}
 
-				if (_hasAssetKey(item)) {
-					activeAssetItems.put(_getAssetKey(item), item);
-				}
+			workflowTaskIds.add(item.getWorkflowTaskId());
+
+			if (!_hasAssetKey(item)) {
+				noAssetItems.add(item);
+
+				continue;
+			}
+
+			// Một asset có thể còn nhiều task active cùng lúc: ví dụ task
+			// "update" cũ còn sót sau khi tác giả gửi duyệt lại (Liferay tạo
+			// workflow instance mới với task "review" mà không đóng instance
+			// cũ, vì sửa bài chưa duyệt không tạo version mới -> cùng classPK).
+			// Chỉ giữ task mới nhất để phản ánh đúng trạng thái hiện tại, tránh
+			// hiển thị "Đã từ chối" trong khi asset đã quay lại chờ duyệt.
+			String assetKey = _getAssetKey(item);
+			WorkflowReviewItem existing = activeAssetItems.get(assetKey);
+
+			if ((existing == null) || _isNewerTask(item, existing)) {
+				activeAssetItems.put(assetKey, item);
 			}
 		}
+
+		items.addAll(activeAssetItems.values());
+		items.addAll(noAssetItems);
 
 		try {
 			for (WorkflowReviewItem item :
@@ -203,6 +235,10 @@ public class WorkflowReviewService {
 		WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
 			companyId, workflowTaskId);
 
+		// (2c) Chặn thao tác trên task đã hoàn tất (double-submit / gọi API trực
+		// tiếp) -> tránh ghi đè trạng thái sai.
+		_ensureTaskActionable(task);
+
 		if (task.getAssigneeUserId() != userId) {
 			WorkflowTaskManagerUtil.assignWorkflowTaskToUser(
 				companyId, userId, workflowTaskId, userId, null, null, null);
@@ -242,6 +278,10 @@ public class WorkflowReviewService {
 		WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
 			companyId, workflowTaskId);
 
+		// (2c) Chặn thao tác trên task đã hoàn tất (double-submit / gọi API trực
+		// tiếp) -> tránh ghi đè trạng thái sai.
+		_ensureTaskActionable(task);
+
 		if (task.getAssigneeUserId() != userId) {
 			WorkflowTaskManagerUtil.assignWorkflowTaskToUser(
 				companyId, userId, workflowTaskId, userId, null, null, null);
@@ -280,6 +320,16 @@ public class WorkflowReviewService {
 		WorkflowTaskManagerUtil.assignWorkflowTaskToUser(
 			companyId, userId, workflowTaskId, assigneeUserId, null, null,
 			null);
+	}
+
+	private void _ensureTaskActionable(WorkflowTask task)
+		throws PortalException {
+
+		if (task.isCompleted()) {
+			throw new PortalException(
+				"Workflow task " + task.getWorkflowTaskId() +
+					" đã được xử lý.");
+		}
 	}
 
 	private String _resolveTransitionName(
@@ -439,9 +489,16 @@ public class WorkflowReviewService {
 				}
 
 				item.setAssetTitle(title);
+				// resourcePrimKey ổn định qua các version -> dùng làm khóa nhận
+				// diện asset (xem _getAssetKey), tránh trùng lặp khi bài viết được
+				// sửa và gửi duyệt lại (mỗi version có primary key khác nhau).
+				item.setAssetResourceKey(article.getResourcePrimKey());
 				item.setAssetContent(article.getDescriptionCurrentValue());
 				item.setCreatorUserId(article.getUserId());
 				item.setCreatorUserName(article.getUserName());
+				// Ngày tạo lấy theo nội dung (ổn định), không lấy theo
+				// task.getCreateDate() vì task review bị tạo lại mỗi lần resubmit.
+				item.setCreateDate(article.getCreateDate());
 				item.setModifiedDate(article.getModifiedDate());
 				item.setAssetStatus(article.getStatus());
 				item.setCompletedByUserId(article.getStatusByUserId());
@@ -467,6 +524,7 @@ public class WorkflowReviewService {
 				item.setAssetTitle(HtmlUtil.stripHtml(message.getBody()));
 				item.setCreatorUserId(message.getUserId());
 				item.setCreatorUserName(message.getUserName());
+				item.setCreateDate(message.getCreateDate());
 				item.setModifiedDate(message.getModifiedDate());
 				item.setAssetStatus(message.getStatus());
 				item.setCompletedByUserId(message.getStatusByUserId());
@@ -549,6 +607,11 @@ public class WorkflowReviewService {
 		// bắt trường hợp "trả về tác giả chỉnh sửa".
 		int assetStatus = item.getAssetStatus();
 
+		// (2a) Task đã hoàn tất thì không bao giờ duyệt/từ chối lại được, bất kể
+		// asset đang ở trạng thái nào. Tránh hiện lại nút Duyệt/Từ chối khi mở
+		// chi tiết một task đã xử lý xong.
+		boolean completed = task.isCompleted();
+
 		String taskName = task.getName();
 		String lowerTaskName = (taskName == null) ? "" : taskName.toLowerCase();
 
@@ -570,6 +633,15 @@ public class WorkflowReviewService {
 		// Đã được duyệt (có thể còn bước xuất bản) -> không cần duyệt lại.
 		if (assetStatus == WorkflowConstants.STATUS_APPROVED) {
 			item.setStatus("approved");
+			item.setReviewable(false);
+
+			return;
+		}
+
+		// (2b) Không đọc được trạng thái asset (vd version đã bị thay thế/xóa) ->
+		// không suy ra được là đang chờ duyệt, không cho thao tác tiếp.
+		if (completed || (assetStatus < 0)) {
+			item.setStatus(completed ? "approved" : "pending");
 			item.setReviewable(false);
 
 			return;
@@ -677,6 +749,32 @@ public class WorkflowReviewService {
 		}
 	}
 
+	private void _overlayHistoryByTask(
+		long companyId, WorkflowReviewItem item) {
+
+		try {
+			WorkflowReviewItem historyItem =
+				_workflowReviewHistoryRepository.getItem(
+					companyId, item.getWorkflowTaskId());
+
+			if (historyItem == null) {
+				return;
+			}
+
+			if (historyItem.getStatus() != null) {
+				item.setStatus(historyItem.getStatus());
+			}
+
+			_copyHistoryFields(historyItem, item);
+		}
+		catch (Exception exception) {
+			_log.warn(
+				"Không lấy được lịch sử workflow task=" +
+					item.getWorkflowTaskId(),
+				exception);
+		}
+	}
+
 	private void _enrichWithLatestHistory(
 		long companyId, WorkflowReviewItem item) {
 
@@ -687,7 +785,8 @@ public class WorkflowReviewService {
 		try {
 			WorkflowReviewItem historyItem =
 				_workflowReviewHistoryRepository.getLatestItemByAsset(
-					companyId, item.getAssetType(), item.getAssetPrimaryKey());
+					companyId, item.getAssetType(), item.getAssetResourceKey(),
+					item.getAssetPrimaryKey());
 
 			if (historyItem != null) {
 				_copyHistoryFields(historyItem, item);
@@ -701,8 +800,38 @@ public class WorkflowReviewService {
 		}
 	}
 
+	private boolean _isNewerTask(
+		WorkflowReviewItem candidate, WorkflowReviewItem current) {
+
+		Date candidateDate = candidate.getCreateDate();
+		Date currentDate = current.getCreateDate();
+
+		if ((candidateDate != null) && (currentDate != null)) {
+			int compare = candidateDate.compareTo(currentDate);
+
+			if (compare != 0) {
+				return compare > 0;
+			}
+		}
+		else if (candidateDate != null) {
+			return true;
+		}
+		else if (currentDate != null) {
+			return false;
+		}
+
+		// Cùng thời điểm (hoặc thiếu ngày): task có id lớn hơn là task tạo sau.
+		return candidate.getWorkflowTaskId() > current.getWorkflowTaskId();
+	}
+
 	private String _getAssetKey(WorkflowReviewItem item) {
-		return item.getAssetType() + "#" + item.getAssetPrimaryKey();
+		// Ưu tiên resourcePrimKey (ổn định qua các version) để dedup hoạt động
+		// khi bài viết bị từ chối rồi sửa và gửi duyệt lại. Fallback về primary
+		// key cho các asset không có resource key (vd comment) và dữ liệu cũ.
+		long key = (item.getAssetResourceKey() > 0) ?
+			item.getAssetResourceKey() : item.getAssetPrimaryKey();
+
+		return item.getAssetType() + "#" + key;
 	}
 
 	private boolean _hasAssetKey(WorkflowReviewItem item) {

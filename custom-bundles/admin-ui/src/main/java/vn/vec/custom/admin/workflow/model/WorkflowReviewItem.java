@@ -8,6 +8,7 @@ public class WorkflowReviewItem {
 	private long workflowInstanceId;
 	private String assetType;
 	private long assetPrimaryKey;
+	private long assetResourceKey;
 	private String assetTitle;
 	private String assetContent;
 	private String contentHtml;
@@ -70,6 +71,14 @@ public class WorkflowReviewItem {
 
 	public void setAssetPrimaryKey(long assetPrimaryKey) {
 		this.assetPrimaryKey = assetPrimaryKey;
+	}
+
+	public long getAssetResourceKey() {
+		return assetResourceKey;
+	}
+
+	public void setAssetResourceKey(long assetResourceKey) {
+		this.assetResourceKey = assetResourceKey;
 	}
 
 	public String getAssetTitle() {

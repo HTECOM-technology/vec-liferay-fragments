@@ -65,20 +65,25 @@ public class WorkflowReviewHistoryRepository {
 	}
 
 	public WorkflowReviewItem getLatestItemByAsset(
-			long companyId, String assetType, long assetPrimaryKey)
+			long companyId, String assetType, long assetResourceKey,
+			long assetPrimaryKey)
 		throws Exception {
 
 		_ensureTable();
 
+		// Khớp theo resourcePrimKey (ổn định qua version) hoặc primary key của
+		// version để vẫn lấy được dữ liệu cũ chưa có resourceKey.
 		try (Connection connection = DataAccess.getConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(
 				"select * from VEC_WorkflowReviewHistory where companyId = ? " +
-					"and assetType = ? and assetPrimaryKey = ? " +
+					"and assetType = ? and ((assetResourceKey = ? and " +
+					"assetResourceKey > 0) or assetPrimaryKey = ?) " +
 					"order by completedDate desc, historyId desc limit 1")) {
 
 			preparedStatement.setLong(1, companyId);
 			preparedStatement.setString(2, assetType);
-			preparedStatement.setLong(3, assetPrimaryKey);
+			preparedStatement.setLong(3, assetResourceKey);
+			preparedStatement.setLong(4, assetPrimaryKey);
 
 			try (ResultSet resultSet = preparedStatement.executeQuery()) {
 				if (resultSet.next()) {
@@ -99,17 +104,19 @@ public class WorkflowReviewHistoryRepository {
 			PreparedStatement preparedStatement = connection.prepareStatement(
 				"insert into VEC_WorkflowReviewHistory (" +
 					"companyId, workflowTaskId, workflowInstanceId, assetType, " +
-					"assetPrimaryKey, assetTitle, assetContent, " +
+					"assetPrimaryKey, assetResourceKey, assetTitle, " +
+					"assetContent, " +
 					"parentClassName, parentClassPK, creatorUserId, " +
 					"creatorUserName, assigneeUserId, assigneeUserName, " +
 					"completedByUserId, completedByUserName, reviewComment, " +
 					"status, taskName, createDate, modifiedDate, dueDate, " +
 					"completedDate" +
 				") values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-					"?, ?, ?, CURRENT_TIMESTAMP(6)) " +
+					"?, ?, ?, ?, CURRENT_TIMESTAMP(6)) " +
 				"on duplicate key update workflowInstanceId = values(workflowInstanceId), " +
 					"assetType = values(assetType), " +
 					"assetPrimaryKey = values(assetPrimaryKey), " +
+					"assetResourceKey = values(assetResourceKey), " +
 					"assetTitle = values(assetTitle), " +
 					"assetContent = values(assetContent), " +
 					"parentClassName = values(parentClassName), " +
@@ -133,6 +140,7 @@ public class WorkflowReviewHistoryRepository {
 			preparedStatement.setLong(index++, item.getWorkflowInstanceId());
 			preparedStatement.setString(index++, item.getAssetType());
 			preparedStatement.setLong(index++, item.getAssetPrimaryKey());
+			preparedStatement.setLong(index++, item.getAssetResourceKey());
 			preparedStatement.setString(index++, item.getAssetTitle());
 			preparedStatement.setString(index++, item.getAssetContent());
 			preparedStatement.setString(index++, item.getParentClassName());
@@ -173,6 +181,7 @@ public class WorkflowReviewHistoryRepository {
 						"workflowInstanceId BIGINT null default 0, " +
 						"assetType VARCHAR(255) null, " +
 						"assetPrimaryKey BIGINT null default 0, " +
+						"assetResourceKey BIGINT null default 0, " +
 						"assetTitle VARCHAR(500) null, " +
 						"assetContent LONGTEXT null, " +
 						"parentClassName VARCHAR(255) null, " +
@@ -197,6 +206,8 @@ public class WorkflowReviewHistoryRepository {
 							"(companyId, status, createDate), " +
 						"key IX_VEC_WorkflowReviewHistory_Asset " +
 							"(assetType, assetPrimaryKey), " +
+						"key IX_VEC_WorkflowReviewHistory_AssetResource " +
+							"(assetType, assetResourceKey), " +
 						"key IX_VEC_WorkflowReviewHistory_Assignee " +
 							"(companyId, assigneeUserId), " +
 						"key IX_VEC_WorkflowReviewHistory_CompletedBy " +
@@ -208,6 +219,7 @@ public class WorkflowReviewHistoryRepository {
 			}
 
 			_ensureReviewCommentColumn();
+			_ensureAssetResourceKeyColumn();
 
 			_tableReady = true;
 		}
@@ -232,6 +244,26 @@ public class WorkflowReviewHistoryRepository {
 		}
 	}
 
+	private void _ensureAssetResourceKeyColumn() throws Exception {
+		try (Connection connection = DataAccess.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				"alter table VEC_WorkflowReviewHistory add column " +
+					"assetResourceKey BIGINT null default 0 after " +
+						"assetPrimaryKey")) {
+
+			preparedStatement.executeUpdate();
+		}
+		catch (Exception exception) {
+			String message = exception.getMessage();
+
+			if ((message == null) ||
+				!message.toLowerCase().contains("duplicate")) {
+
+				throw exception;
+			}
+		}
+	}
+
 	private WorkflowReviewItem _mapItem(ResultSet resultSet)
 		throws Exception {
 
@@ -242,6 +274,7 @@ public class WorkflowReviewHistoryRepository {
 		item.setWorkflowInstanceId(resultSet.getLong("workflowInstanceId"));
 		item.setAssetType(resultSet.getString("assetType"));
 		item.setAssetPrimaryKey(resultSet.getLong("assetPrimaryKey"));
+		item.setAssetResourceKey(resultSet.getLong("assetResourceKey"));
 		item.setAssetTitle(resultSet.getString("assetTitle"));
 		item.setAssetContent(resultSet.getString("assetContent"));
 		item.setContentHtml(resultSet.getString("assetContent"));
