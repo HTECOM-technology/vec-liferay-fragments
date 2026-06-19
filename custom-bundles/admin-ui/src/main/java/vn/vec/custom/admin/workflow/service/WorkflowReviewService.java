@@ -96,6 +96,8 @@ public class WorkflowReviewService {
 						companyId, workflowTaskId);
 
 				if (item != null) {
+					_populateContentHtml(item);
+
 					return item;
 				}
 			}
@@ -189,6 +191,11 @@ public class WorkflowReviewService {
 				companyId, userId, workflowTaskId, userId, null, null, null);
 		}
 
+		task = WorkflowTaskManagerUtil.getWorkflowTask(companyId, workflowTaskId);
+
+		WorkflowReviewItem approvedItem = _buildCompletedHistoryItem(
+			companyId, userId, task, "approved");
+
 		String transitionName = _resolveTransitionName(
 			companyId, userId, workflowTaskId, true);
 
@@ -196,6 +203,18 @@ public class WorkflowReviewService {
 		WorkflowTaskManagerUtil.completeWorkflowTask(
 			companyId, userId, workflowTaskId, transitionName, comment,
 			workflowContext);
+
+		if (approvedItem != null) {
+			try {
+				_workflowReviewHistoryRepository.saveCompletedItem(approvedItem);
+			}
+			catch (Exception exception) {
+				_log.warn(
+					"Không lưu được lịch sử duyệt workflow task=" +
+						workflowTaskId,
+					exception);
+			}
+		}
 	}
 
 	public void rejectWorkflowTask(
@@ -244,7 +263,7 @@ public class WorkflowReviewService {
 
 		if (rejectedItem != null) {
 			try {
-				_workflowReviewHistoryRepository.saveRejectedItem(rejectedItem);
+				_workflowReviewHistoryRepository.saveCompletedItem(rejectedItem);
 			}
 			catch (Exception exception) {
 				_log.warn(
@@ -297,6 +316,32 @@ public class WorkflowReviewService {
 		}
 
 		return approve ? "approve" : "reject";
+	}
+
+	private WorkflowReviewItem _buildCompletedHistoryItem(
+			long companyId, long userId, WorkflowTask task, String status)
+		throws PortalException {
+
+		WorkflowReviewItem item = _buildWorkflowReviewItem(
+			companyId, task, new WorkflowReviewQuery());
+
+		if (item == null) {
+			return null;
+		}
+
+		item.setStatus(status);
+		item.setReviewable(false);
+		item.setCompletedByUserId(userId);
+
+		try {
+			item.setCompletedByUserName(
+				UserLocalServiceUtil.getUser(userId).getFullName());
+		}
+		catch (Exception exception) {
+			// Ignore, user name is only displayed as metadata.
+		}
+
+		return item;
 	}
 
 	private WorkflowReviewItem _buildWorkflowReviewItem(
@@ -418,6 +463,8 @@ public class WorkflowReviewService {
 				item.setCreatorUserName(article.getUserName());
 				item.setModifiedDate(article.getModifiedDate());
 				item.setAssetStatus(article.getStatus());
+				item.setCompletedByUserId(article.getStatusByUserId());
+				item.setCompletedByUserName(article.getStatusByUserName());
 			}
 		}
 		catch (Exception exception) {
@@ -441,6 +488,8 @@ public class WorkflowReviewService {
 				item.setCreatorUserName(message.getUserName());
 				item.setModifiedDate(message.getModifiedDate());
 				item.setAssetStatus(message.getStatus());
+				item.setCompletedByUserId(message.getStatusByUserId());
+				item.setCompletedByUserName(message.getStatusByUserName());
 
 				// Asset (bài viết...) mà bình luận đính kèm, dùng để tạo link.
 				item.setParentClassName(message.getClassName());

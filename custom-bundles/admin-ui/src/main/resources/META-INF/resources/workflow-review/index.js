@@ -106,7 +106,7 @@ function renderWorkflowItems(items, total) {
             <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${escapeHtml(truncate(item.assetTitle || 'N/A', 50))}</td>
             <td><span class="asset-type-badge">${escapeHtml(assetTypeLabel)}</span></td>
             <td>${escapeHtml(item.creatorUserName || 'N/A')}</td>
-            <td>${escapeHtml(item.assigneeUserName || 'Chưa assign')}</td>
+            <td>${escapeHtml(getProcessorLabel(item))}</td>
             <td><span class="status-badge ${statusClass}">${escapeHtml(statusLabel)}</span></td>
             <td>${formatDate(item.createDate)}</td>
             <td>${item.dueDate ? formatDate(item.dueDate) : 'Không có'}</td>
@@ -237,7 +237,7 @@ function renderDetail(data) {
             </div>
             <div class="detail-meta-item">
                 <span>Người xử lý</span>
-                <strong>${escapeHtml(data.assigneeUserName || 'Chưa assign')}</strong>
+                <strong>${escapeHtml(getProcessorLabel(data))}</strong>
             </div>
             <div class="detail-meta-item">
                 <span>Ngày tạo</span>
@@ -384,6 +384,14 @@ function getActionNoteHtml(item) {
     return '';
 }
 
+function getProcessorLabel(item) {
+    if (item.reviewable || item.status === 'pending' || item.status === 'expired') {
+        return 'Chưa xử lý';
+    }
+
+    return item.completedByUserName || '';
+}
+
 function getAssetTypeLabel(assetType) {
     const labels = {
         'com.liferay.journal.model.JournalArticle': 'Bài viết (Web Content)',
@@ -431,6 +439,7 @@ function removeEmptyHtmlTags(html) {
     while (removed) {
         removed = false;
 
+        // eslint-disable-next-line no-loop-func
         Array.from(container.querySelectorAll('*')).reverse().forEach(element => {
             if (isEmptyHtmlElement(element)) {
                 element.remove();
@@ -443,9 +452,32 @@ function removeEmptyHtmlTags(html) {
 }
 
 function isEmptyHtmlElement(element) {
-    return element.attributes.length === 0 &&
+    return !hasMeaningfulAttribute(element) &&
         normalizeEmptyContent(element.textContent) === '' &&
         element.children.length === 0;
+}
+
+function hasMeaningfulAttribute(element) {
+    return Array.from(element.attributes).some(attribute => {
+        const name = attribute.name.toLowerCase();
+        const value = normalizeEmptyContent(attribute.value);
+
+        if (!value) {
+            return false;
+        }
+
+        if (
+            name === 'class' ||
+            name === 'style' ||
+            name === 'id' ||
+            name.startsWith('data-') ||
+            name.startsWith('aria-')
+        ) {
+            return false;
+        }
+
+        return true;
+    });
 }
 
 function normalizeEmptyContent(content) {
@@ -457,12 +489,44 @@ function normalizeEmptyContent(content) {
 
 function formatDate(dateString) {
     if (!dateString) return 'N/A';
+
     try {
-        const date = new Date(dateString);
-        return date.toLocaleString('vi-VN');
+        const date = parseUtcDate(dateString);
+
+        if (Number.isNaN(date.getTime())) {
+            return dateString;
+        }
+
+        return date.toLocaleString('vi-VN', {
+            hour12: false
+        });
     } catch (e) {
         return dateString;
     }
+}
+
+function parseUtcDate(dateString) {
+    const value = String(dateString).trim();
+
+    if (/[zZ]|[+-]\d{2}:?\d{2}$/.test(value)) {
+        return new Date(value);
+    }
+
+    const match = value.match(
+        /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+
+    if (!match) {
+        return new Date(value);
+    }
+
+    return new Date(Date.UTC(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4]),
+        Number(match[5]),
+        Number(match[6] || 0)
+    ));
 }
 
 function truncate(text, length) {

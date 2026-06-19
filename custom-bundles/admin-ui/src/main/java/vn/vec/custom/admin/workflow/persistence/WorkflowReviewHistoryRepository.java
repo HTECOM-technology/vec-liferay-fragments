@@ -64,7 +64,7 @@ public class WorkflowReviewHistoryRepository {
 		return null;
 	}
 
-	public void saveRejectedItem(WorkflowReviewItem item)
+	public void saveCompletedItem(WorkflowReviewItem item)
 		throws Exception {
 
 		_ensureTable();

@@ -298,6 +298,7 @@ public class WorkflowReviewResource {
 			json.put("assetTitle", item.getAssetTitle());
 			json.put("creatorUserName", item.getCreatorUserName());
 			json.put("assigneeUserName", item.getAssigneeUserName());
+			json.put("completedByUserName", item.getCompletedByUserName());
 			json.put("status", item.getStatus());
 			json.put("taskName", item.getTaskName());
 			json.put(
