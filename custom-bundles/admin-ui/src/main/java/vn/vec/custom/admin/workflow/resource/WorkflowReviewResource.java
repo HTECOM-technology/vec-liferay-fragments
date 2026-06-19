@@ -9,21 +9,28 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.workflow.WorkflowLog;
 
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -70,7 +77,13 @@ public class WorkflowReviewResource {
 		@QueryParam("end") @DefaultValue("20") int end,
 		@QueryParam("orderBy") @DefaultValue("createDate") String orderBy,
 		@QueryParam("orderDirection") @DefaultValue("desc")
-			String orderDirection) {
+			String orderDirection,
+		@QueryParam("creatorUserId") @DefaultValue("0") long creatorUserId,
+		@QueryParam("assigneeUserId") @DefaultValue("0") long assigneeUserId,
+		@QueryParam("completedByUserId") @DefaultValue("0")
+			long completedByUserId,
+		@QueryParam("createDateFrom") @DefaultValue("0") long createDateFrom,
+		@QueryParam("createDateTo") @DefaultValue("0") long createDateTo) {
 
 		try {
 			long userId = _getSignedInUserId(httpServletRequest);
@@ -97,6 +110,17 @@ public class WorkflowReviewResource {
 			query.setEnd(end);
 			query.setOrderBy(orderBy);
 			query.setOrderDirection(orderDirection);
+			query.setCreatorUserId(creatorUserId);
+			query.setAssigneeUserId(assigneeUserId);
+			query.setCompletedByUserId(completedByUserId);
+
+			if (createDateFrom > 0) {
+				query.setCreateDateFrom(new Date(createDateFrom));
+			}
+
+			if (createDateTo > 0) {
+				query.setCreateDateTo(new Date(createDateTo));
+			}
 
 			List<WorkflowReviewItem> items =
 				_workflowReviewService.getWorkflowReviewItems(
@@ -402,6 +426,233 @@ public class WorkflowReviewResource {
 		} catch (Exception e) {
 			return _serverError(e);
 		}
+	}
+
+	@GET
+	@Path("/filter-users")
+	public Response getFilterUsers(
+		@Context HttpServletRequest httpServletRequest) {
+
+		try {
+			long userId = _getSignedInUserId(httpServletRequest);
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return _unauthorized();
+			}
+
+			if (!_canAccessWorkflowReview(user)) {
+				return _forbidden(
+					"You don't have permission to access workflow reviews.");
+			}
+
+			WorkflowReviewQuery query = new WorkflowReviewQuery();
+			query.setTab("all");
+			query.setStart(0);
+			query.setEnd(Integer.MAX_VALUE);
+
+			List<WorkflowReviewItem> items =
+				_workflowReviewService.getWorkflowReviewItems(
+					user.getCompanyId(), userId, query);
+
+			Map<Long, String> authors = new LinkedHashMap<>();
+			Map<Long, String> assignees = new LinkedHashMap<>();
+			Map<Long, String> processors = new LinkedHashMap<>();
+
+			for (WorkflowReviewItem item : items) {
+				_collectUser(
+					authors, item.getCreatorUserId(),
+					item.getCreatorUserName());
+				_collectUser(
+					assignees, item.getAssigneeUserId(),
+					item.getAssigneeUserName());
+
+				// Người xử lý: chỉ tính item đã thực sự được duyệt/từ chối.
+				boolean processed =
+					!item.isReviewable() &&
+					("approved".equals(item.getStatus()) ||
+					 "denied".equals(item.getStatus()));
+
+				if (processed) {
+					_collectUser(
+						processors, item.getCompletedByUserId(),
+						item.getCompletedByUserName());
+				}
+			}
+
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+			result.put("authors", _usersToJSON(authors));
+			result.put("assignees", _usersToJSON(assignees));
+			result.put("processors", _usersToJSON(processors));
+
+			return Response.ok(result.toString()).build();
+		} catch (Exception e) {
+			return _serverError(e);
+		}
+	}
+
+	@GET
+	@Path("/{workflowTaskId}/activities")
+	public Response getWorkflowActivities(
+		@Context HttpServletRequest httpServletRequest,
+		@PathParam("workflowTaskId") long workflowTaskId) {
+
+		try {
+			long userId = _getSignedInUserId(httpServletRequest);
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return _unauthorized();
+			}
+
+			if (!_canAccessWorkflowReview(user)) {
+				return _forbidden(
+					"You don't have permission to access workflow reviews.");
+			}
+
+			Locale locale = LocaleUtil.getSiteDefault();
+
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+			JSONArray activities = JSONFactoryUtil.createJSONArray();
+
+			for (WorkflowLog workflowLog :
+					_workflowReviewService.getWorkflowActivities(
+						user.getCompanyId(), workflowTaskId)) {
+
+				JSONObject activity = JSONFactoryUtil.createJSONObject();
+
+				activity.put(
+					"description",
+					_buildActivityDescription(workflowLog, locale));
+				activity.put(
+					"createDate",
+					workflowLog.getCreateDate() != null ?
+						sdf.format(workflowLog.getCreateDate()) : null);
+
+				activities.put(activity);
+			}
+
+			JSONObject result = JSONFactoryUtil.createJSONObject();
+			result.put("activities", activities);
+
+			return Response.ok(result.toString()).build();
+		} catch (Exception e) {
+			return _serverError(e);
+		}
+	}
+
+	private void _collectUser(
+		Map<Long, String> target, long userId, String name) {
+
+		if ((userId <= 0) || (name == null) || name.isEmpty()) {
+			return;
+		}
+
+		target.putIfAbsent(userId, name);
+	}
+
+	private JSONArray _usersToJSON(Map<Long, String> users) {
+		JSONArray array = JSONFactoryUtil.createJSONArray();
+
+		users.entrySet(
+		).stream(
+		).sorted(
+			Map.Entry.comparingByValue(String.CASE_INSENSITIVE_ORDER)
+		).forEach(
+			entry -> {
+				JSONObject userJSON = JSONFactoryUtil.createJSONObject();
+
+				userJSON.put("userId", entry.getKey());
+				userJSON.put("name", entry.getValue());
+
+				array.put(userJSON);
+			}
+		);
+
+		return array;
+	}
+
+	private String _buildActivityDescription(
+		WorkflowLog workflowLog, Locale locale) {
+
+		long actorUserId = workflowLog.getAuditUserId();
+
+		if (actorUserId <= 0) {
+			actorUserId = workflowLog.getUserId();
+		}
+
+		String actorName = _getUserName(actorUserId);
+
+		String nodeLabel = workflowLog.getCurrentWorkflowNodeLabel(locale);
+
+		int type = workflowLog.getType();
+
+		if (type == WorkflowLog.TASK_ASSIGN) {
+			if (workflowLog.getRoleId() != 0) {
+				Role role = RoleLocalServiceUtil.fetchRole(
+					workflowLog.getRoleId());
+
+				String roleName = (role != null) ?
+					role.getTitle(locale) :
+						String.valueOf(workflowLog.getRoleId());
+
+				return "Giao nhiệm vụ cho vai trò \"" + roleName + "\"";
+			}
+
+			long assigneeUserId = workflowLog.getUserId();
+
+			if (assigneeUserId == workflowLog.getAuditUserId()) {
+				return actorName + " đã nhận xử lý";
+			}
+
+			return actorName + " điều phối cho " +
+				_getUserName(assigneeUserId);
+		}
+
+		if (type == WorkflowLog.TASK_COMPLETION) {
+			String text = actorName + " đã hoàn tất bước \"" + nodeLabel + "\"";
+
+			return _appendComment(text, workflowLog.getComment());
+		}
+
+		if (type == WorkflowLog.TASK_UPDATE) {
+			return _appendComment(
+				actorName + " đã cập nhật nhiệm vụ", workflowLog.getComment());
+		}
+
+		// TRANSITION
+		String previousNodeLabel =
+			workflowLog.getPreviousWorkflowNodeLabel(locale);
+
+		if (Validator.isNull(previousNodeLabel)) {
+			return "Bắt đầu quy trình: \"" + nodeLabel + "\"";
+		}
+
+		return "Chuyển từ \"" + previousNodeLabel + "\" sang \"" + nodeLabel +
+			"\"";
+	}
+
+	private String _appendComment(String text, String comment) {
+		if (Validator.isNull(comment)) {
+			return text;
+		}
+
+		return text + ": " + comment;
+	}
+
+	private String _getUserName(long userId) {
+		if (userId <= 0) {
+			return "Hệ thống";
+		}
+
+		User user = UserLocalServiceUtil.fetchUser(userId);
+
+		if (user == null) {
+			return String.valueOf(userId);
+		}
+
+		return user.getFullName();
 	}
 
 	private JSONArray _itemsToJSON(List<WorkflowReviewItem> items) {

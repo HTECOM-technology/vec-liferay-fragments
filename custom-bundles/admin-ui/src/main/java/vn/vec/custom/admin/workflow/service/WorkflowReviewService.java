@@ -13,15 +13,19 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowInstance;
 import com.liferay.portal.kernel.workflow.WorkflowInstanceManagerUtil;
+import com.liferay.portal.kernel.workflow.WorkflowLog;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManagerUtil;
 import com.liferay.portal.workflow.comparator.WorkflowComparatorFactory;
+import com.liferay.portal.workflow.manager.WorkflowLogManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -345,6 +349,25 @@ public class WorkflowReviewService {
 			companyId, workflowTaskId);
 
 		return task.getAssigneeUserId();
+	}
+
+	public List<WorkflowLog> getWorkflowActivities(
+			long companyId, long workflowTaskId)
+		throws PortalException {
+
+		WorkflowTask task = WorkflowTaskManagerUtil.getWorkflowTask(
+			companyId, workflowTaskId);
+
+		List<Integer> logTypes = Arrays.asList(
+			WorkflowLog.TASK_ASSIGN, WorkflowLog.TASK_COMPLETION,
+			WorkflowLog.TASK_UPDATE, WorkflowLog.TRANSITION);
+
+		// Lấy toàn bộ log của workflow instance (cả vòng review/update), sắp xếp
+		// tăng dần theo thời gian để đọc như dòng thời gian.
+		return _workflowLogManager.getWorkflowLogsByWorkflowInstance(
+			companyId, task.getWorkflowInstanceId(), logTypes,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			_workflowComparatorFactory.getLogCreateDateComparator(true));
 	}
 
 	private void _ensureTaskActionable(WorkflowTask task)
@@ -706,28 +729,71 @@ public class WorkflowReviewService {
 			return false;
 		}
 
-		// Filter by keyword (search in title)
+		// Filter theo tác giả (tách riêng khỏi keyword).
+		if ((query.getCreatorUserId() > 0) &&
+			(item.getCreatorUserId() != query.getCreatorUserId())) {
+
+			return false;
+		}
+
+		// Filter theo người được điều phối.
+		if ((query.getAssigneeUserId() > 0) &&
+			(item.getAssigneeUserId() != query.getAssigneeUserId())) {
+
+			return false;
+		}
+
+		// Filter theo người xử lý (chỉ tính item đã thực sự được xử lý
+		// approved/denied, không tính item đang chờ).
+		if (query.getCompletedByUserId() > 0) {
+			if (!_isProcessed(item) ||
+				(item.getCompletedByUserId() != query.getCompletedByUserId())) {
+
+				return false;
+			}
+		}
+
+		// Filter theo khoảng ngày tạo.
+		Date createDate = item.getCreateDate();
+
+		if (query.getCreateDateFrom() != null) {
+			if ((createDate == null) ||
+				createDate.before(query.getCreateDateFrom())) {
+
+				return false;
+			}
+		}
+
+		if (query.getCreateDateTo() != null) {
+			if ((createDate == null) ||
+				createDate.after(query.getCreateDateTo())) {
+
+				return false;
+			}
+		}
+
+		// Filter theo keyword: chỉ tìm trong tiêu đề / nội dung.
 		if (query.getKeyword() != null &&
 			!query.getKeyword().isEmpty()) {
 
 			String keyword = query.getKeyword().toLowerCase();
 
-			if (item.getAssetTitle() != null &&
-				item.getAssetTitle().toLowerCase().contains(keyword)) {
+			boolean titleMatch =
+				(item.getAssetTitle() != null) &&
+				item.getAssetTitle().toLowerCase().contains(keyword);
 
-				return true;
+			if (!titleMatch) {
+				return false;
 			}
-
-			if (item.getCreatorUserName() != null &&
-				item.getCreatorUserName().toLowerCase().contains(keyword)) {
-
-				return true;
-			}
-
-			return false;
 		}
 
 		return true;
+	}
+
+	private boolean _isProcessed(WorkflowReviewItem item) {
+		return !item.isReviewable() &&
+			("approved".equals(item.getStatus()) ||
+			 "denied".equals(item.getStatus()));
 	}
 
 	private boolean _matchesAssetType(String queryAssetType, String itemAssetType) {
@@ -945,5 +1011,8 @@ public class WorkflowReviewService {
 
 	@Reference
 	private WorkflowComparatorFactory _workflowComparatorFactory;
+
+	@Reference
+	private WorkflowLogManager _workflowLogManager;
 
 }

@@ -18,10 +18,10 @@
         </header>
 
         <section class="panel filters-panel">
-            <form id="filterForm" class="filters-grid">
+            <form id="filterForm" class="filters-grid filters-grid-4">
                 <label>
                     <span>Từ khóa</span>
-                    <input id="keyword" name="keyword" type="text" placeholder="tiêu đề, tác giả, xử lý bởi">
+                    <input id="keyword" name="keyword" type="text" placeholder="tiêu đề / nội dung">
                 </label>
                 <label>
                     <span>Trạng thái</span>
@@ -40,6 +40,32 @@
                         <option value="com.liferay.journal.model.JournalArticle">Bài viết (Web Content)</option>
                         <option value="com.liferay.message.boards.model.MBDiscussion">Bình luận</option>
                     </select>
+                </label>
+                <label>
+                    <span>Tác giả</span>
+                    <select id="filterAuthor" name="filterAuthor">
+                        <option value="">Tất cả</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Điều phối cho</span>
+                    <select id="filterAssignee" name="filterAssignee">
+                        <option value="">Tất cả</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Người xử lý</span>
+                    <select id="filterProcessor" name="filterProcessor">
+                        <option value="">Tất cả</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Ngày tạo từ</span>
+                    <input id="filterDateFrom" name="filterDateFrom" type="date">
+                </label>
+                <label>
+                    <span>Ngày tạo đến</span>
+                    <input id="filterDateTo" name="filterDateTo" type="date">
                 </label>
             </form>
             <div class="filter-actions">
@@ -148,6 +174,18 @@
                 <button type="button" id="btn-duedate-clear" class="btn-cancel btn-duedate-clear">Xóa hạn</button>
                 <button type="button" id="btn-duedate-cancel" class="btn-cancel">Hủy</button>
                 <button type="button" id="btn-duedate-confirm" class="btn-confirm-primary">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="activitiesModal" class="modal">
+        <div class="modal-content modal-content-lg">
+            <div class="modal-header">Lịch sử thay đổi</div>
+            <div class="modal-body" id="activitiesModalBody">
+                <div class="detail-loading">Đang tải...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-activities-close" class="btn-cancel">Đóng</button>
             </div>
         </div>
     </div>

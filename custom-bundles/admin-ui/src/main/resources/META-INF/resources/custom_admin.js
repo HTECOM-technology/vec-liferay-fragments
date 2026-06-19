@@ -564,6 +564,32 @@ function __redirectToHomepageIfNotCorrectLoginScreen() {
     }
 }
 
+function __redirectMyWorkflowTasksLink() {
+    const SELECTOR = 'a[href*="com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet"]';
+    const ATTR_OLD = 'data-old-href';
+
+    // URI hiện tại để màn workflow-tasks biết quay lại đâu.
+    const backUri = window.location.pathname + window.location.search;
+    const newHref = '/web/guest/workflow-tasks?backUrl=' +
+        encodeURIComponent(backUri);
+
+    const rewrite = (anchor) => {
+        if (anchor.getAttribute(ATTR_OLD)) {
+            return;
+        }
+        anchor.setAttribute(ATTR_OLD, anchor.getAttribute('href'));
+        anchor.setAttribute('href', newHref);
+    };
+
+    waitForElement(
+        SELECTOR,
+        () => {
+            document.querySelectorAll(`${SELECTOR}:not([${ATTR_OLD}])`).forEach(rewrite);
+        },
+        { maxTry: 200, interval: 50 }
+    );
+}
+
 function __initTableScroll(scrollClass = 'table-scrollable-horizotal') {
     const INTERACTIVE_SELECTOR = [
         'a',
@@ -796,6 +822,7 @@ async function __custom_admin_js() {
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
     __initGlobalFolder();
+    __redirectMyWorkflowTasksLink();
 
     if (isPageCreateNewPost) {
         waitForElement(

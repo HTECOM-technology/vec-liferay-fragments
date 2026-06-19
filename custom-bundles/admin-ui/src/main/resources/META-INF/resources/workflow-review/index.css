@@ -617,6 +617,77 @@ table tbody tr:hover {
     margin-bottom: 20px;
 }
 
+/* Bộ lọc 4 cột (giới hạn 2 hàng cho 8 trường) */
+.filters-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+    .filters-grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .filters-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tô màu hàng theo hạn duyệt */
+tbody tr.row-due-warning {
+    background-color: #fff8e6;
+}
+
+tbody tr.row-due-warning:hover {
+    background-color: #fff1cc;
+}
+
+tbody tr.row-due-danger {
+    background-color: #fdecef;
+}
+
+tbody tr.row-due-danger:hover {
+    background-color: #fbdde2;
+}
+
+/* Danh sách hoạt động (Lịch sử thay đổi) */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 4px;
+    border-bottom: 1px solid #eef1f5;
+    font-size: 13px;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-desc {
+    color: #1f2937;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.activity-date {
+    color: #687385;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.activity-empty {
+    color: #8a94a6;
+    padding: 24px 4px;
+    text-align: center;
+}
+
 /* Căn giữa nút hành động trong ô */
 .action-cell {
     display: flex;

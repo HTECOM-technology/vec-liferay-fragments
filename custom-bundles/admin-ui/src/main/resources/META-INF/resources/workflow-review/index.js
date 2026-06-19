@@ -15,8 +15,56 @@ function clearFilters() {
     document.getElementById('keyword').value = '';
     document.getElementById('status').value = '';
     document.getElementById('assetType').value = '';
+    document.getElementById('filterAuthor').value = '';
+    document.getElementById('filterAssignee').value = '';
+    document.getElementById('filterProcessor').value = '';
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
     currentPage = 1;
     loadWorkflowItems();
+}
+
+// Nạp danh sách user cho 3 select filter (tác giả / điều phối / xử lý),
+// lấy từ chính các item workflow hiện có.
+async function loadFilterUsers() {
+    try {
+        const response = await fetch(
+            '/o/vec-admin/workflow-review/filter-users',
+            {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': getCsrfToken()
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        fillUserSelect('filterAuthor', data.authors || []);
+        fillUserSelect('filterAssignee', data.assignees || []);
+        fillUserSelect('filterProcessor', data.processors || []);
+    } catch (error) {
+        console.error('Error loading filter users:', error);
+    }
+}
+
+function fillUserSelect(selectId, users) {
+    const select = document.getElementById(selectId);
+    const current = select.value;
+
+    select.innerHTML = '<option value="">Tất cả</option>' + users.map(user =>
+        `<option value="${user.userId}">${escapeHtml(user.name)}</option>`
+    ).join('');
+
+    // Giữ lựa chọn cũ nếu vẫn còn trong danh sách.
+    select.value = current;
 }
 
 function switchTab(tab, buttonEl) {
@@ -35,6 +83,11 @@ async function loadWorkflowItems(silent) {
     const keyword = document.getElementById('keyword').value;
     const status = document.getElementById('status').value;
     const assetType = document.getElementById('assetType').value;
+    const creatorUserId = document.getElementById('filterAuthor').value;
+    const assigneeUserId = document.getElementById('filterAssignee').value;
+    const completedByUserId = document.getElementById('filterProcessor').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
     const start = (currentPage - 1) * pageSize;
 
     const params = new URLSearchParams({
@@ -43,7 +96,15 @@ async function loadWorkflowItems(silent) {
         assetType: assetType || '',
         tab: currentTab,
         start: start,
-        end: start + pageSize
+        end: start + pageSize,
+        creatorUserId: creatorUserId || '0',
+        assigneeUserId: assigneeUserId || '0',
+        completedByUserId: completedByUserId || '0',
+        // input type=date -> 'YYYY-MM-DD'; quy về đầu/cuối ngày theo giờ local.
+        createDateFrom: dateFrom ?
+            new Date(`${dateFrom}T00:00:00`).getTime() : '0',
+        createDateTo: dateTo ?
+            new Date(`${dateTo}T23:59:59.999`).getTime() : '0'
     });
 
     try {
@@ -96,11 +157,17 @@ function renderWorkflowItems(items, total) {
         const statusLabel = getStatusLabel(item.status);
         const assetTypeLabel = getAssetTypeLabel(item.assetType);
 
-        // Chỉ cho thao tác khi item còn ở bước review (reviewable). Gom các
-        // thao tác vào một menu (nút 3 chấm) để tiết kiệm chỗ.
-        const actionsHtml = item.reviewable
-            ? `<div class="action-cell"><button type="button" class="btn-kebab" data-action="menu" data-task-id="${item.workflowTaskId}" aria-label="Hành động" title="Hành động">⋮</button></div>`
+        // Hiện menu (nút 3 chấm) khi còn xử lý được, hoặc là Web Content (để
+        // luôn xem được "Lịch sử thay đổi"). Menu tự ẩn/hiện từng mục bên trong.
+        const showMenu = item.reviewable || isWebContentAsset(item.assetType);
+        const actionsHtml = showMenu
+            ? `<div class="action-cell"><button type="button" class="btn-kebab" data-action="menu" data-task-id="${item.workflowTaskId}" data-reviewable="${item.reviewable}" data-asset-type="${escapeHtml(item.assetType || '')}" aria-label="Hành động" title="Hành động">⋮</button></div>`
             : getActionNoteHtml(item);
+
+        const dueClass = getDueDateRowClass(item);
+        if (dueClass) {
+            row.className = dueClass;
+        }
 
         row.innerHTML = `
             <td class="title-cell" data-task-id="${item.workflowTaskId}" title="Xem chi tiết">${escapeHtml(truncate(item.assetTitle || 'N/A', 50))}</td>
@@ -273,17 +340,24 @@ function renderDetail(data) {
         </section>
     `;
 
-    // Đầy đủ 4 thao tác ngay trong modal chi tiết nếu còn xử lý được.
+    // Đầy đủ thao tác ngay trong modal chi tiết. 4 nút xử lý khi còn duyệt
+    // được; nút "Lịch sử thay đổi" cho mọi Web Content.
+    let actionsHtml = '';
+
     if (data.reviewable) {
-        actions.innerHTML = `
+        actionsHtml += `
             <button type="button" class="btn-confirm-approve" data-detail-action="approve" data-task-id="${data.workflowTaskId}">Duyệt</button>
             <button type="button" class="btn-confirm-reject" data-detail-action="reject" data-task-id="${data.workflowTaskId}">Từ chối</button>
             <button type="button" class="btn-detail-secondary" data-detail-action="assign" data-task-id="${data.workflowTaskId}">Điều phối xử lý</button>
             <button type="button" class="btn-detail-secondary" data-detail-action="duedate" data-task-id="${data.workflowTaskId}">Thời hạn xử lý</button>
         `;
-    } else {
-        actions.innerHTML = '';
     }
+
+    if (isWebContentAsset(data.assetType)) {
+        actionsHtml += `<button type="button" class="btn-detail-secondary" data-detail-action="history" data-task-id="${data.workflowTaskId}">Lịch sử thay đổi</button>`;
+    }
+
+    actions.innerHTML = actionsHtml;
 }
 
 function closeDetailModal() {
@@ -382,13 +456,26 @@ async function confirmAction() {
 
 function openActionMenu(taskId, anchor) {
     const menu = document.getElementById('actionMenu');
+    const reviewable = anchor.dataset.reviewable === 'true';
+    const isWebContent = isWebContentAsset(anchor.dataset.assetType);
 
-    menu.innerHTML = `
-        <button type="button" class="menu-item menu-approve" data-menu-action="approve" data-task-id="${taskId}">Duyệt</button>
-        <button type="button" class="menu-item menu-reject" data-menu-action="reject" data-task-id="${taskId}">Từ chối</button>
-        <button type="button" class="menu-item" data-menu-action="assign" data-task-id="${taskId}">Điều phối xử lý</button>
-        <button type="button" class="menu-item" data-menu-action="duedate" data-task-id="${taskId}">Thời hạn xử lý</button>
-    `;
+    let html = '';
+
+    if (reviewable) {
+        html += `
+            <button type="button" class="menu-item menu-approve" data-menu-action="approve" data-task-id="${taskId}">Duyệt</button>
+            <button type="button" class="menu-item menu-reject" data-menu-action="reject" data-task-id="${taskId}">Từ chối</button>
+            <button type="button" class="menu-item" data-menu-action="assign" data-task-id="${taskId}">Điều phối xử lý</button>
+            <button type="button" class="menu-item" data-menu-action="duedate" data-task-id="${taskId}">Thời hạn xử lý</button>
+        `;
+    }
+
+    // Lịch sử thay đổi chỉ áp dụng cho Web Content.
+    if (isWebContent) {
+        html += `<button type="button" class="menu-item" data-menu-action="history" data-task-id="${taskId}">Lịch sử thay đổi</button>`;
+    }
+
+    menu.innerHTML = html;
 
     menu.classList.add('active');
 
@@ -607,7 +694,63 @@ function triggerTaskAction(action, taskId) {
         openAssignModal(taskId);
     } else if (action === 'duedate') {
         openDueDateModal(taskId);
+    } else if (action === 'history') {
+        openActivitiesModal(taskId);
     }
+}
+
+// ===== Modal Lịch sử thay đổi (activities) =====
+
+async function openActivitiesModal(taskId) {
+    const body = document.getElementById('activitiesModalBody');
+
+    body.innerHTML = '<div class="detail-loading">Đang tải...</div>';
+    document.getElementById('activitiesModal').classList.add('active');
+    syncBodyScrollLock();
+
+    try {
+        const response = await fetch(
+            `/o/vec-admin/workflow-review/${taskId}/activities`,
+            {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-Token': getCsrfToken()
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const activities = data.activities || [];
+
+        if (activities.length === 0) {
+            body.innerHTML =
+                '<div class="activity-empty">Chưa có hoạt động nào.</div>';
+            return;
+        }
+
+        body.innerHTML = `<div class="activity-list">${activities.map(act =>
+            `<div class="activity-item">
+                <div class="activity-desc">${escapeHtml(act.description || '')}</div>
+                <div class="activity-date">${formatDate(act.createDate)}</div>
+            </div>`
+        ).join('')}</div>`;
+    } catch (error) {
+        console.error('Error loading activities:', error);
+        body.innerHTML =
+            '<div class="activity-empty">Không thể tải lịch sử.</div>';
+    }
+}
+
+function closeActivitiesModal() {
+    document.getElementById('activitiesModal').classList.remove('active');
+    syncBodyScrollLock();
 }
 
 function getCsrfToken() {
@@ -628,6 +771,39 @@ function getActionNoteHtml(item) {
     if (item.status === 'denied' && isWebContentAsset(item.assetType)) {
         return '<span class="action-note">Chờ chỉnh sửa</span>';
     }
+    return '';
+}
+
+// Tô màu hàng theo hạn duyệt (chỉ với item còn cần xử lý):
+// - quá hạn -> danger; còn <= 2 ngày -> warning.
+function getDueDateRowClass(item) {
+    if (!item.dueDate) {
+        return '';
+    }
+
+    const stillOpen = item.reviewable ||
+        item.status === 'pending' || item.status === 'expired';
+
+    if (!stillOpen) {
+        return '';
+    }
+
+    const due = parseUtcDate(item.dueDate);
+
+    if (Number.isNaN(due.getTime())) {
+        return '';
+    }
+
+    const diff = due.getTime() - Date.now();
+
+    if (diff < 0) {
+        return 'row-due-danger';
+    }
+
+    if (diff <= 2 * 24 * 60 * 60 * 1000) {
+        return 'row-due-warning';
+    }
+
     return '';
 }
 
@@ -965,10 +1141,19 @@ function bindEvents() {
             closeDueDateModal();
         }
     });
+
+    // Modal Lịch sử thay đổi
+    document.getElementById('btn-activities-close').addEventListener('click', closeActivitiesModal);
+    document.getElementById('activitiesModal').addEventListener('click', (e) => {
+        if (e.target.id === 'activitiesModal') {
+            closeActivitiesModal();
+        }
+    });
 }
 
 function init() {
     bindEvents();
+    loadFilterUsers();
     loadWorkflowItems();
     requestAnimationFrame(() => window.__initTableScroll());
 }

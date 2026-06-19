@@ -1,5 +1,7 @@
 package vn.vec.custom.admin.workflow.model;
 
+import java.util.Date;
+
 public class WorkflowReviewQuery {
 	private String keyword;
 	private String status;
@@ -9,6 +11,11 @@ public class WorkflowReviewQuery {
 	private int end;
 	private String orderBy;
 	private String orderDirection;
+	private long creatorUserId;
+	private long assigneeUserId;
+	private long completedByUserId;
+	private Date createDateFrom;
+	private Date createDateTo;
 
 	public WorkflowReviewQuery() {
 		this.start = 0;
@@ -80,6 +87,46 @@ public class WorkflowReviewQuery {
 
 	public void setOrderDirection(String orderDirection) {
 		this.orderDirection = orderDirection;
+	}
+
+	public long getCreatorUserId() {
+		return creatorUserId;
+	}
+
+	public void setCreatorUserId(long creatorUserId) {
+		this.creatorUserId = creatorUserId;
+	}
+
+	public long getAssigneeUserId() {
+		return assigneeUserId;
+	}
+
+	public void setAssigneeUserId(long assigneeUserId) {
+		this.assigneeUserId = assigneeUserId;
+	}
+
+	public long getCompletedByUserId() {
+		return completedByUserId;
+	}
+
+	public void setCompletedByUserId(long completedByUserId) {
+		this.completedByUserId = completedByUserId;
+	}
+
+	public Date getCreateDateFrom() {
+		return createDateFrom;
+	}
+
+	public void setCreateDateFrom(Date createDateFrom) {
+		this.createDateFrom = createDateFrom;
+	}
+
+	public Date getCreateDateTo() {
+		return createDateTo;
+	}
+
+	public void setCreateDateTo(Date createDateTo) {
+		this.createDateTo = createDateTo;
 	}
 
 }
