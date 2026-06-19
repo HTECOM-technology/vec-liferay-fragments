@@ -281,7 +281,6 @@ function SupportRequestList({ activeItem, activeSection }) {
                     value={search}
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                     allowClear
-                    style={{ width: 210 }}
                 />
 
                 <span className="filter-label">Lọc theo:</span>
@@ -313,7 +312,7 @@ function SupportRequestList({ activeItem, activeSection }) {
                     />
                 </FilterGroup>
 
-                <FilterGroup $flex={1}>
+                <FilterGroup $flex={1} className="range-filter-group">
                     <RangePicker
                         format="DD/MM/YYYY"
                         value={filters.dateRange}
@@ -344,6 +343,7 @@ function SupportRequestList({ activeItem, activeSection }) {
                     locale={{ emptyText: "Không có yêu cầu nào" }}
                     rowClassName={(_, idx) => (idx % 2 === 0 ? "" : "table-row-alt")}
                     style={{ fontSize: 13 }}
+                    scroll={{ x: "max-content" }}
                 />
 
                 <TablePaginationWrap>

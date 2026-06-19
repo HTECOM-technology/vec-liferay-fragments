@@ -226,7 +226,6 @@ function MyRequests() {
                         options={statusOpts}
                         onChange={(v) => handleFilterChange("status", v)}
                         style={{ width: 160 }}
-                        size="small"
                     />
                 </FilterGroup>
 
@@ -236,7 +235,6 @@ function MyRequests() {
                         options={priorityOpts}
                         onChange={(v) => handleFilterChange("priority", v)}
                         style={{ width: 150 }}
-                        size="small"
                     />
                 </FilterGroup>
 
@@ -246,25 +244,21 @@ function MyRequests() {
                         options={processOpts}
                         onChange={(v) => handleFilterChange("process", v)}
                         style={{ width: 180 }}
-                        size="small"
                     />
                 </FilterGroup>
 
-                <FilterGroup $flex={1}>
-                    <span className="filter-label">Ngày tạo:</span>
+                <FilterGroup $flex={1} className="range-filter-group">
                     <RangePicker
-                        size="small"
                         format="DD/MM/YYYY"
                         value={filters.dateRange}
                         onChange={(dates) => handleFilterChange("dateRange", dates)}
                         placeholder={["Từ ngày", "Đến ngày"]}
-                        style={{ flex: 1, minWidth: 220 }}
+                        style={{ flex: 1, minWidth: 0 }}
                     />
                 </FilterGroup>
 
-                <ResetFilterBtn onClick={handleReset}>
-                    <FiRefreshCw size={12} />
-                    Đặt lại
+                <ResetFilterBtn onClick={handleReset} title="Đặt lại">
+                    <FiRefreshCw size={14} />
                 </ResetFilterBtn>
             </MyRequestsFilter>
 
@@ -284,6 +278,7 @@ function MyRequests() {
                     locale={{ emptyText: "Không có yêu cầu nào" }}
                     rowClassName={(_, idx) => (idx % 2 === 0 ? "" : "table-row-alt")}
                     style={{ fontSize: 13 }}
+                    scroll={{ x: "max-content" }}
                 />
 
                 <TablePaginationWrap>

@@ -93,4 +93,5 @@ export const commonTableProps = {
   pagination: false,
   bordered: true,
   size: "small",
+  scroll: { x: "max-content" },
 };

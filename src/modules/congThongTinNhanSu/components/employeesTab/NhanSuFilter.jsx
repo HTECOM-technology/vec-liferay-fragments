@@ -35,7 +35,6 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch, filterOpt
                         value={filters.chucVu}
                         onChange={(value) => onFilterChange("chucVu", value)}
                         options={filterOptions.chucVuOptions}
-                        style={{ width: 250 }}
                     />
                 </FilterSelect>
 
@@ -44,7 +43,6 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch, filterOpt
                         value={filters.phongBan}
                         onChange={(value) => onFilterChange("phongBan", value)}
                         options={filterOptions.phongBanOptions}
-                        style={{ width: 250 }}
                     />
                 </FilterSelect>
 
@@ -53,7 +51,6 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch, filterOpt
                         value={filters.donVi}
                         onChange={(value) => onFilterChange("donVi", value)}
                         options={filterOptions.donViOptions}
-                        style={{ width: 170 }}
                     />
                 </FilterSelect>
 
@@ -62,7 +59,6 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch, filterOpt
                         value={filters.gioiTinh}
                         onChange={(value) => onFilterChange("gioiTinh", value)}
                         options={filterOptions.gioiTinhOptions}
-                        style={{ width: 170 }}
                     />
                 </FilterSelect>
 
@@ -71,7 +67,6 @@ function NhanSuFilter({ totalCount, filters, onFilterChange, onSearch, filterOpt
                         value={filters.tinhTrang}
                         onChange={(value) => onFilterChange("tinhTrang", value)}
                         options={filterOptions.tinhTrangOptions}
-                        style={{ width: 170 }}
                     />
                 </FilterSelect>
 

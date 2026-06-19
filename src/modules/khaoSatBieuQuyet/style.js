@@ -9,6 +9,10 @@ export const PageContainer = styled.div`
 
 export const ContentContainer = styled.div`
     padding: 16px 24px;
+
+    @media (max-width: 767px) {
+        padding: 12px 16px;
+    }
 `;
 
 export const PageHeader = styled.div`
@@ -18,6 +22,12 @@ export const PageHeader = styled.div`
     margin-bottom: 16px;
     border-bottom: 1px solid rgba(0, 144, 207, 0.2);
     padding-bottom: 10px;
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
 `;
 
 export const PageTitle = styled.h1`
@@ -25,16 +35,27 @@ export const PageTitle = styled.h1`
     font-weight: 600;
     color: rgba(30, 30, 30, 1);
     margin: 0;
+
+    @media (max-width: 767px) {
+        font-size: 15px;
+    }
 `;
 
 export const HeaderActions = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
+
+    @media (max-width: 767px) {
+        width: 100%;
+        gap: 8px;
+    }
 `;
 
 export const FilterSelect = styled.div`
     .ant-select {
+        width: 150px;
+        height: 38px;
         min-width: 120px;
     }
 
@@ -48,13 +69,24 @@ export const FilterSelect = styled.div`
         line-height: 30px !important;
         color: rgba(107, 114, 128, 1);
     }
+
+    @media (max-width: 767px) {
+        flex: 1;
+
+        .ant-select {
+            width: 100% !important;
+        }
+    }
 `;
 
 export const CreateButton = styled.button`
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 8px 16px;
+    width: 190px;
+    height: 38px;
     background: rgba(0, 144, 207, 1);
     color: #fff;
     border: none;
@@ -63,6 +95,8 @@ export const CreateButton = styled.button`
     font-weight: 500;
     cursor: pointer;
     transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 
     &:hover {
         background: rgba(0, 123, 181, 1);
@@ -71,6 +105,12 @@ export const CreateButton = styled.button`
     svg {
         width: 16px;
         height: 16px;
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 767px) {
+        flex: 1;
+        width: auto;
     }
 `;
 
@@ -120,6 +160,7 @@ export const CardsGrid = styled.div`
 
     @media (max-width: 600px) {
         grid-template-columns: 1fr;
+        gap: 12px;
     }
 `;
 
@@ -287,6 +328,13 @@ export const PaginationContainer = styled.div`
     padding: 16px 0;
     border-top: 1px solid #f0f0f0;
     margin-top: 16px;
+
+    @media (max-width: 600px) {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+        padding: 12px 0;
+    }
 `;
 
 export const PaginationInfo = styled.div`
@@ -303,6 +351,12 @@ export const PaginationInfo = styled.div`
     .ant-select-selector {
         height: 28px !important;
         border-radius: 4px !important;
+    }
+
+    @media (max-width: 600px) {
+        width: 100%;
+        justify-content: center;
+        order: 1;
     }
 `;
 
@@ -343,6 +397,18 @@ export const PaginationNav = styled.div`
         padding: 0 8px;
         color: #999;
     }
+
+    @media (max-width: 600px) {
+        flex-wrap: wrap;
+        justify-content: center;
+        order: 2;
+
+        .page-btn {
+            min-width: 28px;
+            height: 28px;
+            font-size: 14px;
+        }
+    }
 `;
 
 export const GoToPage = styled.div`
@@ -357,5 +423,9 @@ export const GoToPage = styled.div`
         height: 28px;
         text-align: center;
         border-radius: 4px;
+    }
+
+    @media (max-width: 600px) {
+        display: none;
     }
 `;

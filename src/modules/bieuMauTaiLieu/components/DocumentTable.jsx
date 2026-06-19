@@ -80,7 +80,7 @@ const DocumentTable = ({ data, loading, onUpload, onDelete }) => {
         {
             title: "Hành động",
             key: "action",
-            width: screens.md ? 180 : 120,
+            width: screens.md ? 180 : 108,
             align: "center",
             render: (_, record) => (
                 <ActionsCell>

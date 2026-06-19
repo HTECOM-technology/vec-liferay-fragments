@@ -273,10 +273,9 @@ export default function KhaoSatBieuQuyet() {
                 value={sortOrder}
                 onChange={handleSortChange}
                 options={SORT_OPTIONS}
-                style={{ width: 150, height: 38 }}
               />
             </FilterSelect>
-            <CreateButton onClick={handleCreateSurvey} style={{ width: 190, height: 38 }}>
+            <CreateButton onClick={handleCreateSurvey}>
               <IconCreateSurvey />
               Tạo cuộc bình chọn
             </CreateButton>

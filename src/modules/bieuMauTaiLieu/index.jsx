@@ -151,11 +151,13 @@ const TAB_ITEMS = [
 ];
 
 const BieuMauTaiLieuPage = () => {
+    const screens = useBreakpoint();
+
     return (
         <PageWrap>
             <Tabs
                 items={TAB_ITEMS}
-                style={{ padding: "0 12px" }}
+                style={{ padding: screens.md ? "0 12px" : "0 8px" }}
             />
         </PageWrap>
     );

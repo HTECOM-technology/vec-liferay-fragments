@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import { CDatePicker } from "../../../../components/common";
 import { processChartData } from "./chartUtils";
-import { ChartCard, ChartCardTitle, ChartFilterRow, ChartWrap } from "./styled";
+import { ChartCard, ChartCardTitle, ChartFilterRow, FilterItem, ChartWrap } from "./styled";
 
 const LOAI_BIEU_DO_OPTIONS = [
   { value: "cot", label: "Biểu đồ cột" },
@@ -84,33 +84,42 @@ function BieuDoCard({ title, rawData, color, yUnit }) {
       <ChartCardTitle>{title}</ChartCardTitle>
 
       <ChartFilterRow>
-        <Select
-          value={loaiBieuDo}
-          onChange={setLoaiBieuDo}
-          options={LOAI_BIEU_DO_OPTIONS}
-          style={{ width: 165, height: 38 }}
-        />
-        <Select
-          value={thoiGian}
-          onChange={setThoiGian}
-          options={THOI_GIAN_OPTIONS}
-          style={{ width: 100, height: 38 }}
-        />
-        <CDatePicker
-          value={tuNgay}
-          onChange={setTuNgay}
-          format="DD/MM/YYYY"
-          suffixIcon={<CalendarOutlined />}
-          style={{ width: 120, height: 38 }}
-        />
-        <span style={{ color: "rgba(0,0,0,0.45)", fontSize: 13 }}>Đến</span>
-        <CDatePicker
-          value={denNgay}
-          onChange={setDenNgay}
-          format="DD/MM/YYYY"
-          suffixIcon={<CalendarOutlined />}
-          style={{ width: 120, height: 38 }}
-        />
+        <FilterItem>
+          <Select
+            value={thoiGian}
+            onChange={setThoiGian}
+            options={THOI_GIAN_OPTIONS}
+            style={{ width: 100, height: 38 }}
+          />
+        </FilterItem>
+        <FilterItem>
+          <Select
+            value={loaiBieuDo}
+            onChange={setLoaiBieuDo}
+            options={LOAI_BIEU_DO_OPTIONS}
+            style={{ width: 165, height: 38 }}
+          />
+        </FilterItem>
+        <FilterItem>
+          <CDatePicker
+            value={tuNgay}
+            onChange={setTuNgay}
+            format="DD/MM/YYYY"
+            placeholder="Từ ngày"
+            suffixIcon={<CalendarOutlined />}
+            style={{ width: 120, height: 38 }}
+          />
+        </FilterItem>
+        <FilterItem>
+          <CDatePicker
+            value={denNgay}
+            onChange={setDenNgay}
+            format="DD/MM/YYYY"
+            placeholder="Đến ngày"
+            suffixIcon={<CalendarOutlined />}
+            style={{ width: 120, height: 38 }}
+          />
+        </FilterItem>
         <Button
           type="primary"
           onClick={handleXemBieuDo}

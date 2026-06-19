@@ -8,6 +8,11 @@ import {
 } from "../../../../services/structuredContentService";
 
 // --- Styled components ---
+const ChartScrollContainer = styled.div`
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+`;
+
 const ChartWrap = styled.div`
   padding: 40px 24px 24px;
   min-width: 1000px;
@@ -165,6 +170,7 @@ const SoDoToChuc = () => {
   }, []);
 
   return (
+    <ChartScrollContainer>
     <ChartWrap>
       <HoiDongThanhVienModal open={hoiDongModalOpen} onClose={() => setHoiDongModalOpen(false)} />
 
@@ -303,6 +309,7 @@ const SoDoToChuc = () => {
         </BranchConnectorWrap>
       </MiddleRow>
     </ChartWrap>
+    </ChartScrollContainer>
   );
 };
 

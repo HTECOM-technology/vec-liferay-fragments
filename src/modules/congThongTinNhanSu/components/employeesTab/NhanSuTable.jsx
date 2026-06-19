@@ -139,7 +139,7 @@ function NhanSuTable({
                     loading={loading}
                     pagination={false}
                     rowKey="maNV"
-                    scroll={{ x: 1200 }}
+                    scroll={{ x: "max-content" }}
                 />
             </TableContainer>
 

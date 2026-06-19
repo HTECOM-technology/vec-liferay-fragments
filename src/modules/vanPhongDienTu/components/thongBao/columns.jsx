@@ -42,4 +42,5 @@ export const tableProps = {
   pagination: false,
   bordered: true,
   size: "small",
+  scroll: { x: 400 },
 };

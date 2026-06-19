@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Avatar, Badge, Button, Flex, Layout, Popover, theme, message } from "antd";
-import { StyledLayout, StyledInnerLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, WrapSubHeader } from "./style";
+import { StyledLayout, StyledInnerLayout, StyledHeader, StyledContent, StyledTitle, AccountWrap, StyledFooter, StyledSider, StyledHeaderMobile, StyledDrawer, StyledBottomSheet, BottomSheetHandle, BottomSheetItem, BottomSheetLogout, WrapSubHeader, SearchOverlay, SearchBox } from "./style";
 import LeftMenu from "./components/LeftMenu";
 import HrmNotificationsModal from "./components/HrmNotificationsModal";
 import { menuSections } from "../../../router/menuConfig";
@@ -47,6 +47,7 @@ const LinkItem = styled.div`
   }
 `;
 
+
 function isHrmNotification(item) {
   const groupCode = String(
     item?.group_code ??
@@ -66,8 +67,10 @@ function isHrmNotification(item) {
 function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
+  const [bottomSheetOpen, setBottomSheetOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [notifyPopoverOpen, setNotifyPopoverOpen] = useState(false);
+  const [mobileNotifyPopoverOpen, setMobileNotifyPopoverOpen] = useState(false);
   const [hrmNotificationCount, setHrmNotificationCount] = useState(0);
   const [hrmModalOpen, setHrmModalOpen] = useState(false);
   const [hrmNotifications, setHrmNotifications] = useState([]);
@@ -75,6 +78,34 @@ function MainLayout() {
   const [hrmNotificationsPage, setHrmNotificationsPage] = useState(1);
   const [hrmNotificationsLoading, setHrmNotificationsLoading] = useState(false);
   const [hrmNotificationsLoadingMore, setHrmNotificationsLoadingMore] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handleKey = (e) => { if (e.key === "Escape") setSearchOpen(false); };
+    document.addEventListener("keydown", handleKey);
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (showDrawer) {
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.touchAction = "";
+    };
+  }, [showDrawer]);
 
   const handleLogout = useCallback(() => {
     setPopoverOpen(false);
@@ -238,16 +269,35 @@ function MainLayout() {
 
           <Flex vertical={false} align="center" justify="center">
             <Badge count={totalCount}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
-                <path
-                  d="M2.71833 12.7716C2.60947 12.8909 2.53763 13.0393 2.51155 13.1987C2.48547 13.3581 2.50627 13.5217 2.57142 13.6695C2.63658 13.8173 2.74328 13.9429 2.87855 14.0312C3.01381 14.1195 3.17182 14.1665 3.33333 14.1666H16.6667C16.8282 14.1667 16.9862 14.1198 17.1216 14.0317C17.2569 13.9436 17.3637 13.8181 17.4291 13.6704C17.4944 13.5227 17.5154 13.3592 17.4895 13.1998C17.4637 13.0404 17.392 12.8919 17.2833 12.7725C16.175 11.63 15 10.4158 15 6.66663C15 5.34054 14.4732 4.06877 13.5355 3.13109C12.5979 2.19341 11.3261 1.66663 10 1.66663C8.67392 1.66663 7.40215 2.19341 6.46447 3.13109C5.52679 4.06877 5 5.34054 5 6.66663C5 10.4158 3.82417 11.63 2.71833 12.7716Z"
-                  stroke="#6B7280"
-                  strokeWidth="1.16667"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Popover
+                open={mobileNotifyPopoverOpen}
+                onOpenChange={setMobileNotifyPopoverOpen}
+                trigger="click"
+                placement="bottomRight"
+                content={<>
+                  <TitlePopover>Thông báo</TitlePopover>
+                  <hr style={{ marginBottom: "10px" }} />
+                  {notifications.map((item, index) => (
+                    <TitleNotiWrapper key={index} onClick={item.key === "hrm" ? handleOpenHrmModal : undefined}>
+                      <TitleNoti>{item.title}</TitleNoti>
+                      <div className="count-number">
+                        <QuantityNoti>{item.count}</QuantityNoti>
+                      </div>
+                    </TitleNotiWrapper>
+                  ))}
+                </>}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ cursor: "pointer" }}>
+                  <path d="M8.55663 17.5C8.70291 17.7533 8.91331 17.9637 9.16666 18.11C9.42002 18.2563 9.70741 18.3333 9.99996 18.3333C10.2925 18.3333 10.5799 18.2563 10.8333 18.11C11.0866 17.9637 11.297 17.7533 11.4433 17.5" stroke="#6B7280" strokeWidth="1.16667" strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M2.71833 12.7716C2.60947 12.8909 2.53763 13.0393 2.51155 13.1987C2.48547 13.3581 2.50627 13.5217 2.57142 13.6695C2.63658 13.8173 2.74328 13.9429 2.87855 14.0312C3.01381 14.1195 3.17182 14.1665 3.33333 14.1666H16.6667C16.8282 14.1667 16.9862 14.1198 17.1216 14.0317C17.2569 13.9436 17.3637 13.8181 17.4291 13.6704C17.4944 13.5227 17.5154 13.3592 17.4895 13.1998C17.4637 13.0404 17.392 12.8919 17.2833 12.7725C16.175 11.63 15 10.4158 15 6.66663C15 5.34054 14.4732 4.06877 13.5355 3.13109C12.5979 2.19341 11.3261 1.66663 10 1.66663C8.67392 1.66663 7.40215 2.19341 6.46447 3.13109C5.52679 4.06877 5 5.34054 5 6.66663C5 10.4158 3.82417 11.63 2.71833 12.7716Z"
+                    stroke="#6B7280"
+                    strokeWidth="1.16667"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Popover>
             </Badge>
             <Button
               className="menu-toggle-btn-mobile"
@@ -286,6 +336,13 @@ function MainLayout() {
             </div>
 
             <CInput prefix={<SearchOutlined />} style={{ width: 600, maxWidth: "30vw" }} placeholder="Tìm kiếm" className="search-input" />
+            <Button
+              type="text"
+              className="search-icon-btn"
+              onClick={() => setSearchOpen(true)}
+              icon={<SearchOutlined style={{ fontSize: 16, color: "#0090CF" }} />}
+              style={{ width: 34, height: 34, background: "#0090CF26", borderRadius: 8 }}
+            />
             <AccountWrap>
               <Popover
                 open={popoverOpen}
@@ -369,9 +426,42 @@ function MainLayout() {
         </StyledContent>
         <StyledFooter>© 2026. Bản quyền thuộc về VEC</StyledFooter>
       </StyledInnerLayout>
-      <StyledDrawer width={"90vw"} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
-        <LeftMenu collapsed={false} setShowDrawer={setShowDrawer} isMobile={true} showDrawer={showDrawer} />
+      <StyledDrawer width={300} placement="left" open={showDrawer} onClose={() => setShowDrawer(false)}>
+        <LeftMenu
+          collapsed={false}
+          setShowDrawer={setShowDrawer}
+          isMobile={true}
+          showDrawer={showDrawer}
+          userName={userName}
+          userEmail={userEmail}
+          userInitials={userInitials}
+          onAccountClick={() => setBottomSheetOpen(true)}
+        />
       </StyledDrawer>
+
+      <StyledBottomSheet
+        placement="bottom"
+        open={bottomSheetOpen}
+        onClose={() => setBottomSheetOpen(false)}
+        height="auto"
+      >
+        <BottomSheetHandle />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 16, borderBottom: "1px solid #f0f0f0", marginBottom: 8 }}>
+          <Avatar style={{ background: "#0090CF" }} size={44}>
+            {userInitials || "JD"}
+          </Avatar>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{userName || "VEC Account"}</div>
+            <div style={{ color: "#888", fontSize: 13 }}>{userEmail || "vec.account@gmail.com"}</div>
+          </div>
+        </div>
+        <BottomSheetItem onClick={() => { setBottomSheetOpen(false); window.location.href = "/web/guest/trangchu"; }}>
+          Quản trị hệ thống
+        </BottomSheetItem>
+        <BottomSheetLogout onClick={() => { setBottomSheetOpen(false); handleLogout(); }}>
+          Đăng xuất
+        </BottomSheetLogout>
+      </StyledBottomSheet>
       <HrmNotificationsModal
         open={hrmModalOpen}
         notifications={hrmNotifications}
@@ -381,6 +471,20 @@ function MainLayout() {
         onLoadMore={handleLoadMoreHrmNotifications}
         onClose={handleCloseHrmModal}
       />
+
+      {searchOpen && (
+        <SearchOverlay onClick={() => setSearchOpen(false)}>
+          <SearchBox onClick={(e) => e.stopPropagation()}>
+            <CInput
+              prefix={<SearchOutlined />}
+              placeholder="Tìm kiếm..."
+              allowClear
+              autoFocus
+              style={{ width: "100%" }}
+            />
+          </SearchBox>
+        </SearchOverlay>
+      )}
     </StyledLayout>
   );
 }

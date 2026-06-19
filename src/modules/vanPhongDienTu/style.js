@@ -57,10 +57,19 @@ export const LeftSidebar = styled.div`
 
   @media (max-width: 767px) {
     width: 100%;
-    padding: 12px 12px 0;
+    padding: 8px 12px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-bottom: 1px solid #0090cf1a;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 `;
 
@@ -241,13 +250,13 @@ export const SidebarItem = styled.div`
   }
 
   @media (max-width: 767px) {
-    width: calc(50% - 4px);
-    flex: 0 0 calc(50% - 4px);
-    height: 36px;
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    height: 32px;
     padding: 0 12px;
     margin-bottom: 0;
     font-size: 13px;
-    justify-content: space-between;
 
     .count {
       font-size: 13px;

@@ -20,6 +20,15 @@ const CustomSelect = styled(Select)`
     line-height: 22px !important;
     font-size: 15px !important;
   }
+
+  @media (max-width: 768px) {
+    width: 100% !important;
+
+    .ant-select-selection-item,
+    .ant-select-selection-placeholder {
+      font-size: 14px !important;
+    }
+  }
 `;
 
 const SettingButton = styled.button`
@@ -92,7 +101,7 @@ const HeaderSection = ({
           placeholder="Cao tốc TP. Hồ Chí Minh - Long..."
         />
         {isAllowUpdateSetting && (
-          <Tooltip title="Cấu hình hiển thị camera">
+          <Tooltip title="Cấu hình hiển thị camera" overlayStyle={{ zIndex: 900 }}>
             <SettingButton
               type="button"
               onClick={onOpenSettings}

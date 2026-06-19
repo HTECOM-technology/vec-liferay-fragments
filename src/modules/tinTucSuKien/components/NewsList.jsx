@@ -69,7 +69,6 @@ const NewsList = ({ blogs, categoryName, categoryId }) => {
             <div className="news-image ttsk">
               {imageUrl && (
                 <img
-                  className="news-image ttsk"
                   src={fullImage}
                   alt={title}
                 />
