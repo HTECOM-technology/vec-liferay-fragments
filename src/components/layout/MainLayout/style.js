@@ -11,23 +11,20 @@ export const StyledInnerLayout = styled(Layout)`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
 `;
 
 export const StyledHeader = styled(Layout.Header)`
   padding: 7px 24px 7px 14px !important;
   height: 70px;
 
-  @media (max-width: 768px) {
-    padding: 17px 20px !important;
-    .menu-toggle-btn {
-      display: none;
-    }
-
-    .search-input {
-      width: 210px !important;
-      max-width: 60%;
-      display: flex !important;
-    }
+  .search-icon-btn {
+    display: none;
   }
 
   @media (max-width: 1270px) {
@@ -35,6 +32,22 @@ export const StyledHeader = styled(Layout.Header)`
 
     .ant-flex .search-input {
       display: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 17px 20px !important;
+
+    .menu-toggle-btn {
+      display: none;
+    }
+
+    .search-input {
+      display: none !important;
+    }
+
+    .search-icon-btn {
+      display: flex !important;
     }
   }
 `;
@@ -48,6 +61,11 @@ export const StyledContent = styled(Layout.Content)`
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+
+  @media (max-width: 768px) {
+    overflow-y: visible;
+    min-height: auto;
+  }
 `;
 
 export const StyledLeftMenu = styled.div`
@@ -56,6 +74,9 @@ export const StyledLeftMenu = styled.div`
   position: relative;
   background: linear-gradient(180deg, #e5f7ff 0%, #88cdeb 100%);
   padding: 7px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
   .logo {
     width: 64px;
@@ -103,6 +124,9 @@ export const MenuWrap = styled.nav`
   margin-top: 12px;
   z-index: 1;
   position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 `;
 
 export const SectionTitle = styled.div`
@@ -204,6 +228,9 @@ export const StyledHeaderMobile = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
 `;
 
@@ -305,12 +332,42 @@ export const StyledBtnVEC = styled(Button)`
   border-radius: 6px;
   background-color: #e31c2a !important;
   color: #ffffff !important;
-  position: absolute;
-  bottom: 102px;
-  left: 50%;
-  transform: translateX(-50%);
+  flex-shrink: 0;
+  align-self: center;
+  margin: 8px auto 12px;
   z-index: 1;
   border: none !important;
+`;
+
+export const SearchOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1050;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+`;
+
+export const SearchBox = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  width: 560px;
+  max-width: 90vw;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+
+  .ant-input-affix-wrapper {
+    width: 100% !important;
+    height: 44px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+
+  .ant-input {
+    font-size: 16px;
+  }
 `;
 
 export const WrapSubHeader = styled.div`

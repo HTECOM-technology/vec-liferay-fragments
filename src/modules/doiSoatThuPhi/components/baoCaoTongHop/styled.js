@@ -58,14 +58,26 @@ export const ChartFilterRow = styled.div`
     gap: 6px;
     margin-bottom: 12px;
 
+    .ant-btn {
+      flex: 1 1 100%;
+    }
+  }
+`;
+
+export const FilterItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  @media (max-width: 767px) {
+    flex: 1 1 calc(50% - 3px);
+    min-width: 0;
+
     .ant-select,
     .ant-picker {
+      width: 100% !important;
+      min-width: 0 !important;
       flex: 1;
-      min-width: 100px;
-    }
-
-    .ant-btn {
-      width: 100%;
     }
   }
 `;

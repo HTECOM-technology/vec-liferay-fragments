@@ -1,6 +1,6 @@
 import React from "react";
 import { Avatar, Flex } from "antd";
-import { CloseOutlined, RightOutlined } from "@ant-design/icons";
+import { CloseOutlined } from "@ant-design/icons";
 import { StyledBgMenu, StyledBtnVEC, StyledLeftMenu, DrawerHeader, DrawerCloseBtn } from "../style";
 import bgMenu from "../../../../assets/layout/bg-menu.png";
 import logo from "../../../../assets/layout/logo.png";
@@ -29,7 +29,6 @@ const LeftMenu = ({ collapsed, isMobile, showDrawer, setShowDrawer, userName, us
                 {userEmail || "vec.account@gmail.com"}
               </span>
             </div>
-            <RightOutlined style={{ fontSize: 11, color: "#bbb", flexShrink: 0 }} />
           </div>
         </DrawerHeader>
       ) : (

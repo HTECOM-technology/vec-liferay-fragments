@@ -101,7 +101,7 @@ const HeaderSection = ({
           placeholder="Cao tốc TP. Hồ Chí Minh - Long..."
         />
         {isAllowUpdateSetting && (
-          <Tooltip title="Cấu hình hiển thị camera">
+          <Tooltip title="Cấu hình hiển thị camera" overlayStyle={{ zIndex: 900 }}>
             <SettingButton
               type="button"
               onClick={onOpenSettings}

@@ -19,13 +19,8 @@ export const Grid = styled.div`
   }
 
   @media (max-width: 767px) {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  @media (max-width: 400px) {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 10px;
   }
 `;
 

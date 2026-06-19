@@ -19,6 +19,10 @@ export const Section = styled.div`
     border-color: rgba(132, 131, 128, 0.2) !important;
   }
 
+  .ant-table-measure-row {
+    display: none !important;
+  }
+
   .ant-table-container table {
     border-radius: 6px;
   }
@@ -39,6 +43,7 @@ export const Section = styled.div`
 
   .ant-table-tbody > tr > td:first-child {
     border-right: 1px solid #fff !important;
+    border-top: 1px solid #fff !important;
   }
 
   .ant-table-tbody > tr > td:last-child {

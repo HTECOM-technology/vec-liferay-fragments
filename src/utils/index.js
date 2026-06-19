@@ -12,48 +12,22 @@ function callLiferayService(path, params) {
   });
 }
 
-// export const getUserInfo = async () => {
-//   const isLogined = window.Liferay.ThemeDisplay.isSignedIn();
-//   if (!isLogined) {
-//     return null;
-//   }
-//   try {
-//     const userId = window.Liferay.ThemeDisplay.getUserId();
-//     return await callLiferayService(
-//       "/user/get-user-by-id",
-//       { userId }
-//     );
-//   } catch (e) {
-//     console.error('getUserInfo error: ', e);
-//     return null;
-//   }
-// }
-
 export const getUserInfo = async () => {
-  if (!window.Liferay?.ThemeDisplay) {
-    if (process.env.REACT_APP_FORCE_ADMIN === 'true') {
-      return {
-        userId: 0,
-        firstName: 'Dev',
-        lastName: 'Admin',
-        emailAddress: 'admin@dev.local',
-        ldapServerId: 0,
-      };
-    }
-    return null;
-  }
   const isLogined = window.Liferay.ThemeDisplay.isSignedIn();
   if (!isLogined) {
     return null;
   }
   try {
     const userId = window.Liferay.ThemeDisplay.getUserId();
-    return await callLiferayService("/user/get-user-by-id", { userId });
+    return await callLiferayService(
+      "/user/get-user-by-id",
+      { userId }
+    );
   } catch (e) {
     console.error('getUserInfo error: ', e);
     return null;
   }
-};
+}
 
 export const getTtnsUserId = (user) => {
   const ldapServerId = Number(user?.ldapServerId || 0)

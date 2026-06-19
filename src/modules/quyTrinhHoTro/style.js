@@ -211,6 +211,11 @@ export const FormContent = styled.div`
     flex-direction: column;
     gap: 16px;
     padding: 0 12px 12px 12px;
+
+    @media (max-width: 767px) {
+        padding: 0 8px 8px;
+        gap: 12px;
+    }
 `;
 
 export const FormRow = styled.div`
@@ -222,6 +227,12 @@ export const FormRow = styled.div`
         > * {
             flex: 1;
         }
+    }
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
     }
 `;
 
@@ -275,6 +286,24 @@ export const FormGroup = styled.div`
         background: #f5f5f5;
         color: #666;
     }
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+
+        .form-label {
+            min-width: auto;
+        }
+
+        .form-control {
+            width: 100%;
+        }
+
+        .ant-picker {
+            width: 100% !important;
+        }
+    }
 `;
 
 export const CheckboxGroup = styled.div`
@@ -285,6 +314,11 @@ export const CheckboxGroup = styled.div`
     .ant-checkbox-wrapper {
         font-size: 13px;
         color: #333;
+    }
+
+    @media (max-width: 767px) {
+        flex-wrap: wrap;
+        gap: 8px;
     }
 `;
 
@@ -302,6 +336,21 @@ export const DateRangeGroup = styled.div`
 
     .ant-select {
         width: 150px;
+    }
+
+    @media (max-width: 767px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+
+        .ant-picker {
+            flex: none;
+            width: 100% !important;
+        }
+
+        .ant-select {
+            width: 100% !important;
+        }
     }
 `;
 
@@ -558,7 +607,7 @@ export const FilterGroup = styled.div`
         min-width: 0;
 
         &.range-filter-group {
-            flex: 1 1 100%;
+            flex: 1;
         }
 
         .ant-select {
@@ -926,11 +975,16 @@ export const FormActions = styled.div`
     margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid rgba(0, 144, 207, 0.1);
+
+    @media (max-width: 767px) {
+        justify-content: stretch;
+    }
 `;
 
 export const SubmitButton = styled.button`
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 10px 32px;
     background: rgba(0, 144, 207, 1);
@@ -949,5 +1003,9 @@ export const SubmitButton = styled.button`
     &:disabled {
         background: #ccc;
         cursor: not-allowed;
+    }
+
+    @media (max-width: 767px) {
+        width: 100%;
     }
 `;
