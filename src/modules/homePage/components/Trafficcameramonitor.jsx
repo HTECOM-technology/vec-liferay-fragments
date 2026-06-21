@@ -12,9 +12,12 @@ const API_HEADERS = {
   accept: 'application/json',
 };
 const API_HIGHWAYS_URL = `${API_BASE_URL}/o/c/highways/`;
-const CAMERA_API_URL = 'https://portal.tctvec.vn/o/its/api/cameras';
-const CAMERA_HIGHWAY_ID = 44147;
+const CAMERA_HIGHWAY_CONFIGS = {
+  42753: { apiBasePath: '/o/its-hld' },
+  44147: { apiBasePath: '/o/its' },
+};
 const INITIAL_VISIBLE_COUNT = 9;
+const cameraListCache = new Map();
 const THUMBNAIL_FALLBACK_URL =
   'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original';
 
@@ -50,8 +53,20 @@ async function fetchHighwaysData() {
   }
 }
 
-async function fetchCameras() {
-  const response = await fetch(withCacheBust(CAMERA_API_URL), {
+function getCameraApiUrl(highwayId) {
+  const config = CAMERA_HIGHWAY_CONFIGS[Number(highwayId)];
+  if (!config?.apiBasePath) return null;
+  return `https://portal.tctvec.vn${config.apiBasePath}/api/cameras`;
+}
+
+async function fetchCameras(highwayId) {
+  const cameraApiUrl = getCameraApiUrl(highwayId);
+
+  if (!cameraApiUrl) return [];
+
+  if (cameraListCache.has(cameraApiUrl)) return cameraListCache.get(cameraApiUrl);
+
+  const response = await fetch(withCacheBust(cameraApiUrl), {
     method: 'GET',
     cache: 'no-store',
     headers: API_HEADERS,
@@ -62,7 +77,17 @@ async function fetchCameras() {
   }
 
   const data = await response.json();
-  return Array.isArray(data.items) ? data.items : [];
+  const cameras = Array.isArray(data.items)
+    ? data.items.map((camera) => ({
+        ...camera,
+        __cameraApiUrl: cameraApiUrl,
+        __highwayId: Number(highwayId),
+      }))
+    : [];
+
+  cameraListCache.set(cameraApiUrl, cameras);
+
+  return cameras;
 }
 
 function mapApiRoutesToOptions(items) {
@@ -89,8 +114,7 @@ const TrafficCameraMonitor = () => {
     const initializeRoutes = async () => {
       const routeData = mapApiRoutesToOptions(await fetchHighwaysData());
       const nextRoutes = routeData;
-      const defaultRoute =
-        nextRoutes.find((route) => Number(route.id) === CAMERA_HIGHWAY_ID) || nextRoutes[0];
+      const defaultRoute = nextRoutes[0];
 
       if (!isMounted) return;
 
@@ -119,9 +143,8 @@ const TrafficCameraMonitor = () => {
       setVisibleCount(INITIAL_VISIBLE_COUNT);
 
       try {
-        const shouldLoadRealCameras = Number(selectedRoute) === CAMERA_HIGHWAY_ID;
         const [cameraData, cameraShowStateResponse] = await Promise.all([
-          shouldLoadRealCameras ? fetchCameras() : Promise.resolve([]),
+          fetchCameras(selectedRoute),
           fetchCameraShowState(selectedRoute),
         ]);
         const visibleCameras = filterCamerasByShowState(

@@ -105,8 +105,20 @@ const CameraStatus = styled.div`
   z-index: 2;
 `;
 
-const CAMERA_API_URL = 'https://portal.tctvec.vn/o/its/api/cameras';
+const CAMERA_HIGHWAY_CONFIGS = {
+  42753: { apiBasePath: '/o/its-hld' },
+  44147: { apiBasePath: '/o/its' },
+};
 const HLS_JS_URL = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js';
+
+function getCameraApiUrl(camera) {
+  if (camera?.__cameraApiUrl) return camera.__cameraApiUrl;
+
+  const config = CAMERA_HIGHWAY_CONFIGS[Number(camera?.__highwayId)];
+  if (config?.apiBasePath) return `https://portal.tctvec.vn${config.apiBasePath}/api/cameras`;
+
+  return null;
+}
 const HLS_ATTACH_RETRY_COUNT = 3;
 const HLS_ATTACH_RETRY_DELAY_MS = 1200;
 const CAMERA_STARTUP_MIN_DURATION_MS = 8000;
@@ -163,8 +175,14 @@ function createCacheBustingHlsLoader() {
 }
 
 async function startCameraWatch(camera) {
+  const cameraApiUrl = getCameraApiUrl(camera);
+
+  if (!cameraApiUrl) {
+    throw new Error('Không tìm thấy cấu hình camera cho tuyến này');
+  }
+
   const cameraId = camera.camera_id || camera.id;
-  const response = await fetch(withCacheBust(`${CAMERA_API_URL}/${encodeURIComponent(cameraId)}/watch/start`), {
+  const response = await fetch(withCacheBust(`${cameraApiUrl}/${encodeURIComponent(cameraId)}/watch/start`), {
     method: 'POST',
     cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
@@ -183,9 +201,11 @@ async function startCameraWatch(camera) {
   return data;
 }
 
-function startCameraHeartbeat(cameraId, sessionId) {
+function startCameraHeartbeat(cameraId, sessionId, cameraApiUrl) {
   return setInterval(() => {
-    fetch(`${CAMERA_API_URL}/${encodeURIComponent(cameraId)}/watch/heartbeat`, {
+    if (!cameraApiUrl) return;
+
+    fetch(`${cameraApiUrl}/${encodeURIComponent(cameraId)}/watch/heartbeat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ session_id: sessionId }),
@@ -346,7 +366,7 @@ const CameraModal = ({ camera, cameraName, onClose }) => {
         }
 
         const cameraId = camera.camera_id || camera.id;
-        const heartbeatTimer = startCameraHeartbeat(cameraId, watchData.session_id);
+        const heartbeatTimer = startCameraHeartbeat(cameraId, watchData.session_id, getCameraApiUrl(camera));
         sessionRef.current = {
           heartbeatTimer,
           hls,

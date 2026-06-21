@@ -134,21 +134,28 @@ async function fetchHighwaysData() {
         return FALLBACK_HIGHWAY_ITEMS;
     }
 }
-const CAMERA_HIGHWAY_ID = 44147;
-const CAMERA_API_URL = "https://portal.tctvec.vn/o/its/api/cameras";
+const CAMERA_HIGHWAY_CONFIGS = {
+    42753: {
+        apiBasePath: "/o/its-hld",
+    },
+    44147: {
+        apiBasePath: "/o/its",
+    },
+};
 const HLS_JS_URL = "https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js";
 const HLS_ATTACH_RETRY_COUNT = 3;
 const HLS_ATTACH_RETRY_DELAY_MS = 1200;
 const CAMERA_STARTUP_MIN_DURATION_MS = 8000;
 const CAMERA_STARTUP_STATUS = "Đang khởi động camera...";
 const CAMERA_THUMBNAIL_FALLBACK_URL = "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original";
-let cameraList = null;
+let currentCameraList = [];
 let hlsScriptPromise = null;
 let activeCameraSession = null;
 let cameraRenderRequestId = 0;
 let cameraModalRequestId = 0;
 let cacheBustCounter = 0;
 const cameraShowStateCache = new Map();
+const cameraListCache = new Map();
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -199,10 +206,32 @@ function mapCameraLocation(camera) {
     };
 }
 
-async function fetchCameras() {
-    if (cameraList) return cameraList;
+function getCameraConfig(highwayId) {
+    return CAMERA_HIGHWAY_CONFIGS[Number(highwayId)] || null;
+}
 
-    const response = await fetch(withCacheBust(CAMERA_API_URL), {
+function getCameraApiUrl(highwayId) {
+    const config = getCameraConfig(highwayId);
+
+    if (!config?.apiBasePath) {
+        return null;
+    }
+
+    return `https://portal.tctvec.vn${config.apiBasePath}/api/cameras`;
+}
+
+async function fetchCameras(highwayId) {
+    const cameraApiUrl = getCameraApiUrl(highwayId);
+
+    if (!cameraApiUrl) {
+        return [];
+    }
+
+    if (cameraListCache.has(cameraApiUrl)) {
+        return cameraListCache.get(cameraApiUrl);
+    }
+
+    const response = await fetch(withCacheBust(cameraApiUrl), {
         method: "GET",
         cache: "no-store",
         headers: { accept: "application/json" },
@@ -213,8 +242,17 @@ async function fetchCameras() {
     }
 
     const data = await response.json();
-    cameraList = Array.isArray(data.items) ? data.items : [];
-    return cameraList;
+    const cameras = Array.isArray(data.items)
+        ? data.items.map((camera) => ({
+            ...camera,
+            __cameraApiUrl: cameraApiUrl,
+            __highwayId: Number(highwayId),
+        }))
+        : [];
+
+    cameraListCache.set(cameraApiUrl, cameras);
+
+    return cameras;
 }
 
 function getCameraIdentity(camera) {
@@ -331,8 +369,10 @@ async function renderCameras(highwayId) {
     if (!cameraContent) return;
 
     const requestId = ++cameraRenderRequestId;
+    const cameraApiUrl = getCameraApiUrl(highwayId);
 
-    if (Number(highwayId) !== CAMERA_HIGHWAY_ID) {
+    if (!cameraApiUrl) {
+        currentCameraList = [];
         cameraContent.innerHTML = '<div class="p-4 text-gray-500">Không có camera trực tuyến</div>';
         if (currentRoute?.mapData) currentRoute.mapData.cameraLocations = [];
         return;
@@ -343,7 +383,7 @@ async function renderCameras(highwayId) {
     let cameras = [];
     try {
         const [cameraData, cameraShowStates] = await Promise.all([
-            fetchCameras(),
+            fetchCameras(highwayId),
             fetchCameraShowState(highwayId),
         ]);
 
@@ -356,6 +396,8 @@ async function renderCameras(highwayId) {
     }
 
     if (requestId !== cameraRenderRequestId) return;
+
+    currentCameraList = cameras;
 
     if (!cameras.length) {
         cameraContent.innerHTML = '<div class="p-4 text-gray-500">Không có camera trực tuyến</div>';
@@ -412,7 +454,13 @@ async function renderCameras(highwayId) {
 }
 
 async function startCameraWatch(camera) {
-    const response = await fetch(withCacheBust(`${CAMERA_API_URL}/${encodeURIComponent(camera.camera_id)}/watch/start`), {
+    const cameraApiUrl = camera?.__cameraApiUrl || getCameraApiUrl(camera?.__highwayId);
+
+    if (!cameraApiUrl) {
+        throw new Error("Không tìm thấy cấu hình camera cho tuyến này");
+    }
+
+    const response = await fetch(withCacheBust(`${cameraApiUrl}/${encodeURIComponent(camera.camera_id)}/watch/start`), {
         method: "POST",
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
@@ -448,7 +496,14 @@ function releaseActiveCameraWatch() {
 
 function startCameraHeartbeat(cameraId, sessionId) {
     return setInterval(() => {
-        fetch(`${CAMERA_API_URL}/${encodeURIComponent(cameraId)}/watch/heartbeat`, {
+        const camera = currentCameraList.find((item) => item.camera_id === cameraId);
+        const cameraApiUrl = camera?.__cameraApiUrl || getCameraApiUrl(camera?.__highwayId);
+
+        if (!cameraApiUrl) {
+            return;
+        }
+
+        fetch(`${cameraApiUrl}/${encodeURIComponent(cameraId)}/watch/heartbeat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ session_id: sessionId }),
@@ -712,7 +767,7 @@ window.closeCameraModal = async function () {
 }
 
 window.openCameraFromMap = function (cameraId) {
-    const camera = cameraList?.find((item) => item.camera_id === cameraId);
+    const camera = currentCameraList.find((item) => item.camera_id === cameraId);
     if (camera) openCameraModal(camera);
 }
 function mapApiDataToRouteData(apiItems) {

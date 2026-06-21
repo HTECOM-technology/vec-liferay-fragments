@@ -23,8 +23,11 @@ const API_HEADERS = {
   accept: 'application/json',
 };
 const API_HIGHWAYS_URL = `${API_BASE_URL}/o/c/highways/`;
-const CAMERA_HIGHWAY_ID = 44147;
-const CAMERA_API_URL = 'https://portal.tctvec.vn/o/its/api/cameras';
+const CAMERA_HIGHWAY_CONFIGS = {
+  42753: { apiBasePath: '/o/its-hld' },
+  44147: { apiBasePath: '/o/its' },
+};
+const cameraListCache = new Map();
 
 const DEFAULT_ANALYTICS = {
   violations: 0,
@@ -98,8 +101,20 @@ function withCacheBust(url) {
   }
 }
 
-async function fetchCameras() {
-  const response = await fetch(withCacheBust(CAMERA_API_URL), {
+function getCameraApiUrl(highwayId) {
+  const config = CAMERA_HIGHWAY_CONFIGS[Number(highwayId)];
+  if (!config?.apiBasePath) return null;
+  return `https://portal.tctvec.vn${config.apiBasePath}/api/cameras`;
+}
+
+async function fetchCameras(highwayId) {
+  const cameraApiUrl = getCameraApiUrl(highwayId);
+
+  if (!cameraApiUrl) return [];
+
+  if (cameraListCache.has(cameraApiUrl)) return cameraListCache.get(cameraApiUrl);
+
+  const response = await fetch(withCacheBust(cameraApiUrl), {
     method: 'GET',
     cache: 'no-store',
     headers: API_HEADERS,
@@ -110,7 +125,17 @@ async function fetchCameras() {
   }
 
   const data = await response.json();
-  return Array.isArray(data.items) ? data.items : [];
+  const cameras = Array.isArray(data.items)
+    ? data.items.map((camera) => ({
+        ...camera,
+        __cameraApiUrl: cameraApiUrl,
+        __highwayId: Number(highwayId),
+      }))
+    : [];
+
+  cameraListCache.set(cameraApiUrl, cameras);
+
+  return cameras;
 }
 
 function getCameraCoordinate(camera, keys) {
@@ -241,12 +266,10 @@ const GiamSatGiaoThong = () => {
 
     try {
       const [nextCamerasData, cameraShowStateResponse] = await Promise.all([
-        numericRouteId === CAMERA_HIGHWAY_ID
-          ? fetchCameras().catch((error) => {
-              console.error('Error fetching cameras:', error);
-              return [];
-            })
-          : Promise.resolve([]),
+        fetchCameras(numericRouteId).catch((error) => {
+          console.error('Error fetching cameras:', error);
+          return [];
+        }),
         fetchCameraShowState(numericRouteId),
       ]);
 
