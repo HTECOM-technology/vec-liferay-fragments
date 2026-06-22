@@ -31,7 +31,7 @@ export const MobileTabContainer = styled.div`
   gap: 4px;
   padding: 8px 16px;
   background: #fff;
-  border-bottom: 2px solid #f0f0f0;
+  // border-bottom: 2px solid #f0f0f0;
   width: 100%;
   box-sizing: border-box;
 
@@ -83,12 +83,6 @@ export const ContentArea = styled.div`
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
   overflow: hidden;
   width: 100%;
-  
-  @media (max-width: 1199px) {
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
 `;
 
 export const Header = styled.div`
@@ -133,18 +127,42 @@ export const TableContainer = styled.div`
     @media (max-width: 1199px) {
       padding: 0 16px;
       margin-top: 16px;
-      
+
+      button {
+        height: 36px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 767px) {
       button {
         width: 100%;
         height: 44px;
-        border-radius: 8px;
-        font-weight: 600;
+        font-size: 14px;
       }
     }
   }
   
   @media (max-width: 1199px) {
-    padding: 0 0 24px 0;
+    padding: 0 16px 24px 16px;
+  }
+
+  @media (max-width: 767px) {
+    padding: 0 12px 20px 12px;
+
+    .ant-table-wrapper .ant-table {
+      border: 1px solid #e2e8f0;
+    }
+
+    .ant-table-thead > tr > th {
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .ant-table-tbody > tr > td {
+      border-bottom: 1px solid #e2e8f0 !important;
+    }
   }
 
   /* Table Customization */
@@ -154,7 +172,7 @@ export const TableContainer = styled.div`
       overflow: hidden;
       border: 1px solid #f1f5f9;
     }
-    
+
     .ant-table-thead > tr > th {
       background: #f8fafc;
       color: #475569;

@@ -221,7 +221,7 @@ const TrafficCameraMonitor = () => {
                     <div className="traffic-camera-monitor__camera-card-overlay">
                       <button type="button" className="traffic-camera-monitor__camera-card-play-button">
                         <img
-                          src="/documents/d/intranet/link"
+                          src="https://res.cloudinary.com/drwairjk5/image/upload/v1767609285/Variant3_e7bc0u.svg"
                           alt="Play"
                           className="traffic-camera-monitor__camera-card-play-icon"
                           width="32"

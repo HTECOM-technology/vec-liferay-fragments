@@ -218,14 +218,14 @@ const News = () => {
   };
 
   const currentBlogs = useMemo(() => {
-    if (activeCategoryId === "latest") return sortByDate(blogs).slice(0, 5);
+    if (activeCategoryId === "latest") return sortByDate(blogs).slice(0, 10);
     if (!activeCategoryId) return [];
     const filtered = blogs.filter((blog) =>
       blog.taxonomyCategoryBriefs?.some(
         (brief) => String(brief.taxonomyCategoryId) === String(activeCategoryId)
       )
     );
-    return sortByDate(filtered).slice(0, 5);
+    return sortByDate(filtered).slice(0, 10);
   }, [blogs, activeCategoryId]);
 
 

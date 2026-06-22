@@ -224,8 +224,23 @@ padding-top: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding-bottom: 15px;
-        margin-top: 15px;
+        padding: 16px 0;
+        margin-top: 8px;
+        width: 100%;
+    }
+
+    .extra-load-btn .load {
+        display: flex;
+        justify-content: center;
+    }
+
+    .extra-load-btn .load-button {
+        padding: 10px 32px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
     }
         .traffic-camera-monitor__grid {
         grid-template-columns: repeat(3, 1fr) !important;

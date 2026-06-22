@@ -78,13 +78,10 @@ export const Filters = styled.div`
   @media (max-width: 1199px) {
     width: 100%;
     flex-wrap: wrap;
-  }
 
-  @media (max-width: 1199px) {
-    flex-direction: column;
-
-    > * {
-      width: 100% !important;
+    > *:not(button):not([role="button"]) {
+      flex: 1;
+      min-width: 0;
     }
   }
 `;

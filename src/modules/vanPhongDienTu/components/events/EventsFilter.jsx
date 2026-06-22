@@ -166,6 +166,22 @@ function EventsFilter({
               />
             </Space>
           </EventsFilterRow>
+          <EventsActionGroup style={{ marginBottom: 4 }}>
+            <CButton
+              className="add-event-button"
+              icon={<PlusOutlined />}
+              onClick={onAddEvent}
+            >
+              Thêm sự kiện
+            </CButton>
+            <CButton
+              type="primary"
+              icon={<EyeOutlined />}
+              onClick={() => window.open("", "_blank")}
+            >
+              Xem đầy đủ lịch
+            </CButton>
+          </EventsActionGroup>
           {filterModal}
         </>
       )}
