@@ -5,6 +5,7 @@ let pendingAction = null;
 let pendingTaskId = null;
 let assignTaskId = null;
 let dueDateTaskId = null;
+const DEFAULT_SORT_VALUE = 'createDate_desc';
 
 function searchWorkflowItems() {
     currentPage = 1;
@@ -20,8 +21,19 @@ function clearFilters() {
     document.getElementById('filterProcessor').value = '';
     document.getElementById('filterDateFrom').value = '';
     document.getElementById('filterDateTo').value = '';
+    document.getElementById('filterSort').value = DEFAULT_SORT_VALUE;
     currentPage = 1;
     loadWorkflowItems();
+}
+
+function getSortParams() {
+    const rawValue = document.getElementById('filterSort').value || DEFAULT_SORT_VALUE;
+    const [orderBy, orderDirection] = rawValue.split('_');
+
+    return {
+        orderBy: orderBy || 'createDate',
+        orderDirection: orderDirection || 'desc'
+    };
 }
 
 // Nạp danh sách user cho 3 select filter (tác giả / điều phối / xử lý),
@@ -63,8 +75,25 @@ function fillUserSelect(selectId, users) {
         `<option value="${user.userId}">${escapeHtml(user.name)}</option>`
     ).join('');
 
-    // Giữ lựa chọn cũ nếu vẫn còn trong danh sách.
-    select.value = current;
+    // Giữ lựa chọn cũ nếu vẫn còn trong danh sách sau khi refill option.
+    if (Array.from(select.options).some(option => option.value === current)) {
+        select.value = current;
+    } else {
+        select.value = '';
+    }
+}
+
+async function refreshWorkflowReviewData(reloadFilters) {
+    if (reloadFilters) {
+        await Promise.all([
+            loadWorkflowItems(true),
+            loadFilterUsers()
+        ]);
+
+        return;
+    }
+
+    await loadWorkflowItems(true);
 }
 
 function switchTab(tab, buttonEl) {
@@ -88,6 +117,7 @@ async function loadWorkflowItems(silent) {
     const completedByUserId = document.getElementById('filterProcessor').value;
     const dateFrom = document.getElementById('filterDateFrom').value;
     const dateTo = document.getElementById('filterDateTo').value;
+    const sortParams = getSortParams();
     const start = (currentPage - 1) * pageSize;
 
     const params = new URLSearchParams({
@@ -97,6 +127,8 @@ async function loadWorkflowItems(silent) {
         tab: currentTab,
         start: start,
         end: start + pageSize,
+        orderBy: sortParams.orderBy,
+        orderDirection: sortParams.orderDirection,
         creatorUserId: creatorUserId || '0',
         assigneeUserId: assigneeUserId || '0',
         completedByUserId: completedByUserId || '0',
@@ -434,7 +466,7 @@ async function confirmAction() {
         if (data.success) {
             showSuccess(data.message || 'Thao tác thành công');
             // Refresh im lặng: cập nhật bảng bằng JS, không reload trang.
-            await loadWorkflowItems(true);
+            await refreshWorkflowReviewData(true);
         } else {
             showError(data.message || 'Thao tác không thành công');
             if (processingRow) {
@@ -606,7 +638,7 @@ async function confirmAssign() {
 
         if (data.success) {
             showSuccess(data.message || 'Đã điều phối xử lý');
-            await loadWorkflowItems(true);
+            await refreshWorkflowReviewData(true);
         } else {
             showError(data.message || 'Điều phối không thành công');
         }
@@ -762,7 +794,7 @@ function getStatusLabel(status) {
         'pending': 'Chưa duyệt',
         'approved': 'Đã duyệt',
         'denied': 'Đã từ chối',
-        'expired': 'Hết hạn duyệt'
+        'expired': 'Quá hạn duyệt'
     };
     return labels[status] || status;
 }

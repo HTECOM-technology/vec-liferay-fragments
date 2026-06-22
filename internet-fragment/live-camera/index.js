@@ -183,6 +183,30 @@ function withCacheBust(url) {
     }
 }
 
+function normalizeCameraName(name) {
+    const rawName = typeof name === "string" ? name : String(name ?? "");
+
+    if (!rawName) {
+        return "";
+    }
+
+    const ipv4Segment = "(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)";
+    const ipv4Pattern = new RegExp(
+        `\\b${ipv4Segment}(?:\\.${ipv4Segment}){3}\\b`,
+        "g"
+    );
+    const parenthesizedIpv4Pattern = new RegExp(
+        `\\([^()]*\\b${ipv4Segment}(?:\\.${ipv4Segment}){3}\\b[^()]*\\)`,
+        "g"
+    );
+
+    return rawName
+        .replace(parenthesizedIpv4Pattern, " ")
+        .replace(ipv4Pattern, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
 function getCameraCoordinate(camera, keys) {
     for (const key of keys) {
         const value = Number(camera[key]);
@@ -245,6 +269,7 @@ async function fetchCameras(highwayId) {
     const cameras = Array.isArray(data.items)
         ? data.items.map((camera) => ({
             ...camera,
+            name: normalizeCameraName(camera.name) || "Camera",
             __cameraApiUrl: cameraApiUrl,
             __highwayId: Number(highwayId),
         }))

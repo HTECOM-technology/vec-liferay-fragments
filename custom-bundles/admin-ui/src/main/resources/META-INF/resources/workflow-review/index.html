@@ -18,7 +18,7 @@
         </header>
 
         <section class="panel filters-panel">
-            <form id="filterForm" class="filters-grid filters-grid-4">
+            <form id="filterForm" class="filters-grid filters-grid-5">
                 <label>
                     <span>Từ khóa</span>
                     <input id="keyword" name="keyword" type="text" placeholder="tiêu đề / nội dung">
@@ -30,7 +30,7 @@
                         <option value="pending">Chưa duyệt</option>
                         <option value="approved">Đã duyệt</option>
                         <option value="denied">Đã từ chối (chờ chỉnh sửa)</option>
-                        <option value="expired">Đã hết hạn duyệt</option>
+                        <option value="expired">Đã quá hạn duyệt</option>
                     </select>
                 </label>
                 <label>
@@ -66,6 +66,17 @@
                 <label>
                     <span>Ngày tạo đến</span>
                     <input id="filterDateTo" name="filterDateTo" type="date">
+                </label>
+                <label>
+                    <span>Sắp xếp theo</span>
+                    <select id="filterSort" name="filterSort">
+                        <option value="createDate_desc">Ngày tạo giảm dần</option>
+                        <option value="createDate_asc">Ngày tạo tăng dần</option>
+                        <option value="modifiedDate_desc">Ngày cập nhật giảm dần</option>
+                        <option value="modifiedDate_asc">Ngày cập nhật tăng dần</option>
+                        <option value="dueDate_desc">Ngày hết hạn giảm dần</option>
+                        <option value="dueDate_asc">Ngày hết hạn tăng dần</option>
+                    </select>
                 </label>
             </form>
             <div class="filter-actions">
