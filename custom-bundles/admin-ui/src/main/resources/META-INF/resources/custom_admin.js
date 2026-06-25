@@ -804,12 +804,16 @@ function __appendTableScrollToListElement() {
         '[id^="portlet_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet"] .data-set-content-wrapper .dnd-table .dnd-tbody',
     ];
 
-    elements.forEach((selector) => {
-        waitForElement(selector, (el) => {
-            el.parentNode.classList.add('table-scrollable-horizotal');
-            __initTableScroll();
+    setInterval(() => {
+        elements.forEach((selector) => {
+            waitForElement(selector, (el) => {
+                if (!el.classList.contains('table-scrollable-horizotal')) {
+                    el.parentNode.classList.add('table-scrollable-horizotal');
+                }
+                __initTableScroll();
+            });
         });
-    });
+    }, 2000);
 }
 
 function __initGlobalFolder(folderId = "1388027") {

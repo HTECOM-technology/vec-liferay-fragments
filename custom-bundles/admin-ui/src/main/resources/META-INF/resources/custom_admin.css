@@ -127,3 +127,7 @@ a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_po
 a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_staging_processes_web_portlet_StagingProcessesPortlet {
   display: none !important;
 }
+
+[id^="namespace_assetCategoriesSelector"] .input-group > .input-group-item-shrink:last-child {
+  display: none !important;
+}
