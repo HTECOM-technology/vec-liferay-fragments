@@ -1,10 +1,11 @@
 # vec-expired-password-force-change
 
-OSGi module cho Liferay CE 7.4 — bắt buộc user đổi mật khẩu ngay sau khi grace login thành công do mật khẩu hết hạn.
+OSGi module cho Liferay CE 7.4 — bắt buộc user đi vào flow đổi/quên mật khẩu khi mật khẩu đã hết hạn.
 
 Đã đối chiếu với source Liferay Community Edition Portal `7.4.3.132 CE GA132`:
 - URL redirect hiện dùng trang `forgot_password` của LoginPortlet
-- Tín hiệu phù hợp là chỉ redirect khi user đã dùng hết grace login còn lại
+- Với `graceLimit = 0`, module chặn ngay tại action login khi Liferay ném `PasswordExpiredException`
+- Với `graceLimit >= 1`, module tiếp tục dùng post-login hook + filter để khóa điều hướng sau grace login cuối
 
 ## Yêu cầu bắt buộc về Password Policy
 
@@ -13,25 +14,33 @@ OSGi module cho Liferay CE 7.4 — bắt buộc user đổi mật khẩu ngay sa
 | Changeable | **ON** | User phải được phép tự đổi mật khẩu |
 | Enable Expiration | **ON** | Mật khẩu mới có hạn sử dụng |
 | Maximum Age | Tùy cấu hình (vd: 2 Weeks) | |
-| **Grace Limit** | **>= 1** | **BẮT BUỘC** — xem lưu ý bên dưới |
+| **Grace Limit** | `0` hoặc `>= 1` | Xem chi tiết flow bên dưới |
 
 ### Lưu ý quan trọng: Grace Limit
 
-- Nếu `Grace Limit = 0`: Liferay chặn login ngay khi mật khẩu hết hạn. Post-login hook của module này **không bao giờ** được gọi. Feature sẽ không hoạt động.
-- Nếu `Grace Limit >= 1`: Liferay cho phép grace login, tăng `graceLoginCount`. Post-login hook chạy, detect khi `remainingGraceLogins <= 0`, set session flag, filter redirect sang trang quên mật khẩu.
-- **Khuyến nghị**: Đặt `Grace Limit = 1` — cho phép đúng một lần đăng nhập với mật khẩu hết hạn để user có thể đổi.
+- Nếu `Grace Limit = 0`: Liferay chặn login ngay khi mật khẩu hết hạn. `login.events.post` không chạy, nên module dùng custom `MVCActionCommand` để bắt `PasswordExpiredException` và redirect thẳng sang trang `forgot_password`.
+- Nếu `Grace Limit >= 1`: Liferay cho phép grace login, tăng `graceLoginCount`. Post-login hook chạy, detect khi `remainingGraceLogins <= 0`, set session flag, filter redirect sang trang `forgot_password`.
+- Nếu muốn đổi ngay sau lần đăng nhập grace cuối, `Grace Limit = 1` vẫn là cấu hình dễ kiểm soát nhất.
 
 ## Flow hoạt động
 
 ```
-User nhập mật khẩu (đã hết hạn)
+Case A — Grace Limit = 0
+User nhập mật khẩu đã hết hạn
+    └─> Liferay ném PasswordExpiredException trong action /login/login
+        └─> ForcePasswordChangeLoginMVCActionCommand bắt exception này
+            └─> Ghi log INFO vào catalina.out
+                └─> set sẵn login vào PortletSession của forgot password
+                    └─> redirect sang trang forgot password
+
+Case B — Grace Limit >= 1
+User nhập mật khẩu đã hết hạn
     └─> Liferay authenticate thành công (grace login, graceLoginCount tăng)
         └─> login.events.post → ForcePasswordChangePostLoginAction
             └─> Phát hiện remainingGraceLogins <= 0 → set session["VEC_FORCE_PASSWORD_CHANGE"] = true
                 └─> Liferay redirect về trang chủ (hoặc referer)
                     └─> ForcePasswordChangeFilter intercept
                         └─> Kiểm tra session flag → redirect sang trang forgot password
-                            └─> Nếu lấy được screenName thì append vào query param redirect
 ```
 
 ## Cài đặt và kích hoạt
@@ -105,28 +114,34 @@ Mặc định loại trừ:
 
 ### Chuẩn bị
 1. Vào Password Policy: Control Panel → Security → Password Policy
-2. Đặt Enable Expiration = ON, Maximum Age = 1 Minute (để test nhanh), Grace Limit = 1
+2. Đặt Enable Expiration = ON, Maximum Age = 1 Minute (để test nhanh), Grace Limit = `0` hoặc `1`
 3. Enable module bằng file `.config`
 4. Vì anh đã tắt SPA của Liferay, mỗi lần điều hướng sẽ là full page request; filter sẽ bắt request ổn định và log redirect sẽ xuất hiện rõ trong `catalina.out`
 
 ### Test case 1 — User bình thường (mật khẩu chưa hết hạn)
 - Login bình thường → vào trang chủ → không bị redirect
 
-### Test case 2 — User có mật khẩu hết hạn (Grace Limit = 1)
+### Test case 2 — User có mật khẩu hết hạn (Grace Limit = 0)
+- Đợi 1 phút (theo Maximum Age test)
+- Login → không vào được session, nhưng module sẽ bắt `PasswordExpiredException`
+- Bị redirect ngay sang trang forgot password
+- Trong `catalina.out` phải có log `VEC Force Password Change intercepted PasswordExpiredException`
+
+### Test case 3 — User có mật khẩu hết hạn (Grace Limit = 1)
 - Đợi 1 phút (theo Maximum Age test)
 - Login → thành công (grace login)
 - Ngay sau login ở lần grace cuối → tự động redirect sang trang forgot password
-- Nếu có `screenName`, URL redirect sẽ mang theo `_com_liferay_login_web_portlet_LoginPortlet_screenName`
+- URL redirect sẽ mang theo `login=<tai-khoan>` để form forgot password có thể tự điền
 
-### Test case 3 — Static resources
+### Test case 4 — Static resources
 - Khi đang bị force change, mở DevTools
 - Kiểm tra CSS/JS của trang đổi mật khẩu load bình thường (không bị redirect)
 
-### Test case 4 — Feature disabled
+### Test case 5 — Feature disabled
 - Đặt `enabled=B"false"` trong config → restart module
 - Kể cả user có mật khẩu expired → vào được mọi trang bình thường
 
-### Test case 5 — Omniadmin
+### Test case 6 — Omniadmin
 - `includeOmniAdmin=B"false"` (default): omniadmin không bị chặn dù mật khẩu expired
 - `includeOmniAdmin=B"true"`: omniadmin cũng bị force change
 
@@ -136,11 +151,13 @@ Module ghi log ở các thời điểm sau:
 
 | Level | Khi nào |
 |-------|---------|
+| `INFO` | Login action: bắt được `PasswordExpiredException` và redirect sang trang forgot password |
+| `INFO` | Forgot password render: chuẩn bị sẵn giá trị `login` để form native của Liferay tự điền |
 | `INFO` | Post-login: phát hiện đã dùng hết grace login còn lại, set session flag |
 | `INFO` | Filter: chặn navigation, redirect về change password |
 | `INFO` | Filter: log rõ user nào đang bị redirect sang trang forgot password để theo dõi trong `catalina.out` |
 | `INFO` | Filter: phát hiện auto-login session đã dùng hết grace login còn lại |
-| `WARN` | Grace Limit = 0 detected (configuration không đúng) |
+| `WARN` | Grace Limit = 0 xuất hiện trong post-login hook (trạng thái bất thường, dùng để chẩn đoán) |
 | `ERROR` | Redirect safety limit exceeded (config sai changePasswordURL) |
 | `ERROR` | Lỗi không xác định trong post-login hook |
 
@@ -149,18 +166,20 @@ Không có log nào chứa mật khẩu hoặc dữ liệu nhạy cảm.
 Ví dụ log anh có thể grep trong `catalina.out`:
 
 ```text
+VEC Force Password Change intercepted PasswordExpiredException: login=btv, targetURL=/trangchu?...forgot_password..., remoteAddr=10.130.1.20, userId=..., screenName=btv, companyId=..., graceLoginCount=0
+VEC Force Password Change prepared forgot-password form: login=btv
 VEC Force Password Change redirecting user to change password: userId=..., screenName=..., companyId=..., requestURI=..., targetURI=/trangchu?...forgot_password..., remoteAddr=..., sessionId=..., graceLoginCount=1, remainingGraceLogins=0
 ```
 
 ## Vì sao bản cũ có thể chưa đạt
 
-1. Bản cũ check theo trạng thái `password expired` tổng quát, trong khi flow của Liferay với `graceLimit = 1` phù hợp hơn nếu bám trực tiếp vào `graceLoginCount > 0`.
-2. Filter cũ chưa whitelist các đường native như `/combo` và `/image/*`, nên trang `/c/portal/update_password` có thể tải thiếu CSS/JS/ảnh hoặc nhìn như bị redirect sai.
+1. Với `graceLimit = 0`, Liferay throw `PasswordExpiredException` ngay trong login action nên `login.events.post` hoàn toàn không được gọi.
+2. Filter cũ chưa whitelist các đường native như `/combo` và `/image/*`, nên trang đích có thể tải thiếu CSS/JS/ảnh hoặc nhìn như bị redirect sai.
 3. Module mặc định `enabled=false`, nên nếu chỉ deploy JAR mà chưa có file `.config` thì hành vi sẽ giống như chưa bật feature.
 
 ## Hạn chế đã biết
 
-1. **Custom change-password page**: VEC chưa có custom UI đổi mật khẩu. Module redirect về `/c/portal/update_password` (Liferay native). Nếu Liferay native page bị theme override hoặc không accessible, cần cấu hình `changePasswordURL` về URL thực tế.
+1. **Custom change-password page**: hiện tại module redirect về trang `forgot_password` mà anh đã chỉ định. Đây là flow lấy lại/đặt lại mật khẩu của LoginPortlet, không phải màn native `/c/portal/update_password`.
 
 2. **Auto-login (Remember Me)**: Nếu user dùng Remember Me và mật khẩu hết hạn sau khi tạo cookie, lần truy cập kế tiếp sẽ được `checkOnEveryRequest` phát hiện và redirect. Post-login hook không chạy trong trường hợp auto-login.
 
@@ -183,6 +202,11 @@ vec-expired-password-force-change/
     │   └── ForcePasswordChangeUrlMatcher.java       # URL matching
     ├── lifecycle/
     │   └── ForcePasswordChangePostLoginAction.java  # Post-login hook
+    ├── portlet/action/
+    │   ├── ForcePasswordChangeLoginMVCActionCommand.java
+    │   │                                         # Bắt PasswordExpiredException tại action /login/login
+    │   └── ForcePasswordChangeForgotPasswordMVCRenderCommand.java
+    │                                             # Prefill form forgot password
     └── util/
         └── PasswordExpirationUtil.java              # Grace login / policy helper
 ```
@@ -191,8 +215,10 @@ vec-expired-password-force-change/
 
 | Class | Service | Property |
 |-------|---------|----------|
+| `ForcePasswordChangeLoginMVCActionCommand` | `MVCActionCommand` | `javax.portlet.name=com_liferay_login_web_portlet_LoginPortlet`, `mvc.command.name=/login/login` |
+| `ForcePasswordChangeForgotPasswordMVCRenderCommand` | `MVCRenderCommand` | `javax.portlet.name=com_liferay_login_web_portlet_LoginPortlet`, `mvc.command.name=/login/forgot_password` |
 | `ForcePasswordChangePostLoginAction` | `LifecycleAction` | `key=login.events.post` |
 | `ForcePasswordChangeFilter` | `Filter` | `url-pattern=/*`, after `Auto Login Filter` |
 
-Cả hai component dùng cùng `configurationPid`:
+Các component dùng cùng `configurationPid`:
 `vn.vec.custom.admin.password.filter.ForcePasswordChangeFilter`

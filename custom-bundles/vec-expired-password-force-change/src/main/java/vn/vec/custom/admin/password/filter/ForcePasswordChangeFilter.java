@@ -277,24 +277,23 @@ public class ForcePasswordChangeFilter extends BaseFilter implements TryFilter {
 			return redirectURL;
 		}
 
-		String screenName = user.getScreenName();
+		String login = user.getScreenName();
 
-		if ((screenName == null) || screenName.trim().isEmpty()) {
+		if ((login == null) || login.trim().isEmpty()) {
 			return redirectURL;
 		}
 
-		String namespacedKey =
-			"_com_liferay_login_web_portlet_LoginPortlet_screenName";
+		String loginKey = "login";
 
 		try {
-			if (!redirectURL.contains(namespacedKey + "=")) {
+			if (!redirectURL.contains(loginKey + "=")) {
 				redirectURL = _appendQueryParam(
-					redirectURL, namespacedKey, screenName);
+					redirectURL, loginKey, login);
 			}
 		}
 		catch (Exception exception) {
 			_log.warn(
-				"Unable to append screenName to force-change redirect URL for " +
+				"Unable to append login to force-change redirect URL for " +
 					"userId=" + user.getUserId() + ": " +
 					exception.getMessage());
 		}
