@@ -56,13 +56,19 @@ public class ForcePasswordChangeConfiguration {
 	}
 
 	public static final String DEFAULT_CHANGE_PASSWORD_URL =
-		"/c/portal/update_password";
+		"/trangchu?p_p_id=com_liferay_login_web_portlet_LoginPortlet" +
+			"&p_p_lifecycle=0&p_p_state=maximized" +
+			"&_com_liferay_login_web_portlet_LoginPortlet_mvcRenderCommandName=" +
+			"%2Flogin%2Fforgot_password";
 
 	public static final String[] DEFAULT_EXCLUDED_PATH_PATTERNS = {
+		"/combo",
+		"/c/portal/extend_session",
+		"/c/portal/extend_session_confirm",
 		"/c/portal/login",
 		"/c/portal/logout",
-		"/c/portal/update_password",
-		"/c/portal/update_password/*",
+		"/documents/*",
+		"/image/*",
 		"*.css",
 		"*.js",
 		"*.map",

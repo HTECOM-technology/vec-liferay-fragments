@@ -1,22 +1,74 @@
-#!/bin/bash
+#!/bin/sh
+[ -n "$BASH_VERSION" ] || exec bash "$0" "$@"
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODULE_DIR="$SCRIPT_DIR/admin-ui"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LIFERAY_HOME="${LIFERAY_HOME:-/root/vec/bundles}"
+DEPLOY_DIR="$LIFERAY_HOME/osgi/modules"
+CONFIGS_DIR="$LIFERAY_HOME/osgi/configs"
+
+MODULES=(
+    "admin-ui"
+    "vec-expired-password-force-change"
+)
+
+build_and_deploy_module() {
+    local module_name="$1"
+    local module_dir="$SCRIPT_DIR/$module_name"
+
+    if [ ! -d "$module_dir" ]; then
+        echo "ERROR: Không tìm thấy module directory $module_dir"
+        exit 1
+    fi
+
+    echo ">>> Building module: $module_name"
+    cd "$module_dir"
+
+    if [ "$module_name" = "admin-ui" ] &&
+        [ -d "$module_dir/resources" ] &&
+        compgen -G "$module_dir/resources/*" > /dev/null 2>&1; then
+
+        cp -f "$module_dir/resources/"* \
+            "$module_dir/src/main/resources/META-INF/resources/"
+    fi
+
+    if [ -n "$BLADE_CMD" ]; then
+        "$BLADE_CMD" gw jar
+    elif [ -f "$module_dir/gradlew" ]; then
+        ./gradlew jar
+    else
+        gradle \
+            -p "$module_dir" \
+            -b "$module_dir/build.gradle" \
+            -c "$module_dir/settings.gradle" \
+            jar
+    fi
+
+    local jar_file
+    jar_file=$(find "$module_dir/build/libs" -name "*.jar" \
+        ! -name "*-sources.jar" ! -name "*-javadoc.jar" | head -1)
+
+    if [ -z "$jar_file" ]; then
+        echo "ERROR: Không tìm thấy file JAR sau khi build module $module_name."
+        exit 1
+    fi
+
+    echo ">>> Deploying $(basename "$jar_file") -> $DEPLOY_DIR/"
+    mkdir -p "$DEPLOY_DIR"
+    cp "$jar_file" "$DEPLOY_DIR/"
+
+    if [ -d "$module_dir/osgi/configs" ]; then
+        mkdir -p "$CONFIGS_DIR"
+
+        while IFS= read -r -d '' config_file; do
+            echo ">>> Deploying config $(basename "$config_file") -> $CONFIGS_DIR/"
+            cp "$config_file" "$CONFIGS_DIR/"
+        done < <(find "$module_dir/osgi/configs" -type f -name "*.config" -print0)
+    fi
+}
 
 # ─── Chạy trên server: build JAR và copy vào osgi/modules ───────────────────
 if [ "$1" = "--server" ]; then
-    DEPLOY_DIR="/root/vec/bundles/osgi/modules"
-
-    echo ">>> Building VEC Custom Admin UI..."
-    cd "$MODULE_DIR"
-
-    # Sync resources nếu có thay đổi ở thư mục cũ
-    if [ -d "$MODULE_DIR/resources" ] && compgen -G "$MODULE_DIR/resources/*" > /dev/null 2>&1; then
-        cp -f "$MODULE_DIR/resources/"* "$MODULE_DIR/src/main/resources/META-INF/resources/"
-    fi
-
-    # Build (tìm blade theo các vị trí phổ biến)
     BLADE_CMD=""
     for p in blade "$HOME/.blade/bin/blade" /usr/local/bin/blade /usr/bin/blade $HOME/jpm/bin/blade; do
         if command -v "$p" &> /dev/null || [ -x "$p" ]; then
@@ -25,25 +77,16 @@ if [ "$1" = "--server" ]; then
         fi
     done
 
-    if [ -n "$BLADE_CMD" ]; then
-        "$BLADE_CMD" gw jar
-    elif [ -f "$MODULE_DIR/gradlew" ]; then
-        ./gradlew jar
-    else
-        echo "ERROR: Không tìm thấy blade hoặc gradlew."
+    if [ -z "$BLADE_CMD" ] && ! command -v gradle >/dev/null 2>&1; then
+        echo "ERROR: Không tìm thấy blade, gradlew hoặc gradle."
         exit 1
     fi
 
-    JAR_FILE=$(find "$MODULE_DIR/build/libs" -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" | head -1)
-    if [ -z "$JAR_FILE" ]; then
-        echo "ERROR: Không tìm thấy file JAR sau khi build."
-        exit 1
-    fi
+    for module_name in "${MODULES[@]}"; do
+        build_and_deploy_module "$module_name"
+    done
 
-    echo ">>> Deploying $(basename "$JAR_FILE") -> $DEPLOY_DIR/"
-    mkdir -p "$DEPLOY_DIR"
-    cp "$JAR_FILE" "$DEPLOY_DIR/"
-    echo "Done!"
+    echo "Done! Deployed modules: ${MODULES[*]}"
     exit 0
 fi
 
@@ -88,4 +131,4 @@ ssh $SSH_OPTS \
     "bash -l -c 'chmod +x /root/vec/custom-bundles/deploy-admin-ui.sh && /root/vec/custom-bundles/deploy-admin-ui.sh --server'"
 
 echo ""
-echo "All done! Check Liferay logs for bundle activation."
+echo "All done! Check Liferay logs for bundle activation and config loading."

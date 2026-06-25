@@ -6,57 +6,74 @@ import com.liferay.portal.kernel.model.PasswordPolicy;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.PasswordPolicyLocalServiceUtil;
 
-import java.util.Date;
-
 public class PasswordExpirationUtil {
 
 	/**
-	 * Returns true if the user's password has expired (age-based) or if the
-	 * user has been flagged to reset their password by an admin.
-	 * Returns false on error to avoid blocking users due to unexpected failures.
+	 * In Liferay, graceLoginCount is the number of grace logins already used.
+	 * We only force redirect after the user has used up all allowed grace
+	 * logins, i.e. remaining grace logins <= 0.
 	 */
-	public static boolean isPasswordExpired(User user) {
+	public static boolean isForceChangeRequired(User user) {
 		if ((user == null) || user.isDefaultUser()) {
 			return false;
 		}
 
 		try {
-			if (user.getPasswordReset()) {
-				return true;
-			}
-
 			PasswordPolicy passwordPolicy =
 				PasswordPolicyLocalServiceUtil.getPasswordPolicyByUserId(
-					user.getCompanyId(), user.getUserId());
+					user.getUserId());
 
 			if ((passwordPolicy == null) || !passwordPolicy.getExpireable()) {
 				return false;
 			}
 
-			long maxAgeSeconds = passwordPolicy.getMaxAge();
+			long graceLimit = passwordPolicy.getGraceLimit();
 
-			if (maxAgeSeconds <= 0) {
+			if (graceLimit <= 0) {
 				return false;
 			}
 
-			Date passwordModifiedDate = user.getPasswordModifiedDate();
-
-			if (passwordModifiedDate == null) {
-				return false;
-			}
-
-			long expiryMillis =
-				passwordModifiedDate.getTime() + (maxAgeSeconds * 1000L);
-
-			return System.currentTimeMillis() > expiryMillis;
+			return user.getGraceLoginCount() >= graceLimit;
 		}
 		catch (Exception exception) {
-			_log.error(
-				"Unable to check password expiration for userId=" +
-					user.getUserId(),
-				exception);
+			_log.warn(
+				"Unable to evaluate grace login state for userId=" +
+					user.getUserId() + ": " + exception.getMessage());
 
 			return false;
+		}
+	}
+
+	public static int getGraceLoginCount(User user) {
+		if (user == null) {
+			return 0;
+		}
+
+		return user.getGraceLoginCount();
+	}
+
+	public static long getRemainingGraceLogins(User user) {
+		if ((user == null) || user.isDefaultUser()) {
+			return 0;
+		}
+
+		try {
+			PasswordPolicy passwordPolicy =
+				PasswordPolicyLocalServiceUtil.getPasswordPolicyByUserId(
+					user.getUserId());
+
+			if ((passwordPolicy == null) || !passwordPolicy.getExpireable()) {
+				return Long.MAX_VALUE;
+			}
+
+			return passwordPolicy.getGraceLimit() - user.getGraceLoginCount();
+		}
+		catch (Exception exception) {
+			_log.warn(
+				"Unable to get remaining grace logins for userId=" +
+					user.getUserId() + ": " + exception.getMessage());
+
+			return 0;
 		}
 	}
 
@@ -70,7 +87,7 @@ public class PasswordExpirationUtil {
 		try {
 			PasswordPolicy passwordPolicy =
 				PasswordPolicyLocalServiceUtil.getPasswordPolicyByUserId(
-					user.getCompanyId(), user.getUserId());
+					user.getUserId());
 
 			return (passwordPolicy != null) &&
 				passwordPolicy.getExpireable() &&

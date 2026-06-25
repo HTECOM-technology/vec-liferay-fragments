@@ -2,6 +2,10 @@
 
 OSGi module cho Liferay CE 7.4 — bắt buộc user đổi mật khẩu ngay sau khi grace login thành công do mật khẩu hết hạn.
 
+Đã đối chiếu với source Liferay Community Edition Portal `7.4.3.132 CE GA132`:
+- URL redirect hiện dùng trang `forgot_password` của LoginPortlet
+- Tín hiệu phù hợp là chỉ redirect khi user đã dùng hết grace login còn lại
+
 ## Yêu cầu bắt buộc về Password Policy
 
 | Cài đặt | Giá trị yêu cầu | Ghi chú |
@@ -14,23 +18,20 @@ OSGi module cho Liferay CE 7.4 — bắt buộc user đổi mật khẩu ngay sa
 ### Lưu ý quan trọng: Grace Limit
 
 - Nếu `Grace Limit = 0`: Liferay chặn login ngay khi mật khẩu hết hạn. Post-login hook của module này **không bao giờ** được gọi. Feature sẽ không hoạt động.
-- Nếu `Grace Limit >= 1`: Liferay cho phép grace login (giảm grace count). Post-login hook chạy, detect expired, set session flag, filter redirect sang change password.
+- Nếu `Grace Limit >= 1`: Liferay cho phép grace login, tăng `graceLoginCount`. Post-login hook chạy, detect khi `remainingGraceLogins <= 0`, set session flag, filter redirect sang trang quên mật khẩu.
 - **Khuyến nghị**: Đặt `Grace Limit = 1` — cho phép đúng một lần đăng nhập với mật khẩu hết hạn để user có thể đổi.
 
 ## Flow hoạt động
 
 ```
 User nhập mật khẩu (đã hết hạn)
-    └─> Liferay authenticate thành công (grace login, grace count giảm)
+    └─> Liferay authenticate thành công (grace login, graceLoginCount tăng)
         └─> login.events.post → ForcePasswordChangePostLoginAction
-            └─> Phát hiện expired → set session["VEC_FORCE_PASSWORD_CHANGE"] = true
+            └─> Phát hiện remainingGraceLogins <= 0 → set session["VEC_FORCE_PASSWORD_CHANGE"] = true
                 └─> Liferay redirect về trang chủ (hoặc referer)
                     └─> ForcePasswordChangeFilter intercept
-                        └─> Kiểm tra session flag → redirect /c/portal/update_password
-                            └─> User đổi mật khẩu thành công
-                                └─> Liferay redirect về trang chủ
-                                    └─> Filter re-check: password không còn expired
-                                        └─> Clear session flag → cho qua
+                        └─> Kiểm tra session flag → redirect sang trang forgot password
+                            └─> Nếu lấy được screenName thì append vào query param redirect
 ```
 
 ## Cài đặt và kích hoạt
@@ -55,13 +56,19 @@ Module **mặc định disabled** để an toàn khi deploy. Kích hoạt bằng
 
 Tạo file: `$LIFERAY_HOME/osgi/configs/vn.vec.custom.admin.password.filter.ForcePasswordChangeFilter.config`
 
+Trong repo đã có sẵn file mẫu để copy:
+`custom-bundles/vec-expired-password-force-change/osgi/configs/vn.vec.custom.admin.password.filter.ForcePasswordChangeFilter.config`
+
+Lưu ý: file trong repo chỉ là **mẫu cấu hình**. Liferay chỉ đọc file khi nó nằm ở thư mục thực tế trên server:
+`$LIFERAY_HOME/osgi/configs/vn.vec.custom.admin.password.filter.ForcePasswordChangeFilter.config`
+
 ```properties
 enabled=B"true"
-changePasswordURL="/c/portal/update_password"
+changePasswordURL="/trangchu?p_p_id=com_liferay_login_web_portlet_LoginPortlet&p_p_lifecycle=0&p_p_state=maximized&_com_liferay_login_web_portlet_LoginPortlet_mvcRenderCommandName=%2Flogin%2Fforgot_password"
 includeOmniAdmin=B"false"
 checkOnEveryRequest=B"true"
 logDeniedNavigation=B"true"
-excludedPathPatterns=["/c/portal/login","/c/portal/logout","/c/portal/update_password","/c/portal/update_password/*","*.css","*.js","*.map","*.png","*.jpg","*.jpeg","*.gif","*.svg","*.ico","*.woff","*.woff2","*.ttf","*.eot","*.otf"]
+excludedPathPatterns=["/combo","/c/portal/extend_session","/c/portal/extend_session_confirm","/c/portal/login","/c/portal/logout","/documents/*","/image/*","*.css","*.js","*.map","*.png","*.jpg","*.jpeg","*.gif","*.svg","*.ico","*.woff","*.woff2","*.ttf","*.eot","*.otf"]
 ```
 
 **Cách B — Qua Liferay System Settings**:
@@ -75,9 +82,9 @@ Control Panel → System → System Settings → tìm PID `vn.vec.custom.admin.p
 | Tham số | Mặc định | Mô tả |
 |---------|----------|-------|
 | `enabled` | `false` | Bật/tắt toàn bộ feature |
-| `changePasswordURL` | `/c/portal/update_password` | URL trang đổi mật khẩu |
+| `changePasswordURL` | URL `forgot_password` của LoginPortlet | URL redirect khi đã dùng hết grace login |
 | `includeOmniAdmin` | `false` | Áp dụng flow cho omniadmin không. Mặc định **không** áp dụng — tránh khóa admin khỏi hệ thống |
-| `checkOnEveryRequest` | `true` | Re-check password expiry mỗi request (bắt auto-login session với mật khẩu đã hết hạn sau khi login) |
+| `checkOnEveryRequest` | `true` | Re-check `graceLoginCount` mỗi request khi cần, để bắt auto-login session hoặc clear cờ sau khi user đổi mật khẩu |
 | `logDeniedNavigation` | `true` | Log INFO khi chặn navigation |
 | `excludedPathPatterns` | Xem mặc định | Các URL/pattern không bị filter. Luôn bao gồm `changePasswordURL` |
 
@@ -86,9 +93,12 @@ Control Panel → System → System Settings → tìm PID `vn.vec.custom.admin.p
 Ngoài danh sách `excludedPathPatterns`, filter **luôn tự động** loại trừ `changePasswordURL` (dù không có trong list) để tránh redirect loop.
 
 Mặc định loại trừ:
+- `/combo` — combo servlet của Liferay cho CSS/JS gộp
+- `/c/portal/extend_session` và `/c/portal/extend_session_confirm` — request native để giữ/confirm session của portal
 - `/c/portal/login` — trang login
 - `/c/portal/logout` — logout
-- `/c/portal/update_password` và `/c/portal/update_password/*` — trang đổi mật khẩu
+- `/documents/*` — document/media/asset được portal hoặc theme gọi khi render trang
+- `/image/*` — ảnh portal như logo, avatar, image servlet
 - Các extension tĩnh: `.css`, `.js`, `.map`, `.png`, `.jpg`, `.jpeg`, `.gif`, `.svg`, `.ico`, `.woff`, `.woff2`, `.ttf`, `.eot`, `.otf`
 
 ## Test thủ công
@@ -97,6 +107,7 @@ Mặc định loại trừ:
 1. Vào Password Policy: Control Panel → Security → Password Policy
 2. Đặt Enable Expiration = ON, Maximum Age = 1 Minute (để test nhanh), Grace Limit = 1
 3. Enable module bằng file `.config`
+4. Vì anh đã tắt SPA của Liferay, mỗi lần điều hướng sẽ là full page request; filter sẽ bắt request ổn định và log redirect sẽ xuất hiện rõ trong `catalina.out`
 
 ### Test case 1 — User bình thường (mật khẩu chưa hết hạn)
 - Login bình thường → vào trang chủ → không bị redirect
@@ -104,10 +115,8 @@ Mặc định loại trừ:
 ### Test case 2 — User có mật khẩu hết hạn (Grace Limit = 1)
 - Đợi 1 phút (theo Maximum Age test)
 - Login → thành công (grace login)
-- Ngay sau login → tự động redirect sang `/c/portal/update_password`
-- Thử truy cập `/group/guest/home` → bị redirect về `/c/portal/update_password`
-- Đổi mật khẩu thành công → redirect về trang chủ
-- Thử lại các trang khác → không bị block nữa
+- Ngay sau login ở lần grace cuối → tự động redirect sang trang forgot password
+- Nếu có `screenName`, URL redirect sẽ mang theo `_com_liferay_login_web_portlet_LoginPortlet_screenName`
 
 ### Test case 3 — Static resources
 - Khi đang bị force change, mở DevTools
@@ -127,15 +136,27 @@ Module ghi log ở các thời điểm sau:
 
 | Level | Khi nào |
 |-------|---------|
-| `INFO` | Kích hoạt filter với config hiện tại |
-| `INFO` | Post-login: phát hiện password expired, set session flag |
+| `INFO` | Post-login: phát hiện đã dùng hết grace login còn lại, set session flag |
 | `INFO` | Filter: chặn navigation, redirect về change password |
-| `INFO` | Filter: phát hiện auto-login session với password expired |
+| `INFO` | Filter: log rõ user nào đang bị redirect sang trang forgot password để theo dõi trong `catalina.out` |
+| `INFO` | Filter: phát hiện auto-login session đã dùng hết grace login còn lại |
 | `WARN` | Grace Limit = 0 detected (configuration không đúng) |
 | `ERROR` | Redirect safety limit exceeded (config sai changePasswordURL) |
 | `ERROR` | Lỗi không xác định trong post-login hook |
 
 Không có log nào chứa mật khẩu hoặc dữ liệu nhạy cảm.
+
+Ví dụ log anh có thể grep trong `catalina.out`:
+
+```text
+VEC Force Password Change redirecting user to change password: userId=..., screenName=..., companyId=..., requestURI=..., targetURI=/trangchu?...forgot_password..., remoteAddr=..., sessionId=..., graceLoginCount=1, remainingGraceLogins=0
+```
+
+## Vì sao bản cũ có thể chưa đạt
+
+1. Bản cũ check theo trạng thái `password expired` tổng quát, trong khi flow của Liferay với `graceLimit = 1` phù hợp hơn nếu bám trực tiếp vào `graceLoginCount > 0`.
+2. Filter cũ chưa whitelist các đường native như `/combo` và `/image/*`, nên trang `/c/portal/update_password` có thể tải thiếu CSS/JS/ảnh hoặc nhìn như bị redirect sai.
+3. Module mặc định `enabled=false`, nên nếu chỉ deploy JAR mà chưa có file `.config` thì hành vi sẽ giống như chưa bật feature.
 
 ## Hạn chế đã biết
 
@@ -163,7 +184,7 @@ vec-expired-password-force-change/
     ├── lifecycle/
     │   └── ForcePasswordChangePostLoginAction.java  # Post-login hook
     └── util/
-        └── PasswordExpirationUtil.java              # Password expiry check
+        └── PasswordExpirationUtil.java              # Grace login / policy helper
 ```
 
 ## OSGi Components
@@ -171,7 +192,7 @@ vec-expired-password-force-change/
 | Class | Service | Property |
 |-------|---------|----------|
 | `ForcePasswordChangePostLoginAction` | `LifecycleAction` | `key=login.events.post` |
-| `ForcePasswordChangeFilter` | `Filter` | `url-pattern=/*`, after `VEC Admin Network Policy Filter` |
+| `ForcePasswordChangeFilter` | `Filter` | `url-pattern=/*`, after `Auto Login Filter` |
 
 Cả hai component dùng cùng `configurationPid`:
 `vn.vec.custom.admin.password.filter.ForcePasswordChangeFilter`

@@ -8,6 +8,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.util.Map;
@@ -61,25 +62,52 @@ public class ForcePasswordChangePostLoginAction implements LifecycleAction {
 		HttpServletRequest request = lifecycleEvent.getRequest();
 
 		try {
-			User user = PortalUtil.getUser(request);
+			User user = _getCurrentUser(request);
 
 			if ((user == null) || user.isDefaultUser()) {
+				_log.info(
+					"VEC Force Password Change post-login hook invoked but no " +
+						"authenticated user was resolved. requestURI=" +
+						request.getRequestURI());
+
 				return;
 			}
+
+			long remainingGraceLogins =
+				PasswordExpirationUtil.getRemainingGraceLogins(user);
+
+			boolean forceChangeRequired =
+				PasswordExpirationUtil.isForceChangeRequired(user);
+
+			_log.info(
+				"VEC Force Password Change post-login hook invoked: userId=" +
+					user.getUserId() + ", screenName=" + user.getScreenName() +
+					", companyId=" + user.getCompanyId() +
+					", graceLoginCount=" +
+					PasswordExpirationUtil.getGraceLoginCount(user) +
+					", remainingGraceLogins=" + remainingGraceLogins +
+					", forceChangeRequired=" + forceChangeRequired +
+					", requestURI=" + request.getRequestURI());
 
 			if (!configuration.isIncludeOmniAdmin() && _isOmniAdmin(user)) {
+				_log.info(
+					"VEC Force Password Change post-login hook skipping " +
+						"omniadmin userId=" + user.getUserId());
+
 				return;
 			}
-
-			boolean expired = PasswordExpirationUtil.isPasswordExpired(user);
 
 			HttpSession session = request.getSession(false);
 
 			if (session == null) {
+				_log.warn(
+					"VEC Force Password Change post-login hook found no HTTP " +
+						"session for userId=" + user.getUserId());
+
 				return;
 			}
 
-			if (expired) {
+			if (forceChangeRequired) {
 				session.setAttribute(SESSION_ATTR_FORCE_CHANGE, Boolean.TRUE);
 
 				if (PasswordExpirationUtil.hasGraceLimitZero(user)) {
@@ -97,17 +125,43 @@ public class ForcePasswordChangePostLoginAction implements LifecycleAction {
 					"VEC Force Password Change required: userId=" +
 						user.getUserId() + ", screenName=" +
 						user.getScreenName() + ", companyId=" +
-						user.getCompanyId() +
+						user.getCompanyId() + ", graceLoginCount=" +
+						PasswordExpirationUtil.getGraceLoginCount(user) +
+						", remainingGraceLogins=" +
+						PasswordExpirationUtil.getRemainingGraceLogins(user) +
 						", reason=PASSWORD_EXPIRED_FORCE_CHANGE");
 			}
 			else {
 				session.removeAttribute(SESSION_ATTR_FORCE_CHANGE);
+
+				_log.info(
+					"VEC Force Password Change post-login hook cleared force " +
+						"change flag for userId=" + user.getUserId());
 			}
 		}
 		catch (Exception exception) {
 			_log.error(
 				"VEC Force Password Change: error in post-login hook",
 				exception);
+		}
+	}
+
+	private User _getCurrentUser(HttpServletRequest request) {
+		try {
+			long userId = PortalUtil.getUserId(request);
+
+			if (userId > 0) {
+				User user = _userLocalService.fetchUser(userId);
+
+				if (user != null) {
+					return user;
+				}
+			}
+
+			return PortalUtil.getUser(request);
+		}
+		catch (Exception exception) {
+			return null;
 		}
 	}
 
@@ -132,5 +186,8 @@ public class ForcePasswordChangePostLoginAction implements LifecycleAction {
 
 	private volatile ForcePasswordChangeConfiguration _configuration =
 		ForcePasswordChangeConfiguration.fromProperties(null);
+
+	@org.osgi.service.component.annotations.Reference
+	private UserLocalService _userLocalService;
 
 }
