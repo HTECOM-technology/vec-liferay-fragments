@@ -43,9 +43,9 @@ public class TopHeadDynamicInclude implements DynamicInclude {
         writer.println("<script src=\"/o/vec-custom-admin-ui/create-hot-new/index.js\" defer></script>");
       }
 
-      // if (currentURL != null && currentURL.contains("com_liferay_journal_web_portlet_JournalPortlet")) {
-      //   writer.println("<script src=\"/o/vec-custom-admin-ui/fix-create-new-webcontent.js\" defer></script>");
-      // }
+      if (currentURL != null && currentURL.contains("com_liferay_journal_web_portlet_JournalPortlet")) {
+        writer.println("<script src=\"/o/vec-custom-admin-ui/fix-create-new-webcontent.js\" defer></script>");
+      }
 
       ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
         WebKeys.THEME_DISPLAY);

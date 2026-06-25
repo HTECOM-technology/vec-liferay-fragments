@@ -17,19 +17,81 @@
     return parsedUrl.toString();
   }
 
-  function remakeWithCurrentFolderIdAndNewStructId(data) {
+  async function getWebContentFormMappingSettings() {
     const folderId = __fcnw_urlParam.portletParams.folderId || '0';
-    const arrFolderWillReplace = Object.keys(data);
+
+    const csrfToken = window.Liferay?.authToken || '';
+    try {
+      const queryParams = new URLSearchParams({
+        pageSize: '200',
+        filter: `folderID eq '${folderId}'`,
+      });
+
+      const response = await fetch(`/o/c/webcontentformmappingsettingses/?${queryParams.toString()}`, {
+        headers: {
+          accept: 'application/json',
+          'x-csrf-token': csrfToken,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        return {};
+      }
+
+      const result = await response.json();
+      const items = Array.isArray(result?.items) ? result.items : [];
+
+      return items.reduce((acc, item) => {
+        const folderID = item?.folderID;
+        const structureID = item?.structureID;
+        const categoryIDs = item?.categoryIDs || '';
+        const displayPageID = item?.displayPageID || '';
+        const tags = item?.tags || '';
+
+        if (!folderID || !structureID) {
+          return acc;
+        }
+
+        acc[String(folderID)] = {
+          categoryIDs: String(categoryIDs),
+          structureID: String(structureID),
+          displayPageID: String(displayPageID),
+          folderID: String(folderID),
+          tags: String(tags),
+        };
+
+        return acc;
+      }, {});
+    } catch (error) {
+      return {};
+    }
+  }
+
+  async function remakeWithCurrentFolderIdAndNewStructId() {
+    if (__fcnw_urlParam.portletId !== 'com_liferay_journal_web_portlet_JournalPortlet') {
+      return;
+    }
+
+    const folderId = __fcnw_urlParam.portletParams.folderId || '0';
+    const mappingData = await getWebContentFormMappingSettings();
+
+    const arrFolderWillReplace = Object.keys(mappingData);
 
     if (!arrFolderWillReplace.includes(folderId)) {
       return;
     }
 
-    const newStructId = data[folderId];
+    const currentFolderMapping = mappingData[folderId];
+    const newStructId = currentFolderMapping.structureID;
+
+    console.log('currentFolderMapping', currentFolderMapping);
 
     get('[id="clay-dropdown-menu-4"] [href*="JournalPortlet_ddmStructureId=38305"]', (el) => {
       const defaultUrl = el.getAttribute('href');
-      const newUrl = replaceDdmStructureId(defaultUrl, newStructId);
+      let newUrl = replaceDdmStructureId(defaultUrl, newStructId);
+
+      newUrl += `&_com_liferay_journal_web_portlet_JournalPortlet_defaultData=${encodeURIComponent(JSON.stringify(currentFolderMapping))}`;
 
       get('[data-qa-id="creationMenuNewButton"]', (btn) => {
         const parent = btn.closest('.dropdown.creation-menu');
@@ -69,9 +131,5 @@
     return;
   }
 
-  // Hình ảnh banner ở trang chủ
-  remakeWithCurrentFolderIdAndNewStructId({
-    '102538': '104412',
-    '38278': '38259',
-  });
+  remakeWithCurrentFolderIdAndNewStructId();
 })();

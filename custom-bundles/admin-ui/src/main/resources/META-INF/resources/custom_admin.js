@@ -17,14 +17,14 @@ function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}
     });
 }
 
-function forceSetDisplayPage(assetDisplayPageId) {
-    const fields = {
-        assetDisplayPageId,
-        displayPageType: '2',
-        layoutUuid: '',
-    }
-
+function forceSetDisplayPage(fields) {
     const ns = '_com_liferay_journal_web_portlet_JournalPortlet_';
+
+    //   const fields = {
+    //     assetDisplayPageId: '181120',
+    //     displayPageType: '2',
+    //     layoutUuid: '',
+    //   };
 
     function fireEvents(el) {
         el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -38,6 +38,7 @@ function forceSetDisplayPage(assetDisplayPageId) {
         elements.forEach((el) => {
             el.disabled = false;
             el.removeAttribute('disabled');
+
             el.value = value;
             el.setAttribute('value', value);
 
@@ -47,42 +48,60 @@ function forceSetDisplayPage(assetDisplayPageId) {
         return elements;
     }
 
+    if (fields.name) {
+        waitForElement('label[for="_com_liferay_journal_web_portlet_JournalPortlet_assetDisplayPageId"]', (el) => {
+            const input = el.parentNode.querySelector('input');
+            if (input) {
+                input.value = fields.name;
+                fireEvents(input);
+            }
+        });
+    }
+
     Object.entries(fields).forEach(([key, value]) => {
         setAllByName(`${ns}${key}`, value);
     });
 }
 
 function repeatCallback(callback, times = 3, intervalMs = 300) {
-  if (typeof callback !== 'function') {
-    throw new TypeError('callback must be a function');
-  }
-
-  if (times <= 0) {
-    return () => {};
-  }
-
-  let count = 0;
-  let timerId = null;
-
-  const run = () => {
-    count++;
-
-    callback(count);
-
-    if (count >= times) {
-      clearInterval(timerId);
+    if (typeof callback !== 'function') {
+        throw new TypeError('callback must be a function');
     }
-  };
 
-  run();
+    if (times <= 0) {
+        return () => { };
+    }
 
-  if (times > 1) {
-    timerId = setInterval(run, intervalMs);
-  }
+    let count = 0;
+    let timerId = null;
 
-  return () => {
-    clearInterval(timerId);
-  };
+    const run = () => {
+        count++;
+
+        callback(count);
+
+        if (count >= times) {
+            clearInterval(timerId);
+        }
+    };
+
+    run();
+
+    if (times > 1) {
+        timerId = setInterval(run, intervalMs);
+    }
+
+    return () => {
+        clearInterval(timerId);
+    };
+}
+
+function parseJson(data) {
+    try {
+        return JSON.parse(data);
+    } catch (error) {
+        return null;
+    }
 }
 
 window.waitForElement = waitForElement;
@@ -345,7 +364,7 @@ function __appendWebContentStatisticsMenu() {
     const token = window.Liferay.authToken || 'IwcBcpOP';
     const groupId = screenData.groupId || screenData.portletParams.groupId || '20117';
     const folderId = screenData.portletParams?.folderId || null;
-    
+
     let href = `/o/vec-admin/v1.0/webcontent-statistics/export.xlsx?groupId=${encodeURIComponent(groupId)}&status=-1&latestOnly=true&includeRawData=false&p_auth=${encodeURIComponent(token)}`;
     if (!!folderId) {
         href += `&folderId=${encodeURIComponent(folderId)}`;
@@ -403,11 +422,11 @@ function __appendWebContentAdvancedSearchMenu() {
 
         li.innerHTML = '' +
             '<a ' +
-                ATTR_BUTTON + '="1" ' +
-                'href="' + href + '" ' +
-                'rel="noopener noreferrer" ' +
-                'class="btn btn-secondary btn-sm ml-2">' +
-                'Tìm kiếm nâng cao' +
+            ATTR_BUTTON + '="1" ' +
+            'href="' + href + '" ' +
+            'rel="noopener noreferrer" ' +
+            'class="btn btn-secondary btn-sm ml-2">' +
+            'Tìm kiếm nâng cao' +
             '</a>';
 
         listItem.insertAdjacentElement('beforebegin', li);
@@ -509,52 +528,60 @@ async function __customizeFormCreatePost() {
         element.innerText = 'Tiêu đề của Metadata';
     });
 
-    const settings = {
-        // '719060': {
-        //     displaySettings: '181404',
-        //     catId: '67809',
-        //     catLabel: 'Tin Bộ tài chính',
-        //     catElId: 'namespace_assetCategoriesSelector_38320',
-        // },
-        // '1261944': {
-        //     catId: '1261925',
-        //     catLabel: 'Thông tin tuyên truyền',
-        //     catElId: 'namespace_assetCategoriesSelector_38320',
-        // }
-    }
-    for (const folderId in settings) {
-        const data = settings[folderId];
-
-        if (data.displaySettings) {
-            forceSetDisplayPage(data.displaySettings);
+    (() => {
+        if (!screen.portletParams?.defaultData) {
+            return;
         }
 
-        waitForElement(`#${data.catElId}`).then((el) => {
-            const groupEl = el.querySelector('.input-group-item.d-contents');
-            if (groupEl) {
-                groupEl.insertAdjacentHTML('beforeend', `
-                    <span role="row" tabindex="-1" class="label label-secondary">
-                        <span id="clay-id-27-label-${data.catId}-span" role="gridcell" tabindex="-1" class="label-item label-item-expand" style="outline: none;">
-                            ${data.catLabel}
+        const defaultData = parseJson(screen.portletParams.defaultData);
+        if (!defaultData) {
+            return;
+        }
+
+        if (defaultData.displayPageID) {
+            const data = parseJson(defaultData.displayPageID);
+            repeatCallback(() => {
+                forceSetDisplayPage({
+                    assetDisplayPageId: data.id,
+                    displayPageType: '2',
+                    // layoutUuid: data.uuid,
+                    name: data.name
+                })
+            }, 5, 3000);
+        }
+
+        if (defaultData.categoryIDs) {
+            const categoryIds = parseJson(defaultData.categoryIDs) ?? [];
+
+            for (const data of categoryIds) {
+                waitForElement(`#${data.id_selector}`).then((el) => {
+                    const groupEl = el.querySelector('.input-group-item.d-contents');
+                    if (groupEl) {
+                        groupEl.insertAdjacentHTML('beforeend', `
+                        <span role="row" tabindex="-1" class="label label-secondary">
+                            <span id="clay-id-27-label-${data.id}-span" role="gridcell" tabindex="-1" class="label-item label-item-expand" style="outline: none;">
+                                ${data.title}
+                            </span>
+                            <span role="gridcell" class="label-item label-item-after">
+                                <button aria-label="Remove ${data.title}" class="close" id="clay-id-27-label-${data.id}-close" tabindex="-1" type="button">
+                                    <svg class="lexicon-icon lexicon-icon-times-small" role="presentation">
+                                        <use href="/o/admin-theme/images/clay/icons.svg#times-small"></use>
+                                    </svg>
+                                </button>
+                            </span>
                         </span>
-                        <span role="gridcell" class="label-item label-item-after">
-                            <button aria-label="Remove ${data.catLabel}" class="close" id="clay-id-27-label-${data.catId}-close" tabindex="-1" type="button">
-                                <svg class="lexicon-icon lexicon-icon-times-small" role="presentation">
-                                    <use href="/o/admin-theme/images/clay/icons.svg#times-small"></use>
-                                </svg>
-                            </button>
-                        </span>
-                    </span>
-                    <input name="_com_liferay_journal_web_portlet_JournalPortlet_assetCategoryIds_38320" type="hidden" value="${data.catId}">
-                `);
-                groupEl.querySelector(`#clay-id-27-label-${data.catId}-close`).addEventListener('click', function () {
-                    const parent = this.closest('[role="row"]');
-                    parent.nextElementSibling.remove();
-                    parent.remove();
+                        <input name="_com_liferay_journal_web_portlet_JournalPortlet_assetCategoryIds_38320" type="hidden" value="${data.id}">
+                    `);
+                        groupEl.querySelector(`#clay-id-27-label-${data.id}-close`).addEventListener('click', function () {
+                            const parent = this.closest('[role="row"]');
+                            parent.nextElementSibling.remove();
+                            parent.remove();
+                        });
+                    }
                 });
             }
-        });
-    }
+        }
+    })();
 }
 
 function __hiddenFramentDefaultList() {
@@ -839,7 +866,7 @@ async function __custom_admin_js() {
     const isPageCreateNewPost = screen.shortId === 'JournalPortlet'
         && screen.portletParams.articleId === undefined
         && screen.portletParams.mvcRenderCommandName === '/journal/edit_article';
-    
+
     const isSettingCourtFee = screen.portletId.includes('com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet')
         && screen.groupId === '20117'
         && screen.objectDefinitionId === '42207';
