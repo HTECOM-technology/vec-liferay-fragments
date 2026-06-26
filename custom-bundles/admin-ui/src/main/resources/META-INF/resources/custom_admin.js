@@ -1,19 +1,50 @@
 function waitForElement(selector, callback, { maxTry = 50, interval = 100 } = {}) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+        if (typeof document === 'undefined') {
+            resolve(false);
+            return;
+        }
+
         let tryCount = 0;
-        const timer = setInterval(() => {
-            if (++tryCount > maxTry) {
-                clearInterval(timer);
-                resolve(false);
+        let timer = null;
+
+        const check = async () => {
+            let el;
+
+            try {
+                el = document.querySelector(selector);
+            } catch (error) {
+                if (timer) clearInterval(timer);
+                reject(error);
                 return;
             }
-            const el = document.querySelector(selector);
+
             if (el) {
-                clearInterval(timer);
-                callback?.(el);
-                resolve(el);
+                if (timer) clearInterval(timer);
+
+                try {
+                    await callback?.(el);
+                    resolve(el);
+                } catch (error) {
+                    reject(error);
+                }
+
+                return;
             }
-        }, interval);
+
+            tryCount += 1;
+
+            if (tryCount >= maxTry) {
+                if (timer) clearInterval(timer);
+                resolve(false);
+            }
+        };
+
+        check(); // check ngay lập tức
+
+        if (maxTry > 0) {
+            timer = setInterval(check, interval);
+        }
     });
 }
 
@@ -860,6 +891,17 @@ function __initGlobalFolder(folderId = "1388027") {
     });
 }
 
+function __initScreenNameToChangePasswordExpried() {
+    const screen = __getCurrentLiferayScreen();
+    if (screen.portletId === 'com_liferay_login_web_portlet_LoginPortlet' && screen.portletParams?.mvcRenderCommandName === '/login/forgot_password') {
+        const screenName = screen.login || '';
+        waitForElement('[name="_com_liferay_login_web_portlet_LoginPortlet_login"]', (el) => {
+            __reactJs_setValueForInput(el, screenName);
+            el.disabled = true;
+        })
+    }
+}
+
 async function __custom_admin_js() {
     if (__isCustomAdminStandalonePage()) {
         return;
@@ -886,6 +928,7 @@ async function __custom_admin_js() {
     __hiddenFramentDefaultList();
     __appendTableScrollToListElement();
     __initGlobalFolder();
+    __initScreenNameToChangePasswordExpried();
     repeatCallback(__redirectMyWorkflowTasksLink, 5, 1000);
 
     if (isPageCreateNewPost) {
