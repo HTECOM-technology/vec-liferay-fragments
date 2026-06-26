@@ -110,6 +110,45 @@
     }
   }
 
+  function replaceNewButton(href) {
+    get('[data-qa-id="creationMenuNewButton"]', (btn) => {
+      const parent = btn.closest('.dropdown.creation-menu');
+
+      if (parent.querySelector('.custom-element-create-webcontent')) {
+        return;
+      }
+
+      parent.firstChild.classList.add('default-element-create-webcontent');
+      parent.firstChild.style.display = 'none';
+
+      parent.insertAdjacentHTML('beforeend', `
+        <div class="custom-element-create-webcontent">
+          <button class="dropdown-toggle nav-btn d-md-none nav-btn-monospaced btn btn-primary" type="button" title="Mới">
+            <svg class="lexicon-icon lexicon-icon-plus" role="presentation">
+              <use href="/o/admin-theme/images/clay/icons.svg#plus"></use>
+            </svg>
+          </button>
+          <button class="dropdown-toggle nav-btn d-md-flex d-none btn btn-primary" type="button" title="Mới">
+            <span class="d-md-block d-none pl-3 pr-3">Mới</span>
+          </button>
+        </div>
+      `);
+
+      get('.custom-element-create-webcontent', (customEl) => {
+        const buttons = customEl.querySelectorAll('button');
+        buttons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            window.location.href = href;
+          });
+        });
+      })
+    });
+  }
+
+  function modifyOnlyBriefContent() {
+    replaceNewButton('/group/guest/~/control_panel/manage?p_p_id=com_liferay_journal_web_portlet_JournalPortlet&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_com_liferay_journal_web_portlet_JournalPortlet_mvcRenderCommandName=%2Fjournal%2Fedit_article&_com_liferay_journal_web_portlet_JournalPortlet_redirect=%2Fgroup%2Fguest%2F~%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D1414353%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DdlLYWvGG&_com_liferay_journal_web_portlet_JournalPortlet_backURL=%2Fgroup%2Fguest%2F~%2Fcontrol_panel%2Fmanage%3Fp_p_id%3Dcom_liferay_journal_web_portlet_JournalPortlet%26p_p_lifecycle%3D0%26p_p_state%3Dmaximized%26p_p_mode%3Dview%26_com_liferay_journal_web_portlet_JournalPortlet_displayStyle%3Ddescriptive%26_com_liferay_journal_web_portlet_JournalPortlet_folderId%3D1414353%26_com_liferay_journal_web_portlet_JournalPortlet_groupId%3D20117%26p_p_auth%3DdlLYWvGG&_com_liferay_journal_web_portlet_JournalPortlet_backURLTitle=B%C3%A0i+vi%E1%BA%BFt+-+C%E1%BA%A5u+tr%C3%BAc+-+Bi%E1%BB%83u+m%E1%BA%ABu&_com_liferay_journal_web_portlet_JournalPortlet_ddmStructureId=38305&_com_liferay_journal_web_portlet_JournalPortlet_folderId=1414353&_com_liferay_journal_web_portlet_JournalPortlet_groupId=20117&_com_liferay_journal_web_portlet_JournalPortlet_showSelectFolder=false&p_p_auth=dlLYWvGG&_com_liferay_journal_web_portlet_JournalPortlet_isCreateHotNew=1');
+  }
+
   async function remakeWithCurrentFolderIdAndNewStructId() {
     if (__fcnw_urlParam.portletId !== 'com_liferay_journal_web_portlet_JournalPortlet') {
       return;
@@ -126,6 +165,9 @@
           btn.style.setProperty('display', 'none', 'important');
         });
       });
+      if (folderId === '1414353') {
+        modifyOnlyBriefContent();
+      }
       return;
     }
 
@@ -138,34 +180,7 @@
 
       newUrl += `&_com_liferay_journal_web_portlet_JournalPortlet_defaultData=${encodeURIComponent(JSON.stringify(currentFolderMapping))}`;
 
-      get('[data-qa-id="creationMenuNewButton"]', (btn) => {
-        const parent = btn.closest('.dropdown.creation-menu');
-
-        parent.firstChild.classList.add('default-element-create-webcontent');
-        parent.firstChild.style.display = 'none';
-
-        parent.insertAdjacentHTML('beforeend', `
-          <div class="custom-element-create-webcontent">
-            <button class="dropdown-toggle nav-btn d-md-none nav-btn-monospaced btn btn-primary" type="button" title="Mới">
-              <svg class="lexicon-icon lexicon-icon-plus" role="presentation">
-                <use href="/o/admin-theme/images/clay/icons.svg#plus"></use>
-              </svg>
-            </button>
-            <button class="dropdown-toggle nav-btn d-md-flex d-none btn btn-primary" type="button" title="Mới">
-              <span class="d-md-block d-none pl-3 pr-3">Mới</span>
-            </button>
-          </div>
-        `);
-
-        get('.custom-element-create-webcontent', (customEl) => {
-          const buttons = customEl.querySelectorAll('button');
-          buttons.forEach((btn) => {
-            btn.addEventListener('click', () => {
-              window.location.href = newUrl;
-            });
-          });
-        })
-      });
+      replaceNewButton(newUrl);
     });
   }
 

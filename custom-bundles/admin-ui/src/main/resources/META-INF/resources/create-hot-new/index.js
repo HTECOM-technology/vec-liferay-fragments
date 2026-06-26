@@ -8,9 +8,9 @@ function __chn_forceSetDisplayPage() {
   };
 
   function fireEvents(el) {
-    el.dispatchEvent(new Event('input', {bubbles: true}));
-    el.dispatchEvent(new Event('change', {bubbles: true}));
-    el.dispatchEvent(new Event('blur', {bubbles: true}));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event('blur', { bubbles: true }));
   }
 
   function setAllByName(name, value) {
@@ -68,8 +68,19 @@ function __chn_forceSetDisplayPage() {
   });
 
   get('#namespace_assetCategoriesSelector_38320 .d-contents.input-group-prepend', (el) => {
-    el.insertAdjacentHTML('beforeend', '<span role="row" tabindex="-1" class="label label-secondary"><span aria-describedby="clay-id-24" id="clay-id-27-label-38321-span" role="gridcell" tabindex="-1" class="label-item label-item-expand" style="outline: none;">Tin hoạt động</span><span role="gridcell" class="label-item label-item-after"><button aria-label="Remove Tin hoạt động" class="close" id="clay-id-27-label-38321-close" tabindex="0" type="button"><svg class="lexicon-icon lexicon-icon-times-small" role="presentation"><use href="/o/admin-theme/images/clay/icons.svg#times-small"></use></svg></button></span></span>');
-    el.insertAdjacentHTML('beforeend', '<input name="_com_liferay_journal_web_portlet_JournalPortlet_assetCategoryIds_38320" type="hidden" value="38321">');
+    el.insertAdjacentHTML('beforeend', `
+      <span role="row" tabindex="-1" class="label label-secondary">
+        <span aria-describedby="clay-id-24" id="clay-id-27-label-1414350-span" role="gridcell" tabindex="-1" class="label-item label-item-expand" style="outline: none;">Tin vắn nhanh</span>
+        <span role="gridcell" class="label-item label-item-after">
+          <button aria-label="Remove Tin vắn nhanh" class="close" id="clay-id-27-label-1414350-close" tabindex="-1" type="button">
+            <svg class="lexicon-icon lexicon-icon-times-small" role="presentation">
+              <use href="https://portal.tctvec.vn/o/admin-theme/images/clay/icons.svg#times-small"></use>
+            </svg>
+          </button>
+        </span>
+      </span>
+    `);
+    el.insertAdjacentHTML('beforeend', '<input name="_com_liferay_journal_web_portlet_JournalPortlet_assetCategoryIds_38320" type="hidden" value="1414350">');
   });
 
   get('.contextual-sidebar.edit-article-sidebar', (el) => {
@@ -89,7 +100,7 @@ function __chn_forceSetDisplayPage() {
 
   get('#_com_liferay_journal_web_portlet_JournalPortlet_fm1 [type="button"][form="_com_liferay_journal_web_portlet_JournalPortlet_fm1"]', (el) => {
     el.insertAdjacentHTML('afterend', '<div class="btn btn-primary" id="_fast_publish_custom">Xuất bản ngay</div>');
-    
+
     const menu1 = el.parentNode.querySelector('[aria-controls="clay-dropdown-menu-1"]');
     if (menu1) {
       menu1.style.display = 'none';
