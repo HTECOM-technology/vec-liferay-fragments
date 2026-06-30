@@ -1,5 +1,10 @@
-#!/bin/sh
-[ -n "$BASH_VERSION" ] || exec bash "$0" "$@"
+#!/usr/bin/env bash
+if [ -z "${BASH_VERSION:-}" ] || [ "${BASH##*/}" != "bash" ]; then
+    echo "ERROR: Script này bắt buộc phải chạy bằng bash."
+    echo "Ví dụ: bash deploy-admin-ui.sh 1"
+    exit 1
+fi
+
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -7,10 +12,35 @@ LIFERAY_HOME="${LIFERAY_HOME:-/root/vec/bundles}"
 DEPLOY_DIR="$LIFERAY_HOME/osgi/modules"
 CONFIGS_DIR="$LIFERAY_HOME/osgi/configs"
 
-MODULES=(
-    "admin-ui"
-    "vec-expired-password-force-change"
-)
+show_help() {
+    cat <<EOF
+Usage:
+  bash deploy-admin-ui.sh <module>
+  bash deploy-admin-ui.sh --server <module>
+
+Modules:
+  1  admin-ui
+  2  expired-password (vec-expired-password-force-change)
+
+Examples:
+  bash deploy-admin-ui.sh 1
+  bash deploy-admin-ui.sh 2
+EOF
+}
+
+resolve_module_name() {
+    case "$1" in
+        1)
+            echo "admin-ui"
+            ;;
+        2)
+            echo "vec-expired-password-force-change"
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
 
 build_and_deploy_module() {
     local module_name="$1"
@@ -60,15 +90,24 @@ build_and_deploy_module() {
     if [ -d "$module_dir/osgi/configs" ]; then
         mkdir -p "$CONFIGS_DIR"
 
+        find "$module_dir/osgi/configs" -type f -name "*.config" -print0 |
         while IFS= read -r -d '' config_file; do
             echo ">>> Deploying config $(basename "$config_file") -> $CONFIGS_DIR/"
             cp "$config_file" "$CONFIGS_DIR/"
-        done < <(find "$module_dir/osgi/configs" -type f -name "*.config" -print0)
+        done
     fi
 }
 
 # ─── Chạy trên server: build JAR và copy vào osgi/modules ───────────────────
 if [ "$1" = "--server" ]; then
+    MODULE_NAME="$(resolve_module_name "$2")"
+
+    if [ -z "$MODULE_NAME" ]; then
+        echo "ERROR: Vui lòng chọn module cần build/deploy trên server."
+        show_help
+        exit 1
+    fi
+
     BLADE_CMD=""
     for p in blade "$HOME/.blade/bin/blade" /usr/local/bin/blade /usr/bin/blade $HOME/jpm/bin/blade; do
         if command -v "$p" &> /dev/null || [ -x "$p" ]; then
@@ -82,15 +121,21 @@ if [ "$1" = "--server" ]; then
         exit 1
     fi
 
-    for module_name in "${MODULES[@]}"; do
-        build_and_deploy_module "$module_name"
-    done
+    build_and_deploy_module "$MODULE_NAME"
 
-    echo "Done! Deployed modules: ${MODULES[*]}"
+    echo "Done! Deployed module: $MODULE_NAME"
     exit 0
 fi
 
 # ─── Chạy trên máy local: upload lên server rồi build ───────────────────────
+
+MODULE_NAME="$(resolve_module_name "$1")"
+MODULE_CHOICE="$1"
+
+if [ -z "$MODULE_NAME" ]; then
+    show_help
+    exit 0
+fi
 
 # Load .env
 ENV_FILE="$SCRIPT_DIR/.env"
@@ -128,7 +173,8 @@ rsync -avz \
 echo ">>> Running build on server..."
 ssh $SSH_OPTS \
     "$SERVER" \
-    "bash -l -c 'chmod +x /root/vec/custom-bundles/deploy-admin-ui.sh && /root/vec/custom-bundles/deploy-admin-ui.sh --server'"
+    "bash -l -c 'chmod +x /root/vec/custom-bundles/deploy-admin-ui.sh && bash /root/vec/custom-bundles/deploy-admin-ui.sh --server $MODULE_CHOICE'"
 
 echo ""
-echo "All done! Check Liferay logs for bundle activation and config loading."
+echo "All done! Deployed module: $MODULE_NAME"
+echo "Check Liferay logs for bundle activation and config loading."

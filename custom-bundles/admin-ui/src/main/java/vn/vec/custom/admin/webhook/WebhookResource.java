@@ -27,7 +27,10 @@ import javax.ws.rs.core.Response;
 public class WebhookResource {
 
 	// Lấy từ TinyTalk Dashboard → Edit Webhook → Webhook Secret
-	private static final String WEBHOOK_SECRET = "your-tinytalk-webhook-secret";
+	private static final boolean VERIFY_WEBHOOK_SIGNATURE = false;
+
+	private static final String WEBHOOK_SECRET =
+		"tiny_webhook_sk_0d2d8a8c562e9758c79401f9d5ca2e01c07e919cb602972a6cf4c729cd3a2afb";
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -139,6 +142,14 @@ public class WebhookResource {
 	}
 
 	private boolean _verifySignature(String body, String signature) {
+		if (!VERIFY_WEBHOOK_SIGNATURE) {
+			_log.warn(
+				"WEBHOOK_SIGNATURE verification is disabled. " +
+					"Accepting TinyTalk webhook without signature check.");
+
+			return true;
+		}
+
 		if (WEBHOOK_SECRET == null || WEBHOOK_SECRET.isEmpty()) {
 			_log.warn("WEBHOOK_SECRET is not configured — skipping signature verification");
 

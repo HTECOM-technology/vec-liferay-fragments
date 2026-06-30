@@ -344,12 +344,44 @@
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function escAttr(str) {
+    return escHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   // Highlight từ khóa trong text (escape HTML trước, rồi wrap match)
   function highlightText(rawText, term) {
     const safe = escHtml(rawText || '');
     if (!term || !term.trim()) return safe;
     const safeTerm = escHtml(term.trim()).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return safe.replace(new RegExp(safeTerm, 'gi'), '<mark class="vec-hl">$&</mark>');
+  }
+
+  function renderMessageContent(rawText, term) {
+    const text = rawText || '';
+    const linkPattern = /\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/gi;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkPattern.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(highlightText(text.slice(lastIndex, match.index), term));
+      }
+
+      parts.push(
+        '<a href="' + escAttr(match[2]) + '" target="_blank" rel="noopener noreferrer">' +
+          highlightText(match[1], term) +
+        '</a>'
+      );
+
+      lastIndex = linkPattern.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(highlightText(text.slice(lastIndex), term));
+    }
+
+    return parts.join('');
   }
 
   function showLoading(container) {
@@ -556,6 +588,17 @@
 
     items.forEach(msg => {
       const role = msg.messageRole || 'unknown';
+
+      if (!['user', 'assistant', 'agent'].includes(role)) {
+        return;
+      }
+
+      const content = (msg.messageContent || '').trim();
+
+      if (!content) {
+        return;
+      }
+
       const roleClass =
         role === 'user'      ? 'role-user'  :
         role === 'assistant' ? 'role-ai'    :
@@ -566,8 +609,7 @@
         role === 'assistant' ? 'AI' :
         role === 'agent'     ? 'AG' : '?';
 
-      const content = msg.messageContent || '(trống)';
-      const renderedContent = highlightText(content, state.detail.searchTerm);
+      const renderedContent = renderMessageContent(content, state.detail.searchTerm);
       const isMatch = state.detail.searchTerm &&
         content.toLowerCase().includes(state.detail.searchTerm.toLowerCase());
 

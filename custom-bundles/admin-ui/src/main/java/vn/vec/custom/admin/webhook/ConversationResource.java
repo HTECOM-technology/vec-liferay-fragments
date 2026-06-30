@@ -59,11 +59,16 @@ public class ConversationResource {
 			String where =
 				"WHERE source = 'tinytalk' " +
 				"AND conversationId IS NOT NULL AND conversationId != '' " +
+				"AND contactId IS NOT NULL AND contactId != '' " +
+				_VALID_MESSAGE_WHERE +
 				(hasSearch ?
 					"AND (contactId LIKE ? OR conversationId LIKE ? " +
 					"OR conversationId IN (" +
 					"  SELECT DISTINCT conversationId FROM VEC_WebhookLog" +
-					"  WHERE messageContent LIKE ?" +
+					"  WHERE source = 'tinytalk' " +
+					"  AND contactId IS NOT NULL AND contactId != '' " +
+					_VALID_MESSAGE_WHERE +
+					"  AND messageContent LIKE ?" +
 					")) " : "");
 
 			String countSql =
@@ -205,7 +210,10 @@ public class ConversationResource {
 				int total = 0;
 
 				PreparedStatement countPs = con.prepareStatement(
-					"SELECT COUNT(*) FROM VEC_WebhookLog WHERE conversationId = ?");
+					"SELECT COUNT(*) FROM VEC_WebhookLog " +
+					"WHERE source = 'tinytalk' " +
+					"AND conversationId = ? " +
+					_VALID_MESSAGE_WHERE);
 
 				try {
 					countPs.setString(1, conversationId);
@@ -228,9 +236,15 @@ public class ConversationResource {
 				if (hasSearch) {
 					PreparedStatement matchPs = con.prepareStatement(
 						"SELECT COUNT(*) FROM VEC_WebhookLog " +
-						"WHERE conversationId = ? AND createDate < (" +
+						"WHERE source = 'tinytalk' " +
+						"AND conversationId = ? " +
+						_VALID_MESSAGE_WHERE +
+						"AND createDate < (" +
 						"  SELECT MIN(createDate) FROM VEC_WebhookLog " +
-						"  WHERE conversationId = ? AND messageContent LIKE ?" +
+						"  WHERE source = 'tinytalk' " +
+						"  AND conversationId = ? " +
+						_VALID_MESSAGE_WHERE +
+						"  AND messageContent LIKE ?" +
 						")");
 
 					try {
@@ -261,7 +275,9 @@ public class ConversationResource {
 
 				PreparedStatement ps = con.prepareStatement(
 					"SELECT logId, eventType, messageRole, messageContent, contactId, createDate " +
-					"FROM VEC_WebhookLog WHERE conversationId = ? " +
+					"FROM VEC_WebhookLog WHERE source = 'tinytalk' " +
+					"AND conversationId = ? " +
+					_VALID_MESSAGE_WHERE +
 					"ORDER BY createDate ASC " +
 					"LIMIT ? OFFSET ?");
 
@@ -347,5 +363,9 @@ public class ConversationResource {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(ConversationResource.class);
+
+	private static final String _VALID_MESSAGE_WHERE =
+		"AND messageRole IN ('user', 'assistant', 'agent') " +
+		"AND messageContent IS NOT NULL AND TRIM(messageContent) != '' ";
 
 }

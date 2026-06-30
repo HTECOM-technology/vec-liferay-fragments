@@ -453,11 +453,16 @@ function __appendWebContentStatisticsMenu() {
     });
 }
 
-function __appendWebContentAdvancedSearchMenu() {
+async function __appendWebContentAdvancedSearchMenu() {
     const screenData = __getCurrentLiferayScreen();
-    const ATTR_BUTTON = 'data-vec-advanced-search-button';
-
     if (screenData.portletId !== 'com_liferay_journal_web_portlet_JournalPortlet') {
+        return;
+    }
+
+    const ATTR_BUTTON = 'data-vec-advanced-search-button';
+    const hasAccess = await __isAdminOrQTNDRole();
+
+    if (!hasAccess) {
         return;
     }
 
