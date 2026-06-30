@@ -307,6 +307,7 @@ function renderDetail(data) {
     const typeLabel = getAssetTypeLabel(data.assetType);
     const statusLabel = getStatusLabel(data.status);
     const reviewComment = formatReviewComment(data.reviewComment);
+    const folderLabel = data.folderPath || data.folderName;
 
     // Link tới bài viết mà bình luận đính kèm (nếu có).
     let parentRow = '';
@@ -335,6 +336,10 @@ function renderDetail(data) {
             <div class="detail-meta-item">
                 <span>Tác giả</span>
                 <strong>${escapeHtml(data.creatorUserName || 'N/A')}</strong>
+            </div>
+            <div class="detail-meta-item">
+                <span>Thư mục lưu</span>
+                <strong>${escapeHtml(folderLabel || 'Không xác định')}</strong>
             </div>
             <div class="detail-meta-item">
                 <span>Điều phối cho</span>

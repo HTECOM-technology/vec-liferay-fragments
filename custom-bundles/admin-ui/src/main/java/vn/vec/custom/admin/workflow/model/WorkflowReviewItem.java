@@ -12,6 +12,9 @@ public class WorkflowReviewItem {
 	private String assetTitle;
 	private String assetContent;
 	private String contentHtml;
+	private long folderId;
+	private String folderName;
+	private String folderPath;
 	private String parentClassName;
 	private long parentClassPK;
 	private int assetStatus = -1;
@@ -103,6 +106,30 @@ public class WorkflowReviewItem {
 
 	public void setContentHtml(String contentHtml) {
 		this.contentHtml = contentHtml;
+	}
+
+	public long getFolderId() {
+		return folderId;
+	}
+
+	public void setFolderId(long folderId) {
+		this.folderId = folderId;
+	}
+
+	public String getFolderName() {
+		return folderName;
+	}
+
+	public void setFolderName(String folderName) {
+		this.folderName = folderName;
+	}
+
+	public String getFolderPath() {
+		return folderPath;
+	}
+
+	public void setFolderPath(String folderPath) {
+		this.folderPath = folderPath;
 	}
 
 	public String getParentClassName() {

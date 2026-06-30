@@ -137,19 +137,77 @@ function parseJson(data) {
 
 window.waitForElement = waitForElement;
 
-function __getUserRole() {
+function __isAdministratorRole() {
     return new Promise((resolve) => {
+        if (typeof window.__isAdministratorRoleData === 'boolean') {
+            resolve(window.__isAdministratorRoleData);
+            return;
+        }
         window.Liferay.Service(
-            "/role/get-user-roles",
-            { userId: window.Liferay.ThemeDisplay.getUserId() },
-            resolve,
-            () => resolve([]),
+            '/role/has-user-roles',
+            {
+                userId: window.Liferay.ThemeDisplay.getUserId(),
+                companyId: window.Liferay.ThemeDisplay.getCompanyId(),
+                names: ['Administrator'],
+                inherited: true
+            },
+            (data) => {
+                window.__isAdministratorRoleData = data;
+                resolve(data);
+            },
+            () => resolve(false),
         );
     })
 }
 
-function __isCustomAdminStandalonePage() {
-    return window.location.pathname.startsWith('/o/vec-custom-admin-ui/');
+function __isAdminOrQTNDRole() {
+    return new Promise((resolve) => {
+        if (typeof window.__isAdminOrQTNDRoleData === 'boolean') {
+            resolve(window.__isAdminOrQTNDRoleData);
+            return;
+        }
+        window.Liferay.Service(
+            '/role/has-user-roles',
+            {
+                userId: window.Liferay.ThemeDisplay.getUserId(),
+                companyId: window.Liferay.ThemeDisplay.getCompanyId(),
+                names: ['Quản Trị Nội Dung', 'Administrator'],
+                inherited: true
+            },
+            (data) => {
+                window.__isAdminOrQTNDRoleData = data;
+                resolve(data);
+            },
+            () => resolve(false),
+        );
+    })
+}
+
+function __isBienTapVienRole() {
+    return new Promise((resolve) => {
+        if (typeof window.__isBienTapVienRoleData === 'boolean') {
+            resolve(window.__isBienTapVienRoleData);
+            return;
+        }
+        window.__vecBienTapVienRolePromise = new Promise((roleResolve) => {
+            window.Liferay.Service(
+                '/role/has-user-roles',
+                {
+                    userId: window.Liferay.ThemeDisplay.getUserId(),
+                    companyId: window.Liferay.ThemeDisplay.getCompanyId(),
+                    names: ['Biên tập viên'],
+                    inherited: true
+                },
+                (data) => {
+                    window.__isBienTapVienRoleData = data;
+                    roleResolve(data);
+                },
+                () => roleResolve(false),
+            );
+        });
+
+        window.__vecBienTapVienRolePromise.then(resolve);
+    })
 }
 
 function __reactJs_setValueForInput(input, value) {
@@ -317,56 +375,38 @@ function __appendAIChatHistoryAndAuditLogMenu() {
     });
 }
 
-function __appendOnlyAdminMenu() {
-    const roleCanAccess = [
-        '20100', // admin role id
-    ];
-
+async function __appendOnlyAdminMenu() {
     if (!window.Liferay) {
         return;
     }
 
-    const userId = window.Liferay.ThemeDisplay.getUserId();
-    window.Liferay.Service('/role/get-user-roles', { userId }, (roles) => {
-        const isAllowed = roles.some(r => roleCanAccess.includes(r.roleId));
-        if (!isAllowed) {
-            return;
-        }
+    const canAccess = await __isAdministratorRole();
 
-        waitForElement(
-            '[aria-labelledby="panel-manage-site_administration_configuration-link"]',
-            (panel) => {
-                const ATTR_MODULE_MANAGER = 'data-vec-module-manager';
-                if (!panel.querySelector('[' + ATTR_MODULE_MANAGER + ']')) {
-                    const html = `
+    if (!canAccess) {
+        return;
+    }
+
+    waitForElement(
+        '[aria-labelledby="panel-manage-site_administration_configuration-link"]',
+        (panel) => {
+            const ATTR_MODULE_MANAGER = 'data-vec-module-manager';
+            if (!panel.querySelector('[' + ATTR_MODULE_MANAGER + ']')) {
+                const html = `
                     <li class=" nav-item" role="presentation">
                         <a data-vec-module-manager="1" id="data-vec-module-manager" class="nav-link" href="/web/guest/module-manager" role="menuitem" tabindex="-1">
                             Quản lý module hệ thống
                         </a>
                     </li>`;
 
-                    panel.insertAdjacentHTML('beforeend', html);
-                }
-            },
-            { maxTry: 200, interval: 50 }
-        );
-    });
+                panel.insertAdjacentHTML('beforeend', html);
+            }
+        },
+        { maxTry: 200, interval: 50 }
+    );
 }
 
 async function __appendCreateNewPostToLeftMenu() {
-    const userRole = await __getUserRole();
-    const roleCanAccess = [
-        '20100',
-        '1384085'
-    ];
-
-    let canAccess = false;
-    for (const role of userRole) {
-        if (roleCanAccess.includes(role.roleId)) {
-            canAccess = true;
-            break;
-        }
-    }
+    const canAccess = await __isAdminOrQTNDRole();
 
     if (!canAccess) {
         return;
@@ -654,31 +694,150 @@ function __redirectToHomepageIfNotCorrectLoginScreen() {
     }
 }
 
-function __redirectMyWorkflowTasksLink() {
-    console.log('__redirectMyWorkflowTasksLink ran');
+async function __redirectMyWorkflowTasksLink() {
+    const screenData = __getCurrentLiferayScreen();
+    const isHasRole = await __isAdminOrQTNDRole();
+
+    if (screenData.portletId === 'com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet') {
+        if (!isHasRole) {
+            return;
+        }
+
+        const backUri = screenData.portletParams.backURL ?? '/';
+        const newHref = '/web/guest/workflow-tasks?backUrl=' + encodeURIComponent(backUri);
+
+        window.location.href = newHref;
+        return;
+    }
+
     const SELECTOR = 'a[href*="com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet"]';
     const ATTR_OLD = 'data-old-href';
 
-    // URI hiện tại để màn workflow-tasks biết quay lại đâu.
     const backUri = window.location.pathname + window.location.search;
-    const newHref = '/web/guest/workflow-tasks?backUrl=' +
-        encodeURIComponent(backUri);
+    const newHref = '/web/guest/workflow-tasks?backUrl=' + encodeURIComponent(backUri);
 
-    const rewrite = (anchor) => {
-        if (anchor.getAttribute(ATTR_OLD)) {
+    document.querySelectorAll(`li > ${SELECTOR}:not([${ATTR_OLD}])`).forEach((anchor) => {
+        if (!isHasRole) {
+            anchor.style.setProperty('display', 'none', 'important');
+        } else {
+            anchor.setAttribute(ATTR_OLD, anchor.getAttribute('href'));
+            anchor.setAttribute('href', newHref);
+        }
+    });
+}
+
+function __isWorkflowTaskDetailScreen(screenData) {
+    if (screenData.portletId !== 'com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet') {
+        return false;
+    }
+
+    const workflowTaskId = screenData.portletParams?.workflowTaskId
+        || screenData._com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTaskId;
+
+    if (!workflowTaskId) {
+        return false;
+    }
+
+    return true;
+}
+
+async function __appendRejectedWorkflowTaskActions() {
+    const screenData = __getCurrentLiferayScreen();
+    const ATTR_ACTIONS = 'data-vec-rejected-workflow-actions';
+
+    if (!__isWorkflowTaskDetailScreen(screenData)) {
+        return;
+    }
+
+    if (document.querySelector('[' + ATTR_ACTIONS + ']')) {
+        return;
+    }
+
+    if (window.__vecRejectedWorkflowActionsLoading) {
+        return;
+    }
+
+    window.__vecRejectedWorkflowActionsLoading = true;
+
+    try {
+        const hasEditorRole = await __isBienTapVienRole();
+
+        if (!hasEditorRole) {
             return;
         }
-        anchor.setAttribute(ATTR_OLD, anchor.getAttribute('href'));
-        anchor.setAttribute('href', newHref);
-    };
 
-    waitForElement(
-        SELECTOR,
-        () => {
-            document.querySelectorAll(`${SELECTOR}:not([${ATTR_OLD}])`).forEach(rewrite);
-        },
-        { maxTry: 200, interval: 50 }
-    );
+        const workflowTaskId = screenData.portletParams?.workflowTaskId
+            || screenData._com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTaskId;
+
+        const params = new URLSearchParams({ workflowTaskId });
+        const response = await fetch('/o/vec-admin/workflow-review/resolve?' + params.toString(), {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-Token': window.Liferay?.authToken || ''
+            }
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!data?.allowed) {
+            return;
+        }
+
+        await waitForElement(
+            '#portlet_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet .sheet-section',
+            (portlet) => {
+                if (portlet.querySelector('[' + ATTR_ACTIONS + ']')) {
+                    return;
+                }
+
+                const container = document.createElement('div');
+                container.setAttribute(ATTR_ACTIONS, '1');
+                container.className = 'vec-rejected-workflow-actions mb-3';
+
+                if (data.folderURL) {
+                    const folderLink = document.createElement('a');
+                    folderLink.className = 'btn btn-secondary btn-sm mr-2';
+                    folderLink.href = data.folderURL;
+                    folderLink.textContent = 'Mở thư mục lưu bài';
+                    container.appendChild(folderLink);
+                }
+
+                if (data.editURL) {
+                    const editLink = document.createElement('a');
+                    editLink.className = 'btn btn-primary btn-sm';
+                    editLink.href = data.editURL;
+                    editLink.textContent = 'Chỉnh sửa bài viết';
+                    container.appendChild(editLink);
+                }
+
+                if (!container.children.length) {
+                    return;
+                }
+
+                const target = portlet.querySelector('.sheet-footer') ||
+                    portlet.querySelector('.sheet') ||
+                    portlet.querySelector('.portlet-body') ||
+                    portlet;
+
+                target.insertAdjacentElement(
+                    target.classList.contains('sheet-footer') ? 'beforebegin' : 'afterbegin',
+                    container
+                );
+            },
+            { maxTry: 80, interval: 100 }
+        );
+    } catch (error) {
+        console.error('Custom Admin: Failed to append rejected workflow actions', error);
+    } finally {
+        window.__vecRejectedWorkflowActionsLoading = false;
+    }
 }
 
 function __initTableScroll(scrollClass = 'table-scrollable-horizotal') {
@@ -897,16 +1056,13 @@ function __initScreenNameToChangePasswordExpried() {
         const screenName = screen.login || '';
         waitForElement('[name="_com_liferay_login_web_portlet_LoginPortlet_login"]', (el) => {
             __reactJs_setValueForInput(el, screenName);
+            el.setAttribute('placeholder', screenName);
             el.disabled = true;
         })
     }
 }
 
 async function __custom_admin_js() {
-    if (__isCustomAdminStandalonePage()) {
-        return;
-    }
-
     const screen = __getCurrentLiferayScreen();
 
     const isPageCreateNewPost = screen.shortId === 'JournalPortlet'
@@ -929,7 +1085,11 @@ async function __custom_admin_js() {
     __appendTableScrollToListElement();
     __initGlobalFolder();
     __initScreenNameToChangePasswordExpried();
-    repeatCallback(__redirectMyWorkflowTasksLink, 5, 1000);
+    repeatCallback(__redirectMyWorkflowTasksLink, 50, 1000);
+
+    if (__isWorkflowTaskDetailScreen(screen)) {
+        repeatCallback(__appendRejectedWorkflowTaskActions, 20, 500);
+    }
 
     if (isPageCreateNewPost) {
         waitForElement(
@@ -958,20 +1118,7 @@ async function __custom_admin_js() {
 }
 
 (function () {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', __custom_admin_js);
-    } else {
-        __custom_admin_js();
-    }
-})();
-
-// === CKEditor Custom Override ===
-(function loadCKEditorOverride() {
-    if (__isCustomAdminStandalonePage()) {
-        return;
-    }
-
-    function load() {
+    function ckeditor_override() {
         var script = document.createElement('script');
         script.src = '/o/vec-custom-admin-ui/js/ckeditor_override.js?v=' + Date.now();
         script.async = true;
@@ -982,8 +1129,12 @@ async function __custom_admin_js() {
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', load);
+        document.addEventListener('DOMContentLoaded', () => {
+            __custom_admin_js();
+            ckeditor_override();
+        });
     } else {
-        load();
+        __custom_admin_js();
+        ckeditor_override();
     }
 })();

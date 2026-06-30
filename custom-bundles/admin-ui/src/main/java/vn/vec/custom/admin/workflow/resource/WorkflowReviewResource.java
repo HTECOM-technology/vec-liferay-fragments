@@ -3,6 +3,7 @@ package vn.vec.custom.admin.workflow.resource;
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
 import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portal.kernel.json.JSONArray;
@@ -11,6 +12,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -26,8 +28,9 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowLog;
 
-import java.text.SimpleDateFormat;
+import java.net.URLEncoder;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +38,9 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -181,6 +187,85 @@ public class WorkflowReviewResource {
 
 			return Response.ok(json.toString()).build();
 		} catch (Exception e) {
+			return _serverError(e);
+		}
+	}
+
+	@GET
+	@Path("/resolve")
+	public Response resolveRejectedWorkflowTask(
+		@Context HttpServletRequest httpServletRequest,
+		@QueryParam("workflowTaskId") @DefaultValue("0")
+			long workflowTaskId) {
+
+		try {
+			long userId = _getSignedInUserId(httpServletRequest);
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return _unauthorized();
+			}
+
+			JSONObject json = JSONFactoryUtil.createJSONObject();
+			json.put("allowed", false);
+			json.put("folderURL", "");
+			json.put("editURL", "");
+
+			if ((workflowTaskId <= 0) || !_hasEditorRole(user)) {
+				return Response.ok(json.toString()).build();
+			}
+
+			WorkflowReviewItem item =
+				_workflowReviewService.getWorkflowReviewItemDetail(
+					user.getCompanyId(), workflowTaskId);
+
+			if ((item == null) ||
+				!"denied".equals(item.getStatus()) ||
+				!"com.liferay.journal.model.JournalArticle".equals(
+					item.getAssetType())) {
+
+				return Response.ok(json.toString()).build();
+			}
+
+			JournalArticle article =
+				JournalArticleLocalServiceUtil.fetchJournalArticle(
+					item.getAssetPrimaryKey());
+
+			if (article == null) {
+				article = JournalArticleLocalServiceUtil.fetchLatestArticle(
+					item.getAssetPrimaryKey());
+			}
+
+			if (article == null) {
+				return Response.ok(json.toString()).build();
+			}
+
+			Group group = GroupLocalServiceUtil.fetchGroup(article.getGroupId());
+
+			if (group == null) {
+				return Response.ok(json.toString()).build();
+			}
+
+			json.put("allowed", true);
+			json.put(
+				"folderURL",
+				_buildWebContentFolderURL(httpServletRequest, group, article));
+
+			String editURL = WebContentAdvancedSearchUtil.buildEditUrl(
+				httpServletRequest, group, article.getArticleId(),
+				article.getGroupId(), article.getVersion());
+
+			if (Validator.isNull(editURL)) {
+				editURL = _buildWebContentEditURL(
+					httpServletRequest, group, article);
+			}
+
+			json.put(
+				"editURL", editURL);
+
+			return Response.ok(json.toString()).build();
+		}
+		catch (Exception e) {
 			return _serverError(e);
 		}
 	}
@@ -668,6 +753,9 @@ public class WorkflowReviewResource {
 			json.put("workflowTaskId", item.getWorkflowTaskId());
 			json.put("assetType", item.getAssetType());
 			json.put("assetTitle", item.getAssetTitle());
+			json.put("folderId", item.getFolderId());
+			json.put("folderName", item.getFolderName());
+			json.put("folderPath", item.getFolderPath());
 			json.put("creatorUserName", item.getCreatorUserName());
 			json.put("assigneeUserName", item.getAssigneeUserName());
 			json.put("completedByUserName", item.getCompletedByUserName());
@@ -704,6 +792,9 @@ public class WorkflowReviewResource {
 		json.put("assetTitle", item.getAssetTitle());
 		json.put("assetContent", item.getAssetContent());
 		json.put("contentHtml", item.getContentHtml());
+		json.put("folderId", item.getFolderId());
+		json.put("folderName", item.getFolderName());
+		json.put("folderPath", item.getFolderPath());
 		json.put("creatorUserName", item.getCreatorUserName());
 		json.put("assigneeUserName", item.getAssigneeUserName());
 		json.put("completedByUserName", item.getCompletedByUserName());
@@ -811,6 +902,159 @@ public class WorkflowReviewResource {
 		}
 	}
 
+	private String _buildWebContentFolderURL(
+		HttpServletRequest httpServletRequest, Group group,
+		JournalArticle article) {
+
+		if ((group == null) || (article == null)) {
+
+			return "";
+		}
+
+		if (httpServletRequest == null) {
+			return _buildWebContentFolderFallbackURL(group, article);
+		}
+
+		try {
+			Group targetGroup = group;
+
+			if (group.isCompany()) {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				if ((themeDisplay != null) &&
+					(themeDisplay.getScopeGroup() != null)) {
+
+					targetGroup = themeDisplay.getScopeGroup();
+				}
+			}
+
+			PortletURL portletURL = PortletURLBuilder.create(
+				PortalUtil.getControlPanelPortletURL(
+					httpServletRequest, targetGroup, JournalPortletKeys.JOURNAL,
+					0, 0, PortletRequest.RENDER_PHASE)
+			).setParameter(
+				"displayStyle", "descriptive"
+			).setParameter(
+				"folderId", article.getFolderId()
+			).setParameter(
+				"groupId", article.getGroupId()
+			).buildPortletURL();
+
+			String folderURL = portletURL.toString();
+
+			if (Validator.isNotNull(folderURL)) {
+				return folderURL;
+			}
+		}
+		catch (Exception exception) {
+		}
+
+		return _buildWebContentFolderFallbackURL(group, article);
+	}
+
+	private String _buildWebContentEditURL(
+		HttpServletRequest httpServletRequest, Group group,
+		JournalArticle article) {
+
+		if ((group == null) || (article == null)) {
+			return "";
+		}
+
+		StringBuilder stringBuilder = new StringBuilder(
+			_buildSiteControlPanelURL(group));
+		String namespace = "_" + JournalPortletKeys.JOURNAL + "_";
+
+		_appendURLParameter(
+			stringBuilder, "p_p_id", JournalPortletKeys.JOURNAL);
+		_appendURLParameter(stringBuilder, "p_p_lifecycle", "0");
+		_appendURLParameter(stringBuilder, "p_p_state", "maximized");
+		_appendURLParameter(stringBuilder, "p_p_mode", "view");
+		_appendURLParameter(
+			stringBuilder, namespace + "mvcRenderCommandName",
+			"/journal/edit_article");
+		_appendURLParameter(
+			stringBuilder, namespace + "articleId", article.getArticleId());
+		_appendURLParameter(
+			stringBuilder, namespace + "groupId",
+			String.valueOf(article.getGroupId()));
+		_appendURLParameter(
+			stringBuilder, namespace + "version",
+			String.valueOf(article.getVersion()));
+
+		String referer = httpServletRequest != null ?
+			httpServletRequest.getHeader("referer") : null;
+
+		if (Validator.isNotNull(referer)) {
+			_appendURLParameter(stringBuilder, namespace + "redirect", referer);
+		}
+
+		return stringBuilder.toString();
+	}
+
+	private String _buildWebContentFolderFallbackURL(
+		Group group, JournalArticle article) {
+
+		if ((group == null) || (article == null)) {
+			return "";
+		}
+
+		StringBuilder stringBuilder = new StringBuilder(
+			_buildSiteControlPanelURL(group));
+		String namespace = "_" + JournalPortletKeys.JOURNAL + "_";
+
+		_appendURLParameter(
+			stringBuilder, "p_p_id", JournalPortletKeys.JOURNAL);
+		_appendURLParameter(stringBuilder, "p_p_lifecycle", "0");
+		_appendURLParameter(stringBuilder, "p_p_state", "maximized");
+		_appendURLParameter(stringBuilder, "p_p_mode", "view");
+		_appendURLParameter(
+			stringBuilder, namespace + "displayStyle", "descriptive");
+		_appendURLParameter(
+			stringBuilder, namespace + "folderId",
+			String.valueOf(article.getFolderId()));
+		_appendURLParameter(
+			stringBuilder, namespace + "groupId",
+			String.valueOf(article.getGroupId()));
+
+		return stringBuilder.toString();
+	}
+
+	private String _buildSiteControlPanelURL(Group group) {
+		String friendlyURL = group.getFriendlyURL();
+
+		if (Validator.isNull(friendlyURL)) {
+			friendlyURL = "/guest";
+		}
+
+		return "/group" + friendlyURL + "/~/control_panel/manage";
+	}
+
+	private void _appendURLParameter(
+		StringBuilder stringBuilder, String name, String value) {
+
+		if (stringBuilder.indexOf("?") < 0) {
+			stringBuilder.append('?');
+		}
+		else {
+			stringBuilder.append('&');
+		}
+
+		stringBuilder.append(_urlEncode(name));
+		stringBuilder.append('=');
+		stringBuilder.append(_urlEncode(value));
+	}
+
+	private String _urlEncode(String value) {
+		try {
+			return URLEncoder.encode(value == null ? "" : value, "UTF-8");
+		}
+		catch (Exception exception) {
+			return "";
+		}
+	}
+
 	private boolean _canAccessWorkflowReview(User user)
 		throws Exception {
 
@@ -839,6 +1083,21 @@ public class WorkflowReviewResource {
 		}
 
 		return _hasWorkflowReviewRole(user);
+	}
+
+	private boolean _hasEditorRole(User user) {
+		if (user == null) {
+			return false;
+		}
+
+		try {
+			return RoleLocalServiceUtil.hasUserRoles(
+				user.getUserId(), user.getCompanyId(),
+				new String[] {"Biên Tập Viên"}, true);
+		}
+		catch (Exception exception) {
+			return false;
+		}
 	}
 
 	private boolean _hasWorkflowReviewRole(User user) {

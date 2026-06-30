@@ -131,3 +131,19 @@ a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_po
 [id^="namespace_assetCategoriesSelector"] .input-group > .input-group-item-shrink:last-child {
   display: none !important;
 }
+
+header.cadmin.portlet-topper:has(#portlet-topper-toolbar_com_liferay_notifications_web_portlet_NotificationsPortlet) {
+  display: none !important;
+
+  ~.portlet-content.portlet-content-editable {
+    border: 0 !important;
+  }
+}
+
+header#banner:has(#navbar_com_liferay_site_navigation_menu_web_portlet_SiteNavigationMenuPortlet) {
+  display: none;
+}
+
+#wrapper > footer#footer {
+  display: none !important;
+}

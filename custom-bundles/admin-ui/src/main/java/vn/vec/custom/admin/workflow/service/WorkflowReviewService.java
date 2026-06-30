@@ -1,7 +1,9 @@
 package vn.vec.custom.admin.workflow.service;
 
 import com.liferay.journal.model.JournalArticle;
+import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalArticleLocalServiceUtil;
+import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.message.boards.model.MBMessage;
 import com.liferay.message.boards.service.MBMessageLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -199,6 +201,10 @@ public class WorkflowReviewService {
 		items.addAll(noAssetItems);
 
 		try {
+			Map<String, WorkflowReviewItem> activeHistoryItems = new HashMap<>();
+			Map<String, WorkflowReviewItem> historyAssetItems = new HashMap<>();
+			List<WorkflowReviewItem> historyNoAssetItems = new ArrayList<>();
+
 			for (WorkflowReviewItem item :
 					_workflowReviewHistoryRepository.getItems(companyId)) {
 
@@ -209,19 +215,52 @@ public class WorkflowReviewService {
 					continue;
 				}
 
+				_enrichJournalArticleAssetKey(item);
+
 				WorkflowReviewItem activeItem = _hasAssetKey(item) ?
 					activeAssetItems.get(_getAssetKey(item)) : null;
 
 				if (activeItem != null) {
 					if (_canUseHistoryForActiveItem(activeItem)) {
-						_copyHistoryFields(item, activeItem);
+						String assetKey = _getAssetKey(item);
+						WorkflowReviewItem existing = activeHistoryItems.get(
+							assetKey);
+
+						if ((existing == null) || _isNewerTask(item, existing)) {
+							activeHistoryItems.put(assetKey, item);
+						}
 					}
 
 					continue;
 				}
 
-				items.add(item);
+				if (!_hasAssetKey(item)) {
+					historyNoAssetItems.add(item);
+
+					continue;
+				}
+
+				String assetKey = _getAssetKey(item);
+				WorkflowReviewItem existing = historyAssetItems.get(assetKey);
+
+				if ((existing == null) || _isNewerTask(item, existing)) {
+					historyAssetItems.put(assetKey, item);
+				}
 			}
+
+			for (Map.Entry<String, WorkflowReviewItem> entry :
+					activeHistoryItems.entrySet()) {
+
+				WorkflowReviewItem activeItem = activeAssetItems.get(
+					entry.getKey());
+
+				if (activeItem != null) {
+					_copyHistoryFields(entry.getValue(), activeItem);
+				}
+			}
+
+			items.addAll(historyAssetItems.values());
+			items.addAll(historyNoAssetItems);
 		}
 		catch (Exception exception) {
 			_log.warn("Không lấy được lịch sử workflow review", exception);
@@ -544,6 +583,7 @@ public class WorkflowReviewService {
 				item.setAssetContent(article.getDescriptionCurrentValue());
 				item.setCreatorUserId(article.getUserId());
 				item.setCreatorUserName(article.getUserName());
+				_populateJournalFolder(item, article);
 				// Ngày tạo lấy theo nội dung (ổn định), không lấy theo
 				// task.getCreateDate() vì task review bị tạo lại mỗi lần resubmit.
 				item.setCreateDate(article.getCreateDate());
@@ -587,6 +627,65 @@ public class WorkflowReviewService {
 			_log.warn(
 				"Không lấy được bình luận classPK=" + classPK, exception);
 		}
+	}
+
+	private void _populateJournalFolder(
+		WorkflowReviewItem item, JournalArticle article) {
+
+		long folderId = article.getFolderId();
+
+		item.setFolderId(folderId);
+
+		if (folderId <= 0) {
+			item.setFolderName(_ROOT_FOLDER_NAME);
+			item.setFolderPath(_ROOT_FOLDER_NAME);
+
+			return;
+		}
+
+		try {
+			JournalFolder folder = JournalFolderLocalServiceUtil.fetchFolder(
+				folderId);
+
+			if (folder == null) {
+				return;
+			}
+
+			item.setFolderName(folder.getName());
+			item.setFolderPath(_buildJournalFolderPath(folder));
+		}
+		catch (Exception exception) {
+			_log.warn(
+				"Không lấy được thư mục Web Content folderId=" + folderId,
+				exception);
+		}
+	}
+
+	private String _buildJournalFolderPath(JournalFolder folder) {
+		List<String> names = new ArrayList<>();
+		Set<Long> visitedFolderIds = new HashSet<>();
+		JournalFolder currentFolder = folder;
+
+		while (currentFolder != null) {
+			if (!visitedFolderIds.add(currentFolder.getFolderId())) {
+				break;
+			}
+
+			names.add(currentFolder.getName());
+
+			long parentFolderId = currentFolder.getParentFolderId();
+
+			if (parentFolderId <= 0) {
+				break;
+			}
+
+			currentFolder = JournalFolderLocalServiceUtil.fetchFolder(
+				parentFolderId);
+		}
+
+		Collections.reverse(names);
+
+		return String.join(" / ", names);
 	}
 
 	private void _populateContentHtml(WorkflowReviewItem item) {
@@ -840,6 +939,40 @@ public class WorkflowReviewService {
 		}
 	}
 
+	private void _enrichJournalArticleAssetKey(WorkflowReviewItem item) {
+		if (!_CLASS_NAME_JOURNAL_ARTICLE.equals(item.getAssetType()) ||
+			(item.getAssetResourceKey() > 0) ||
+			(item.getAssetPrimaryKey() <= 0)) {
+
+			return;
+		}
+
+		try {
+			JournalArticle article =
+				JournalArticleLocalServiceUtil.fetchJournalArticle(
+					item.getAssetPrimaryKey());
+
+			if (article == null) {
+				article = JournalArticleLocalServiceUtil.fetchLatestArticle(
+					item.getAssetPrimaryKey());
+			}
+
+			if (article != null) {
+				item.setAssetResourceKey(article.getResourcePrimKey());
+
+				if (item.getFolderId() <= 0) {
+					_populateJournalFolder(item, article);
+				}
+			}
+		}
+		catch (Exception exception) {
+			_log.warn(
+				"Không lấy được resource key Web Content cho workflow task=" +
+					item.getWorkflowTaskId(),
+				exception);
+		}
+	}
+
 	private void _overlayHistoryByTask(
 		long companyId, WorkflowReviewItem item) {
 
@@ -1002,6 +1135,8 @@ public class WorkflowReviewService {
 
 	private static final String _CLASS_NAME_MB_MESSAGE =
 		"com.liferay.message.boards.model.MBMessage";
+
+	private static final String _ROOT_FOLDER_NAME = "Thư mục gốc";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		WorkflowReviewService.class);
