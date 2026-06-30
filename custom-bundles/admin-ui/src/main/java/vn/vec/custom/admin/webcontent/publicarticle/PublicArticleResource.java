@@ -7,9 +7,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,10 +15,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,14 +34,12 @@ public class PublicArticleResource {
 	@GET
 	@Path("/journal-articles/basic-info")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getBasicInfo(@QueryParam("urlTitle") String urlTitle) {
-		String normalizedUrlTitle = _normalize(urlTitle);
+	public Response getBasicInfo(@QueryParam("articleId") String articleId) {
+		String normalizedArticleId = _normalize(articleId);
 
-		if (normalizedUrlTitle.isEmpty()) {
-			return _badRequest("urlTitle là bắt buộc.");
+		if (normalizedArticleId.isEmpty()) {
+			return _badRequest("articleId là bắt buộc.");
 		}
-
-		List<String> candidateTitles = _buildCandidateTitles(normalizedUrlTitle);
 
 		Connection con = null;
 		PreparedStatement ps = null;
@@ -54,12 +47,11 @@ public class PublicArticleResource {
 
 		try {
 			con = DataAccess.getConnection();
-			ps = con.prepareStatement(_buildSql(candidateTitles.size()));
+			ps = con.prepareStatement(_buildSql());
 			long journalArticleClassNameId = _getJournalArticleClassNameId(con);
 
-			int index = _bindCandidates(ps, 1, candidateTitles);
-
-			_bindCandidates(ps, index, candidateTitles);
+			ps.setString(1, normalizedArticleId);
+			ps.setString(2, normalizedArticleId);
 
 			rs = ps.executeQuery();
 
@@ -89,12 +81,13 @@ public class PublicArticleResource {
 			}
 
 			if (items.length() == 0) {
-				return _notFound("Không tìm thấy bài viết phù hợp với urlTitle đã cung cấp.");
+				return _notFound(
+					"Không tìm thấy bài viết phù hợp với articleId đã cung cấp.");
 			}
 
 			JSONObject result = JSONFactoryUtil.createJSONObject();
 
-			result.put("urlTitle", normalizedUrlTitle);
+			result.put("articleId", normalizedArticleId);
 			result.put("total", items.length());
 			result.put("items", items);
 
@@ -102,8 +95,9 @@ public class PublicArticleResource {
 		}
 		catch (Exception e) {
 			_log.error(
-				"Lỗi khi lấy thông tin bài viết theo urlTitle " +
-					normalizedUrlTitle + ": " + e.getMessage(),
+				"Lỗi khi lấy thông tin bài viết theo articleId " +
+					normalizedArticleId + ": " +
+					e.getMessage(),
 				e);
 
 			return _serverError();
@@ -119,35 +113,6 @@ public class PublicArticleResource {
 	@Path("{path:.*}")
 	public Response options() {
 		return _cors(Response.ok()).build();
-	}
-
-	private List<String> _buildCandidateTitles(String urlTitle) {
-		Set<String> candidateSet = new LinkedHashSet<>();
-
-		candidateSet.add(urlTitle);
-
-		if (_ENCODED_PATTERN.matcher(urlTitle).find()) {
-			String decoded = _decode(urlTitle);
-
-			candidateSet.add(decoded);
-			candidateSet.add(_encode(decoded));
-		}
-		else {
-			candidateSet.add(_decode(urlTitle));
-			candidateSet.add(_encode(urlTitle));
-		}
-
-		List<String> candidates = new ArrayList<>();
-
-		for (String candidate : candidateSet) {
-			String normalizedCandidate = _normalize(candidate);
-
-			if (!normalizedCandidate.isEmpty()) {
-				candidates.add(normalizedCandidate);
-			}
-		}
-
-		return candidates;
 	}
 
 	private String _buildCategoryBreadcrumb(
@@ -192,23 +157,7 @@ public class PublicArticleResource {
 		return breadcrumb;
 	}
 
-	private String _buildPlaceholders(int count) {
-		StringBuilder stringBuilder = new StringBuilder();
-
-		for (int i = 0; i < count; i++) {
-			if (i > 0) {
-				stringBuilder.append(", ");
-			}
-
-			stringBuilder.append("?");
-		}
-
-		return stringBuilder.toString();
-	}
-
-	private String _buildSql(int candidateCount) {
-		String placeholders = _buildPlaceholders(candidateCount);
-
+	private String _buildSql() {
 		return "SELECT ja.id_ AS id_, ja.createDate AS createDate, " +
 			"ja.resourcePrimKey AS structuredContentId, " +
 			"ja.modifiedDate AS modifiedDate, ja.treePath AS treePath, " +
@@ -218,13 +167,13 @@ public class PublicArticleResource {
 			"JOIN (" +
 			" SELECT resourcePrimKey, MAX(version) AS maxVersion " +
 			" FROM JournalArticle " +
-			" WHERE urlTitle IN (" + placeholders + ") " +
+			" WHERE articleId = ? " +
 			"   AND status = 0 " +
 			"   AND ctCollectionId = 0 " +
 			" GROUP BY resourcePrimKey" +
 			") latest ON latest.resourcePrimKey = ja.resourcePrimKey " +
 			"AND latest.maxVersion = ja.version " +
-			"WHERE ja.urlTitle IN (" + placeholders + ") " +
+			"WHERE ja.articleId = ? " +
 			"  AND ja.status = 0 " +
 			"  AND ja.ctCollectionId = 0 " +
 			"ORDER BY ja.modifiedDate DESC, ja.id_ DESC";
@@ -298,19 +247,6 @@ public class PublicArticleResource {
 		return categories;
 	}
 
-	private int _bindCandidates(
-			PreparedStatement ps, int startIndex, List<String> candidateTitles)
-		throws Exception {
-
-		int index = startIndex;
-
-		for (String candidateTitle : candidateTitles) {
-			ps.setString(index++, candidateTitle);
-		}
-
-		return index;
-	}
-
 	private String _getCategoryName(Connection con, long categoryId)
 		throws Exception {
 
@@ -370,25 +306,6 @@ public class PublicArticleResource {
 		}
 
 		return _nullToBlank(vocabularyTitle);
-	}
-
-	private String _decode(String value) {
-		try {
-			return URLDecoder.decode(value, StandardCharsets.UTF_8.name());
-		}
-		catch (Exception e) {
-			return value;
-		}
-	}
-
-	private String _encode(String value) {
-		try {
-			return URLEncoder.encode(value, StandardCharsets.UTF_8.name()).replace(
-				"+", "%20");
-		}
-		catch (Exception e) {
-			return value;
-		}
 	}
 
 	private String _extractLocalizedTitle(String rawValue) {
@@ -535,9 +452,6 @@ public class PublicArticleResource {
 
 	private static final DateTimeFormatter _DATE_TIME_FORMATTER =
 		DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-	private static final Pattern _ENCODED_PATTERN = Pattern.compile(
-		"%[0-9A-Fa-f]{2}");
 
 	private static final Pattern _DEFAULT_TITLE_PATTERN = Pattern.compile(
 		"<Title[^>]*>(.*?)</Title>", Pattern.DOTALL);

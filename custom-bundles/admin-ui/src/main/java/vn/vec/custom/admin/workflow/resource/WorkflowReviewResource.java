@@ -12,9 +12,11 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -815,10 +817,64 @@ public class WorkflowReviewResource {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
-		return permissionChecker.isCompanyAdmin() ||
-			permissionChecker.hasPermission(
-				user.getGroupId(), "com.liferay.portal",
-				"VIEW_CONTROL_PANEL", null);
+		if ((user == null) || (permissionChecker == null)) {
+			return false;
+		}
+
+		try {
+			if (permissionChecker.isOmniadmin() ||
+				permissionChecker.isCompanyAdmin()) {
+
+				return true;
+			}
+
+			if (PortalPermissionUtil.contains(
+					permissionChecker, ActionKeys.VIEW_CONTROL_PANEL)) {
+
+				return true;
+			}
+		}
+		catch (Exception exception) {
+			return _hasWorkflowReviewRole(user);
+		}
+
+		return _hasWorkflowReviewRole(user);
+	}
+
+	private boolean _hasWorkflowReviewRole(User user) {
+		try {
+			Locale locale = LocaleUtil.getSiteDefault();
+
+			for (Role role : user.getRoles()) {
+				String name = role.getName();
+				String title = role.getTitle(locale);
+
+				if (_isWorkflowReviewRole(name) ||
+					_isWorkflowReviewRole(title)) {
+
+					return true;
+				}
+			}
+		}
+		catch (Exception exception) {
+			return false;
+		}
+
+		return false;
+	}
+
+	private boolean _isWorkflowReviewRole(String roleName) {
+		if (Validator.isNull(roleName)) {
+			return false;
+		}
+
+		String normalizedRoleName = roleName.trim().toLowerCase(Locale.ROOT);
+
+		return "administrator".equals(normalizedRoleName) ||
+			"content administrator".equals(normalizedRoleName) ||
+			"site content reviewer".equals(normalizedRoleName) ||
+			"quản trị nội dung".equals(normalizedRoleName) ||
+			"quan tri noi dung".equals(normalizedRoleName);
 	}
 
 	private long _getSignedInUserId(HttpServletRequest httpServletRequest) {
