@@ -235,6 +235,7 @@
 }
 
 .news-tabs li.active {
-  background: #0090CF;
-  color: #fff;
+  background: transparent;
+  color: #E31C2A;
+  font-weight: 700;
 }

@@ -220,6 +220,15 @@ export const StyledSider = styled(Sider)`
       flex: 0 0 250px !important;
     }
   }
+
+  @media (min-width: 1366px) and (max-width: 1750px) {
+    &:not(.ant-layout-sider-collapsed) {
+      width: 260px !important;
+      min-width: 260px !important;
+      max-width: 260px !important;
+      flex: 0 0 260px !important;
+    }
+  }
 `;
 
 export const StyledHeaderMobile = styled.div`

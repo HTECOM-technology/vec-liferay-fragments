@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function TopCardsSection() {
+  const navigate = useNavigate();
   return (
     <>
       <div className="dashboard-upper-cards pb-2">
@@ -341,7 +343,7 @@ export default function TopCardsSection() {
               <div className=" d-flex justify-content-center p-0 image-w-50 align-items-center">
                 <img src={"/documents/d/guest/notebook-icon"} alt="icon" />
               </div>
-              <span className="primary-color p-8">Sổ tay nhân viên</span>
+              <span className="primary-color p-8" style={{ cursor: "pointer" }} onClick={() => navigate("/bieu-mau-tai-lieu?tab=so-tay-nhan-vien")}>Sổ tay nhân viên</span>
             </div>
           </div>
         </div>
@@ -389,7 +391,7 @@ export default function TopCardsSection() {
               <div className=" d-flex justify-content-center p-0 image-w-50 align-items-center">
                 <img src={"/documents/d/guest/notebook-icon"} alt="icon" />
               </div>
-              <span className="primary-color p-8">Sổ tay nhân viên</span>
+              <span className="primary-color p-8" style={{ cursor: "pointer" }} onClick={() => navigate("/bieu-mau-tai-lieu?tab=so-tay-nhan-vien")}>Sổ tay nhân viên</span>
             </div>
           </div>
         </div>

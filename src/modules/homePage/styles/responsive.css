@@ -220,6 +220,12 @@ padding-top: 0;
 }
 
 @media screen and (max-width:768px){
+    .doc-card-body .col-3 {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
     .extra-load-btn {
         display: flex;
         align-items: center;
