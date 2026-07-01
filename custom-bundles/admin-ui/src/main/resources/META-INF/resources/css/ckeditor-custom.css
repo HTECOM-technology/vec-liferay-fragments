@@ -39,31 +39,27 @@
     margin-bottom: 8px;
 }
 
-/* BUG 1 FIX: Multiimage toolbar buttons - text label fallback */
-.cke_button__insert2images .cke_button_icon,
-.cke_button__insert3images .cke_button_icon {
-    display: none !important;
-}
-.cke_button__insert2images::after {
-    content: '2\263F';
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 18px;
-    padding: 0 4px;
-    display: inline-block;
-}
-.cke_button__insert3images::after {
-    content: '3\263F';
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 18px;
-    padding: 0 4px;
-    display: inline-block;
-}
+/* Multiimage toolbar buttons */
 .cke_button__insert2images,
 .cke_button__insert3images {
     min-width: 28px;
-    width: auto !important;
+}
+
+.cke_button__insert2images_icon,
+.cke_button__insert3images_icon {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    background-size: 18px 18px !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+}
+
+.cke_button_disabled.cke_button__insert2images,
+.cke_button_disabled.cke_button__insert3images {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    filter: grayscale(1);
 }
 
 /* BUG 3 FIX: Remove fixed height from Liferay editor wrapper */

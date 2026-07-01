@@ -29,6 +29,34 @@
         );
     }
 
+    function mergeCsv(existingValue, valueToAdd) {
+        if (!existingValue) {
+            return valueToAdd;
+        }
+
+        var items = existingValue.split(',').map(function (item) {
+            return item.trim();
+        }).filter(Boolean);
+
+        if (items.indexOf(valueToAdd) === -1) {
+            items.push(valueToAdd);
+        }
+
+        return items.join(',');
+    }
+
+    function mergeAcfRule(existingValue, valueToAdd) {
+        if (!existingValue) {
+            return valueToAdd;
+        }
+
+        if (existingValue.indexOf(valueToAdd) !== -1) {
+            return existingValue;
+        }
+
+        return existingValue + ';' + valueToAdd;
+    }
+
     function attachCKEditorHooks() {
         registerExternalPlugins();
 
@@ -42,11 +70,45 @@
                         ? extra + ',autogrow,multiimage'
                         : 'autogrow,multiimage';
                 }
+                editor.config.height = 420;
                 editor.config.autoGrow_minHeight = 150;
                 editor.config.autoGrow_maxHeight = 0;
                 editor.config.autoGrow_onStartup = true;
                 editor.config.autoGrow_bottomSpace = 20;
-                editor.config.resize_enabled = false;
+                editor.config.resize_enabled = true;
+                editor.config.versionCheck = false;
+                editor.config.removePlugins = mergeCsv(
+                    editor.config.removePlugins || '',
+                    'elementspath'
+                );
+                editor.config.format_tags = 'p;h2;h3;h4;pre';
+                editor.config.pasteFromWordRemoveFontStyles = true;
+                editor.config.pasteFromWordRemoveStyles = false;
+                editor.config.forcePasteAsPlainText = false;
+                editor.config.entities = false;
+                editor.config.basicEntities = false;
+                editor.config.entities_latin = false;
+                editor.config.entities_greek = false;
+                editor.config.linkShowAdvancedTab = false;
+                editor.config.linkShowTargetTab = true;
+                editor.config.image_previewText = ' ';
+                editor.config.removeDialogTabs = 'image:advanced;link:advanced';
+                editor.config.enterMode = CKEDITOR.ENTER_P;
+                editor.config.shiftEnterMode = CKEDITOR.ENTER_BR;
+                editor.config.coreStyles_bold = { element: 'strong' };
+                editor.config.coreStyles_italic = { element: 'em' };
+                editor.config.extraAllowedContent = mergeAcfRule(
+                    editor.config.extraAllowedContent || '',
+                    'p h2 h3 h4 h5 h6 blockquote pre code strong em u s sub sup[class,id]{text-align,margin-left,margin-right,width,height,color,background-color};' +
+                        'ul ol li;' +
+                        'table thead tbody tfoot tr th td[scope,colspan,rowspan]{width,height,text-align};' +
+                        'a[!href,target,title,rel];' +
+                        'img[!src,alt,width,height,title]{float,margin,margin-left,margin-right,width,height};' +
+                        'div span[class,id,data-*]{text-align,margin-left,margin-right,width,height,color,background-color};' +
+                        'div(ck-image-grid,ck-image-grid-2,ck-image-grid-3){text-align,margin-left,margin-right,width,height};' +
+                        'figure figcaption[class,id]{float,text-align,margin-left,margin-right,width,height};' +
+                        '*[class,data-*]'
+                );
 
                 if (!Array.isArray(editor.config.contentsCss)) {
                     editor.config.contentsCss = [editor.config.contentsCss || ''];
