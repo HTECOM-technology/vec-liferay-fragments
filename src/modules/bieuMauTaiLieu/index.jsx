@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Grid, message, Modal, Tabs } from "antd";
 import Sidebar from "../../components/common/Sidebar";
 import { DocumentTable } from "./components";
@@ -152,10 +153,16 @@ const TAB_ITEMS = [
 
 const BieuMauTaiLieuPage = () => {
     const screens = useBreakpoint();
+    const [searchParams] = useSearchParams();
+    const tabFromUrl = searchParams.get("tab");
+    const validKeys = TAB_ITEMS.map(t => t.key);
+    const defaultTab = validKeys.includes(tabFromUrl) ? tabFromUrl : TAB_ITEMS[0].key;
 
     return (
         <PageWrap>
             <Tabs
+                key={defaultTab}
+                defaultActiveKey={defaultTab}
                 items={TAB_ITEMS}
                 style={{ padding: screens.md ? "0 12px" : "0 8px" }}
             />

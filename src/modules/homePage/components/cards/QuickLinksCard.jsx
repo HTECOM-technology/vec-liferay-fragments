@@ -2,13 +2,21 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import FeedbackModal from "../FeedbackModal";
 import useQuickLinks from "../quicklinks/useQuickLink";
+import GripHandle from "./GripHandle";
 
-function QuickLinksCard() {
+function QuickLinksCard({ dragHandleProps }) {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const { items } = useQuickLinks();
 
   return (
     <div className="quick-links-card-group">
+      {dragHandleProps && Object.keys(dragHandleProps).length > 0 && (
+        <div className="doc-card-header d-flex align-items-center justify-content-between" style={{ marginBottom: 8 }}>
+          <GripHandle dragHandleProps={dragHandleProps} />
+          <span>Liên kết nhanh</span>
+          <span style={{ width: 20 }} />
+        </div>
+      )}
       {items.map((item) => (
         <div className="doc-card doc-single-card mb-2" key={`quick-link-${item.id}`}>
           <div className="doc-card-header p-0 d-flex align-items-center image-w-50 doc-card-header-link">

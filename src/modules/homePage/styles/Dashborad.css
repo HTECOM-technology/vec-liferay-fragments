@@ -39,6 +39,7 @@ body {
 .doc-card-header-link {
     background: #0090CF;
     color: #fff;
+    height: 100%;
 }
 
 .doc-card-header-link a {
@@ -118,6 +119,12 @@ body {
 
 .dashboard-upper-cards.column-area-4 {
     grid-template-columns: 1fr 1fr 1fr 0.75fr;
+}
+
+@media screen and (max-width: 1365px) {
+    .dashboard-upper-cards.column-area-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
 }
 
 /* ─── Hide / Show cards ─────────────────────────────────────────────────────── */
@@ -466,10 +473,6 @@ p:last-child {
 
 @media (min-width: 992px) and (max-width: 1099px) {
 
-    .news-list {
-        grid-template-columns: repeat(1, 1fr) !important;
-    }
-
     .bottom-area .col-lg-8 {
         max-width: calc(7 / 12 * 100%) !important;
     }
@@ -494,8 +497,3 @@ p:last-child {
 }
 
 
-@media screen and (max-width:576px) {
-    .news-list {
-        grid-template-columns: repeat(1, 1fr) !important;
-    }
-}

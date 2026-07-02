@@ -213,6 +213,15 @@ export const QuickLinkCard = styled.div`
   }
 `;
 
+export const DragBtnWrap = styled.div`
+  display: flex;
+  justify-content: flex-end;
+
+  @media (max-width: 1199px) {
+    display: none;
+  }
+`;
+
 export const BtnChangeDragOverlay = styled.button`
   margin-bottom: 10px;
   padding: 5px 10px;

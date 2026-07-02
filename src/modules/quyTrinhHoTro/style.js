@@ -19,7 +19,7 @@ export const PageHeader = styled.div`
         color: rgba(30, 30, 30, 1);
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
@@ -53,7 +53,7 @@ export const MyRequestButton = styled.button`
         font-size: 14px;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex: 1;
         justify-content: center;
         font-size: 12px;
@@ -71,7 +71,7 @@ export const ContentWrap = styled.div`
     margin-top: 10px;
     gap: 10px;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-direction: column;
         gap: 12px;
         margin-top: 0;
@@ -85,7 +85,7 @@ export const SidebarWrap = styled.div`
     flex-shrink: 0;
     background: #fff;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         width: 100%;
         flex-shrink: 1;
     }
@@ -126,7 +126,7 @@ export const SectionHeader = styled.div`
         transform: ${(props) => (props.$expanded ? "rotate(180deg)" : "rotate(0)")};
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         padding: 10px 12px;
         border-radius: 0;
 
@@ -167,7 +167,7 @@ export const MenuItem = styled.div`
         color: ${(props) => (props.$active ? "rgba(0, 144, 207, 1)" : "#333")};
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         padding: 7px 12px 7px 20px;
 
         .menu-label {
@@ -212,7 +212,7 @@ export const FormContent = styled.div`
     gap: 16px;
     padding: 0 12px 12px 12px;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         padding: 0 8px 8px;
         gap: 12px;
     }
@@ -229,7 +229,7 @@ export const FormRow = styled.div`
         }
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
@@ -287,7 +287,7 @@ export const FormGroup = styled.div`
         color: #666;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-direction: column;
         align-items: stretch;
         gap: 4px;
@@ -316,7 +316,7 @@ export const CheckboxGroup = styled.div`
         color: #333;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-wrap: wrap;
         gap: 8px;
     }
@@ -338,7 +338,7 @@ export const DateRangeGroup = styled.div`
         width: 150px;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
@@ -582,7 +582,7 @@ export const MyRequestsFilter = styled.div`
         }
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         padding: 8px 12px;
         gap: 6px;
 
@@ -602,7 +602,7 @@ export const FilterGroup = styled.div`
         min-width: fit-content;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex: 1 1 calc(50% - 4px);
         min-width: 0;
 
@@ -645,7 +645,7 @@ export const ResetFilterBtn = styled.button`
 export const MyRequestsTable = styled.div`
     padding: 0 16px 16px;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         padding: 0 8px 12px;
     }
 `;
@@ -729,7 +729,7 @@ export const TablePaginationWrap = styled.div`
         }
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         justify-content: center;
     }
 `;
@@ -976,7 +976,7 @@ export const FormActions = styled.div`
     padding-top: 16px;
     border-top: 1px solid rgba(0, 144, 207, 0.1);
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         justify-content: stretch;
     }
 `;
@@ -1005,7 +1005,7 @@ export const SubmitButton = styled.button`
         cursor: not-allowed;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         width: 100%;
     }
 `;

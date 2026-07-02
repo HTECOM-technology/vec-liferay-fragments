@@ -18,7 +18,7 @@ const AnalyticsContainer = styled.div`
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     gap: 8px;
     padding: 12px;
   }
@@ -39,7 +39,7 @@ const StatCard = styled.div`
     transform: translateY(-2px);
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 12px;
   }
 `;
@@ -54,7 +54,7 @@ const StatLabel = styled.div`
   margin-bottom: 8px;
   font-weight: 400;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 11px;
     margin-bottom: 4px;
   }
@@ -65,7 +65,7 @@ const StatValue = styled.div`
   font-weight: 700;
   color: #1e1e1e;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 22px;
   }
 `;
@@ -86,7 +86,7 @@ const StatIcon = styled.div`
     height: 24px;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: 40px;
     height: 40px;
     margin-left: 8px;

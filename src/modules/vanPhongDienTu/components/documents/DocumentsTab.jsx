@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { EyeOutlined } from "@ant-design/icons";
+import { EyeOutlined, FilterOutlined } from "@ant-design/icons";
 import { Grid } from "antd";
 import { CButton } from "../../../../components/common";
 import styled from "styled-components";
@@ -17,11 +17,7 @@ import {
   MobileFilterButton,
 } from "../../style";
 import { DOCUMENT_TABS } from "./constants";
-import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
-
 const { useBreakpoint } = Grid;
-
-const FILTER_ICON_STYLE = { width: 18, height: 18 };
 
 const DocumentsMobileFilterButton = styled(MobileFilterButton)`
   width: 32px;
@@ -79,13 +75,7 @@ function DocumentsTab({
             onSearch={onSearch}
             renderMobileButton={(props) => (
               <DocumentsMobileFilterButton
-                icon={
-                  <img
-                    src={MenuFilterIcon}
-                    alt="filter"
-                    style={FILTER_ICON_STYLE}
-                  />
-                }
+                icon={<FilterOutlined style={{ fontSize: 18, color: "#0090CF" }} />}
                 {...props}
               />
             )}

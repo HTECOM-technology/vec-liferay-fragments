@@ -16,7 +16,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { CARD_REGISTRY } from "./cards/CardRegistry";
 import { fetchLayoutFromApi, saveLayoutToApi } from "../services/dashboardLayoutService";
-import { BtnChangeDragOverlay } from "../style";
+import { BtnChangeDragOverlay, DragBtnWrap } from "../style";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
@@ -283,6 +283,17 @@ export default function DashboardDnD() {
   const [activeId, setActiveId] = useState(null);
   const [isDragEnabled, setIsDragEnabled] = useState(false);
 
+  // Tự tắt drag mode khi màn < 1200px và không cho bật lại
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1199px)");
+    const handleChange = (e) => {
+      if (e.matches) setIsDragEnabled(false);
+    };
+    if (mq.matches) setIsDragEnabled(false);
+    mq.addEventListener("change", handleChange);
+    return () => mq.removeEventListener("change", handleChange);
+  }, []);
+
   // Ref để dùng hiddenIds bên trong setFlatOrder callbacks (tránh stale closure)
   const hiddenIdsRef = useRef(hiddenIds);
   useEffect(() => { hiddenIdsRef.current = hiddenIds; }, [hiddenIds]);
@@ -405,7 +416,7 @@ export default function DashboardDnD() {
           display: ${isDragEnabled ? 'flex' : 'none'} !important;
         }
       `}</style>
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <DragBtnWrap>
         <BtnChangeDragOverlay
           onClick={toggleDragMode}
           style={{
@@ -440,7 +451,7 @@ export default function DashboardDnD() {
             </>
           }
         </BtnChangeDragOverlay>
-      </div>
+      </DragBtnWrap>
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {visibleLayout.map((rowItems, idx) => (
           <DroppableRow

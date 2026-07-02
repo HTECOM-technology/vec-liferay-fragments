@@ -10,7 +10,7 @@ export const PageContainer = styled.div`
 export const ContentContainer = styled.div`
     padding: 16px 24px;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         padding: 12px 16px;
     }
 `;
@@ -23,7 +23,7 @@ export const PageHeader = styled.div`
     border-bottom: 1px solid rgba(0, 144, 207, 0.2);
     padding-bottom: 10px;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
@@ -36,7 +36,7 @@ export const PageTitle = styled.h1`
     color: rgba(30, 30, 30, 1);
     margin: 0;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         font-size: 15px;
     }
 `;
@@ -46,7 +46,7 @@ export const HeaderActions = styled.div`
     align-items: center;
     gap: 12px;
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         width: 100%;
         gap: 8px;
     }
@@ -70,7 +70,7 @@ export const FilterSelect = styled.div`
         color: rgba(107, 114, 128, 1);
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex: 1;
 
         .ant-select {
@@ -108,7 +108,7 @@ export const CreateButton = styled.button`
         flex-shrink: 0;
     }
 
-    @media (max-width: 767px) {
+    @media (max-width: 1199px) {
         flex: 1;
         width: auto;
     }

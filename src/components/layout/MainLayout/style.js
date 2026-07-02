@@ -12,7 +12,7 @@ export const StyledInnerLayout = styled(Layout)`
   flex-direction: column;
   overflow: hidden;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     height: auto;
     min-height: 100vh;
     overflow: visible;
@@ -35,7 +35,7 @@ export const StyledHeader = styled(Layout.Header)`
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     padding: 17px 20px !important;
 
     .menu-toggle-btn {
@@ -62,7 +62,7 @@ export const StyledContent = styled(Layout.Content)`
   min-height: 0;
   overflow-y: auto;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     overflow-y: visible;
     min-height: auto;
   }
@@ -106,7 +106,7 @@ export const StyledLeftMenu = styled.div`
     color: #0090cf;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     padding: 0;
   }
 `;
@@ -193,7 +193,7 @@ export const StyledTitle = styled.p`
 export const AccountWrap = styled.div`
   display: flex;
   align-items: center;
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     display: none;
   }
 `;
@@ -208,8 +208,26 @@ export const StyledFooter = styled(Layout.Footer)`
 `;
 
 export const StyledSider = styled(Sider)`
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     display: none;
+  }
+
+  @media (min-width: 1200px) and (max-width: 1365px) {
+    &:not(.ant-layout-sider-collapsed) {
+      width: 250px !important;
+      min-width: 250px !important;
+      max-width: 250px !important;
+      flex: 0 0 250px !important;
+    }
+  }
+
+  @media (min-width: 1366px) and (max-width: 1750px) {
+    &:not(.ant-layout-sider-collapsed) {
+      width: 260px !important;
+      min-width: 260px !important;
+      max-width: 260px !important;
+      flex: 0 0 260px !important;
+    }
   }
 `;
 
@@ -224,7 +242,7 @@ export const StyledHeaderMobile = styled.div`
     border: none !important;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -375,7 +393,7 @@ export const WrapSubHeader = styled.div`
   @media (max-width: 1270px) {
     display: block;
   }
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     display: none;
   }
 `;

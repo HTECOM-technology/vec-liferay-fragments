@@ -215,7 +215,22 @@
   padding: 10px;
   background-color: #ffffff;
   scrollbar-width: thin;
+}
 
+@media (max-width: 768px) {
+  .traffic-camera-inner-div {
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .traffic-camera-monitor__camera-card-label {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+  }
 }
 
 .traffic-camera-monitor__grid {
@@ -234,7 +249,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1199px) {
   .traffic-camera-monitor__grid {
     grid-template-columns: repeat(2, 1fr);
 
@@ -486,7 +501,7 @@
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1199px) {
 
 
   .traffic-camera-monitor__header {
@@ -524,7 +539,7 @@
 
   .traffic-camera-monitor__camera-card-label {
     font-size: 13px;
-    padding: 6px 12px;
+    padding: 4px 12px;
   }
 
   .traffic-camera-monitor__camera-card-play-button {

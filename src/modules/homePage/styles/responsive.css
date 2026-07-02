@@ -1,3 +1,62 @@
+/* ── Dashboard grid responsive (1200–1365px) ──────────────────── */
+@media screen and (min-width: 1200px) and (max-width: 1365px) {
+    .dashboard-upper-cards.column-area-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+}
+
+/* ── Dashboard grid responsive (≤ 1199px) ─────────────────────── */
+@media screen and (max-width: 1199px) {
+    .dashboard-upper-cards,
+    .dashboard-upper-cards.column-area-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .dashboard-upper-cards.bottom-area {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Xoá span nhiều cột — mỗi card chiếm 1 cột */
+    .grid-col-span-2,
+    .grid-col-span-3 {
+        grid-column: span 1 !important;
+    }
+
+    /* Tắt drag handle vì tính năng bị ẩn */
+    .drag-handle-bar {
+        display: none !important;
+    }
+
+    /* Bỏ padding thừa của container */
+    .container-fluid > .dashboard {
+        padding: 0;
+    }
+
+    /* Quick-links: 2×2 grid thay vì 1 cột dọc */
+    .quick-links-card-group {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .quick-links-card-group .doc-single-card {
+        margin-bottom: 0 !important;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .dashboard-upper-cards,
+    .dashboard-upper-cards.column-area-4,
+    .dashboard-upper-cards.bottom-area {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+}
+
+/* ── Giữ nguyên rules cũ ─────────────────────────────────────── */
 @media screen and (max-width:1299px) {
     .news-date-div {
         flex-direction: column;
@@ -31,10 +90,7 @@
     }
 }
 @media  (min-width: 992px) and (max-width: 1099px) {
-    
-  .news-list {
-    grid-template-columns: repeat(1, 1fr);
-  }
+
   .bottom-area .col-lg-8 {
             max-width: calc(7 / 12 * 100%) !important;
   }
@@ -42,24 +98,15 @@
                     flex: 0 0 calc(5 / 12 * 100%) !important;
         max-width: calc(5 / 12 * 100%) !important;
   }
-      .dashboard-upper-cards {
-        width: calc(100vw - 350px) !important;
-    }
 
 }
 @media screen and (max-width:1199px) {
     .vec-sidebar {
         width: 250px;
     }
-    .dashboard-upper-cards {
-        width: calc(100vw - 340px);
-    }
 }
 
 @media screen and (max-width:992px) {
-        .dashboard-upper-cards {
-        width: calc(100vw - 350px);
-    }
     .vec-sidebar {
     width: 240px;
     }
@@ -80,9 +127,6 @@
     }
 }
 @media screen and (max-width:992px) {
-        .dashboard-upper-cards {
-        width: calc( 100vw - 350px);
-    }
    .vec-sidebar{
     position: absolute;
     width: 100%;    
@@ -176,12 +220,33 @@ padding-top: 0;
 }
 
 @media screen and (max-width:768px){
+    .doc-card-body .col-3 {
+        width: 50% !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+
     .extra-load-btn {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding-bottom: 15px;
-        margin-top: 15px;
+        padding: 16px 0;
+        margin-top: 8px;
+        width: 100%;
+    }
+
+    .extra-load-btn .load {
+        display: flex;
+        justify-content: center;
+    }
+
+    .extra-load-btn .load-button {
+        padding: 10px 32px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        border-radius: 8px;
     }
         .traffic-camera-monitor__grid {
         grid-template-columns: repeat(3, 1fr) !important;
@@ -203,9 +268,6 @@ padding-top: 0;
     }
     .traffic-camera-monitor__grid {
         padding: 0;
-    }
-    .news-list{
-            grid-template-columns: repeat(1, 1fr);
     }
     .main-content > .container-fluid
     {

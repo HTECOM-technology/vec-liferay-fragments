@@ -66,7 +66,7 @@ export const InfoGrid = styled.div`
   grid-template-columns: 1fr 1fr;
   gap: 0;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     grid-template-columns: 1fr;
   }
 

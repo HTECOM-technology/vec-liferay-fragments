@@ -47,7 +47,7 @@
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 1199px) {
 
    .news-tabs-wrapper{
       display: grid;

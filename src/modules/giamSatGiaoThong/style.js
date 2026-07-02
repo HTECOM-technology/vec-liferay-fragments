@@ -9,7 +9,7 @@ export const Container = styled.div`
   align-items: flex-start;
   padding: 20px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 8px;
   }
 `;
@@ -19,7 +19,7 @@ export const TabSelect = styled.div`
   padding: 10px 15px;
   gap: 3px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 8px;
   }
 `;
@@ -35,7 +35,7 @@ export const TabContainer = styled.div`
     max-width: 1200px;
   }
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1199px) {
     max-width: 100vw;
     border-radius: 0;
   }
@@ -50,7 +50,7 @@ export const Header = styled.div`
   border-bottom: 1px solid #e4e4e4;
   background: white;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1199px) {
     flex-direction: column;
     gap: 12px;
     padding: 12px 16px;
@@ -64,7 +64,7 @@ export const Title = styled.h2`
   color: #1e1e1e;
   white-space: nowrap;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     font-size: 15px;
     white-space: normal;
   }
@@ -75,16 +75,13 @@ export const Filters = styled.div`
   gap: 12px;
   align-items: center;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1199px) {
     width: 100%;
     flex-wrap: wrap;
-  }
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-
-    > * {
-      width: 100% !important;
+    > *:not(button):not([role="button"]) {
+      flex: 1;
+      min-width: 0;
     }
   }
 `;
@@ -96,13 +93,13 @@ export const ContentTable = styled.div`
   height: calc(100vh - 180px);
   padding: 16px;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1199px) {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
     height: auto;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 8px;
     gap: 8px;
   }
@@ -116,7 +113,7 @@ export const MapContainer = styled.div`
   min-height: 500px;
   height: 100%;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     min-height: 280px;
   }
 `;
@@ -144,7 +141,7 @@ export const DetailImage = styled.img`
   margin-bottom: 12px;
   object-fit: cover;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     height: 110px;
     min-height: 110px;
   }
@@ -249,7 +246,7 @@ export const Tab = styled.button`
   justify-content: center;
   gap: 8px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex: 1;
     font-size: 13px;
   }
@@ -270,7 +267,7 @@ export const ViolationList = styled.div`
   max-height: calc(100vh - 480px);
   overflow-y: auto;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1199px) {
     max-height: 320px;
   }
 
@@ -366,7 +363,7 @@ export const CameraContent = styled.div`
   padding: 10px;
   overflow-y: auto;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1199px) {
     max-height: 320px;
   }
 

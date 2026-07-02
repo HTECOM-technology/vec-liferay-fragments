@@ -4,7 +4,7 @@ import { Button, Form, Row } from "antd";
 export const PageWrap = styled.div`
   padding: 0;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     .register-button {
       display: none;
     }
@@ -44,7 +44,7 @@ export const FilterRow = styled(Row)`
   align-items: center;
   margin-bottom: ${(p) => (p.$last ? 0 : "12px")};
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     display: none;
   }
 `;
@@ -58,7 +58,7 @@ export const FilterButton = styled(Button)`
   border: none !important;
   padding: 0;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1199px) {
     display: block;
   }
 `;
