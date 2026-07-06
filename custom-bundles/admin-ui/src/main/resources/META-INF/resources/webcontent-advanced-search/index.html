@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tìm kiếm nâng cao Web Content</title>
+</head>
+<body>
+<div class="was-root">
+
+    <div class="was-topbar">
+        <div class="was-topbar-left">
+            <p class="was-eyebrow">Quản trị Bài viết</p>
+            <h1 class="was-title">Tìm kiếm nâng cao</h1>
+        </div>
+        <a id="backLink" class="was-btn was-btn--ghost" href="#" rel="noopener noreferrer">← Quay lại</a>
+    </div>
+
+    <div class="was-card was-filter-card">
+        <form id="searchForm" class="was-form">
+            <div class="was-form-grid">
+
+                <div class="was-field">
+                    <label class="was-label" for="keyword">Từ khóa</label>
+                    <input class="was-input" id="keyword" name="keyword" type="text" placeholder="Tìm theo tiêu đề, articleId, URL thân thiện...">
+                </div>
+
+                <div class="was-field">
+                    <label class="was-label" for="userId-input">Người dùng</label>
+                    <div class="was-ss-wrap">
+                        <input class="was-input" id="userId-input" type="text" placeholder="Tất cả người dùng" autocomplete="off">
+                        <input id="userId" name="userId" type="hidden">
+                        <ul class="was-ss-list hidden" id="userId-list"></ul>
+                    </div>
+                </div>
+
+                <div class="was-field">
+                    <label class="was-label" for="sortField">Sắp xếp theo</label>
+                    <select class="was-input" id="sortField" name="sortField">
+                        <option value="modifiedDate">Ngày sửa đổi</option>
+                        <option value="createDate">Ngày tạo</option>
+                        <option value="displayDate">Ngày hiển thị</option>
+                        <option value="title">Tiêu đề</option>
+                        <option value="status">Trạng thái</option>
+                        <option value="userName">Tên tác giả</option>
+                    </select>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="sortOrder">Loại sắp xếp</label>
+                    <select class="was-input" id="sortOrder" name="sortOrder">
+                        <option value="desc">Giảm dần</option>
+                        <option value="asc">Tăng dần</option>
+                    </select>
+                </div>
+
+                <div class="was-field">
+                    <label class="was-label" for="groupId">Site / Mã nhóm</label>
+                    <input class="was-input" id="groupId" name="groupId" type="number" min="0" step="1" placeholder="VD: 20117" readonly>
+                    <span class="was-field-info" id="groupId-info"></span>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="folderId">Thư mục</label>
+                    <input class="was-input" id="folderId" name="folderId" type="number" min="0" step="1" placeholder="Tất cả" readonly>
+                    <span class="was-field-info" id="folderId-info"></span>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="status">Trạng thái</label>
+                    <select class="was-input" id="status" name="status">
+                        <option value="-1">Tất cả</option>
+                        <option value="0">Đã duyệt</option>
+                        <option value="1">Từ chối</option>
+                        <option value="2">Bản nháp</option>
+                        <option value="3">Hết hạn</option>
+                        <option value="4">Chờ duyệt</option>
+                        <option value="5">Lên lịch</option>
+                        <option value="6">Chưa hoàn tất</option>
+                        <option value="7">Thùng rác</option>
+                        <option value="8">Trong thùng rác</option>
+                    </select>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="structureId">Mã cấu trúc</label>
+                    <input class="was-input" id="structureId" name="structureId" type="number" min="0" step="1" placeholder="Nếu cần lọc">
+                </div>
+
+                <div class="was-field">
+                    <label class="was-label" for="dateField">Trường ngày lọc</label>
+                    <select class="was-input" id="dateField" name="dateField">
+                        <option value="modifiedDate">Ngày sửa đổi</option>
+                        <option value="createDate">Ngày tạo</option>
+                        <option value="displayDate">Ngày hiển thị</option>
+                    </select>
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="fromDate">Từ ngày</label>
+                    <input class="was-input" id="fromDate" name="fromDate" type="date">
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="toDate">Đến ngày</label>
+                    <input class="was-input" id="toDate" name="toDate" type="date">
+                </div>
+                <div class="was-field">
+                    <label class="was-label" for="pageSize">Dòng / trang</label>
+                    <select class="was-input" id="pageSize" name="pageSize">
+                        <option value="20">20</option>
+                        <option value="10">10</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+
+            </div>
+
+            <div class="was-form-footer">
+                <p id="formMessage" class="was-error-text" role="alert"></p>
+                <div class="was-form-actions">
+                    <button type="button" id="resetButton" class="was-btn was-btn--ghost">Đặt lại</button>
+                    <button type="submit" class="was-btn was-btn--primary">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="was-card was-results-card">
+        <div class="was-results-header">
+            <div>
+                <p class="was-eyebrow">Kết quả tra cứu Bài viết</p>
+                <p id="resultSummary" class="was-result-summary">Chưa tải dữ liệu.</p>
+            </div>
+            <div id="loadingState" class="was-spinner hidden">
+                <span class="was-spinner-dot"></span>
+                Đang tải...
+            </div>
+        </div>
+
+        <div id="errorState" class="was-alert hidden"></div>
+
+        <div class="was-table-wrap">
+            <table class="was-table">
+                <thead>
+                    <tr>
+                        <th>Tiêu đề</th>
+                        <th>Mã bài viết</th>
+                        <th>Phiên bản</th>
+                        <th>Trạng thái</th>
+                        <th>Tác giả</th>
+                        <th>Ngày tạo</th>
+                        <th>Ngày sửa đổi</th>
+                        <th>Ngày hiển thị</th>
+                        <th>Thư mục</th>
+                    </tr>
+                </thead>
+                <tbody id="resultTableBody">
+                    <tr>
+                        <td colspan="9" class="was-empty-cell">Chưa có dữ liệu.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="was-pagination-bar">
+            <p id="paginationMeta" class="was-pagination-meta"></p>
+            <div id="pagination" class="was-pagination"></div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>

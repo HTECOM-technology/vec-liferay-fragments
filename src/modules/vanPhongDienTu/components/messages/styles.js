@@ -26,7 +26,7 @@ export const MailboxItem = styled.div`
     font-size: 14px;
   }
   
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: calc(50% - 4px);
     flex: 0 0 calc(50% - 4px);
     height: 36px;

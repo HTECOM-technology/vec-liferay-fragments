@@ -1,0 +1,260 @@
+/* =============================
+   NEWS LIST trang chủ
+============================= */
+
+.news-list {
+   display: flex;
+   flex-wrap: wrap;
+   /* flex-direction: column; */
+   gap: 16px;
+
+   height: auto;
+   overflow: visible;
+}
+
+.news-item {
+   display: flex;
+   gap: 20px;
+   padding: 16px 0;
+   border-bottom: 1px solid #eee;
+   cursor: pointer;
+
+   align-items: stretch;
+   /* min-height: 160px; */
+}
+
+.news-item:hover {
+   background: #fafafa;
+}
+
+.news-left {
+   flex: 1;
+   min-width: 0;
+}
+
+.news-title {
+   font-size: 16px;
+   font-weight: 600;
+   line-height: 1.4;
+   transition: color .25s ease;
+   margin: 0;
+
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.news-item:hover .news-title {
+   color: #0090CF;
+}
+
+.news-desc {
+   font-size: 14px;
+   color: #555;
+   margin-top: 6px;
+
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.news-meta {
+   margin-top: 8px;
+   display: flex;
+   gap: 6px;
+   align-items: center;
+}
+
+.news-category {
+   color: #e53935;
+   font-weight: 500;
+   font-size: 13px;
+}
+
+.news-dot {
+   width: 4px;
+   height: 4px;
+   background: #888;
+   border-radius: 50%;
+}
+
+.news-date {
+   font-size: 13px;
+   color: #888;
+}
+
+.news-image {
+   width: 220px;
+   flex-shrink: 0;
+}
+
+.news-image img {
+   width: 100%;
+   height: 140px;
+   object-fit: cover;
+   border-radius: 6px;
+   display: block;
+}
+
+
+
+/* =============================
+   NEWS LIST tin tức sự kiện
+============================= */
+
+.news-list.ttsk {
+   display: flex;
+   flex-direction: column;
+   gap: 16px;
+   width: 100%;
+   height: auto;
+   overflow: visible;
+}
+
+.news-item.ttsk {
+   display: flex;
+   gap: 20px;
+   padding: 16px 0;
+   border-bottom: 1px solid #eee;
+   cursor: pointer;
+
+   align-items: stretch;
+   width: 100%;
+   /* min-height: 160px; */
+}
+
+.news-item.ttsk:hover {
+   background: #fafafa;
+}
+
+.news-left.ttsk {
+   flex: 1;
+   min-width: 0;
+}
+
+.news-title.ttsk {
+   font-size: 20px;
+   font-weight: 600;
+   line-height: 1.4;
+   transition: color .25s ease;
+   margin: 0;
+   color: #000000;
+
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.news-item.ttsk:hover .news-title.ttsk {
+   color: #0090CF;
+}
+
+.news-desc.ttsk {
+   font-size: 15px;
+   color: #555;
+   margin-top: 6px;
+
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+.news-meta.ttsk {
+   margin-top: 8px;
+   display: flex;
+   gap: 6px;
+   align-items: center;
+}
+
+.news-category.ttsk {
+   color: #D71920;
+   font-weight: 500;
+   font-size: 15px;
+}
+
+.news-dot.ttsk {
+   width: 6px;
+   height: 6px;
+   background: #888;
+   border-radius: 50%;
+}
+
+.news-date.ttsk {
+   font-size: 15px;
+   color: #888;
+}
+
+.news-image.ttsk {
+   width: 220px;
+   flex-shrink: 0;
+   overflow: hidden;
+}
+
+.news-image.ttsk img {
+   width: 100%;
+   min-width: 0;
+   height: 140px;
+   object-fit: cover;
+   border-radius: 6px;
+   display: block;
+}
+
+@media (max-width: 1199px) {
+    .news-item.ttsk {
+        gap: 12px;
+        padding: 12px 0;
+    }
+
+    .news-title.ttsk {
+        font-size: 15px;
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .news-desc.ttsk {
+        display: none;
+    }
+
+    .news-category.ttsk,
+    .news-date.ttsk {
+        font-size: 12px;
+    }
+
+    .news-dot.ttsk {
+        width: 4px;
+        height: 4px;
+    }
+
+    .news-image.ttsk {
+        flex: 0 0 32%;
+        width: 32%;
+        max-width: 140px;
+    }
+
+    .news-image.ttsk img {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+    }
+}
+
+@media (max-width: 480px) {
+    .news-title.ttsk {
+        font-size: 14px;
+    }
+
+    .news-image.ttsk {
+        flex: 0 0 30%;
+        width: 30%;
+        max-width: 110px;
+    }
+}

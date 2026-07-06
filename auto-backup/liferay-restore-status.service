@@ -1,0 +1,16 @@
+# /etc/systemd/system/liferay-restore-status.service
+
+[Unit]
+Description=Liferay Restore Status Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vec-backup
+ExecStart=/bin/bash /opt/vec-backup/script.sh status-server
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

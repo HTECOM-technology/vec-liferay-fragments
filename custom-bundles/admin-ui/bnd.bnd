@@ -1,0 +1,23 @@
+Bundle-Name: VEC Custom Admin UI
+Bundle-SymbolicName: vn.vec.custom.admin.ui
+Bundle-Version: 1.0.1
+Bundle-Vendor: Vietnam Expressway Corporation (VEC)
+Bundle-DocURL: https://www.expressway.com.vn/
+Web-ContextPath: /vec-custom-admin-ui
+
+-dsannotations-options: inherit
+
+Import-Package: \
+    com.liferay.fragment.model;version="0.0.0",\
+    com.liferay.fragment.service;version="0.0.0",\
+    com.liferay.dynamic.data.mapping.model;version="0.0.0",\
+    com.liferay.dynamic.data.mapping.service;version="0.0.0",\
+    com.liferay.journal.model;version="0.0.0",\
+    com.liferay.journal.service;version="0.0.0",\
+    com.liferay.portal.configuration.persistence.listener;version="0.0.0",\
+    javax.portlet;version="0.0.0",\
+    javax.servlet.*;version="0.0.0",\
+    javax.ws.rs.*;version="0.0.0",\
+    *
+
+-contract: !JavaServlet

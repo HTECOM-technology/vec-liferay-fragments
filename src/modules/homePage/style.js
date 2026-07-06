@@ -212,3 +212,27 @@ export const QuickLinkCard = styled.div`
     color: rgba(0, 144, 207, 1);
   }
 `;
+
+export const DragBtnWrap = styled.div`
+  display: flex;
+  justify-content: flex-end;
+
+  @media (max-width: 1199px) {
+    display: none;
+  }
+`;
+
+export const BtnChangeDragOverlay = styled.button`
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: none;
+  outline: none;
+  background: #0090CF;
+  color: #fff;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(0, 144, 207, 0.8);
+  }
+`;

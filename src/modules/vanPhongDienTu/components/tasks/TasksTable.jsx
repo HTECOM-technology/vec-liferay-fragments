@@ -18,16 +18,23 @@ function TasksTable({ dataSource = mockTasksData, onTaskClick }) {
         width: isMobile ? undefined : 350,
         render: (text, record) => (
           <div>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
+            <button
+              type="button"
+              onClick={() => {
                 onTaskClick?.(record);
               }}
-              style={{ color: "#1890ff", textDecoration: "none" }}
+              style={{
+                color: "#1890ff",
+                textDecoration: "none",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left",
+              }}
             >
               {text}
-            </a>
+            </button>
             {isMobile && record.trangThai && (
               <div style={{ marginTop: 4 }}>
                 <CTag color={TASK_STATUS_MAP[record.trangThai]?.color}>

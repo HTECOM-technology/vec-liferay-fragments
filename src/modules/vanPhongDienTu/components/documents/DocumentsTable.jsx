@@ -17,10 +17,9 @@ function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
         key: "trichYeu",
         render: (text, record) => (
           <div style={{ wordBreak: "break-word" }}>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
+            <button
+              type="button"
+              onClick={() => {
                 onDocumentClick?.(record);
               }}
               style={{
@@ -29,10 +28,15 @@ function DocumentsTable({ dataSource = mockDocumentsData, onDocumentClick }) {
                 fontSize: isMobile ? 13 : 14,
                 display: "block",
                 marginBottom: 4,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                textAlign: "left",
               }}
             >
               {text}
-            </a>
+            </button>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
               {isMobile && record.soHieu && (
                 <span style={{ fontSize: 12, color: "#666" }}>

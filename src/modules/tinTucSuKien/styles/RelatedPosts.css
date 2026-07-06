@@ -1,0 +1,147 @@
+/* ===== RELATED SECTION ===== */
+
+.related-section {
+    margin-top: 40px;
+}
+
+/* header */
+
+.related-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.related-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* gạch kéo dài */
+
+.related-line {
+    width: 100%;
+    height: 1px;
+    background: #e0e0e0;
+    margin-top: 8px;
+}
+
+/* grid */
+
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+}
+
+/* card */
+
+.related-card {
+    cursor: pointer;
+}
+
+.related-card-image {
+    width: 100%;
+    height: 140px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.related-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* title */
+
+.related-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin-bottom: 6px;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* meta */
+
+.related-card-meta {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.related-card-category {
+    color: #e63946;
+    font-weight: 600;
+}
+
+.related-card-dot {
+    margin: 0 6px;
+    color: #999;
+}
+
+.related-card-date {
+    color: #888;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width:1199px) {
+
+    .related-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+}
+
+/* =========================
+   MOBILE SLIDER
+========================= */
+
+@media (max-width:1199px) {
+
+    /* chuyển grid sang slider */
+
+    .related-grid {
+        display: flex;
+        overflow-x: auto;
+        gap: 16px;
+
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+
+        grid-template-columns: none;
+    }
+
+    /* ẩn scrollbar */
+
+    .related-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* mỗi card full width */
+
+    .related-card {
+        min-width: 75%;
+        scroll-snap-align: start;
+    }
+
+    /* ảnh to hơn cho mobile */
+
+    .related-card-image {
+        height: 180px;
+    }
+
+}

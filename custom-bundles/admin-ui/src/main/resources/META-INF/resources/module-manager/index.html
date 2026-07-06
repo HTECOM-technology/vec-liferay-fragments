@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEC Quản lý module hệ thống</title>
+</head>
+<body>
+    <main class="module-shell">
+        <header class="module-header">
+            <div>
+                <p class="eyebrow">VEC Admin</p>
+                <h1>Quản lý module hệ thống</h1>
+                <p class="subtle">
+                    Theo dõi OSGi bundle đang được Liferay sử dụng và bật/tắt khi cần vận hành.
+                </p>
+            </div>
+            <button id="reloadButton" type="button" class="primary">Tải lại</button>
+        </header>
+
+        <section class="warning-panel">
+            <strong>Cảnh báo:</strong>
+            Tắt module có thể ảnh hưởng nghiêm trọng tới module khác và làm gián đoạn chức năng hệ thống.
+        </section>
+
+        <section class="panel filters-panel">
+            <form id="filterForm" class="filters-grid">
+                <label>
+                    <span>Tên module</span>
+                    <input id="nameFilter" type="text" placeholder="Ví dụ: Journal, Fragment, VEC">
+                </label>
+                <label>
+                    <span>Mã module</span>
+                    <input id="codeFilter" type="text" placeholder="symbolic name hoặc bundle id">
+                </label>
+                <label>
+                    <span>Trạng thái</span>
+                    <select id="stateFilter">
+                        <option value="">Tất cả</option>
+                        <option value="ACTIVE">Đang bật</option>
+                        <option value="RESOLVED">Đã tắt / resolved</option>
+                        <option value="INSTALLED">Installed</option>
+                        <option value="STARTING">Starting</option>
+                        <option value="STOPPING">Stopping</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Loại</span>
+                    <select id="typeFilter">
+                        <option value="">Tất cả</option>
+                        <option value="bundle">Bundle thường</option>
+                        <option value="fragment">Fragment</option>
+                        <option value="current">Admin UI hiện tại</option>
+                    </select>
+                </label>
+                <div class="filter-actions">
+                    <button type="submit" class="primary">Lọc</button>
+                    <button type="button" id="resetFilters">Đặt lại</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel list-panel">
+            <div class="table-meta">
+                <div id="summary">Đang tải...</div>
+                <div class="legend">
+                    <span><i class="dot dot-on"></i>Đang bật</span>
+                    <span><i class="dot dot-off"></i>Không active</span>
+                </div>
+            </div>
+
+            <div class="table-wrap table-scrollable-horizotal">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th class="module-name-column">Tên module</th>
+                            <th>Mã module</th>
+                            <th>Version</th>
+                            <th>Trạng thái</th>
+                            <th>Start level</th>
+                            <th>Loại</th>
+                            <th>Vendor</th>
+                            <th>Category</th>
+                            <th>Registered services</th>
+                            <th>Services in use</th>
+                            <th>Last modified</th>
+                            <th>Location</th>
+                            <th class="module-actions-column">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="moduleTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="detailModal" class="vec-modal hidden" aria-hidden="true">
+        <div class="vec-modal-backdrop" data-close-modal="true"></div>
+        <section class="vec-modal-card">
+            <header class="vec-modal-header">
+                <div>
+                    <p class="eyebrow">Chi tiết module</p>
+                    <h2 id="detailTitle">Module</h2>
+                </div>
+                <button id="closeDetailModal" type="button">Đóng</button>
+            </header>
+            <div id="detailMeta" class="detail-meta"></div>
+            <article class="detail-card">
+                <h3>Headers quan trọng</h3>
+                <pre id="detailHeaders"></pre>
+            </article>
+            <article class="detail-card">
+                <h3>Registered services</h3>
+                <pre id="detailRegisteredServices"></pre>
+            </article>
+            <article class="detail-card">
+                <h3>Services in use</h3>
+                <pre id="detailServicesInUse"></pre>
+            </article>
+        </section>
+    </div>
+
+    <div id="confirmModal" class="vec-modal hidden" aria-hidden="true">
+        <div class="vec-modal-backdrop" data-close-confirm="true"></div>
+        <section class="vec-modal-card confirm-card">
+            <header class="vec-modal-header">
+                <div>
+                    <p class="eyebrow">Xác nhận thao tác</p>
+                    <h2 id="confirmTitle">Tắt module</h2>
+                </div>
+                <button id="closeConfirmModal" type="button">Đóng</button>
+            </header>
+            <div class="danger-box">
+                <strong>Cảnh báo:</strong>
+                ảnh hưởng nghiêm trọng tới module khác.
+            </div>
+            <p id="confirmMessage" class="confirm-message"></p>
+            <label>
+                <span>Nhập CONFIRM để tiếp tục</span>
+                <input id="confirmInput" type="text" autocomplete="off">
+            </label>
+            <div id="confirmError" class="message error hidden"></div>
+            <div class="modal-actions">
+                <button id="cancelConfirm" type="button">Hủy</button>
+                <button id="submitConfirm" type="button" class="danger">Xác nhận</button>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+</body>
+</html>

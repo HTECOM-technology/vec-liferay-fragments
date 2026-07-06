@@ -61,6 +61,30 @@ export const MobileDateRangeGlobalStyle = createGlobalStyle`
 
 export const PageWrap = styled.div`
   padding: 0;
+
+  @media (max-width: 1199px) {
+    .ant-tabs-nav {
+      .ant-tabs-nav-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        &::-webkit-scrollbar { display: none; }
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        .ant-tabs-nav-list {
+          flex-wrap: nowrap;
+          padding-right: 20px;
+          .ant-tabs-tab {
+            flex-shrink: 0;
+            white-space: nowrap;
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: fit-content;
+          }
+        }
+      }
+    }
+    .ant-tabs-content-holder { overflow-x: hidden; }
+  }
 `;
 
 export const FilterSection = styled.div`

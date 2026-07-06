@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Space, Grid } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import {
   CInput,
   CSelect,
@@ -10,7 +10,6 @@ import {
 } from "../../../../components/common";
 import { FilterSection, MobileFilterButton } from "../../style";
 import { TITLE_OPTIONS, SENDER_OPTIONS } from "./constants";
-import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
 
 const { useBreakpoint } = Grid;
 
@@ -105,9 +104,7 @@ function MessagesFilter({ initialValues, onSearch }) {
     </Space>
   );
 
-  const filterIcon = (
-    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
-  );
+  const filterIcon = <FilterOutlined style={{ fontSize: 18, color: "#0090CF" }} />;
 
   const filterModal = (
     <CModal

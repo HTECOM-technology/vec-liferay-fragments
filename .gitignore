@@ -25,8 +25,8 @@ liferay-test/.cache/
 # =========================
 # Environment
 # =========================
-.env
-.env.*
+.env*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -43,3 +43,7 @@ liferay-test/.cache/
 # =========================
 debug.log
 /liferay-build
+
+liferay-fragments.zip
+custom-bundles/.env
+.claude/

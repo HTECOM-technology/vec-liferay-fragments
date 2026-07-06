@@ -11,4 +11,3 @@ export { default as EmployeeDetailModal } from "./employeesTab/EmployeeDetailMod
 export { default as SalaryTab } from "./SalaryTab";
 export { default as DaoTaoPage } from "./daoTao";
 export { default as ChamCongPage } from "./chamCong";
-export * from "./employeesTab/nhanSuConstants";

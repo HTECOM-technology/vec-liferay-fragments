@@ -1,13 +1,35 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Alert, message } from "antd";
+import dayjs from "dayjs";
 import NhanSuFilter from "./NhanSuFilter";
 import NhanSuTable from "./NhanSuTable";
 import BirthdayTable from "./BirthdayTable";
 import EmployeeDetailModal from "./EmployeeDetailModal";
 import { FilterTagsContainer, FilterTag } from "./styleNhanSu";
-import { mockNhanSuData } from "./nhanSuConstants";
 import SoDoToChuc from "./SoDoToChuc";
+import { ttnsService } from "../../../../services/ttnsService";
+import {
+  buildSelectOptions,
+  buildSelectOptionsFromEmployees,
+  mapEmployeeRecord,
+  matchesEmployeeFilters,
+} from "./employeeData";
 
 const DEFAULT_PAGE_SIZE = 16;
+const GENDER_OPTIONS = [
+  { value: "", label: "Giới tính" },
+  { value: "1", label: "Nam" },
+  { value: "2", label: "Nữ" },
+];
+const WORK_STATUS_OPTIONS = [
+  { value: "", label: "Tình trạng" },
+  { value: "LV", label: "Đang làm việc" },
+  { value: "NV", label: "Đã nghỉ việc" },
+  { value: "CTV", label: "Cộng tác viên" },
+  { value: "NH", label: "Nghỉ hưu" },
+  { value: "TV", label: "Thử việc" },
+  { value: "TS", label: "Thai sản" },
+];
 
 // Icons
 const GridIcon = () => (
@@ -99,17 +121,36 @@ const CakeIcon = () => (
 );
 
 const FILTER_TAGS = [
-  { key: "all", label: "Tất cả", icon: GridIcon },
   { key: "organization", label: "Sơ đồ tổ chức", icon: OrgIcon },
+  { key: "all", label: "Danh bạ", icon: GridIcon },
   { key: "birthday", label: "Sinh nhật", icon: CakeIcon },
 ];
 
+function getNextBirthdayDate(employee, referenceDate) {
+  if (!employee.ngaySinhMonth || !employee.ngaySinhDay) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  let nextBirthday = dayjs(new Date(referenceDate.year(), employee.ngaySinhMonth - 1, employee.ngaySinhDay));
+
+  if (nextBirthday.isBefore(referenceDate.startOf("day"))) {
+    nextBirthday = nextBirthday.add(1, "year");
+  }
+
+  return nextBirthday.valueOf();
+}
+
 function NhanSuTab() {
-  const [dataSource] = useState(mockNhanSuData);
+  const [employees, setEmployees] = useState([]);
+  const [birthdayEmployees, setBirthdayEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [positions, setPositions] = useState([]);
+  const [employeesTotal, setEmployeesTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [activeTag, setActiveTag] = useState("all");
+  const [activeTag, setActiveTag] = useState("organization");
   const [selectedMonth, setSelectedMonth] = useState(1);
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [filters, setFilters] = useState({
     search: "",
     chucVu: "",
@@ -118,36 +159,281 @@ function NhanSuTab() {
     gioiTinh: "",
     tinhTrang: "",
   });
-  const [loading] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState({
+    chucVu: "",
+    phongBan: "",
+    donVi: "",
+    gioiTinh: "",
+    tinhTrang: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [birthdayLoading, setBirthdayLoading] = useState(false);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Tính toán data hiển thị theo trang
-  const paginatedData = dataSource.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const hasAdvancedFilters = useMemo(() => {
+    return Boolean(appliedFilters.chucVu || appliedFilters.phongBan || appliedFilters.donVi || appliedFilters.gioiTinh || appliedFilters.tinhTrang);
+  }, [appliedFilters.chucVu, appliedFilters.donVi, appliedFilters.gioiTinh, appliedFilters.phongBan, appliedFilters.tinhTrang]);
 
-  // Lọc dữ liệu sinh nhật theo tháng
-  const birthdayData = useMemo(() => {
-    return dataSource.filter((item) => {
-      // Định dạng ngaySinh: "DD/MM/YYYY"
-      const parts = item.ngaySinh.split("/");
-      if (parts.length >= 2) {
-        const month = parseInt(parts[1], 10);
-        return month === selectedMonth;
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLookupData = async () => {
+      setLookupLoading(true);
+
+      try {
+        const [departmentsData, positionsData] = await Promise.all([
+          ttnsService.getDepartments(),
+          ttnsService.getPositions(),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setDepartments(departmentsData);
+        setPositions(positionsData);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        message.error("Không thể tải danh mục phòng ban hoặc chức vụ từ API TTNS");
+      } finally {
+        if (isMounted) {
+          setLookupLoading(false);
+        }
       }
-      return false;
-    });
-  }, [dataSource, selectedMonth]);
+    };
+
+    loadLookupData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (hasAdvancedFilters) {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadEmployeesPage = async () => {
+      setLoading(true);
+      setErrorMessage("");
+
+      try {
+        const response = await ttnsService.getEmployees({
+          q: appliedSearch.trim(),
+          page: currentPage,
+          pageSize,
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setEmployees((response?.items || []).map(mapEmployeeRecord));
+        setEmployeesTotal(Number(response?.total) || 0);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const nextErrorMessage = ttnsService.getErrorMessage(error);
+        setEmployees([]);
+        setEmployeesTotal(0);
+        setErrorMessage(nextErrorMessage);
+        message.error("Không thể tải dữ liệu nhân sự từ API TTNS");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadEmployeesPage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [appliedSearch, currentPage, hasAdvancedFilters, pageSize]);
+
+  useEffect(() => {
+    if (!hasAdvancedFilters || activeTag !== "all") {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadAllEmployees = async () => {
+      setLoading(true);
+      setErrorMessage("");
+
+      try {
+        const items = await ttnsService.getAllEmployees({ q: appliedSearch.trim() });
+
+        if (!isMounted) {
+          return;
+        }
+
+        const mappedEmployees = items.map(mapEmployeeRecord);
+        setEmployees(mappedEmployees);
+        setEmployeesTotal(mappedEmployees.length);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const nextErrorMessage = ttnsService.getErrorMessage(error);
+        setEmployees([]);
+        setEmployeesTotal(0);
+        setErrorMessage(nextErrorMessage);
+        message.error("Không thể tải dữ liệu nhân sự từ API TTNS");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadAllEmployees();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTag, appliedSearch, hasAdvancedFilters]);
+
+  useEffect(() => {
+    if (activeTag !== "birthday") {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadBirthdayEmployees = async () => {
+      setBirthdayLoading(true);
+      setErrorMessage("");
+
+      try {
+        const items = await ttnsService.getAllEmployees();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setBirthdayEmployees(items.map(mapEmployeeRecord));
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const nextErrorMessage = ttnsService.getErrorMessage(error);
+        setBirthdayEmployees([]);
+        setErrorMessage(nextErrorMessage);
+        message.error("Không thể tải dữ liệu sinh nhật từ API TTNS");
+      } finally {
+        if (isMounted) {
+          setBirthdayLoading(false);
+        }
+      }
+    };
+
+    loadBirthdayEmployees();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTag]);
+
+  const filteredData = useMemo(() => {
+    return employees.filter((employee) => matchesEmployeeFilters(employee, appliedFilters));
+  }, [appliedFilters, employees]);
+
+  const paginatedData = useMemo(() => {
+    if (!hasAdvancedFilters) {
+      return filteredData;
+    }
+
+    return filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  }, [currentPage, filteredData, hasAdvancedFilters, pageSize]);
+
+  const birthdayData = useMemo(() => {
+    const referenceDate = dayjs();
+
+    return birthdayEmployees
+      .filter((item) => item.ngaySinhMonth === selectedMonth)
+      .sort((a, b) => {
+        const nextBirthdayA = getNextBirthdayDate(a, referenceDate);
+        const nextBirthdayB = getNextBirthdayDate(b, referenceDate);
+
+        if (nextBirthdayA !== nextBirthdayB) {
+          return nextBirthdayA - nextBirthdayB;
+        }
+
+        if ((a.ngaySinhDay || 0) !== (b.ngaySinhDay || 0)) {
+          return (a.ngaySinhDay || 0) - (b.ngaySinhDay || 0);
+        }
+
+        return a.hoTen.localeCompare(b.hoTen, "vi");
+      });
+  }, [birthdayEmployees, selectedMonth]);
+
+  const filterOptions = useMemo(() => {
+    const fallbackDepartmentOptions = buildSelectOptionsFromEmployees(
+      hasAdvancedFilters ? employees : birthdayEmployees,
+      "phongBanValue",
+      "phongBan",
+      "Phòng ban"
+    );
+    const fallbackPositionOptions = buildSelectOptionsFromEmployees(
+      hasAdvancedFilters ? employees : birthdayEmployees,
+      "chucVuValue",
+      "chucVu",
+      "Chức vụ"
+    );
+
+    return {
+      chucVuOptions: positions.length
+        ? buildSelectOptions(positions, "ma_vtr", "ten_vtr", "Chức vụ")
+        : fallbackPositionOptions,
+      phongBanOptions: departments.length
+        ? buildSelectOptions(departments, "ma_bp", "ten_bp", "Phòng ban")
+        : fallbackDepartmentOptions,
+      donViOptions: buildSelectOptionsFromEmployees(
+        hasAdvancedFilters ? employees : birthdayEmployees,
+        "donVi",
+        "donVi",
+        "Đơn vị"
+      ),
+      gioiTinhOptions: GENDER_OPTIONS,
+      tinhTrangOptions: WORK_STATUS_OPTIONS,
+    };
+  }, [birthdayEmployees, departments, employees, hasAdvancedFilters, positions]);
+
+  const directoryTotal = hasAdvancedFilters ? filteredData.length : employeesTotal;
 
   const handleFilterChange = (field, value) => {
     setFilters((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: value || "",
     }));
   };
 
   const handleSearch = () => {
-    console.log("Search NhanSu:", filters);
     setCurrentPage(1);
+    setAppliedSearch(filters.search);
+    setAppliedFilters({
+      chucVu: filters.chucVu,
+      phongBan: filters.phongBan,
+      donVi: filters.donVi,
+      gioiTinh: filters.gioiTinh,
+      tinhTrang: filters.tinhTrang,
+    });
   };
 
   const handlePaginationChange = (page) => {
@@ -193,20 +479,24 @@ function NhanSuTab() {
       </FilterTagsContainer>
 
       {activeTag === "birthday" ? (
-        <BirthdayTable data={birthdayData} loading={loading} selectedMonth={selectedMonth} onMonthChange={handleMonthChange} onEmployeeClick={handleEmployeeClick} />
+        <>
+          {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
+          <BirthdayTable data={birthdayData} loading={birthdayLoading} selectedMonth={selectedMonth} onMonthChange={handleMonthChange} onEmployeeClick={handleEmployeeClick} />
+        </>
       ) : activeTag === "organization" ? (
         <SoDoToChuc />
       ) : (
         <>
-          <NhanSuFilter totalCount={dataSource.length} filters={filters} onFilterChange={handleFilterChange} onSearch={handleSearch} />
+          {errorMessage ? <Alert type="error" showIcon message={errorMessage} style={{ marginBottom: 16 }} /> : null}
+          <NhanSuFilter totalCount={directoryTotal} filters={filters} onFilterChange={handleFilterChange} onSearch={handleSearch} filterOptions={filterOptions} />
 
           <NhanSuTable
             data={paginatedData}
-            loading={loading}
+            loading={loading || lookupLoading}
             pagination={{
               current: currentPage,
               pageSize: pageSize,
-              total: dataSource.length,
+              total: directoryTotal,
             }}
             onPaginationChange={handlePaginationChange}
             onPageSizeChange={handlePageSizeChange}

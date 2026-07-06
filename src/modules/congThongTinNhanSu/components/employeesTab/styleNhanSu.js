@@ -45,6 +45,10 @@ export const TabsContainer = styled.div`
 
 export const ContentContainer = styled.div`
   padding: 16px 24px;
+
+  @media (max-width: 1199px) {
+    padding: 12px 16px;
+  }
 `;
 
 export const FilterTagsContainer = styled.div`
@@ -65,6 +69,8 @@ export const FilterTag = styled.button`
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
     border-color: #0090cf;
@@ -75,6 +81,19 @@ export const FilterTag = styled.button`
     width: 14px;
     height: 14px;
   }
+
+  @media (max-width: 1199px) {
+    flex: 1;
+    justify-content: center;
+    padding: 5px 6px;
+    font-size: 12px;
+    gap: 4px;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+  }
 `;
 
 export const HeaderRow = styled.div`
@@ -84,6 +103,12 @@ export const HeaderRow = styled.div`
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 12px;
+
+  @media (max-width: 1199px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 `;
 
 export const TitleSection = styled.div`
@@ -106,6 +131,11 @@ export const FilterSection = styled.div`
   flex-wrap: wrap;
   flex: 1;
   justify-content: flex-end;
+
+  @media (max-width: 1199px) {
+    justify-content: flex-start;
+    gap: 8px;
+  }
 `;
 
 export const SearchInput = styled.div`
@@ -114,12 +144,24 @@ export const SearchInput = styled.div`
     height: 22px;
     border-radius: 4px;
   }
+
+  @media (max-width: 1199px) {
+    width: 100%;
+
+    .ant-input-affix-wrapper {
+      width: 100% !important;
+    }
+
+    .ant-input {
+      width: 100%;
+    }
+  }
 `;
 
 export const FilterSelect = styled.div`
   .ant-select {
     min-width: 120px;
-    width: 170px;
+    width: 200px;
     border: 1px solid rgba(209, 213, 220, 1);
     color: rgba(107, 114, 128, 1);
   }
@@ -131,6 +173,15 @@ export const FilterSelect = styled.div`
 
   .ant-select-selection-item {
     line-height: 30px !important;
+  }
+
+  @media (max-width: 1199px) {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+
+    .ant-select {
+      width: 100% !important;
+    }
   }
 `;
 
@@ -151,6 +202,11 @@ export const SearchButton = styled.button`
 
   &:hover {
     background: #007bb5;
+  }
+
+  @media (max-width: 1199px) {
+    width: 100%;
+    height: 36px;
   }
 `;
 
@@ -192,14 +248,8 @@ export const TableContainer = styled.div`
   }
 
   .employee-name {
-    color: rgba(1, 99, 224, 1);
-    font-weight: 600;
+    font-weight: 400;
     font-size: 14px;
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   .status-tag {
@@ -217,6 +267,13 @@ export const PaginationContainer = styled.div`
   padding: 16px 0;
   border-top: 1px solid #f0f0f0;
   margin-top: 16px;
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 0;
+  }
 `;
 
 export const PaginationInfo = styled.div`
@@ -233,6 +290,12 @@ export const PaginationInfo = styled.div`
   .ant-select-selector {
     height: 28px !important;
     border-radius: 4px !important;
+  }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    justify-content: center;
+    order: 1;
   }
 `;
 
@@ -290,6 +353,10 @@ export const GoToPage = styled.div`
     height: 28px;
     text-align: center;
     border-radius: 4px;
+  }
+
+  @media (max-width: 600px) {
+    display: none;
   }
 `;
 

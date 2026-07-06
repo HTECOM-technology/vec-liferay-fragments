@@ -1,0 +1,203 @@
+<div class="fragment_15254">
+	<div class="backup-restore-main-section auth-checking">
+		<div class="shell">
+			<section class="hero">
+				<div>
+					<h1>Backup & Restore</h1>
+					<p>
+						Điều khiển script backup Liferay tại một chỗ: xem trạng thái auto backup,
+						tạo bản mới, khôi phục, xóa và tải riêng file <strong>bundles</strong> hoặc <strong>database</strong>.
+					</p>
+				</div>
+				<div class="hero-meta">
+					<div class="hero-chip" id="userChip">Đang kiểm tra quyền truy cập…</div>
+					<div class="hero-chip" id="scriptChip">Chưa xác định script</div>
+				</div>
+			</section>
+
+			<section class="grid">
+				<div class="panel span-12">
+					<div class="panel-body">
+						<div class="warning-bar" id="warningBar">
+							<div class="warning-mark">!</div>
+							<div id="warningText">Đang tải cảnh báo retention…</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Trạng Thái Hệ Thống</h2>
+						<p class="panel-desc">Kiểm tra nhanh tình trạng script, auto backup và thư mục backup hiện tại.</p>
+					</div>
+					<div class="panel-body">
+						<div class="status-band">
+							<article class="status-card">
+								<div class="status-kicker">Auto Backup</div>
+								<p class="status-value" id="autoBackupValue">--</p>
+								<p class="status-copy" id="autoBackupCopy">Đang tải…</p>
+							</article>
+							<article class="status-card">
+								<div class="status-kicker">Script</div>
+								<p class="status-value" id="scriptValue">--</p>
+								<p class="status-copy" id="scriptCopy">Đang tải…</p>
+							</article>
+							<article class="status-card">
+								<div class="status-kicker">Kho Backup</div>
+								<p class="status-value" id="backupCountValue">--</p>
+								<p class="status-copy" id="backupCountCopy">Đang tải…</p>
+							</article>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Chức Năng Script</h2>
+						<p class="panel-desc">Chỉ hiển thị các lệnh chạy độc lập. Các thao tác phụ thuộc vào từng bản backup như tải, restore và xóa được thực hiện trực tiếp trong danh sách backup bên dưới.</p>
+					</div>
+					<div class="panel-body">
+						<div class="script-workspace">
+							<div class="script-actions">
+								<div class="action-grid" id="actionGrid"></div>
+							</div>
+							<div class="script-watch">
+								<div class="watch-panel" id="watchPanel">
+									<div class="watch-head">
+										<div>
+											<h3 class="watch-title" id="watchTitle">Live Watch</h3>
+											<p class="watch-subtitle" id="watchSubtitle">Trang sẽ tự ghi nhớ job đang theo dõi, nên F5 xong vẫn quay lại đúng màn hình watch nếu job còn tồn tại.</p>
+										</div>
+										<div class="btn-row">
+											<button class="btn-secondary" id="btnWatchNewest">Theo dõi job mới nhất</button>
+											<button class="btn-secondary" id="btnClearWatch">Bỏ theo dõi</button>
+										</div>
+									</div>
+									<pre class="watch-console" id="watchConsole">Chưa chọn job để theo dõi.</pre>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Danh Sách Backup</h2>
+						<p class="panel-desc">Hiển thị đầy đủ bản backup, dung lượng riêng của database và bundles. Một bản backup có thể chỉ chứa database hoặc chỉ chứa bundles, và hệ thống sẽ xử lý đúng theo nội dung thực tế khi tải hoặc restore.</p>
+					</div>
+					<div class="panel-body">
+						<div class="table-wrap">
+							<table>
+								<thead>
+									<tr>
+										<th>#</th>
+										<th>Backup</th>
+										<th>Thời gian</th>
+										<th>Bundles</th>
+										<th>Database</th>
+										<th>Tổng dung lượng</th>
+										<th>Hành động</th>
+									</tr>
+								</thead>
+								<tbody id="backupTableBody">
+									<tr><td colspan="7" class="muted">Đang tải dữ liệu backup…</td></tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Tiến Trình Gần Đây</h2>
+						<p class="panel-desc">Xem toàn bộ log thao tác của một ngày cụ thể. Phần này đọc trực tiếp file log hằng ngày nên vẫn xem lại được sau khi job đã kết thúc.</p>
+					</div>
+					<div class="panel-body">
+						<div class="toolbar-row">
+							<label class="filter-field" for="dailyLogDate">
+								<span>Ngày log</span>
+								<input type="date" id="dailyLogDate">
+							</label>
+							<div class="btn-row">
+								<button class="btn-secondary" id="btnReloadDailyLog">Xem log</button>
+							</div>
+						</div>
+						<p class="inline-meta" id="dailyLogMeta">Đang tải log…</p>
+						<pre class="daily-log-console" id="dailyLogConsole">Đang tải log thao tác…</pre>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Lịch Sử Backup</h2>
+						<p class="panel-desc">Theo dõi các lần backup trong ngày, gồm tên backup, loại backup, thời gian thực hiện, dung lượng và trạng thái kết quả.</p>
+					</div>
+					<div class="panel-body">
+						<div class="toolbar-row">
+							<label class="filter-field" for="backupHistoryDate">
+								<span>Ngày backup</span>
+								<input type="date" id="backupHistoryDate">
+							</label>
+							<div class="btn-row">
+								<button class="btn-secondary" id="btnReloadBackupHistory">Xem lịch sử</button>
+							</div>
+						</div>
+						<div class="table-wrap">
+							<table>
+								<thead>
+									<tr>
+										<th>Backup</th>
+										<th>Loại</th>
+										<th>Bắt đầu</th>
+										<th>Kết thúc</th>
+										<th>Dung lượng</th>
+										<th>Trạng thái</th>
+										<th>Log</th>
+									</tr>
+								</thead>
+								<tbody id="backupHistoryBody">
+									<tr><td colspan="7" class="muted">Đang tải lịch sử backup…</td></tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<div class="panel span-12">
+					<div class="panel-head">
+						<h2 class="panel-title">Lịch Sử Restore</h2>
+						<p class="panel-desc">Theo dõi riêng các lần restore trong ngày, gồm file restore, thời gian bắt đầu, thời gian kết thúc và loại dữ liệu đã khôi phục.</p>
+					</div>
+					<div class="panel-body">
+						<div class="toolbar-row">
+							<label class="filter-field" for="restoreHistoryDate">
+								<span>Ngày restore</span>
+								<input type="date" id="restoreHistoryDate">
+							</label>
+							<div class="btn-row">
+								<button class="btn-secondary" id="btnReloadRestoreHistory">Xem lịch sử</button>
+							</div>
+						</div>
+						<div class="table-wrap">
+							<table>
+								<thead>
+									<tr>
+										<th>Backup</th>
+										<th>Restore</th>
+										<th>Bắt đầu</th>
+										<th>Kết thúc</th>
+										<th>Trạng thái</th>
+										<th>Log</th>
+									</tr>
+								</thead>
+								<tbody id="restoreHistoryBody">
+									<tr><td colspan="6" class="muted">Đang tải lịch sử restore…</td></tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+</div>

@@ -1,58 +1,82 @@
 .dashboard {
-    
+
     overflow: hidden;
 }
 
 body {
-  background: #f5f6fa;
-  font-family: "Segoe UI", sans-serif;
+    background: #f5f6fa;
+    font-family: "Inter", sans-serif;
 }
 
 /* Card */
 .doc-card {
-  width: 300px;
-  background: #ffffff;
-  border: 1px solid #cfeeff;
-  border-radius: 8px;
-  overflow: hidden;
-
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #cfeeff;
+    border-radius: 8px;
+    overflow: hidden;
 }
+
 .checkbox-custom {
     width: 15px;
     height: 15px;
 }
+
 .gap-8 {
     gap: 8px !important;
 }
 
 /* Header */
 .doc-card-header {
-  background: #eaf8ff;
-  padding: 10px 12px;
-  font-weight: 600;
-  color: #1E1E1E;
-  font-size: 16px;
-  gap: 8px;
+    background: #eaf8ff;
+    padding: 10px 12px !important;
+    font-weight: 600;
+    color: #1E1E1E;
+    font-size: 16px;
+    gap: 8px;
+}
+
+.doc-card-header-link {
+    background: #0090CF;
+    color: #fff;
+    height: 100%;
+}
+
+.doc-card-header-link a {
+    color: #fff;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.doc-card-header-link span {
+    color: #fff;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
 }
 
 .doc-card-header img {
-  width: 20px;
+    width: 20px;
 }
 
 /* Body */
 .doc-card-body {
-  padding: 8px;
+    /* padding: 8px; */
 }
 
 .doc-item {
-  padding: 8px;
+    padding: 8px !important;
 }
 
-.doc-item > div {
-  border: 1px solid #e5f1ff;
-  border-radius: 6px;
-  padding: 10px;
+.doc-item>div {
+    border: 1px solid #e5f1ff;
+    border-radius: 6px;
+    padding: 10px;
 }
+
 .doc-card-icon-div {
     padding: 7px;
     border-radius: 6px;
@@ -60,45 +84,156 @@ body {
     height: 28px;
     background-color: #0090CF;
 }
+
 .doc-item p {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
-  line-height: 1.2;
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    line-height: 1.2;
 }
 
 .doc-item h3 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
 }
+
 .mobile-d-block {
     display: none !important;
-}   
-.dashboard-upper-cards {
-    display: flex;
-    gap: 10px;
-    /* flex-wrap: wrap; */
-   overflow-x: scroll;
-   scrollbar-width: thin;
-   /* width: 77vw; */
-   width: calc( 100vw - 370px);
 }
-.doc-card.doc-single-card  {
+
+.dashboard-upper-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.dashboard-upper-cards.bottom-area {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.dashboard-upper-cards.bottom-area .dashboard-card-tin-tuc,
+.dashboard-upper-cards.bottom-area .dashboard-card-camera {
+    grid-column: auto;
+}
+
+.dashboard-upper-cards.column-area-4 {
+    grid-template-columns: 1fr 1fr 1fr 0.75fr;
+}
+
+@media screen and (max-width: 1365px) {
+    .dashboard-upper-cards.column-area-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* ─── Hide / Show cards ─────────────────────────────────────────────────────── */
+
+/* Nút ✕ ẩn card — hiện khi hover vào card wrapper */
+.dashboard-upper-card {
+    position: relative;
+}
+
+.card-hide-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+}
+
+.dashboard-upper-card:hover .card-hide-btn {
+    opacity: 1;
+}
+
+/* Panel hiển thị các card đã ẩn (chỉ admin thấy) */
+.hidden-cards-panel {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #f0f8ff;
+    border: 1px dashed #0090CF;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hidden-cards-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap;
+}
+
+.hidden-cards-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.hidden-card-restore-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: #fff;
+    border: 1px solid #0090CF;
+    border-radius: 16px;
+    font-size: 12px;
+    color: #0090CF;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.hidden-card-restore-btn:hover {
+    background: #0090CF;
+    color: #fff;
+}
+
+.restore-icon {
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.grid-col-span-3 {
+    grid-column: span 3;
+}
+
+.grid-col-span-2 {
+    grid-column: span 2;
+}
+
+.doc-card.doc-single-card {
     padding: 0;
 }
-.doc-card.doc-single-card .doc-card-icon-div  {
-  padding: 10px ;
+
+.doc-card.doc-single-card .doc-card-icon-div {
+    padding: 10px;
 }
-.doc-card.doc-single-card .span  {
-  padding: 10px ;
+
+.doc-card.doc-single-card .span {
+    padding: 10px;
 }
-/* .dashboard-upper-cards .dashboard-upper-card {
-    width:310px;
-} */
+
 .doc-item img {
-  width: 26px;
+    width: 26px;
 }
+
 .doc-item-icon {
     width: 34px;
     height: 34px;
@@ -109,6 +244,7 @@ body {
     justify-content: center;
     background-color: #F8F9FA;
 }
+
 .card-body-list {
     padding: 10px 12px;
 }
@@ -118,49 +254,62 @@ body {
     padding: 0;
     margin: 0;
 }
+
 .card-body-list ul img {
     margin-right: 10px;
 }
+
 .card-body-list p {
     font-size: 14px;
     color: #1E1E1E;
     line-height: 20px;
 }
+
 .card-body-list ul li {
     list-style: none;
 }
-.card-body-list li  {
+
+.card-body-list li {
     font-size: 12px;
     color: #848380;
 }
+
 .card-body-list li .red-text {
     color: #E31C2A !important;
     font-weight: 500;
 }
+
 .card-body-list li {
     border-bottom: 0.5px solid #0090CF1A;
 }
+
 .card-body-list li:last-child {
     border-bottom: none;
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
 }
+
 .primary-color {
     color: #0090CF;
 }
+
 .image-w-50 img {
-    width: 50px;
+    width: 20px;
 }
+
 .overflow-y {
     overflow-y: auto;
     scrollbar-width: thin;
 }
+
 .height-290 {
     height: 290px;
 }
+
 .p-8 {
-    padding: 8px  !important;
+    padding: 8px !important;
 }
+
 .card-files {
     padding: 10px 7px;
     gap: 8px;
@@ -168,11 +317,13 @@ body {
     border: 1px solid #0090CF33;
     width: 100%;
 }
+
 .card-files p {
     margin-bottom: 0;
     font-size: 14px;
     font-weight: 500;
 }
+
 p:last-child {
     margin-bottom: 0;
 }
@@ -181,20 +332,105 @@ p:last-child {
     font-size: 14px;
     font-weight: 500;
 }
+
 .px-12 {
-    padding-left:12px !important;
+    padding-left: 12px !important;
     padding-right: 12px !important;
 }
+
 .border-bottom {
     border-bottom: 1px solid #ddd;
 }
+
 .py-10 {
     padding-top: 10px !important;
     padding-bottom: 10px !important;
 }
-.dashboard-upper-cards.bottom-area {
-    gap: 0 !important;
-    width: 100% !important;
+
+/* ─── Proportional card widths (card-based, travels with the card) ─────────── */
+
+
+/* ─── Drag & Drop ──────────────────────────────────────────────────────────── */
+
+/* Grip icon inside card headers */
+.drag-grip-icon {
+    font-size: 14px;
+    color: #aaa;
+    cursor: grab;
+    padding: 0 4px 0 0;
+    user-select: none;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+}
+
+.drag-grip-icon:hover {
+    color: #0090CF;
+}
+
+.drag-grip-icon:active {
+    cursor: grabbing;
+}
+
+/* Drag handle bar for quick-links and row-3 cards */
+.drag-handle-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #eaf8ff;
+    border: 1px solid #cfeeff;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: grab;
+    user-select: none;
+}
+
+.drag-handle-bar:active {
+    cursor: grabbing;
+}
+
+.drag-handle-bar .drag-handle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1E1E1E;
+}
+
+/* Quick links group */
+.quick-links-card-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.quick-links-card-group .doc-card:first-of-type {
+    /* border-radius: 0; */
+}
+
+.quick-links-card-group .drag-handle-bar+.doc-card {
+    border-radius: 0;
+}
+
+/* Row 3 card wrappers */
+.row3-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.row3-card-wrapper>*:last-child {
+    flex: 1;
+}
+
+/* Ghost card overlay while dragging */
+.overlay-dragging {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    border-radius: 8px;
+    opacity: 0.95;
+}
+
+/* Disable text selection during drag */
+.dashboard [data-dnd-dragging] * {
+    user-select: none;
 }
 
 .height-500 {
@@ -209,40 +445,44 @@ p:last-child {
 .list-icon li {
     list-style: disc !important;
 }
+
 .list-icon li::marker {
-    color:red;
+    color: red;
     font-size: 16px;
 }
 
 
-@media  (min-width: 992px) and (max-width: 1199px) {
-    
-   .traffic-camera-monitor__grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-   }
-   .traffic-search-div {
-    flex-direction: column  !important;
-   }
-   .traffic-select-input {
-    width: 100% !important;
-   }
+@media (min-width: 992px) and (max-width: 1199px) {
+
+    .traffic-camera-monitor__grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .traffic-search-div {
+        flex-direction: column !important;
+    }
+
+    .traffic-select-input {
+        width: 100% !important;
+    }
+
     .traffic-date-input {
-        width: 100%  !important;
+        width: 100% !important;
     }
 }
-@media  (min-width: 992px) and (max-width: 1099px) {
-    
-  .news-list {
-    grid-template-columns: repeat(1, 1fr) !important;
-  }
-  .bottom-area .col-lg-8 {
-            max-width: calc(7 / 12 * 100%) !important;
-  }
+
+@media (min-width: 992px) and (max-width: 1099px) {
+
+    .bottom-area .col-lg-8 {
+        max-width: calc(7 / 12 * 100%) !important;
+    }
+
     .bottom-area .col-lg-4 {
-                    flex: 0 0 calc(5 / 12 * 100%) !important;
+        flex: 0 0 calc(5 / 12 * 100%) !important;
         max-width: calc(5 / 12 * 100%) !important;
-  }
-      .dashboard-upper-cards {
+    }
+
+    .dashboard-upper-cards {
         width: calc(100vw - 350px) !important;
     }
 
@@ -251,17 +491,9 @@ p:last-child {
 
 
 @media screen and (min-width:1921px) {
-    .dashboard-upper-card {
-    width: 20%;
-}
-.doc-card {
-    width: 100%;
-}
-}
-
-
-@media screen and (max-width:576px) {
-   .news-list{
-            grid-template-columns: repeat(1, 1fr) !important;
+    .doc-card {
+        width: 100%;
     }
 }
+
+

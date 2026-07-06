@@ -52,9 +52,9 @@ const FeedbackModal = ({ isOpen, onClose }) => {
       <div className="vhc-feedback-modal">
         {/* Modal Header */}
         <div className="vhc-feedback-modal__header">
-          <div className="vhc-feedback-modal__header-content">
-            <div className="vhc-feedback-modal__icon-wrapper">
-              <img src='/documents/d/intranet/container-3-'/>
+            <div className="vhc-feedback-modal__header-content">
+              <div className="vhc-feedback-modal__icon-wrapper">
+              <img src='/documents/d/intranet/container-3-' alt="" />
             </div>
             <h2 className="vhc-feedback-modal__title">
               Góp ý - Sáng kiến cải tiến

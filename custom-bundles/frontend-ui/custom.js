@@ -1,0 +1,288 @@
+function ___getCurrentLiferayScreen() {
+    const params = new URLSearchParams(window.location.search);
+    const portletId = params.get('p_p_id') ?? '';
+
+    // Tách suffix ngắn gọn hơn (phần sau dấu _ cuối cùng nếu có)
+    const shortId = portletId.split('_').pop(); // "R6F7" — unique per instance
+
+    // Các param riêng của portlet đó đều có prefix:
+    const prefix = `_${portletId}_`;
+    const explicitKeys = new Set(['p_p_id', 'p_p_lifecycle', 'p_p_state', 'p_v_l_s_g_id']);
+    const portletParams = {};
+    const remainingParams = {};
+    for (const [key, val] of params.entries()) {
+        if (key.startsWith(prefix)) {
+            portletParams[key.replace(prefix, '')] = val;
+        } else if (!explicitKeys.has(key)) {
+            remainingParams[key] = val;
+        }
+    }
+
+    let redirectUrl = params.get('redirectUrl');
+    if (!redirectUrl) {
+        redirectUrl = params.get('_com_liferay_login_web_portlet_LoginPortlet_redirect');
+    }
+    if (!redirectUrl) {
+        if (typeof remainingParams.portletParams !== 'undefined') {
+            redirectUrl = remainingParams.portletParams.redirect;
+        }
+    }
+    if (!redirectUrl) {
+        redirectUrl = params.get('redirect');
+    }
+    if (!redirectUrl) {
+        redirectUrl = '';
+    }
+
+    return {
+        portletId,
+        shortId,
+        lifecycle: params.get('p_p_lifecycle'),
+        state: params.get('p_p_state'),
+        groupId: params.get('p_v_l_s_g_id'),
+        portletParams,
+        objectDefinitionId: params.get('_com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet_S4B0_objectDefinitionId'),
+        redirectUrl,
+        ...remainingParams,
+    };
+}
+
+function ___waitForElement(selector, callback, { maxTry = 100, interval = 300 } = {}) {
+    return new Promise((resolve) => {
+        let tryCount = 0;
+        const timer = setInterval(() => {
+            if (++tryCount > maxTry) {
+                clearInterval(timer);
+                resolve(false);
+                return;
+            }
+            const el = document.querySelector(selector);
+            if (el) {
+                clearInterval(timer);
+                callback?.(el);
+                resolve(true);
+            }
+        }, interval);
+    });
+}
+
+function __waitForCKEditor() {
+    return new Promise((resolve) => {
+
+        // Hàm lắng nghe khi có instance ready
+        function listenReady() {
+            window.CKEDITOR.on('instanceReady', function (event) {
+                resolve(event.editor);
+            });
+
+            const instances = window.CKEDITOR.instances;
+            const keys = Object.keys(instances);
+            if (keys.length > 0) {
+                resolve(instances[keys[0]]);
+            }
+        }
+
+        if (typeof CKEDITOR === 'undefined') {
+            const interval = setInterval(() => {
+                if (typeof CKEDITOR !== 'undefined') {
+                    clearInterval(interval);
+                    listenReady();
+                }
+            }, 100);
+        } else {
+            listenReady();
+        }
+    });
+}
+
+(function () {
+    var isLoginPage = window.location.search.indexOf('LoginPortlet') !== -1;
+
+    var loadingEl = null;
+
+    if (isLoginPage) {
+        loadingEl = document.createElement('div');
+        loadingEl.id = 'vec-loading-screen';
+        loadingEl.innerHTML =
+            '<div class="vec-spinner"></div>' +
+            '<span class="vec-loading-text">Đang tải...</span>';
+        document.documentElement.appendChild(loadingEl);
+    }
+
+    // 2. Khi DOM ready
+    function onReady() {
+        const screen = ___getCurrentLiferayScreen();
+
+        // ===== CHỈ CHẠY Ở TRANG LOGIN =====
+        if (isLoginPage) {
+            document.querySelector('body').classList.add('vec-login-page');
+            ___waitForElement('.alert-container.cadmin', (element) => {
+                element.classList.add('hide');
+            });
+
+            // Add class cho wrapper
+            var wrapper = document.querySelector('.vec-wrapper');
+            if (wrapper) {
+                wrapper.classList.add('always-hide-header');
+            }
+
+            var wrapperById = document.getElementById('wrapper');
+            if (wrapperById) {
+                var bgDiv = document.createElement('div');
+                bgDiv.className = 'testtttt';
+                bgDiv.style.cssText = 'position: fixed; z-index: 0; bottom: -280px; width: 100vw; opacity: 0.6;';
+                bgDiv.innerHTML = '<img style="width: 100%;" src="/documents/d/guest/login_bg">';
+                wrapperById.insertBefore(bgDiv, wrapperById.firstChild);
+            }
+
+            var label = document.querySelector(
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_rememberMe"]'
+            );
+            var navigation = document.querySelector('.c-mt-3.navigation');
+
+            if (label && navigation) {
+                navigation.appendChild(label);
+            }
+
+            var portletContent = document.querySelector('.portlet-login .portlet-content');
+            if (portletContent) {
+                var logoSection = document.createElement('a');
+                logoSection.className = 'vec-logo-section';
+                logoSection.href = '/web/guest/trangchu';
+                logoSection.style.cssText = 'display: flex; flex-direction: column; justify-items: center; align-items: center; gap: 16px; width: auto; padding: 10px 0; margin-bottom: 2rem;';
+                logoSection.innerHTML = '<svg width="80" height="69" viewBox="0 0 80 69" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M40 0.5C61.8887 0.5 79.5 15.746 79.5 34.4004C79.4998 53.0546 61.8885 68.2998 40 68.2998C18.1115 68.2998 0.500245 53.0546 0.5 34.4004C0.5 15.746 18.1113 0.5 40 0.5Z" fill="#0090CF" stroke="white"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M17.8318 55.2912L40.2146 2.06882L26.5187 44.9827L34.7906 35.2485H36.923L23.0983 55.2768H17.8318V55.2912Z" fill="#E31C2A"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M38.1679 34.9907L36.8799 45.2848L46.5686 45.2131L45.853 43.2174L40.0856 43.0738V39.4989L44.8656 39.3553L44.5078 38.0631L40.0856 38.1349V36.1393L44.0784 36.2111L43.6491 35.1343L38.1679 34.9907Z" fill="#E31C2A"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M45.939 35.1331L53.71 34.9178L54.4255 36.7124L52.2216 36.7842L51.8638 36.1382L48.5865 36.2099L51.0052 43.1445H54.6402L54.2967 42.0677H56.7583L58.0749 45.2263L49.2019 45.2837L45.939 35.1331Z" fill="#E31C2A"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M24.9158 55.2046L41.3308 55.0754L41.3594 47.1071L30.4685 46.8917L24.9158 55.2046Z" fill="white"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M44.4651 47.0358L58.8193 47.0646L62.1681 54.961L45.2093 55.1333L44.4651 47.0358Z" fill="white"></path> <path fill-rule="evenodd" clip-rule="evenodd" d="M40.6725 14.3733L40.8156 20.1162H42.1609L41.7029 14.3733H40.6725ZM41.016 5.04105L52.9945 33.2818L43.2628 33.3966H43.2056L42.7619 27.783H41.016L41.1591 33.3966H31.9426L41.016 5.04105Z" fill="white"></path></svg>' +
+                    '<div class="title-container" style="width: auto; text-align: center;">' +
+                    '<p class="title-vn" style="color: #E31C2A;">TỔNG CÔNG TY</p>' +
+                    '<p class="title-vn" style="color: #E31C2A;">ĐẦU TƯ PHÁT TRIỂN ĐƯỜNG CAO TỐC VIỆT NAM</p>' +
+                    '<p class="title-eu" style="color: #0090CF;">Vietnam Expressway Corporation (VEC)</p>' +
+                    '</div>';
+                portletContent.insertBefore(logoSection, portletContent.firstChild);
+            }
+
+            var portletHeader = document.querySelector('.portlet-login .portlet-header');
+
+            if (portletHeader) {
+                const isIntranetLogin = screen.redirectUrl.includes('intranet');
+                const title = isIntranetLogin ? 'Trang thông tin nội bộ của VEC' : 'Trang quản trị nội dung của VEC';
+
+                var headerHtml = document.createElement('div');
+                headerHtml.className = 'vec-login-heading';
+                headerHtml.innerHTML = `<h1 style="text-align: center;margin-bottom: 1rem;font-size: 24px;font-weight: 700;text-transform: uppercase;letter-spacing: normal;">${title}</h1>
+                <p style="text-align: center;font-size: 24px;color: #1a1a2e;letter-spacing: normal;margin-bottom: 12px;">Đăng nhập</p>`;
+                portletHeader.insertAdjacentElement('afterend', headerHtml);
+            }
+
+            const fastLoginContainer = document.querySelector('#p_p_id_com_liferay_login_web_portlet_FastLoginPortlet_');
+            if (fastLoginContainer) {
+                const ff = (el, callback) => {
+                    const ffEl = fastLoginContainer.querySelector(el);
+                    if (ffEl) {
+                        callback?.(ffEl);
+                    }
+                    return ffEl;
+                };
+
+                ff('.portlet-body', (el) => {
+                    el.classList.add('w-100');
+                });
+
+                ff('button[id*="_com_liferay_login_web_portlet_FastLoginPortlet"]', (el) => {
+                    el.classList.add('w-100', 'm-0');
+                });
+
+                ff('a[href*="create_anonymous_account"]', (el) => {
+                    el.innerText = 'Tư cách khách';
+                });
+            }
+
+            var labelMap = {
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_login"]': 'Tài khoản',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_login"]': 'Tài khoản',
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_password"]': 'Mật khẩu',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_password"]': 'Mật khẩu',
+                // 'button[id*="_com_liferay_login_web_portlet_LoginPortlet"]': 'Đăng nhập',
+                '#_com_liferay_login_web_portlet_LoginPortlet_ctvk____ > span': 'Quên mật khẩu',
+                'label[for="_com_liferay_login_web_portlet_LoginPortlet_rememberMe"]': 'Ghi nhớ đăng nhập',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_emailAddress"]': 'Địa chỉ Email',
+                'label[for="_com_liferay_login_web_portlet_FastLoginPortlet_captchaText"]': 'Mã Captcha',
+            };
+
+            Object.keys(labelMap).forEach(function (selector) {
+                var lbl = document.querySelector(selector);
+
+                if (lbl) {
+                    var textNode = [...lbl.childNodes].find(function (node) {
+                        return node.nodeType === Node.TEXT_NODE && node.textContent.trim();
+                    });
+
+                    if (textNode) {
+                        textNode.textContent = ' ' + labelMap[selector];
+                    } else {
+                        lbl.appendChild(document.createTextNode(' ' + labelMap[selector]));
+                    }
+                }
+            });
+
+            var email = document.querySelector('#_com_liferay_login_web_portlet_LoginPortlet_login');
+            var password = document.querySelector('#_com_liferay_login_web_portlet_LoginPortlet_password');
+
+            if (email) {
+                email.value = '';
+                email.setAttribute('placeholder', 'Tài khoản');
+            }
+
+            if (password) {
+                password.value = '';
+                password.setAttribute('placeholder', 'Mật khẩu');
+            }
+
+            // Ẩn loading screen
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    loadingEl.classList.add('hide');
+
+                    setTimeout(function () {
+                        if (loadingEl.parentNode) {
+                            loadingEl.parentNode.removeChild(loadingEl);
+                        }
+
+                        const alertContainer = document.querySelector('.alert-container.cadmin .alert-notifications');
+                        if (alertContainer) {
+                            alertContainer.innerHTML = '';
+                        }
+
+                        ___waitForElement('.alert-container.cadmin', (element) => {
+                            element.classList.remove('hide');
+                        });
+                    }, 350);
+                });
+            });
+        }
+        // ===== END LOGIN PAGE =====
+
+        __waitForCKEditor().then((editor) => {
+            console.log('CKEditor ready! Editor name:', editor.name);
+
+            const iframeDoc = editor.document.$;
+
+            const style = iframeDoc.createElement('style');
+            style.textContent = `
+                body {
+                    height: 85px !important;
+                    overflow: auto;
+                }
+                p {
+                    margin-bottom: 0;
+                }
+            `;
+            iframeDoc.head.appendChild(style);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onReady);
+    } else {
+        onReady();
+    }
+
+})();

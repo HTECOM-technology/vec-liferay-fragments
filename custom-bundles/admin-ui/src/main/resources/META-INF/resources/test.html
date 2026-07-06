@@ -1,0 +1,3571 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>VEC Header</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XRD1KGF2FL"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-XRD1KGF2FL');
+    </script>
+    <style>
+        #menu-container-deeplink {
+            row-gap: 8px;
+            column-gap: 16px;
+            justify-content: center;
+        }
+
+        /* ===== KEYFRAMES - SCALE + OPACITY ===== */
+        @keyframes vecFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes vecFadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-100px) var(--vec-preserve-transform, );
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) var(--vec-preserve-transform, );
+            }
+        }
+
+        @keyframes vecFadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100px) var(--vec-preserve-transform, );
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0) var(--vec-preserve-transform, );
+            }
+        }
+
+        @keyframes vecFadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-100px) var(--vec-preserve-transform, );
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) var(--vec-preserve-transform, );
+            }
+        }
+
+        @keyframes vecFadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(100px) var(--vec-preserve-transform, );
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) var(--vec-preserve-transform, );
+            }
+        }
+
+        /* ===== ẨN ELEMENT BAN ĐẦU ===== */
+        [class*="vec-fade-in"],
+        [class*="vec-mobile:"],
+        [class*="vec-md:"],
+        [class*="vec-lg:"],
+        [class*="vec-xl:"] {
+            opacity: 0;
+        }
+
+        /* ===== DEFAULT ANIMATIONS ===== */
+        .vec-animated.vec-fade-in {
+            animation: vecFadeIn 0.8s ease-out forwards;
+        }
+
+        .vec-animated.vec-fade-in-left {
+            animation: vecFadeInLeft 0.8s ease-out forwards;
+        }
+
+        .vec-animated.vec-fade-in-right {
+            animation: vecFadeInRight 0.8s ease-out forwards;
+        }
+
+        .vec-animated.vec-fade-in-up {
+            animation: vecFadeInUp 0.8s ease-out forwards;
+        }
+
+        .vec-animated.vec-fade-in-down {
+            animation: vecFadeInDown 0.8s ease-out forwards;
+        }
+
+        /* ===== MOBILE OVERRIDE (< 768px) ===== */
+        @media (max-width: 767px) {
+            .vec-animated.vec-mobile\:fade-in {
+                animation: vecFadeIn 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-mobile\:fade-in-left {
+                animation: vecFadeInLeft 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-mobile\:fade-in-right {
+                animation: vecFadeInRight 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-mobile\:fade-in-up {
+                animation: vecFadeInUp 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-mobile\:fade-in-down {
+                animation: vecFadeInDown 0.8s ease-out forwards !important;
+            }
+        }
+
+        /* ===== TABLET OVERRIDE (>= 768px) ===== */
+        @media (min-width: 768px) {
+            .vec-animated.vec-md\:fade-in {
+                animation: vecFadeIn 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-md\:fade-in-left {
+                animation: vecFadeInLeft 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-md\:fade-in-right {
+                animation: vecFadeInRight 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-md\:fade-in-up {
+                animation: vecFadeInUp 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-md\:fade-in-down {
+                animation: vecFadeInDown 0.8s ease-out forwards !important;
+            }
+        }
+
+        /* ===== DESKTOP OVERRIDE (>= 1024px) ===== */
+        @media (min-width: 1024px) {
+            .vec-animated.vec-lg\:fade-in {
+                animation: vecFadeIn 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-lg\:fade-in-left {
+                animation: vecFadeInLeft 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-lg\:fade-in-right {
+                animation: vecFadeInRight 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-lg\:fade-in-up {
+                animation: vecFadeInUp 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-lg\:fade-in-down {
+                animation: vecFadeInDown 0.8s ease-out forwards !important;
+            }
+        }
+
+        /* ===== DESKTOP XL OVERRIDE (>= 1280px) ===== */
+        @media (min-width: 1280px) {
+            .vec-animated.vec-xl\:fade-in {
+                animation: vecFadeIn 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-xl\:fade-in-left {
+                animation: vecFadeInLeft 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-xl\:fade-in-right {
+                animation: vecFadeInRight 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-xl\:fade-in-up {
+                animation: vecFadeInUp 0.8s ease-out forwards !important;
+            }
+
+            .vec-animated.vec-xl\:fade-in-down {
+                animation: vecFadeInDown 0.8s ease-out forwards !important;
+            }
+        }
+
+        /* ===== ANIMATION DELAYS ===== */
+        .vec-delay-100 {
+            animation-delay: 0.1s;
+        }
+
+        .vec-delay-200 {
+            animation-delay: 0.2s;
+        }
+
+        .vec-delay-300 {
+            animation-delay: 0.3s;
+        }
+
+        .vec-delay-400 {
+            animation-delay: 0.4s;
+        }
+
+        .vec-delay-500 {
+            animation-delay: 0.5s;
+        }
+
+        .vec-delay-600 {
+            animation-delay: 0.6s;
+        }
+
+        .vec-delay-700 {
+            animation-delay: 0.7s;
+        }
+
+        .vec-delay-800 {
+            animation-delay: 0.8s;
+        }
+
+        .vec-delay-900 {
+            animation-delay: 0.9s;
+        }
+
+        .vec-delay-1000 {
+            animation-delay: 1s;
+        }
+
+        /* ===== ANIMATION SPEEDS ===== */
+        .vec-animation-slow {
+            animation-duration: 1s !important;
+        }
+
+        .vec-animation-normal {
+            animation-duration: 0.8s !important;
+        }
+
+        .vec-animation-fast {
+            animation-duration: 0.3s !important;
+        }
+
+        /* ===== OPEN BUTTON ===== */
+        .arrow-right-red {
+            width: 0;
+            height: 0;
+            border-top: 7px solid transparent;
+            border-bottom: 7px solid transparent;
+            border-left: 10px solid #d60000;
+        }
+
+        .logo-desktop {
+            flex-direction: row !important;
+            text-decoration: none !important;
+        }
+
+        .logo-mobile {
+            display: none !important;
+        }
+
+        .title-container {
+            width: 236px;
+
+        }
+
+        .vec-lang-dropdown-mobile {
+            display: none !important;
+        }
+
+
+        .title-vn {
+            font-family: 'Roboto Condensed', sans-serif !important;
+            font-weight: 700;
+            font-size: 16px;
+            line-height: 100%;
+            text-transform: uppercase;
+            color: #FFF;
+            margin-bottom: 2px;
+            letter-spacing: 0px;
+            word-spacing: 0px;
+
+        }
+
+        .title-eu {
+            font-family: 'Roboto Condensed', sans-serif !important;
+            font-weight: 700;
+            font-size: 12px;
+            line-height: 22px;
+            text-transform: uppercase;
+            color: #FFF;
+            letter-spacing: 0px;
+            word-spacing: 0px;
+
+        }
+
+        .open-btn {
+            border: none;
+            padding: 10px 12px !important;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+
+        /* ===== OVERLAY ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ===== DRAWER ===== */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform .3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawer.active {
+            transform: translateX(0);
+        }
+
+        /* ===== HEADER ===== */
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+        }
+
+        .drawer-header button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #A0A0A0;
+        }
+
+        .drawer-weather-datetime {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 11px;
+            color: #1e1e1e;
+            line-height: 1.2;
+        }
+
+        .drawer-weather-datetime span {
+            white-space: nowrap;
+        }
+
+        #weather-mobile {
+            font-weight: 500;
+            color: #1e1e1e;
+        }
+
+        #date-time-mobile {
+            color: #1e1e1e;
+            font-size: 10px;
+        }
+
+        /* ===== SEARCH ===== */
+        .search-box {
+            padding: 16px;
+        }
+
+        .search-box .input-wrap {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            height: 42px;
+            padding: 0 40px 0 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ef4444;
+        }
+
+        /* ===== MENU ===== */
+        .menu {
+            padding: 0 16px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #374151;
+        }
+
+        /* HOME */
+        .menu .home {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 0;
+            font-weight: 600;
+        }
+
+        /* ACCORDION */
+        .menu-item {
+            color: #1E1E1E;
+        }
+
+        .menu-toggle {
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 14px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .menu-toggle i {
+            transition: transform .3s;
+        }
+
+        .menu-item.open .menu-toggle i {
+            transform: rotate(180deg);
+        }
+
+        /* SUB MENU */
+        .menu-content {
+            display: none;
+            padding-left: 14px;
+            padding-bottom: 8px;
+        }
+
+        .menu-item.open .menu-content {
+            display: block;
+        }
+
+        .menu-content a {
+            display: block;
+            padding: 6px 0;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* STATIC LINKS */
+        .static-links {
+            padding-top: 16px;
+            border-top: 1px solid #E4E4E4;
+        }
+
+        .static-links a,
+        .static-links button {
+            display: block;
+            padding: 10px 0;
+            color: #555;
+            font-size: 15px;
+            font-style: normal;
+            font-weight: 500;
+        }
+
+        .hot-news {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+
+        }
+
+        .hot-news .vec-top-news-text {
+            max-width: calc(80%);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-decoration: none !important;
+        }
+
+        .header-swiper {
+            height: 44px;
+            /* chiều cao 1 item */
+            overflow: hidden;
+            background-image: url('/documents/d/guest/header_thuong');
+            background-position: right center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .header-swiper .swiper-slide {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .vec-wrapper {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif !important;
+            transition: background .3s;
+            color: #1e1e1e;
+            transition: 0.3s;
+        }
+
+        .vec-wrapper:hover {
+            background: #fff !important;
+            color: #1E1E1E !important;
+        }
+
+
+        .vec-wrapper:hover .title-vn {
+            color: #E31C2A;
+        }
+
+        .vec-wrapper:hover .title-eu {
+            color: #0090CF;
+        }
+
+        .has-banner {
+            position: fixed;
+            top: 0px;
+            left: 0;
+            right: 0;
+            z-index: 99;
+            color: #fff;
+
+        }
+
+        /* Khi HIỆN */
+        .has-banner.show-header,
+        .has-banner.always-show-header {
+            transform: translateY(0);
+            background: white;
+            color: #1E1E1E;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+
+            & .title-vn {
+                color: #E31C2A;
+            }
+
+            & .title-eu {
+                color: #0090CF;
+            }
+        }
+
+        .has-banner.always-show-header {
+            box-shadow: none !important;
+        }
+
+        /* Khi ẨN đi trong container */
+        .has-banner.hide-header {
+            transform: translateY(-100%);
+        }
+
+        .vec-wrapper *,
+        .vec-wrapper *::before,
+        .vec-wrapper *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ================= TOP NEWS BAR ================= */
+        .vec-wrapper .vec-top-news {
+            background: #148acb;
+            color: #fff;
+            padding: 10px 0;
+        }
+
+        .vec-wrapper .vec-top-news .vec-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .vec-wrapper .vec-badge {
+            background: linear-gradient(to right, rgba(207, 135, 0, 1) 0%, rgba(255, 214, 139, 1) 100%);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 15px;
+            color: #1e1e1e;
+        }
+
+        .vec-wrapper .vec-top-news-text {
+            font-size: 14px;
+            color: #fff;
+        }
+
+        /* ================= TOP BAR ================= */
+        .vec-wrapper .vec-top-bar {
+            background: transparent;
+            border-bottom: 1px solid #e4e4e4b3;
+            padding: 4px 0;
+            flex-wrap: wrap;
+        }
+
+        .vec-wrapper .vec-top-bar .vec-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .vec-wrapper .vec-top-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 13px;
+            height: 37px;
+            display: flex;
+
+        }
+
+        .vec-wrapper .vec-top-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vec-wrapper .vec-top-right-links {
+            display: flex;
+            gap: 40px;
+            font-size: 13px;
+        }
+
+        .vec-wrapper .vec-top-right-links span {
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .vec-wrapper .vec-top-right-links span:hover {
+            color: #148acb;
+        }
+
+        .vec-wrapper .vec-lang-flag {
+            width: 24px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .vec-wrapper .vec-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .vec-wrapper .vec-search-icon {
+            background: transparent;
+            font-size: 16px;
+        }
+
+        .vec-wrapper .vec-search-icon:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .vec-wrapper .vec-user-icon {
+            background: #dc0000;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .vec-wrapper .vec-user-icon:hover {
+            background: #b30000;
+            color: #333;
+        }
+
+        /* ================= LANGUAGE DROPDOWN ================= */
+        .vec-lang-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .vec-lang-menu {
+            position: absolute;
+            right: 0;
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+            padding: 6px;
+            display: none;
+            z-index: 9999;
+            pointer-events: auto;
+        }
+
+        .vec-lang-dropdown:hover .vec-lang-menu,
+        .vec-lang-menu:hover {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .vec-lang-menu .vec-icon-btn {
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        /* ================= HEADER ================= */
+        .vec-wrapper .vec-header {
+            background: transparent;
+            transition: all .3s;
+        }
+
+        .vec-wrapper .vec-header .vec-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        /* ================= LOGO ================= */
+        .vec-wrapper .vec-logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: auto;
+            padding: 10px 0;
+        }
+
+        .vec-wrapper .vec-logo-icon {
+            width: 80px;
+            height: 80px;
+            background: #148acb;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .vec-wrapper .vec-logo-icon svg {
+            width: 55px;
+            height: 55px;
+            fill: #fff;
+        }
+
+        .vec-wrapper .vec-logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .vec-wrapper .vec-logo-text h1 {
+            color: #dc0000;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.4;
+            letter-spacing: -0.2px;
+            max-width: 350px;
+        }
+
+        .vec-wrapper .vec-logo-text p {
+            color: #148acb;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* ================= HOME ICON ================= */
+        .vec-wrapper .vec-home-icon {
+            width: 48px;
+            height: 48px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .vec-wrapper .vec-home-icon:hover {
+            background: #e0e0e0;
+        }
+
+        .vec-wrapper .vec-home-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #333;
+        }
+
+        /* ================= NAVIGATION ================= */
+        .vec-wrapper .vec-main-nav {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            flex-wrap: nowrap;
+        }
+
+        .vec-wrapper .vec-nav-item {
+            position: relative;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 0;
+            transition: none;
+        }
+
+        #vecMainNav .vec-nav-item {
+            padding: 32px 0;
+        }
+
+        .vec-wrapper .vec-nav-item:hover {
+            color: #148acb;
+            text-decoration: none;
+        }
+
+        .vec-wrapper .vec-nav-item .vec-arrow {
+            font-size: 10px;
+        }
+
+        /* ================= DROPDOWN ================= */
+        .vec-wrapper .vec-dropdown {
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0;
+            min-width: 240px;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
+            border-radius: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            color: #515151;
+        }
+
+        .vec-wrapper .vec-nav-item:hover .vec-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .vec-wrapper .vec-dropdown a {
+            display: block;
+            padding: 14px 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
+            transition: all 0.2s;
+        }
+
+        .vec-wrapper .vec-dropdown a:hover {
+            background: #0090CF;
+            color: #fff;
+        }
+
+        /* ================= MOBILE MENU ================= */
+        .vec-wrapper .vec-mobile-menu-btn {
+            display: none;
+            font-size: 32px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 5px;
+        }
+
+        .vec-wrapper .vec-mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .vec-wrapper .vec-mobile-overlay.vec-active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* ================= RESPONSIVE - LARGE DESKTOP ================= */
+        @media (max-width: 1400px) {
+            .vec-wrapper .vec-main-nav {
+                gap: 28px;
+            }
+
+            .vec-wrapper .vec-nav-item {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 1366px) {
+            #vecMainNav {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 1292px) {
+            #vecMainNav {
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 1050px) {
+            .vec-wrapper .vec-top-bar .vec-container {
+                flex-direction: column;
+            }
+
+            .vec-wrapper .vec-top-right,
+            .vec-wrapper .vec-top-left {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .open-btn {
+                display: none;
+            }
+        }
+
+        /* ================= RESPONSIVE - DESKTOP ================= */
+        @media (max-width: 1200px) {
+            .vec-wrapper .vec-header .vec-container {
+                gap: 30px;
+            }
+
+            .vec-wrapper .vec-main-nav {
+                gap: 22px;
+            }
+
+            .vec-wrapper .vec-nav-item {
+                font-size: 13px;
+            }
+
+            .vec-wrapper .vec-logo-icon {
+                width: 70px;
+                height: 70px;
+            }
+
+            .vec-wrapper .vec-logo-icon svg {
+                width: 48px;
+                height: 48px;
+            }
+
+            .vec-wrapper .vec-logo-text h1 {
+                font-size: 16px;
+            }
+
+            .vec-wrapper .vec-logo-text p {
+                font-size: 11px;
+            }
+        }
+
+        /* Prevent nav from pushing layout */
+        .vec-wrapper .vec-header .vec-container {
+            flex-wrap: nowrap;
+        }
+
+        .vec-wrapper .vec-main-nav {
+            min-width: 0;
+        }
+
+        /* ================= RESPONSIVE - TABLET ================= */
+        @media (max-width: 1200px) {
+
+            /* SHOW HAMBURGER */
+            .vec-wrapper .vec-mobile-menu-btn {
+                display: block;
+            }
+
+            /* HIDE DESKTOP NAV */
+            .vec-wrapper .vec-main-nav {
+                display: none
+            }
+
+            /* DISABLE HOVER DROPDOWN */
+            .vec-wrapper .vec-nav-item:hover .vec-dropdown {
+                display: none;
+            }
+
+            /* MOBILE DROPDOWN */
+            .vec-wrapper .vec-dropdown {
+                position: static;
+                box-shadow: none;
+                display: none;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                margin-top: 10px;
+            }
+
+            .vec-wrapper .vec-nav-item.vec-active .vec-dropdown {
+                display: block;
+            }
+
+            /* OPTIONAL */
+            .vec-wrapper .vec-home-icon {
+                display: none;
+            }
+        }
+
+        /* ================= RESPONSIVE - MOBILE ================= */
+        @media (max-width: 768px) {
+            .header-swiper {
+                background-position: center;
+            }
+
+            .vec-lang-dropdown-mobile {
+                display: inline-block !important;
+            }
+
+            .vec-wrapper .vec-top-bar .vec-container {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .vec-wrapper .vec-top-bar {
+                padding: 0
+            }
+
+            .logo-mobile {
+                display: block !important;
+            }
+
+            .logo-desktop {
+                display: none !important;
+            }
+
+            .vec-wrapper .vec-top-left {
+                gap: 10px;
+                width: 100%;
+                justify-content: center;
+                display: none;
+            }
+
+            .vec-wrapper .vec-top-right {
+                gap: 12px;
+                display: none;
+            }
+
+            .vec-wrapper .vec-mobile-menu-btn {
+                display: block;
+            }
+
+            .vec-wrapper .vec-header .vec-container {
+                justify-content: space-between;
+                gap: 15px;
+            }
+
+            .vec-wrapper .vec-main-nav {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 300px;
+                max-width: 85%;
+                height: 100vh;
+                background: #fff;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0;
+                padding: 80px 0 30px;
+                box-shadow: -5px 0 20px rgba(0, 0, 0, .2);
+                transition: right 0.3s ease;
+                overflow-y: auto;
+                z-index: 999;
+            }
+
+            .vec-wrapper .vec-main-nav.vec-active {
+                right: 0;
+            }
+
+            .vec-wrapper .vec-nav-item:hover .vec-dropdown {
+                display: none;
+            }
+
+            .vec-wrapper .vec-dropdown {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                display: none;
+                margin-top: 10px;
+                border-radius: 0;
+            }
+
+            .vec-wrapper .vec-nav-item.vec-active .vec-dropdown {
+                display: block;
+            }
+
+            .vec-wrapper .vec-home-icon {
+                display: none;
+            }
+
+            .drawer .menu .home .fa-solid {
+                font-size: 25px;
+            }
+        }
+
+        /* ================= RESPONSIVE - SMALL MOBILE ================= */
+        @media (max-width: 480px) {
+            .vec-wrapper .vec-top-news .vec-container {
+                padding: 8px 15px;
+                gap: 8px;
+            }
+
+            .vec-wrapper .vec-top-news-text {
+                font-size: 13px;
+            }
+
+            .vec-wrapper .vec-badge {
+                font-size: 11px;
+                padding: 3px 10px;
+            }
+
+            .vec-wrapper .vec-top-left {
+                gap: 10px;
+                font-size: 11px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .vec-wrapper .vec-logo-section {
+                gap: 12px;
+            }
+
+            .vec-wrapper .vec-logo-icon {
+                width: 55px;
+                height: 55px;
+            }
+
+            .vec-wrapper .vec-logo-icon svg {
+                width: 38px;
+                height: 38px;
+            }
+
+            .vec-wrapper .vec-logo-text h1 {
+                font-size: 13px;
+            }
+
+            .vec-wrapper .vec-logo-text p {
+                font-size: 9px;
+            }
+
+            .vec-wrapper .vec-header .vec-container {
+                padding: 10px;
+            }
+
+            .vec-wrapper .vec-icon-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 18px;
+            }
+        }
+
+
+        /* ======================================
+           GLOBAL HORIZONTAL SCROLL FIX
+        ====================================== */
+        html,
+        body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* ======================================
+           MODAL ANIMATIONS
+        ====================================== */
+        /* Keyframes for modal animations */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalFadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        @keyframes modalSlideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleOut {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            to {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+        }
+
+        /* Modal overlay styles */
+        #modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #modal.show {
+            animation: modalFadeIn 0.3s ease-in-out forwards;
+        }
+
+        #modal.hide {
+            animation: modalFadeOut 0.3s ease-in-out forwards;
+        }
+
+        /* Modal content container */
+        #modal>div {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #modal.show>div {
+            animation: modalSlideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        #modal.hide>div {
+            animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Animate modal inner content */
+        #modal .px-6 {
+            transition: opacity 0.3s ease-in-out 0.1s;
+        }
+
+        #modal.show .px-6 {
+            animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+        }
+
+        #modal.hide .px-6 {
+            animation: scaleOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Animate modal title and description */
+        #modal h5,
+        #modal p {
+            transition: all 0.3s ease-in-out;
+        }
+
+        #modal.show h5 {
+            animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+        }
+
+        #modal.show p {
+            animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both;
+        }
+
+        /* Search input - no animation */
+        #modal input {
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        #modal input:focus {
+            border-color: #0090CF !important;
+            outline: none;
+        }
+
+        /* Search button hover effect */
+        #searchBtn {
+            transition: all 0.3s ease-in-out;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #searchBtn:hover {
+            background-color: #E31C2A;
+        }
+
+        #searchBtn:hover svg path {
+            fill: white;
+        }
+
+        /* Animate tags */
+        #modal .tag {
+            transition: all 0.3s ease-in-out;
+            animation: scaleIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        #modal.show .tag:nth-child(1) {
+            animation-delay: 0.35s;
+        }
+
+        #modal.show .tag:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+
+        #modal.show .tag:nth-child(3) {
+            animation-delay: 0.45s;
+        }
+
+        #modal.show .tag:nth-child(4) {
+            animation-delay: 0.5s;
+        }
+
+        #modal.show .tag:nth-child(5) {
+            animation-delay: 0.55s;
+        }
+
+        #modal.show .tag:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        #modal.show .tag:nth-child(7) {
+            animation-delay: 0.65s;
+        }
+
+        /* Smooth tag hover effects */
+        #modal .tag {
+            transform: translateY(0);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #modal .tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 144, 207, 0.3);
+        }
+
+        .scroll-header {
+            background-color: #ffffff;
+            color: #000000;
+            z-index: 7;
+            border-bottom: 1px solid #cccccc66;
+        }
+
+        .vec-user-icon {
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* Popover container */
+        .vec-popover {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            min-width: 200px;
+            padding: 6px;
+            z-index: 999;
+
+            /* Animation */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        }
+
+        /* Mũi tên nhỏ trên đầu popover */
+        .vec-popover::before {
+            content: "";
+            position: absolute;
+            top: -6px;
+            right: 14px;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            border-left: 1px solid #e8e8e8;
+            border-top: 1px solid #e8e8e8;
+            transform: rotate(45deg);
+        }
+
+        /* Hiện popover khi hover hoặc active */
+
+        .vec-user-icon.active .vec-popover {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* Từng link trong popover */
+        .vec-popover-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 7px;
+            color: #333333;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none !important;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .vec-popover-item:hover {
+            background: #f0f7ff;
+            color: #0066cc;
+        }
+
+        .vec-popover-item:hover .vec-popover-icon {
+            color: #0066cc;
+        }
+
+        /* Icon trong link */
+        .vec-popover-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #555;
+            transition: background 0.15s ease, color 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .vec-popover-item:hover .vec-popover-icon {
+            background: #dbeeff;
+        }
+
+        /* Đường kẻ giữa 2 item (optional) */
+        .vec-popover-item+.vec-popover-item {
+            border-top: 1px solid #f0f0f0;
+            margin-top: 2px;
+        }
+
+        .vec-username-wrapper {
+            padding: 12px 0;
+            justify-content: center;
+        }
+
+        .vec-username-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            border: 1px solid;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<#assign groupId=themeDisplay.getSiteGroupId() />
+<#assign currentLanguageId=locale.toString() />
+
+<#assign
+    siteNavigationMenuLocalService=serviceLocator.findService( "com.liferay.site.navigation.service.SiteNavigationMenuLocalService"
+    ) />
+<#assign
+    siteNavigationMenuItemLocalService=serviceLocator.findService( "com.liferay.site.navigation.service.SiteNavigationMenuItemLocalService"
+    ) />
+
+<#-- Tìm Menu Chính -->
+    <#assign menus=siteNavigationMenuLocalService.getSiteNavigationMenus(groupId) />
+    <#assign targetMenu="" />
+    <#assign PRIMARY_NAVIGATION=1 />
+    <#list menus as menu>
+        <#if menu.getType()==PRIMARY_NAVIGATION>
+            <#assign targetMenu=menu />
+        </#if>
+    </#list>
+
+    <#-- Lấy items rồi sort theo order -->
+        <#assign allItemsRaw=siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+            targetMenu.getSiteNavigationMenuId() ) />
+
+        <#-- Sort theo order -->
+            <#assign allItems=allItemsRaw?sort_by("order") />
+            <#function getItemName ts>
+                <#assign nameKey="name_" + currentLanguageId + "=" />
+                <#if !ts?contains(nameKey)>
+                    <#assign nameKey="name_en_US=" />
+                </#if>
+                <#if !ts?contains(nameKey)>
+                    <#assign nameKey="name_vi_VN=" />
+                </#if>
+
+                <#if ts?contains(nameKey)>
+                    <#-- Lấy toàn bộ sau key, dừng ở \n trước -->
+                        <#assign val=ts?keep_after(nameKey)?keep_before("\n")?trim />
+
+                        <#-- Nếu single-line, cắt bỏ phần key=value phía sau -->
+                            <#list [" url=", " useNewTab=", " layoutUuid=", " groupId=", " defaultLanguageId=", " type="] as stopKey>
+      <#if val?contains(stopKey)>
+        <#assign val = val?keep_before(stopKey)?trim />
+      </#if>
+    </#list>
+
+    <#if val?has_content><#return val /></#if>
+  </#if>
+
+  <#return "" />
+</#function>
+
+<#function getItemUrl ts>
+  <#if ts?contains(" url=")>
+    <#assign val = ts?keep_after(" url=")?keep_before(" \n")?trim />
+                            <#list [" useNewTab=", " layoutUuid=", " groupId=", " type="] as stopKey>
+      <#if val?contains(stopKey)>
+        <#assign val = val?keep_before(stopKey)?trim />
+      </#if>
+    </#list>
+    <#return val />
+  </#if>
+  <#return " #" />
+            </#function>
+
+            <#function getItemTarget ts>
+                <#if ts?contains("useNewTab=true")>
+                    <#return "_blank" />
+                </#if>
+                <#return "_self" />
+            </#function>
+
+            <body>
+                <div class="vec-wrapper has-banner" id="header-wrapper">
+                    <div class="">
+                        <!-- TOP NEWS -->
+                        <div class="mySwiper swiper header-swiper">
+                            <div class="swiper-wrapper">
+                                <#if entries?has_content>
+                                    <#list entries as entry>
+                                        <#assign assetRenderer=entry.getAssetRenderer() />
+                                        <#assign article=assetRenderer.getArticle() />
+                                        <#assign xml=article.getContentByLocale(locale) />
+                                        <#assign root=saxReaderUtil.read(xml).getRootElement() />
+                                        <#assign articleURL=assetPublisherHelper.getAssetViewURL(renderRequest,
+                                            renderResponse, entry, true) />
+                                        <#-- Lấy field -->
+                                            <#assign
+                                                titleNode=root.selectSingleNode("//dynamic-element[@field-reference='title'
+                                                ]/dynamic-content") />
+                                            <#-- Gán giá trị -->
+                                                <#assign title=titleNode?has_content?then(titleNode.getText(), "" ) />
+                                                <div class="hot-news swiper-slide">
+                                                    <div class="vec-badge">MỚI</div>
+                                                    <a class="vec-top-news-text" href="${articleURL}">${title}</a>
+                                                </div>
+                                    </#list>
+                                </#if>
+                            </div>
+                        </div>
+
+                        <!-- TOP BAR -->
+                        <div class="vec-top-bar">
+                            <div class="vec-container">
+                                <div class="vec-top-left">
+                                    <span id="weather">☀️38°C</span>
+                                    <span id="date-time"></span>
+                                </div>
+                                <div class="vec-top-right">
+                                    <div class="vec-top-right-links">
+                                        <a class="vec-nav-item"
+                                            href="/web/guest/trangchu/thongtintructuyen/thongtintuyenduong">
+                                            Tra cứu tuyến cao tốc
+                                        </a>
+                                        <a class="vec-nav-item"
+                                            onclick="console.log('🔵 Biểu phí clicked!'); toggleModal(true)">
+                                            Biểu phí
+                                        </a>
+
+                                        <!-- <a class="vec-nav-item" href="#">Thông báo</a> -->
+                                        <a class="vec-nav-item" href="/web/guest/trangchu/vevec/gioithieuchung">
+                                            Thông tin nội bộ
+                                        </a>
+                                        <a class="vec-nav-item" href="/web/guest/trangchu/lienhevec">
+                                            Liên hệ VEC
+                                        </a>
+                                    </div>
+                                    <div class="vec-lang-dropdown">
+                                        <!-- Main button -->
+                                        <div class="vec-icon-btn vec-search-icon vec-lang-toggle" id="vecLangToggle">
+                                            <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                <rect width="26" height="17" rx="3" fill="url(#patternLangGlobe)" />
+                                                <defs>
+                                                    <pattern id="patternLangGlobe"
+                                                        patternContentUnits="objectBoundingBox" width="1" height="1">
+                                                        <use xlink:href="#imageLangGlobe"
+                                                            transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                    </pattern>
+                                                    <image id="imageLangGlobe" width="275" height="183"
+                                                        preserveAspectRatio="none"
+                                                        xlink:href="https://flagcdn.com/w40/vn.png" />
+                                                </defs>
+                                            </svg>
+                                        </div>
+
+                                        <!-- Dropdown -->
+                                        <div class="vec-lang-menu">
+
+                                            <div class="vec-icon-btn vec-search-icon" data-lang="vi"
+                                                data-flag-url="https://flagcdn.com/w40/vn.png" title="Vietnamese"
+                                                onclick="vecTranslate(this)">
+                                                <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                    <rect width="26" height="17" rx="3" fill="url(#patternLangVI)" />
+                                                    <defs>
+                                                        <pattern id="patternLangVI"
+                                                            patternContentUnits="objectBoundingBox" width="1"
+                                                            height="1">
+                                                            <use xlink:href="#imageLangVI"
+                                                                transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                        </pattern>
+                                                        <image id="imageLangVI" width="275" height="183"
+                                                            preserveAspectRatio="none"
+                                                            xlink:href="https://flagcdn.com/w40/vn.png" />
+                                                    </defs>
+                                                </svg>
+                                            </div>
+
+                                            <div class="vec-icon-btn vec-search-icon" data-lang="en"
+                                                data-flag-url="https://flagcdn.com/w40/gb.png" title="English"
+                                                onclick="vecTranslate(this)">
+                                                <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                    <rect width="26" height="17" rx="3" fill="url(#patternLangEN)" />
+                                                    <defs>
+                                                        <pattern id="patternLangEN"
+                                                            patternContentUnits="objectBoundingBox" width="1"
+                                                            height="1">
+                                                            <use xlink:href="#imageLangEN"
+                                                                transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                        </pattern>
+                                                        <image id="imageLangEN" width="275" height="183"
+                                                            preserveAspectRatio="none"
+                                                            xlink:href="https://flagcdn.com/w40/gb.png" />
+                                                    </defs>
+                                                </svg>
+                                            </div>
+
+                                            <div class="vec-icon-btn vec-search-icon" data-lang="zh-CN"
+                                                data-flag-url="https://flagcdn.com/w40/cn.png" title="Chinese"
+                                                onclick="vecTranslate(this)">
+                                                <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                    <rect width="26" height="17" rx="3" fill="url(#patternLangCN)" />
+                                                    <defs>
+                                                        <pattern id="patternLangCN"
+                                                            patternContentUnits="objectBoundingBox" width="1"
+                                                            height="1">
+                                                            <use xlink:href="#imageLangCN"
+                                                                transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                        </pattern>
+                                                        <image id="imageLangCN" width="275" height="183"
+                                                            preserveAspectRatio="none"
+                                                            xlink:href="https://flagcdn.com/w40/cn.png" />
+                                                    </defs>
+                                                </svg>
+                                            </div>
+
+                                            <div class="vec-icon-btn vec-search-icon" data-lang="ja"
+                                                data-flag-url="https://flagcdn.com/w40/jp.png" title="Japanese"
+                                                onclick="vecTranslate(this)">
+                                                <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                    <rect width="26" height="17" rx="3" fill="url(#patternLangJP)" />
+                                                    <defs>
+                                                        <pattern id="patternLangJP"
+                                                            patternContentUnits="objectBoundingBox" width="1"
+                                                            height="1">
+                                                            <use xlink:href="#imageLangJP"
+                                                                transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                        </pattern>
+                                                        <image id="imageLangJP" width="275" height="183"
+                                                            preserveAspectRatio="none"
+                                                            xlink:href="https://flagcdn.com/w40/jp.png" />
+                                                    </defs>
+                                                </svg>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="vec-icon-btn vec-search-icon" onclick="openModal()"><i
+                                            class="fa-solid fa-magnifying-glass"></i></div>
+
+                                    <div class="vec-icon-btn vec-user-icon" id="userBtn">
+                                        <#if themeDisplay.isSignedIn()>
+                                            <i class="fa-regular fa-user"></i>
+                                            <div class="vec-popover" id="userPopover">
+                                                <a href="/web/guest/manage?p_p_id=com_liferay_my_account_web_portlet_MyAccountPortlet"
+                                                    class="vec-popover-item vec-username-wrapper">
+                                                    <div class="vec-username-icon">
+                                                        <svg class="lexicon-icon lexicon-icon-user" role="presentation">
+                                                            <use
+                                                                href="/o/classic-theme/images/clay/icons.svg#user">
+                                                            </use>
+                                                        </svg>
+                                                    </div>
+                                                    <span class="vec-username">
+                                                        ${themeDisplay.getUser().getFullName()}
+                                                    </span>
+                                                </a>
+                                                <a href="/web/guest/intranet" class="vec-popover-item">
+                                                    <span>Cổng thông tin nội bộ</span>
+                                                </a>
+                                                <a href="/c/portal/logout" class="vec-popover-item">
+                                                    <span>Đăng xuất</span>
+                                                </a>
+                                            </div>
+
+                                            <#else>
+
+                                                <i class="fa-regular fa-user"></i>
+
+                                                <div class="vec-popover" id="userPopover">
+                                                    <a href="/c/admin?redirect=/web/guest/intranet"
+                                                        class="vec-popover-item">
+                                                        <span>Cổng thông tin nội bộ</span>
+                                                    </a>
+                                                    <a href="/c/admin" class="vec-popover-item">
+                                                        <span>Quản trị hệ thống</span>
+                                                    </a>
+                                                </div>
+                                        </#if>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- HEADER -->
+                        <header class="vec-header">
+                            <div class="">
+                                <div class="vec-container">
+                                    <a class="vec-logo-section logo-desktop" href="/web/guest/trangchu">
+                                        <svg width="80" height="69" viewBox="0 0 80 69" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M40 0.5C61.8887 0.5 79.5 15.746 79.5 34.4004C79.4998 53.0546 61.8885 68.2998 40 68.2998C18.1115 68.2998 0.500245 53.0546 0.5 34.4004C0.5 15.746 18.1113 0.5 40 0.5Z"
+                                                fill="#0090CF" stroke="white" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M17.8318 55.2912L40.2146 2.06882L26.5187 44.9827L34.7906 35.2485H36.923L23.0983 55.2768H17.8318V55.2912Z"
+                                                fill="#E31C2A" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M38.1679 34.9907L36.8799 45.2848L46.5686 45.2131L45.853 43.2174L40.0856 43.0738V39.4989L44.8656 39.3553L44.5078 38.0631L40.0856 38.1349V36.1393L44.0784 36.2111L43.6491 35.1343L38.1679 34.9907Z"
+                                                fill="#E31C2A" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M45.939 35.1331L53.71 34.9178L54.4255 36.7124L52.2216 36.7842L51.8638 36.1382L48.5865 36.2099L51.0052 43.1445H54.6402L54.2967 42.0677H56.7583L58.0749 45.2263L49.2019 45.2837L45.939 35.1331Z"
+                                                fill="#E31C2A" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M24.9158 55.2046L41.3308 55.0754L41.3594 47.1071L30.4685 46.8917L24.9158 55.2046Z"
+                                                fill="white" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M44.4651 47.0358L58.8193 47.0646L62.1681 54.961L45.2093 55.1333L44.4651 47.0358Z"
+                                                fill="white" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M40.6725 14.3733L40.8156 20.1162H42.1609L41.7029 14.3733H40.6725ZM41.016 5.04105L52.9945 33.2818L43.2628 33.3966H43.2056L42.7619 27.783H41.016L41.1591 33.3966H31.9426L41.016 5.04105Z"
+                                                fill="white" />
+                                        </svg>
+
+                                        <div class="title-container">
+                                            <p class="title-vn">TỔNG CÔNG TY ĐẦU TƯ PHÁT TRIỂN
+                                                ĐƯỜNG CAO TỐC VIỆT NAM</p>
+                                            <p class="title-eu">Vietnam Expressway Corporation (VEC)</p>
+                                        </div>
+
+                                    </a>
+                                    <a class="vec-logo-section logo-mobile" href="/web/guest/trangchu">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="80" height="69"
+                                            viewBox="0 0 80 69" fill="none">
+                                            <path
+                                                d="M40 0.5C61.8887 0.5 79.5 15.746 79.5 34.4004C79.4998 53.0546 61.8885 68.2998 40 68.2998C18.1115 68.2998 0.500245 53.0546 0.5 34.4004C0.5 15.746 18.1113 0.5 40 0.5Z"
+                                                fill="#0090CF" stroke="white" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M17.8319 55.2912L40.2147 2.06884L26.5188 44.9827L34.7908 35.2485H36.9231L23.0985 55.2769H17.8319V55.2912Z"
+                                                fill="#E31C2A" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M38.1681 34.9907L36.8801 45.2849L46.5688 45.2131L45.8533 43.2174L40.0858 43.0738V39.4989L44.8658 39.3553L44.508 38.0632L40.0858 38.1349V36.1393L44.0787 36.2111L43.6493 35.1343L38.1681 34.9907Z"
+                                                fill="#E31C2A" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M45.9391 35.1332L53.7101 34.9178L54.4257 36.7125L52.2218 36.7842L51.864 36.1382L48.5867 36.2099L51.0053 43.1445H54.6404L54.2969 42.0677H56.7584L58.0751 45.2263L49.2021 45.2837L45.9391 35.1332Z"
+                                                fill="#E31C2A" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M24.9159 55.2046L41.3309 55.0754L41.3596 47.1071L30.4687 46.8918L24.9159 55.2046Z"
+                                                fill="white" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M44.4652 47.0358L58.8194 47.0646L62.1682 54.961L45.2093 55.1333L44.4652 47.0358Z"
+                                                fill="white" />
+                                            <path fill-rule="evenodd" clip-rule="evenodd"
+                                                d="M40.6727 14.3733L40.8158 20.1162H42.1611L41.7031 14.3733H40.6727ZM41.0162 5.04106L52.9947 33.2818L43.263 33.3966H43.2058L42.7621 27.783H41.0162L41.1593 33.3966H31.9428L41.0162 5.04106Z"
+                                                fill="white" />
+                                        </svg>
+                                    </a>
+                                    <nav class="vec-main-nav" id="vecMainNav">
+                                        <#if allItems?has_content>
+
+
+                                            <#-- Icon Home (giữ nguyên) -->
+                                                <a class="vec-nav-item" href="/web/guest/trangchu">
+                                                    <i class="fa-solid fa-house"></i>
+                                                </a>
+
+                                                <#-- Duyệt Level 1 -->
+                                                    <#list allItems as parentItem>
+                                                        <#if parentItem.getParentSiteNavigationMenuItemId()==0>
+                                                            <#assign
+                                                                parentName=getItemName(parentItem.getTypeSettings()) />
+                                                            <#assign
+                                                                parentUrl=getItemUrl(parentItem.getTypeSettings()) />
+                                                            <#assign
+                                                                parentId=parentItem.getSiteNavigationMenuItemId() />
+
+                                                            <#-- Kiểm tra có children không -->
+                                                                <#assign hasChildren=false />
+                                                                <#list allItems as c>
+                                                                    <#if
+                                                                        c.getParentSiteNavigationMenuItemId()==parentId>
+                                                                        <#assign hasChildren=true />
+                                                                    </#if>
+                                                                </#list>
+
+                                                                <#if hasChildren>
+                                                                    <div class="vec-nav-item">
+                                                                        ${parentName} <i
+                                                                            class="fa-solid fa-angle-down"></i>
+                                                                        <div class="vec-dropdown">
+                                                                            <#list allItems as childItem>
+                                                                                <#if
+                                                                                    childItem.getParentSiteNavigationMenuItemId()==parentId>
+                                                                                    <#assign
+                                                                                        childName=getItemName(childItem.getTypeSettings()) />
+                                                                                    <#assign
+                                                                                        childUrl=getItemUrl(childItem.getTypeSettings()) />
+                                                                                    <a href="${childUrl}"
+                                                                                        target="${getItemTarget(childItem.getTypeSettings())}">${childName}</a>
+                                                                                </#if>
+                                                                            </#list>
+                                                                        </div>
+                                                                    </div>
+                                                                    <#else>
+                                                                        <a class="vec-nav-item" href="${parentUrl}"
+                                                                            target="${getItemTarget(parentItem.getTypeSettings())}">${parentName}</a>
+                                                                </#if>
+
+                                                        </#if>
+                                                    </#list>
+                                        </#if>
+
+                                    </nav>
+                                    <div class="flex gap-3 items-center">
+                                        <div class="vec-lang-dropdown vec-lang-dropdown-mobile">
+                                            <!-- Main button -->
+                                            <div class="vec-icon-btn vec-search-icon vec-lang-toggle"
+                                                id="vecLangToggleMobile">
+                                                <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                    <rect width="26" height="17" rx="3"
+                                                        fill="url(#patternLangGlobeMobile)" />
+                                                    <defs>
+                                                        <pattern id="patternLangGlobeMobile"
+                                                            patternContentUnits="objectBoundingBox" width="1"
+                                                            height="1">
+                                                            <use xlink:href="#imageLangGlobeMobile"
+                                                                transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                        </pattern>
+                                                        <image id="imageLangGlobeMobile" width="275" height="183"
+                                                            preserveAspectRatio="none"
+                                                            xlink:href="https://flagcdn.com/w40/vn.png" />
+                                                    </defs>
+                                                </svg>
+                                            </div>
+                                            <!-- Dropdown -->
+                                            <div class="vec-lang-menu">
+                                                <div class="vec-icon-btn vec-search-icon" data-lang="vi"
+                                                    data-flag-url="https://flagcdn.com/w40/vn.png" title="Vietnamese"
+                                                    onclick="vecTranslateMobile(this)">
+                                                    <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                        <rect width="26" height="17" rx="3"
+                                                            fill="url(#patternLangVIMobile)" />
+                                                        <defs>
+                                                            <pattern id="patternLangVIMobile"
+                                                                patternContentUnits="objectBoundingBox" width="1"
+                                                                height="1">
+                                                                <use xlink:href="#imageLangVIMobile"
+                                                                    transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                            </pattern>
+                                                            <image id="imageLangVIMobile" width="275" height="183"
+                                                                preserveAspectRatio="none"
+                                                                xlink:href="https://flagcdn.com/w40/vn.png" />
+                                                        </defs>
+                                                    </svg>
+                                                </div>
+
+                                                <div class="vec-icon-btn vec-search-icon" data-lang="en"
+                                                    data-flag-url="https://flagcdn.com/w40/gb.png" title="English"
+                                                    onclick="vecTranslateMobile(this)">
+                                                    <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                        <rect width="26" height="17" rx="3"
+                                                            fill="url(#patternLangENMobile)" />
+                                                        <defs>
+                                                            <pattern id="patternLangENMobile"
+                                                                patternContentUnits="objectBoundingBox" width="1"
+                                                                height="1">
+                                                                <use xlink:href="#imageLangENMobile"
+                                                                    transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                            </pattern>
+                                                            <image id="imageLangENMobile" width="275" height="183"
+                                                                preserveAspectRatio="none"
+                                                                xlink:href="https://flagcdn.com/w40/gb.png" />
+                                                        </defs>
+                                                    </svg>
+                                                </div>
+
+                                                <div class="vec-icon-btn vec-search-icon" data-lang="zh-CN"
+                                                    data-flag-url="https://flagcdn.com/w40/cn.png" title="Chinese"
+                                                    onclick="vecTranslateMobile(this)">
+                                                    <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                        <rect width="26" height="17" rx="3"
+                                                            fill="url(#patternLangCNMobile)" />
+                                                        <defs>
+                                                            <pattern id="patternLangCNMobile"
+                                                                patternContentUnits="objectBoundingBox" width="1"
+                                                                height="1">
+                                                                <use xlink:href="#imageLangCNMobile"
+                                                                    transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                            </pattern>
+                                                            <image id="imageLangCNMobile" width="275" height="183"
+                                                                preserveAspectRatio="none"
+                                                                xlink:href="https://flagcdn.com/w40/cn.png" />
+                                                        </defs>
+                                                    </svg>
+                                                </div>
+
+                                                <div class="vec-icon-btn vec-search-icon" data-lang="ja"
+                                                    data-flag-url="https://flagcdn.com/w40/jp.png" title="Japanese"
+                                                    onclick="vecTranslateMobile(this)">
+                                                    <svg width="26" height="17" viewBox="0 0 26 17" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        xmlns:xlink="http://www.w3.org/1999/xlink">
+                                                        <rect width="26" height="17" rx="3"
+                                                            fill="url(#patternLangJPMobile)" />
+                                                        <defs>
+                                                            <pattern id="patternLangJPMobile"
+                                                                patternContentUnits="objectBoundingBox" width="1"
+                                                                height="1">
+                                                                <use xlink:href="#imageLangJPMobile"
+                                                                    transform="matrix(0.00363636 0 0 0.0055615 0 -0.00887701)" />
+                                                            </pattern>
+                                                            <image id="imageLangJPMobile" width="275" height="183"
+                                                                preserveAspectRatio="none"
+                                                                xlink:href="https://flagcdn.com/w40/jp.png" />
+                                                        </defs>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="open-btn" id="openMenu">
+                                            <i class="fa-solid fa-bars"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </header>
+                    </div>
+                </div>
+                <!-- OVERLAY -->
+                <div class="overlay" id="overlay"></div>
+                <!-- DRAWER -->
+                <aside class="drawer" id="drawer">
+                    <!-- HEADER -->
+                    <div class="drawer-header">
+                        <div class="drawer-weather-datetime">
+                            <span id="weather-mobile">☀️38°C</span>
+                            <span id="date-time-mobile"></span>
+                        </div>
+                        <button id="closeMenu">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <!-- SEARCH -->
+                    <div class="search-box">
+                        <div class="input-wrap">
+                            <input type="text" placeholder="Nhập từ khóa" id="mSearchInput" />
+                            <i class="fa-solid fa-magnifying-glass" id="mSearchBtn"></i>
+                        </div>
+                    </div>
+
+                    <!-- MENU -->
+                    <nav class="menu">
+
+                        <a href="/web/guest/trangchu" class="home">
+                            <svg width="22" height="21" viewBox="0 0 22 21" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path opacity="0.4"
+                                    d="M11 0.25C9.95116 0.25 9.04948 0.664353 8.10742 1.35356C7.19322 2.02238 6.16347 3.0098 4.86415 4.2557L4.82911 4.2893L2.25 6.67179V12.0564C2.24998 13.8942 2.24997 15.3498 2.40314 16.489C2.56076 17.6614 2.89288 18.6104 3.64124 19.3588C4.38961 20.1071 5.33856 20.4392 6.51098 20.5969C7.65018 20.75 9.1058 20.75 10.9435 20.75H11.0564C12.8942 20.75 14.3498 20.75 15.489 20.5969C16.6614 20.4392 17.6104 20.1071 18.3588 19.3588C19.1071 18.6104 19.4392 17.6614 19.5969 16.489C19.75 15.3498 19.75 13.8942 19.75 12.0565V6.67179L17.1709 4.28932L17.1359 4.25572C15.8365 3.00981 14.8068 2.02238 13.8926 1.35357C12.9505 0.664354 12.0488 0.25 11 0.25Z"
+                                    fill="#0090CF" />
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M9.75 15.5C9.75 14.8096 10.3076 14.25 10.9955 14.25C11.6777 14.25 12.25 14.8117 12.25 15.5C12.25 16.1883 11.6777 16.75 10.9955 16.75C10.3076 16.75 9.75 16.1904 9.75 15.5Z"
+                                    fill="#0090CF" />
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M9.14071 2.76594C8.33333 3.35661 7.38869 4.25951 6.03526 5.55727L1.69211 9.72179C1.29347 10.104 0.660447 10.0907 0.278207 9.69211C-0.104033 9.29347 -0.0907422 8.66045 0.307894 8.27821L4.70301 4.06386C5.99217 2.82768 7.03207 1.83052 7.9598 1.1518C8.92464 0.44593 9.87769 0 11 0C12.1223 0 13.0754 0.445931 14.0402 1.1518C14.9679 1.83053 16.0078 2.82768 17.297 4.06387L21.6921 8.27821C22.0907 8.66045 22.104 9.29347 21.7218 9.69211C21.3396 10.0907 20.7065 10.104 20.3079 9.72179L15.9647 5.55728C14.6113 4.25951 13.6667 3.35662 12.8593 2.76594C12.0766 2.19332 11.5345 2 11 2C10.4655 2 9.92342 2.19332 9.14071 2.76594Z"
+                                    fill="#0090CF" />
+                            </svg>
+                        </a>
+
+                        <#list allItems as parentItem>
+                            <#if parentItem.getParentSiteNavigationMenuItemId()==0>
+                                <#assign parentName=getItemName(parentItem.getTypeSettings()) />
+                                <#assign parentUrl=getItemUrl(parentItem.getTypeSettings()) />
+                                <#assign parentId=parentItem.getSiteNavigationMenuItemId() />
+
+                                <#assign hasChildren=false />
+                                <#list allItems as c>
+                                    <#if c.getParentSiteNavigationMenuItemId()==parentId>
+                                        <#assign hasChildren=true />
+                                    </#if>
+                                </#list>
+
+                                <#if hasChildren>
+                                    <div class="menu-item">
+                                        <button class="menu-toggle">
+                                            <span>${parentName}</span>
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                        <div class="menu-content">
+                                            <#list allItems as childItem>
+                                                <#if childItem.getParentSiteNavigationMenuItemId()==parentId>
+                                                    <a
+                                                        href="${getItemUrl(childItem.getTypeSettings())}">${getItemName(childItem.getTypeSettings())}</a>
+                                                </#if>
+                                            </#list>
+                                        </div>
+                                    </div>
+                                    <#else>
+                                        <a class="menu-item" href="${parentUrl}"
+                                            target="${getItemTarget(parentItem.getTypeSettings())}">${parentName}</a>
+                                </#if>
+
+                            </#if>
+                        </#list>
+
+                        <div style="padding-bottom: 16px;"></div>
+
+                        <div class="static-links">
+                            <a href="/web/guest/trangchu/thongtintructuyen/thongtintuyenduong">Tra cứu tuyến cao tốc</a>
+                            <button onclick="toggleModal(true)">Biểu phí</button>
+                            <a href="#">Thông báo</a>
+                            <a href="/web/guest/trangchu/vevec/gioithieuchung">Thông tin nội bộ</a>
+                            <a href="/web/guest/trangchu/lienhevec">Liên hệ VEC</a>
+                        </div>
+
+                    </nav>
+                </aside>
+
+
+                <div id="modal" class="hidden fixed left-0 right-0 z-40 bg-black/50"
+                    style="top: -20px; bottom: 0; z-index: 1000;">
+                    <div class="absolute left-0 right-0 bg-white shadow-lg" style="top: 20px; height: 489px;">
+
+                        <div class="flex justify-end items-center pt-[20px] pr-[20px]">
+                            <button onclick="closeModal()" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13 1L1 13M1 1L13 13" stroke="#1E1E1E" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                            </button>
+                        </div>
+
+
+                        <div class="">
+                            <div class="text-center pt-[16px] pb-[10px] xl:pt-[64px] xl:pb-[40px]">
+                                <h5 class="!text-[#272727] !font-bold text-2xl xl:text-4xl pb-[6px] xl:pb-[24px]">Tìm
+                                    kiếm</h5>
+                                <p class="!text-[#555555] text-sm xl:text-base">
+                                    Tra cứu biểu phí, giao thông trực tuyến và các thông tin khác
+                                </p>
+                            </div>
+
+                            <div class="w-11/12 pl-[16px] xl:pl-[0px] xl:w-[1011px] mx-[32px] xl:mx-auto">
+
+                                <div class="relative">
+                                    <input type="text" placeholder="Nhập từ khóa" id="searchInput"
+                                        class="w-full h-[60px] pl-[18px] px-[5px] rounded-[6px] border-1 !border-[#E4E4E4] text-base !bg-[#F9F9F9]" />
+                                    <button id="searchBtn"
+                                        class="absolute inset-y-0 right-0 p-[5px] m-[5px] flex items-center">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <g clip-path="url(#clip0_6507_5359)">
+                                                <path
+                                                    d="M15.9925 14.08C15.9259 14 15.8893 13.9067 15.8826 13.8C15.876 13.6933 15.8993 13.5933 15.9525 13.5C16.8714 12.0733 17.3308 10.5067 17.3308 8.79998C17.3308 7.22665 16.938 5.76665 16.1523 4.41998C15.3799 3.11332 14.3412 2.07332 13.0362 1.29998C11.7045 0.513317 10.253 0.119984 8.68161 0.119984C7.11025 0.119984 5.65207 0.513317 4.30708 1.29998C3.00205 2.07332 1.96335 3.11332 1.19098 4.41998C0.405293 5.76665 0.0124512 7.22665 0.0124512 8.79998C0.0124512 10.3733 0.405293 11.8333 1.19098 13.18C1.96335 14.4867 3.00205 15.5267 4.30708 16.3C5.65207 17.0867 7.11025 17.48 8.68161 17.48C9.58715 17.48 10.4727 17.34 11.3383 17.06C12.1772 16.78 12.9563 16.3867 13.6754 15.88C13.7553 15.8133 13.8518 15.7833 13.965 15.79C14.0782 15.7967 14.1681 15.84 14.2347 15.92L17.3907 19.08C17.404 19.0933 17.4573 19.14 17.5505 19.22L17.7303 19.38L18.0899 19.76C18.1564 19.8267 18.243 19.86 18.3495 19.86C18.4561 19.86 18.5426 19.8267 18.6092 19.76L19.8876 18.48C19.9542 18.4133 19.9875 18.3267 19.9875 18.22C19.9875 18.1133 19.9542 18.0267 19.8876 17.96L15.9925 14.08ZM13.9151 12.84C13.6354 13.2133 13.3158 13.5533 12.9563 13.86C12.3703 14.3667 11.7112 14.7567 10.9787 15.03C10.2463 15.3033 9.48062 15.44 8.68161 15.44C7.48311 15.44 6.37117 15.14 5.34578 14.54C4.33372 13.9533 3.53471 13.1533 2.94878 12.14C2.34953 11.1133 2.0499 9.99998 2.0499 8.79998C2.0499 7.59998 2.34953 6.48665 2.94878 5.45998C3.53471 4.44665 4.33372 3.64665 5.34578 3.05998C6.37117 2.45998 7.48311 2.15998 8.68161 2.15998C9.88012 2.15998 10.9921 2.45998 12.0174 3.05998C13.0162 3.64665 13.8085 4.44665 14.3945 5.45998C14.9937 6.48665 15.2933 7.59998 15.2933 8.79998C15.2933 9.54665 15.1735 10.2633 14.9338 10.95C14.6941 11.6367 14.3545 12.2667 13.9151 12.84Z"
+                                                    fill="#E31C2A" />
+                                            </g>
+                                            <defs>
+                                                <clipPath id="clip0_6507_5359">
+                                                    <rect width="20" height="20" fill="white"
+                                                        transform="matrix(1 0 0 -1 0 20)" />
+                                                </clipPath>
+                                            </defs>
+                                        </svg>
+                                    </button>
+                                </div>
+
+
+                                <div id="menu-container-deeplink"
+                                    class="flex flex-wrap justify-between pt-[10px] xl:pt-[34px] menu-container-deeplink">
+
+                                    <!--  <a href="/web/guest/trangchu/vevec/gioithieuchung"
+                            class="quân_alo p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">Về
+                            VEC</a> 
+                        <a href="/web/guest/trangchu/thongtintructuyen/thongtintuyenduong"
+                            class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">Tra
+                            cứu tuyến cao tốc</a>
+                        <a href="/web/guest/trangchu/thongtintructuyen/cuocphituyenduong"
+                            class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">Biểu
+                            phí</a>
+                        <a href="/web/guest/trangchu/lienhevec"
+                            class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">Góp
+                            ý phản ánh</a>
+                        <a href="/web/guest/trangchu/lienhevec"
+                            class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">Đặt
+                            lịch trực tuyến</a>
+                        <a href="/web/guest/thông-tin-tuyển-dụng"
+                            class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">Tuyển
+                            dụng</a>
+                        <a href="/web/guest/an-toan-giao-thong/atgt-tren-duong-cao-toc-vec"
+                            class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">An
+                            toàn giao thông</a> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+
+                <!-- feeModal -->
+                <div id="feeModal"
+                    class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black bg-opacity-50 p-4"
+                    onclick="closeIfOutside(event)">
+                    <div
+                        class="bg-white w-full max-w-2xl rounded-[10px] shadow-lg overflow-hidden transform transition-all">
+                        <div style="background-color: #E0F2FA;"
+                            class="flex justify-between items-end px-3 py-3 border-b border-sky-100">
+                            <h2 class="text-[20px] font-semibold uppercase tracking-tight leading-none"
+                                style="color: #0090CF;">
+                                Biểu
+                                Phí</h2>
+                            <p class="text-[14px]  italic leading-none" style="color: #0090CF;">Đơn vị: <span
+                                    class="font-bold uppercase" style="color: #0090CF;">Vnd</span></p>
+                        </div>
+                        <div class="p-3">
+                            <!-- Route and Station Selection -->
+                            <div class="mb-4">
+                                <!-- Route Selection -->
+                                <div class="mb-3">
+                                    <div class="relative w-full overflow-hidden">
+                                        <select id="feeModalSelectRouteSpdv"
+                                            class="w-full border border-gray-300 rounded-md py-2.5 px-2.5 text-sm appearance-none focus:outline-none focus:ring-1  bg-white cursor-pointer transition-all">
+                                            <option value="" disabled>Chọn tuyến đường</option>
+                                        </select>
+                                        <div
+                                            class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 20 20">
+                                                <path
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Station Selection -->
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-1">
+                                        <select id="feeModalSelectSpdvStation1"
+                                            class="w-full border border-gray-300 rounded-md py-2.5 px-2.5 text-sm appearance-none focus:outline-none focus:ring-1  bg-white cursor-pointer transition-all"
+                                            disabled>
+                                            <option value="" disabled>Điểm đầu trạm</option>
+                                        </select>
+                                        <div
+                                            class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 20 20">
+                                                <path
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <button id="feeModalSwapStations"
+                                        class="p-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                                        title="Đổi vị trí">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M20 17H4M4 17L8 13M4 17L8 21M4 7H20M20 7L16 3M20 7L16 11"
+                                                stroke="#1E1E1E" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                    <div class="relative flex-1">
+                                        <select id="feeModalSelectSpdvStation2"
+                                            class="w-full border border-gray-300 rounded-md py-2.5 px-2.5 text-sm appearance-none focus:outline-none focus:ring-1  bg-white cursor-pointer transition-all"
+                                            disabled>
+                                            <option value="" disabled>Điểm cuối trạm</option>
+                                        </select>
+                                        <div
+                                            class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                            <svg class="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 20 20">
+                                                <path
+                                                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Price Table -->
+                            <div id="feeModalPriceTable" class="overflow-x-auto">
+                                <p id="feeModalEmptyMessageSpdv" class="text-center text-gray-500 italic py-4">Vui lòng
+                                    chọn 2 trạm thu
+                                    phí để xem bảng giá chi tiết</p>
+                                <div class="overflow-x-auto">
+                                    <table id="feeModalTableSpdv"
+                                        class="w-full text-left text-[14px] border-collapse hidden"
+                                        style="table-layout: fixed;">
+                                        <colgroup>
+                                            <col style="width: 25%;">
+                                            <col style="width: 25%;">
+                                            <col style="width: 25%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <thead class="sticky top-0 bg-white z-10">
+                                            <tr style="border-color: #0090CF;"
+                                                class="text-gray-900 font-semibold border-b-[2px]">
+                                                <th class="py-3 pr-2 w-1/4 bg-white">Phương tiện</th>
+                                                <th class="py-3 px-2 text-center bg-white">Tổng mức giá</th>
+                                                <th class="py-3 px-2 text-center bg-white">Mức giá thu lần 1</th>
+                                                <th class="py-3 px-2 text-center bg-white">Mức giá thu lần 2</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                                <div class="overflow-y-auto overflow-x-auto max-h-[30vh] sm:max-h-[85vh]">
+                                    <table style="table-layout: fixed;">
+                                        <colgroup>
+                                            <col style="width: 25%;">
+                                            <col style="width: 25%;">
+                                            <col style="width: 25%;">
+                                            <col style="width: 25%;">
+                                        </colgroup>
+                                        <tbody id="feeModalTableBodySpdv"
+                                            class="divide-y divide-gray-100 text-gray-700">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <p id="feeModalVATNoteSpdv" class="text-xs text-gray-600 mt-2 hidden">Mức giá dịch vụ bao
+                                gồm 10% VAT</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3 p-3 pt-3">
+                            <a style="background-color: #0090CF;"
+                                href="/web/guest/trangchu/thongtintructuyen/thongtintuyenduong"
+                                class="flex-1  text-white font-medium py-3 rounded-md transition duration-300 uppercase text-sm flex items-center justify-center text-center hover:bg-opacity-90 no-underline hover:no-underline">
+                                Tra cứu tuyến đường
+                            </a>
+                            <a style="background-color: #E31C2A;"
+                                href="/web/guest/trangchu/thongtintructuyen/cuocphituyenduong"
+                                class="flex-1  text-white font-medium py-3 rounded-md transition duration-300 uppercase text-sm flex items-center justify-center text-center hover:bg-opacity-90 no-underline hover:no-underline">
+                                So sánh cước phí
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    #feeModal select {
+                        width: 100%;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        padding-right: 30px;
+                    }
+                </style>
+
+                <!-- Swiper JS -->
+                <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script>
+                <script>
+                    (function () {
+
+                        function applySavedLanguage() {
+                            const lang = localStorage.getItem("vec_selected_lang");
+                            const flag = localStorage.getItem("vec_selected_flag");
+                            if (!lang) return;
+
+                            resetVecTranslationGuard();
+
+                            // delay is critical for full reload
+                            setTimeout(() => {
+                                vecApplyTranslation(lang, flag);
+                            }, 400);
+                        }
+
+                        // ✅ FULL PAGE RELOAD
+                        window.addEventListener("load", applySavedLanguage);
+
+                        // ✅ LIFERAY SPA NAVIGATION
+                        if (window.Liferay) {
+                            window.Liferay.on("endNavigate", applySavedLanguage);
+                        }
+
+                    })();
+                    document.addEventListener("DOMContentLoaded", function () {
+                        return;
+
+                        const savedLang = localStorage.getItem("vec_selected_lang");
+                        const savedFlag = localStorage.getItem("vec_selected_flag");
+
+                        if (!savedLang) return;
+
+                        // Fake button object to reuse your function
+                        const fakeBtn = {
+                            getAttribute: (attr) => {
+                                if (attr === "data-lang") return savedLang;
+                                if (attr === "data-flag-url") return savedFlag;
+                                return null;
+                            }
+                        };
+
+                        // Re-run translation automatically
+                        vecTranslate(fakeBtn);
+                    });
+
+                </script>
+                <script>
+                    (() => {
+                        /* ===== DRAWER ===== */
+                        const drawer = document.getElementById("drawer");
+                        const overlay = document.getElementById("overlay");
+                        const openMenu = document.getElementById("openMenu");
+                        const closeMenu = document.getElementById("closeMenu");
+
+                        if (!drawer || !openMenu || !overlay) return;
+
+                        openMenu.onclick = () => {
+                            drawer.classList.add("active");
+                            overlay.classList.add("active");
+                        };
+
+                        function closeDrawer() {
+                            drawer.classList.remove("active");
+                            overlay.classList.remove("active");
+                        }
+
+                        if (closeMenu) closeMenu.onclick = closeDrawer;
+                        overlay.onclick = closeDrawer;
+
+                        /* ===== ACCORDION ===== */
+                        document.querySelectorAll(".menu-toggle").forEach(btn => {
+                            btn.addEventListener("click", () => {
+                                const item = btn.closest(".menu-item");
+                                item?.classList.toggle("open");
+                            });
+                        });
+                        const SEARCH_URL = "/web/guest/trangchu/ketquatimkiem?q=";
+
+                        const input = document.getElementById("searchInput");
+                        const btn = document.getElementById("searchBtn");
+
+                        function redirect(keyword) {
+                            if (!keyword) return;
+                            const url = SEARCH_URL + encodeURIComponent(keyword.trim());
+                            window.location.href = url;
+                        }
+
+                        const mSearchInput = document.getElementById("mSearchInput");
+                        mSearchInput.addEventListener("keydown", (e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                redirect(mSearchInput.value);
+                            }
+                        });
+
+                        const mSearchBtn = document.getElementById("mSearchBtn");
+                        if (mSearchBtn) {
+                            mSearchBtn.addEventListener("click", () => {
+                                redirect(mSearchInput.value);
+                            });
+                        }
+
+                        // 🔹 Enter trong input
+                        input.addEventListener("keydown", (e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                redirect(input.value);
+                            }
+                        });
+
+                        // 🔹 Click icon search
+                        btn.addEventListener("click", () => {
+                            redirect(input.value);
+                        });
+
+                        const path = window.location.pathname.toLowerCase().split("/");
+                        if (path && path[path.length - 1] == 'trangchu') {
+                            const header = document.getElementById("header-wrapper");
+                            header.style.top = 0
+                        }
+
+                        var header = document.getElementById("header-wrapper");
+                        if (!header) return;
+
+                        var lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+                        var scrollUpStart = null;
+                        var SCROLL_UP_THRESHOLD = 100;
+
+                        window.addEventListener("scroll", function () {
+                            var currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+                            if (currentScrollY <= 50) {
+                                header.classList.remove("show-header");
+                                header.classList.remove("hide-header");
+                                lastScrollY = currentScrollY;
+                                scrollUpStart = null;
+                                return;
+                            }
+
+                            // Nếu đang cuộn xuống -> ẩn, reset điểm bắt đầu cuộn lên
+                            if (currentScrollY > lastScrollY) {
+                                header.classList.remove("show-header");
+                                header.classList.add("hide-header");
+                                scrollUpStart = null;
+                            }
+                            // Nếu cuộn lên
+                            else if (currentScrollY < lastScrollY) {
+                                if (scrollUpStart === null) {
+                                    scrollUpStart = lastScrollY; // Ghi lại điểm bắt đầu cuộn lên
+                                }
+
+                                // Chỉ hiện khi đã cuộn lên đủ ngưỡng
+                                if (scrollUpStart - currentScrollY >= SCROLL_UP_THRESHOLD) {
+                                    header.classList.remove("hide-header");
+                                    header.classList.add("show-header");
+                                }
+                            }
+
+                            lastScrollY = currentScrollY;
+                        });
+                    })();
+                </script>
+
+                <script>
+                    var swiper = new Swiper(".mySwiper", {
+                        direction: "vertical",
+                        autoplay: {
+                            delay: 2500,
+                            disableOnInteraction: false,
+                        },
+                        pagination: {
+                            el: ".swiper-pagination",
+                            clickable: true,
+                        },
+                    });
+                </script>
+
+                <script lang="javascript">
+                    document.addEventListener("DOMContentLoaded", () => {
+                        document.querySelectorAll('.vec-input-search').forEach(i => i.classList.remove("form-control"));
+                        document.querySelectorAll('.form-group').forEach(i => i.classList.remove("form-group"));
+                        document.querySelectorAll('.input-text-wrapper').forEach(i => i.classList.add("!w-full"));
+                        document.querySelectorAll('.search-submit').forEach(i => i.parentElement.classList.add("!hidden"));
+                    })
+
+                    function openModal() {
+                        const modal = document.getElementById('modal');
+                        modal.classList.remove('hidden');
+                        // Trigger reflow để animation hoạt động
+                        modal.offsetHeight;
+                        modal.classList.add('show');
+                        modal.classList.remove('hide');
+                    }
+
+                    function closeModal() {
+                        const modal = document.getElementById('modal');
+                        modal.classList.remove('show');
+                        modal.classList.add('hide');
+                        // Đợi animation hoàn tất trước khi ẩn modal
+                        setTimeout(() => {
+                            modal.classList.add('hidden');
+                            modal.classList.remove('hide');
+                        }, 400); // 400ms là thời gian của animation
+                    }
+
+                    function submit() {
+                        document.querySelectorAll("input[type='submit']")[0].click()
+                    }
+                </script>
+
+                <script>
+                    (function () {
+                        if (window.__dateTimeInitialized) return;
+                        window.__dateTimeInitialized = true;
+
+                        function updateDateTime() {
+                            var now = new Date();
+
+                            var days = [
+                                "Chủ nhật", "Thứ 2", "Thứ 3",
+                                "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"
+                            ];
+
+                            var el = document.getElementById("date-time");
+                            if (el) {
+                                var day = days[now.getDay()];
+                                var d = now.getDate();
+                                var m = now.getMonth() + 1;
+                                var y = now.getFullYear();
+
+                                if (d < 10) d = "0" + d;
+                                if (m < 10) m = "0" + m;
+
+                                var date = d + "/" + m + "/" + y;
+                                var time = now.toLocaleTimeString("vi-VN");
+
+                                el.textContent = "🕐 " + day + ", " + date + ", " + time;
+                            }
+
+                            var elMobile = document.getElementById("date-time-mobile");
+                            if (elMobile) {
+                                var day = days[now.getDay()];
+                                var d = now.getDate();
+                                var m = now.getMonth() + 1;
+                                var y = now.getFullYear();
+
+                                if (d < 10) d = "0" + d;
+                                if (m < 10) m = "0" + m;
+
+                                var date = d + "/" + m + "/" + y;
+                                var time = now.toLocaleTimeString("vi-VN", {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+
+                                elMobile.textContent = "🕐 " + day + ", " + date + ", " + time;
+                            }
+                        }
+
+                        async function fetchWeatherData(latitude, longitude) {
+                            try {
+                                var el = document.getElementById("weather");
+                                var elMobile = document.getElementById("weather-mobile");
+
+                                // 3. Gọi API Open-Meteo với tọa độ vừa lấy được
+                                const response = await fetch(
+                                    'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&current_weather=true&timezone=auto'
+                                );
+
+                                if (!response.ok) throw new Error("Không thể kết nối tới máy chủ thời tiết");
+
+                                const data = await response.json();
+                                const weather = data.current_weather;
+                                // Lấy thông tin từ hàm mapping
+                                const info = getWeatherInfo(weather.weathercode);
+
+                                var weatherText = info.icon + weather.temperature + '°C';
+
+                                // 4. Hiển thị kết quả
+                                console.log("--- THÔNG TIN THỜI TIẾT TẠI CHỖ ---");
+                                console.log('Nhiệt độ:' + weather.temperature + '°C');
+                                console.log('Tốc độ gió:' + weather.windspeed + 'km/h');
+                                console.log('Mã thời tiết (Weather Code):' + weather.weathercode);
+                                console.log('Thời tiết:' + info.label + ' ' + info.icon);
+
+                                if (el) {
+                                    el.textContent = weatherText;
+                                }
+                                if (elMobile) {
+                                    elMobile.textContent = weatherText;
+                                }
+
+                            } catch (error) {
+                                console.error("Lỗi khi lấy dữ liệu thời tiết:", error);
+                            }
+                        }
+
+                        async function requestAndGetWeather() {
+                            // 1. Kiểm tra xem trình duyệt có hỗ trợ API Permission không
+                            if (navigator.permissions && navigator.permissions.query) {
+                                const status = await navigator.permissions.query({ name: 'geolocation' });
+
+                                if (status.state === 'denied') {
+                                    return;
+                                }
+
+                                // Nếu trạng thái là 'prompt' (chưa hỏi) hoặc 'granted' (đã cho phép)
+                                console.log("Trạng thái quyền:", status.state);
+                            }
+
+                            // 2. Cấu hình các tùy chọn cho Geolocation
+                            const options = {
+                                enableHighAccuracy: true, // Ưu tiên độ chính xác cao (dùng GPS nếu có)
+                                timeout: 5000,            // Chờ tối đa 5 giây
+                                maximumAge: 0             // Không dùng dữ liệu vị trí cũ trong cache
+                            };
+
+                            // 3. Thực hiện yêu cầu vị trí (Trình duyệt sẽ hiện popup hỏi ở đây)
+                            navigator.geolocation.getCurrentPosition(
+                                async (position) => {
+                                    const { latitude, longitude } = position.coords;
+                                    console.log('Đã lấy được vị trí: ' + latitude + ',' + longitude);
+
+                                    // Gọi hàm lấy thời tiết (đã viết ở câu trước)
+                                    await fetchWeatherData(latitude, longitude);
+                                },
+                                (error) => {
+                                    handleLocationError(error);
+                                },
+                                options
+                            );
+                        }
+
+                        function getWeatherInfo(code) {
+                            const weatherMap = {
+                                0: { label: "Trời quang", icon: "☀️" },
+                                1: { label: "Chủ yếu quang đãng", icon: "🌤️" },
+                                2: { label: "Mây rải rác", icon: "⛅" },
+                                3: { label: "U ám", icon: "☁️" },
+                                45: { label: "Sương mù", icon: "🌫️" },
+                                48: { label: "Sương muối", icon: "🌫️" },
+                                51: { label: "Mưa phùn nhẹ", icon: "🌦️" },
+                                53: { label: "Mưa phùn vừa", icon: "🌦️" },
+                                55: { label: "Mưa phùn đặc", icon: "🌦️" },
+                                61: { label: "Mưa nhẹ", icon: "🌧️" },
+                                63: { label: "Mưa vừa", icon: "🌧️" },
+                                65: { label: "Mưa to", icon: "🌧️" },
+                                71: { label: "Tuyết rơi nhẹ", icon: "❄️" },
+                                80: { label: "Mưa rào nhẹ", icon: "🌦️" },
+                                81: { label: "Mưa rào vừa", icon: "🌧️" },
+                                82: { label: "Mưa rào rất mạnh", icon: "⛈️" },
+                                95: { label: "Dông bão", icon: "⛈️" },
+                            };
+
+                            return weatherMap[code] || { label: "Không xác định", icon: "❓" };
+                        }
+
+                        function handleLocationError(error) {
+                            switch (error.code) {
+                                case error.PERMISSION_DENIED:
+                                    console.error("Lỗi: Bạn cần cho phép truy cập vị trí để xem thời tiết tại chỗ.");
+                                    break;
+                                case error.POSITION_UNAVAILABLE:
+                                    console.error("Lỗi: Không thể xác định được vị trí của bạn.");
+                                    break;
+                                case error.TIMEOUT:
+                                    console.error("Lỗi: Quá thời gian yêu cầu vị trí.");
+                                    break;
+                                default:
+                                    console.error("Lỗi: Đã xảy ra lỗi không xác định.");
+                            }
+                        }
+
+                        // Chạy hàm
+                        requestAndGetWeather();
+
+                        updateDateTime();
+                        setInterval(updateDateTime, 1000);
+                    })();
+                </script>
+
+                <script>
+                    window.isFirstTimeLoadTranslate = true;
+                    function vecApplyTranslation(lang, flagUrl, from = "auto") {
+                        if (!lang) return;
+
+                        // guard (after reset)
+                        const dataVecLang = document.body.getAttribute("data-vec-lang");
+                        console.log('dataVecLang', dataVecLang);
+                        if (dataVecLang === lang) return;
+
+                        const isViDefault = lang === 'vi' && !dataVecLang;
+                        const isRollbackToVi = lang === 'vi' && !!dataVecLang;
+
+                        console.log('isViDefault', isViDefault);
+                        console.log('isRollbackToVi', isRollbackToVi);
+
+                        document.body.setAttribute("data-vec-lang", lang);
+
+                        // update flag icon
+                        if (flagUrl) {
+                            const toggle = document.getElementById("vecLangToggle");
+                            if (toggle) {
+                                const img = toggle.querySelector("image");
+                                if (img) img.setAttribute("xlink:href", flagUrl);
+                            }
+                        }
+
+                        const walker = document.createTreeWalker(
+                            document.body,
+                            NodeFilter.SHOW_TEXT,
+                            {
+                                acceptNode(node) {
+                                    if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                                    if (
+                                        node.parentElement &&
+                                        ["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME", "CODE", "PRE"]
+                                            .includes(node.parentElement.tagName)
+                                    ) return NodeFilter.FILTER_REJECT;
+                                    return NodeFilter.FILTER_ACCEPT;
+                                }
+                            }
+                        );
+
+                        const nodes = [];
+                        while (walker.nextNode()) {
+                            nodes.push(walker.currentNode);
+                        }
+
+                        if (isRollbackToVi) {
+                            nodes.forEach(node => {
+                                const parent = node.parentElement;
+                                if (parent.dataset.originalText) {
+                                    node.nodeValue = parent.dataset.originalText;
+                                }
+                            });
+                            return;
+                        }
+
+                        nodes.forEach(node => {
+                            const text = node.nodeValue.trim();
+
+                            const parent = node.parentElement;
+                            if (isFirstTimeLoadTranslate) {
+                                if (!parent.dataset.originalText) {
+                                    parent.dataset.originalText = node.nodeValue;
+                                }
+                                if (isViDefault) {
+                                    return;
+                                }
+                            }
+
+                            fetch(
+                                "https://translate.googleapis.com/translate_a/single" +
+                                "?client=gtx&sl=" + from +
+                                "&tl=" + lang +
+                                "&dt=t&q=" + encodeURIComponent(text)
+                            )
+                                .then(r => r.json())
+                                .then(d => {
+                                    node.nodeValue = d[0].map(x => x[0]).join("");
+                                })
+                                .catch(() => { });
+                        });
+                        isFirstTimeLoadTranslate = false;
+                    }
+
+                    function resetVecTranslationGuard() {
+                        document.body.removeAttribute("data-vec-lang");
+                    }
+
+
+                    function vecTranslate(btn, from = "auto") {
+                        const lang = btn.getAttribute("data-lang");
+                        const flag = btn.getAttribute("data-flag-url");
+
+                        // persist
+                        localStorage.setItem("vec_selected_lang", lang);
+                        localStorage.setItem("vec_selected_flag", flag);
+                        // resetVecTranslationGuard();
+
+                        vecApplyTranslation(lang, flag, from);
+                    }
+
+
+                    function vecTranslateMobile(btn, from = "auto") {
+                        const to = btn.getAttribute("data-lang");
+                        const flagUrl = btn.getAttribute("data-flag-url");
+                        console.log("Hello in lang ok")
+                        localStorage.setItem("vec_selected_lang", to);
+                        localStorage.setItem("vec_selected_flag", flagUrl);
+                        // Update toggle icon with selected language flag
+                        if (flagUrl) {
+                            const toggle = document.getElementById("vecLangToggleMobile");
+                            if (toggle) {
+                                const svg = toggle.querySelector("svg");
+                                const image = svg.querySelector("#imageLangGlobeMobile");
+                                if (image) {
+                                    image.setAttribute("xlink:href", flagUrl);
+                                }
+                            }
+                        }
+
+                        const walker = document.createTreeWalker(
+                            document.body,
+                            NodeFilter.SHOW_TEXT,
+                            {
+                                acceptNode(node) {
+                                    if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+                                    if (node.parentElement &&
+                                        ["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME", "CODE", "PRE"].includes(node.parentElement.tagName)
+                                    ) return NodeFilter.FILTER_REJECT;
+                                    return NodeFilter.FILTER_ACCEPT;
+                                }
+                            }
+                        );
+
+                        const nodes = [];
+                        while (walker.nextNode()) {
+                            nodes.push(walker.currentNode);
+                        }
+
+                        nodes.forEach(node => {
+                            const text = node.nodeValue.trim();
+
+                            fetch(
+                                "https://translate.googleapis.com/translate_a/single" +
+                                "?client=gtx" +
+                                "&sl=" + from +
+                                "&tl=" + to +
+                                "&dt=t" +
+                                "&q=" + encodeURIComponent(text)
+                            )
+                                .then(r => r.json())
+                                .then(d => {
+                                    node.nodeValue = d[0].map(x => x[0]).join("");
+                                })
+                                .catch(() => {
+                                });
+                        });
+                    }
+                </script>
+
+            </body>
+
+            <!-- feeModal -->
+            <script>
+                // Global variables for feeModal
+                let feeModalSelectedStations = { station1: "", station2: "" };
+                let feeModalCurrentRoute = null;
+                let feeModalTollStations = [];
+                let feeModalCurrentMarkerData = null;
+                let feeModalRouteData = [];
+                let feeModalCurrentRouteIndex = -1;
+                let feeModalAutoSelectDone = false; // Track if auto-selection has been performed
+
+                // Fetch toll detail for a highway
+                const fetchTollDetail = async (id) => {
+                    const [toll] = await Promise.all([fetch('/o/c/highways/' + id + '/stationInfoAndHighwayFK?page=1&pageSize=100').then((r) => r.json())]);
+                    return toll.items
+                        .filter((item) => item.type.key === "tollStation")
+                        .map((item) => ({
+                            lat: Number(item.lat),
+                            lng: Number(item.lng),
+                            name: item.name,
+                            id: item.id,
+                            img: item.image?.link.href || "https://placehold.co/104x104/?text=Không%20có%20dữ%20liệu",
+                            address: item.address,
+                            status: "Mở cả ngày",
+                            location: item.location,
+                            fees: [],
+                        }));
+                };
+
+                // Fetch highways
+                async function fetchHighways() {
+                    const [highways] = await Promise.all([fetch("/o/c/highways").then((r) => r.json())]);
+                    const tollData = highways.items
+                        .filter((item) => item.status.code === 0)
+                        .map((item) => {
+                            return {
+                                title: item.name,
+                                id: item.id,
+                                mapData: {
+                                    origin: {
+                                        lat: Number(item.startLat),
+                                        lng: Number(item.startLng),
+                                    },
+                                    destination: {
+                                        lat: Number(item.endLat),
+                                        lng: Number(item.endLng),
+                                    },
+                                    tollLocations: [],
+                                },
+                            };
+                        });
+
+                    const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+                    if (routeSelect) {
+                        routeSelect.innerHTML = '<option value="">Chọn tuyến đường</option>' + tollData.map((item, index) => '<option value="' + index + '">' + item.title + '</option>').join('');
+                    }
+
+                    feeModalRouteData = tollData;
+
+                    // Load toll details for all routes in parallel
+                    const tollDetailPromises = tollData.map((item) => {
+                        return fetchTollDetail(item.id).then((toll) => {
+                            item.mapData.tollLocations = toll;
+                            return item;
+                        });
+                    });
+
+                    // Wait for all toll details to load
+                    await Promise.all(tollDetailPromises);
+                }
+
+                // Fetch two toll fee function
+                const fetchTwoTollFee = async (idToll1, idToll2) => {
+                    const params = new URLSearchParams();
+                    params.append("filter", 'r_fromStationFK_c_stationInfoId eq \'' + idToll1 + '\' and r_toStationFK_c_stationInfoId eq \'' + idToll2 + '\'');
+                    return fetch(`/o/c/tollstationinfos/?` + params.toString()).then((r) => r.json());
+                };
+
+                // Populate station dropdowns
+                function populateFeeModalStations() {
+                    const station1Select = document.getElementById("feeModalSelectSpdvStation1");
+                    const station2Select = document.getElementById("feeModalSelectSpdvStation2");
+
+                    if (!station1Select || !station2Select) {
+                        console.error("Station select elements not found");
+                        return;
+                    }
+
+                    // Clear existing options
+                    station1Select.innerHTML = '<option value="">Điểm đầu trạm</option>';
+                    station2Select.innerHTML = '<option value="">Điểm cuối trạm</option>';
+
+                    // Enable/disable based on route selection
+                    if (feeModalCurrentRouteIndex === -1 || !feeModalRouteData || !feeModalRouteData[feeModalCurrentRouteIndex]) {
+                        station1Select.disabled = true;
+                        station2Select.disabled = true;
+                        console.log("No route selected or route data not available");
+                        return;
+                    }
+
+                    // Check if toll stations are available
+                    if (!feeModalTollStations || feeModalTollStations.length === 0) {
+                        station1Select.disabled = true;
+                        station2Select.disabled = true;
+                        console.log("No toll stations available for selected route");
+                        return;
+                    }
+
+                    station1Select.disabled = false;
+                    station2Select.disabled = false;
+
+                    console.log("Populating stations:", feeModalTollStations.length, "stations");
+
+                    // Add stations
+                    feeModalTollStations.forEach((toll, index) => {
+                        const tollName = toll.name || "";
+                        const option1 = document.createElement("option");
+                        option1.value = index;
+                        option1.textContent = tollName;
+                        if (String(index) === feeModalSelectedStations.station1) {
+                            option1.selected = true;
+                        }
+                        station1Select.appendChild(option1);
+
+                        const option2 = document.createElement("option");
+                        option2.value = index;
+                        option2.textContent = tollName;
+                        if (String(index) === feeModalSelectedStations.station2) {
+                            option2.selected = true;
+                        }
+                        station2Select.appendChild(option2);
+                    });
+
+                    // Auto-select first two stations if not already selected and enough stations available
+                    if (feeModalTollStations.length >= 2) {
+                        if (!feeModalSelectedStations.station1 && !feeModalSelectedStations.station2) {
+                            // Auto-select first station for station1
+                            feeModalSelectedStations.station1 = "0";
+                            station1Select.value = "0";
+
+                            // Auto-select second station for station2
+                            feeModalSelectedStations.station2 = "1";
+                            station2Select.value = "1";
+
+                            // Trigger update to load fee table
+                            updateFeeModalContent();
+                        }
+                    }
+                }
+
+                // Update fee modal content
+                async function updateFeeModalContent() {
+                    const station1Select = document.getElementById("feeModalSelectSpdvStation1");
+                    const station2Select = document.getElementById("feeModalSelectSpdvStation2");
+                    const table = document.getElementById("feeModalTableSpdv");
+                    const tableBody = document.getElementById("feeModalTableBodySpdv");
+                    const emptyMessage = document.getElementById("feeModalEmptyMessageSpdv");
+                    const vatNote = document.getElementById("feeModalVATNoteSpdv");
+
+                    const station1Index = station1Select?.value || "";
+                    const station2Index = station2Select?.value || "";
+
+                    // Check if 2 stations are selected
+                    if (!station1Index || !station2Index || station1Index === station2Index) {
+                        table.classList.add("hidden");
+                        emptyMessage.classList.remove("hidden");
+                        vatNote.classList.add("hidden");
+                        return;
+                    }
+
+                    const station1 = feeModalTollStations[parseInt(station1Index)];
+                    const station2 = feeModalTollStations[parseInt(station2Index)];
+
+                    if (!station1 || !station2 || !station1.id || !station2.id) {
+                        table.classList.add("hidden");
+                        emptyMessage.classList.remove("hidden");
+                        vatNote.classList.add("hidden");
+                        return;
+                    }
+
+                    try {
+                        const response = await fetchTwoTollFee(station1.id, station2.id);
+                        const fees = (response.items || []).map((item) => {
+                            // Parse firstPrice
+                            let firstPriceValue = 0;
+                            if (item.firstPrice) {
+                                if (typeof item.firstPrice === "string") {
+                                    firstPriceValue = parseFloat(item.firstPrice.replace(/[^\d]/g, "")) || 0;
+                                } else if (typeof item.firstPrice === "number") {
+                                    firstPriceValue = item.firstPrice;
+                                }
+                            }
+
+                            // Parse secondPrice
+                            let secondPriceValue = 0;
+                            if (item.secondPrice) {
+                                if (typeof item.secondPrice === "string") {
+                                    secondPriceValue = parseFloat(item.secondPrice.replace(/[^\d]/g, "")) || 0;
+                                } else if (typeof item.secondPrice === "number") {
+                                    secondPriceValue = item.secondPrice;
+                                }
+                            }
+
+                            // Calculate total price
+                            let priceValue = item.price;
+                            if (!priceValue && (firstPriceValue || secondPriceValue)) {
+                                priceValue = firstPriceValue + secondPriceValue;
+                            } else if (typeof priceValue === "string") {
+                                priceValue = parseFloat(priceValue.replace(/[^\d]/g, "")) || 0;
+                            } else if (typeof priceValue === "number") {
+                                priceValue = priceValue;
+                            } else {
+                                priceValue = firstPriceValue + secondPriceValue;
+                            }
+
+                            const description = item.type?.name || item.description || item.name || "Khác";
+
+                            // Format prices
+                            const formattedTotalPrice = priceValue.toLocaleString("vi-VN");
+                            const formattedFirstPrice = firstPriceValue ? firstPriceValue.toLocaleString("vi-VN") : '-'
+                            const formattedSecondPrice = secondPriceValue ? secondPriceValue.toLocaleString("vi-VN") : '-'
+
+                            return {
+                                totalPrice: formattedTotalPrice,
+                                firstPrice: formattedFirstPrice,
+                                secondPrice: formattedSecondPrice,
+                                description: description,
+                            };
+                        });
+
+                        // Render table
+                        if (fees.length > 0) {
+                            tableBody.innerHTML = fees.map((fee) =>
+                                '<tr class="hover:bg-gray-50 transition-colors">' +
+                                '<td class="py-2 pr-2 leading-relaxed">' + fee.description + '</td>' +
+                                '<td class="py-2 px-2 text-center">' + fee.totalPrice + '</td>' +
+                                '<td class="py-2 px-2 text-center">' + fee.firstPrice + '</td>' +
+                                '<td class="py-2 px-2 text-center">' + fee.secondPrice + '</td>' +
+                                '</tr>'
+                            ).join('');
+                            table.classList.remove("hidden");
+                            emptyMessage.classList.add("hidden");
+                            vatNote.classList.remove("hidden");
+                        } else {
+                            table.classList.add("hidden");
+                            emptyMessage.textContent = "Chưa có thông tin bảng giá";
+                            emptyMessage.classList.remove("hidden");
+                            vatNote.classList.add("hidden");
+                        }
+                    } catch (error) {
+                        console.error("Error fetching toll fee:", error);
+                        table.classList.add("hidden");
+                        emptyMessage.textContent = "Lỗi khi tải dữ liệu";
+                        emptyMessage.classList.remove("hidden");
+                        vatNote.classList.add("hidden");
+                    }
+                }
+
+
+                // Open fee modal with marker data (if available)
+                async function openFeeModal(markerData = null, routeData = null, tollStations = []) {
+                    feeModalCurrentMarkerData = markerData;
+                    feeModalCurrentRoute = routeData;
+                    feeModalTollStations = tollStations || [];
+
+                    // If marker data is provided, try to find and select the route and station
+                    if (markerData && markerData.id && feeModalRouteData.length > 0) {
+                        // Find route that contains this station
+                        for (let i = 0; i < feeModalRouteData.length; i++) {
+                            const route = feeModalRouteData[i];
+
+                            // Ensure toll locations are loaded
+                            if (!route.mapData.tollLocations || route.mapData.tollLocations.length === 0) {
+                                try {
+                                    const toll = await fetchTollDetail(route.id);
+                                    route.mapData.tollLocations = toll;
+                                } catch (error) {
+                                    console.error("Error fetching toll details:", error);
+                                    continue;
+                                }
+                            }
+
+                            if (route.mapData && route.mapData.tollLocations) {
+                                const foundIndex = route.mapData.tollLocations.findIndex((toll) =>
+                                    toll.id === markerData.id || toll.stationInfoId === markerData.id
+                                );
+                                if (foundIndex !== -1) {
+                                    feeModalCurrentRouteIndex = i;
+                                    feeModalTollStations = route.mapData.tollLocations;
+                                    feeModalSelectedStations.station1 = String(foundIndex);
+                                    if (feeModalSelectedStations.station2 === String(foundIndex)) {
+                                        feeModalSelectedStations.station2 = "";
+                                    }
+
+                                    // Set route select value
+                                    const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+                                    if (routeSelect) {
+                                        routeSelect.value = i;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    populateFeeModalStations();
+                    updateFeeModalContent();
+                    toggleModal(true);
+                }
+
+                function toggleModal(show) {
+                    const modal = document.getElementById("feeModal");
+                    if (show) {
+                        // Hiện modal bằng cách bỏ class 'hidden' và thêm 'flex'
+                        modal.classList.remove("hidden");
+                        modal.classList.add("flex");
+                        // Ngăn scroll trang web chính khi đang mở popup
+                        document.body.style.overflow = 'hidden';
+
+                        // Auto-select first route on first modal open (when DOM elements exist)
+                        if (!feeModalAutoSelectDone) {
+                            console.log("🚀 Attempting auto-select...");
+                            console.log("feeModalRouteData.length:", feeModalRouteData.length);
+
+                            if (feeModalRouteData.length > 0) {
+                                feeModalAutoSelectDone = true;
+
+                                const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+                                console.log("routeSelect element:", routeSelect);
+
+                                if (routeSelect) {
+                                    routeSelect.value = "0";
+                                    feeModalCurrentRouteIndex = 0;
+                                    const route = feeModalRouteData[0];
+                                    feeModalCurrentRoute = route;
+
+                                    console.log("✅ Selected route:", route.title);
+                                    console.log("Toll locations count:", route.mapData?.tollLocations?.length || 0);
+
+                                    // Set toll stations for first route
+                                    if (route.mapData && route.mapData.tollLocations && route.mapData.tollLocations.length > 0) {
+                                        feeModalTollStations = route.mapData.tollLocations;
+
+                                        // Reset station selections
+                                        feeModalSelectedStations.station1 = "";
+                                        feeModalSelectedStations.station2 = "";
+
+                                        // Populate stations (which will auto-select first two)
+                                        populateFeeModalStations();
+                                        console.log("✅ Auto-select completed!");
+                                    } else {
+                                        console.warn("⚠️ No toll locations available for route");
+                                    }
+                                } else {
+                                    console.error("❌ Route select element not found!");
+                                }
+                            } else {
+                                console.warn("⚠️ No route data available yet. Data might still be loading...");
+                            }
+                        }
+                    } else {
+                        // Ẩn modal bằng cách thêm lại class 'hidden'
+                        modal.classList.add("hidden");
+                        modal.classList.remove("flex");
+                        // Cho phép scroll lại
+                        document.body.style.overflow = 'auto';
+                    }
+                }
+
+                function closeIfOutside(e) {
+                    // Nếu click đúng vào vùng tối (overlay) thì mới đóng
+                    if (e.target.id === "feeModal") {
+                        toggleModal(false);
+                    }
+                }
+
+                // Attach event listeners when DOM is ready
+                setTimeout(() => {
+                    (function () {
+                        const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+                        const station1Select = document.getElementById("feeModalSelectSpdvStation1");
+                        const station2Select = document.getElementById("feeModalSelectSpdvStation2");
+                        const swapBtn = document.getElementById("feeModalSwapStations");
+
+                        // Load highways on page load
+                        fetchHighways();
+
+                        // Route select change
+                        if (routeSelect) {
+                            routeSelect.addEventListener("change", async (e) => {
+                                const routeValue = e.target.value;
+
+                                // Check if a route is selected
+                                if (!routeValue || routeValue === "") {
+                                    feeModalCurrentRouteIndex = -1;
+                                    feeModalTollStations = [];
+                                    feeModalSelectedStations.station1 = "";
+                                    feeModalSelectedStations.station2 = "";
+                                    populateFeeModalStations();
+                                    updateFeeModalContent();
+                                    return;
+                                }
+
+                                const routeIndex = parseInt(routeValue);
+
+                                if (isNaN(routeIndex) || routeIndex < 0 || !feeModalRouteData[routeIndex]) {
+                                    feeModalCurrentRouteIndex = -1;
+                                    feeModalTollStations = [];
+                                    feeModalSelectedStations.station1 = "";
+                                    feeModalSelectedStations.station2 = "";
+                                    populateFeeModalStations();
+                                    updateFeeModalContent();
+                                    return;
+                                }
+
+                                feeModalCurrentRouteIndex = routeIndex;
+                                const route = feeModalRouteData[routeIndex];
+                                feeModalCurrentRoute = route;
+
+                                // Reset station selections first
+                                feeModalSelectedStations.station1 = "";
+                                feeModalSelectedStations.station2 = "";
+
+                                // Wait for toll locations to load if not already loaded
+                                if (route.mapData && route.mapData.tollLocations && route.mapData.tollLocations.length > 0) {
+                                    feeModalTollStations = route.mapData.tollLocations;
+                                    populateFeeModalStations();
+                                } else {
+                                    // Fetch toll details if not loaded
+                                    try {
+                                        const toll = await fetchTollDetail(route.id);
+                                        route.mapData.tollLocations = toll;
+                                        feeModalTollStations = toll;
+                                        populateFeeModalStations();
+                                    } catch (error) {
+                                        console.error("Error fetching toll details:", error);
+                                        feeModalTollStations = [];
+                                        populateFeeModalStations();
+                                    }
+                                }
+
+                                updateFeeModalContent();
+                            });
+                        }
+
+                        if (station1Select) {
+                            station1Select.addEventListener("change", (e) => {
+                                feeModalSelectedStations.station1 = e.target.value || "";
+                                updateFeeModalContent();
+                            });
+                        }
+
+                        if (station2Select) {
+                            station2Select.addEventListener("change", (e) => {
+                                feeModalSelectedStations.station2 = e.target.value || "";
+                                updateFeeModalContent();
+                            });
+                        }
+
+                        if (swapBtn) {
+                            swapBtn.addEventListener("click", () => {
+                                const station1Value = station1Select?.value || "";
+                                const station2Value = station2Select?.value || "";
+
+                                feeModalSelectedStations.station1 = station2Value;
+                                feeModalSelectedStations.station2 = station1Value;
+
+                                if (station1Select) station1Select.value = station2Value;
+                                if (station2Select) station2Select.value = station1Value;
+
+                                updateFeeModalContent();
+                            });
+                        }
+                    })()
+
+                }, 500);
+
+                (function () {
+                    // Hàm khởi tạo animation
+                    function initVecAnimations() {
+                        // Tìm tất cả elements có animation classes
+                        const animatedElements = document.querySelectorAll(
+                            '[class*="vec-fade-in"], [class*="vec-mobile:"], [class*="vec-md:"], [class*="vec-lg:"], [class*="vec-xl:"]'
+                        );
+
+                        // Nếu không có element nào, thoát
+                        if (animatedElements.length === 0) return;
+
+                        // Cấu hình Intersection Observer
+                        const observerOptions = {
+                            threshold: 0.1,
+                            rootMargin: '0px 0px -50px 0px'
+                        };
+
+                        // Callback khi element vào viewport
+                        const observerCallback = (entries, observer) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    entry.target.classList.add('vec-animated');
+                                    observer.unobserve(entry.target);
+                                }
+                            });
+                        };
+
+                        // Tạo observer
+                        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+                        // Observe tất cả animated elements
+                        animatedElements.forEach(element => {
+                            // Chỉ observe nếu chưa có class vec-animated
+                            if (!element.classList.contains('vec-animated')) {
+                                observer.observe(element);
+                            }
+                        });
+                    }
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initVecAnimations);
+                    } else {
+                        initVecAnimations();
+                    }
+
+                    // Liferay SPA navigation events
+                    if (window.Liferay) {
+                        window.Liferay.on('endNavigate', function (event) {
+                            setTimeout(initVecAnimations, 100);
+                        });
+
+                        // Liferay DXP (optional - nếu dùng phiên bản cũ hơn)
+                        window.Liferay.on('allPortletsReady', function (event) {
+                            setTimeout(initVecAnimations, 100);
+                        });
+                    }
+
+                    // Fallback: Theo dõi URL changes (cho các framework khác)
+                    let lastUrl = location.href;
+                    new MutationObserver(() => {
+                        const currentUrl = location.href;
+                        if (currentUrl !== lastUrl) {
+                            lastUrl = currentUrl;
+                            setTimeout(initVecAnimations, 100);
+                        }
+                    }).observe(document, { subtree: true, childList: true });
+
+                })();
+            </script>
+
+            <script>
+                const userBtn = document.getElementById('userBtn');
+
+                userBtn.addEventListener('click', function (e) {
+                    e.stopPropagation(); // Ngăn event bubble lên document
+                    this.classList.toggle('active');
+                });
+
+                // Click ra ngoài thì đóng
+                document.addEventListener('click', function () {
+                    userBtn.classList.remove('active');
+                });
+            </script>
+
+
+            <script>
+                async function renderMenu() {
+                    try {
+                        const response = await fetch(
+                            "/o/c/deeplinkheadersearches/",
+                            {
+                                method: "GET",
+                                credentials: "include"
+                            }
+                        );
+
+                        const data = await response.json();
+                        console.log("ITEMS:", data.items);
+
+                        const container = document.getElementById("menu-container-deeplink");
+
+                        if (!container) {
+                            console.error("Không tìm thấy container");
+                            return;
+                        }
+
+                        if (!data.items || data.items.length === 0) {
+                            container.innerHTML = "<p>Không có dữ liệu</p>";
+                            return;
+                        }
+
+                        container.innerHTML = data.items
+
+                            .map(function (item) {
+                                return '<a href="' + (item.uRL || '#') + '" class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">'
+                                    + (item.name || '') +
+                                    '</a>';
+                            }).join('');
+
+                    } catch (error) {
+                        console.error("Lỗi:", error);
+                    }
+                }
+
+                renderMenu();
+
+
+                function resetFeeModalState() {
+                    feeModalAutoSelectDone = false;
+                    feeModalRouteData = [];
+                    feeModalCurrentRoute = null;
+                    feeModalTollStations = [];
+                    feeModalSelectedStations = { station1: "", station2: "" };
+                    console.log("🔄 Fee modal state reset after navigation");
+                }
+
+                // Chỉ dùng endNavigate, bỏ portletReady để tránh reset 2 lần
+                if (typeof window.Liferay !== 'undefined') {
+                    window.Liferay.on('endNavigate', function () {
+                        resetFeeModalState();
+                        // Nếu bạn có hàm fetch data, gọi lại ở đây
+                        updateFeeModalContent();
+                        populateFeeModalStations();
+                        fetchHighways();
+                    });
+                }
+            </script>
+
+</html>

@@ -1,9 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { Col, Row } from "antd";
 import HoiDongThanhVienModal from "./HoiDongThanhVienModal";
+import {
+  getStructuredContentsByFolder,
+  getContentById
+} from "../../../../services/structuredContentService";
 
 // --- Styled components ---
+const ChartScrollContainer = styled.div`
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+`;
+
 const ChartWrap = styled.div`
   padding: 40px 24px 24px;
   min-width: 1000px;
@@ -69,13 +78,6 @@ const NodeLabel = styled.div`
   letter-spacing: 0;
 `;
 
-const NodeMembers = styled.div`
-  font-size: 14px;
-  opacity: 0.9;
-  margin-top: 4px;
-  font-weight: lighter;
-`;
-
 const TopLeftCol = styled.div`
   display: flex;
   flex-direction: column;
@@ -119,72 +121,56 @@ const Column = styled.div`
   max-width: 280px;
 `;
 
-const ColumnHeader = styled.div`
-  margin-bottom: 0;
-  width: 100%;
-`;
-
-const ColumnList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 17px;
-  width: 100%;
-`;
-
-// --- Data (theo ảnh: từ HĐTV → phải 2 ban, xuống 1 BTGĐ) ---
-const TOP_RIGHT = [
-  { label: "BAN KIỂM SOÁT", members: 2, type: "blue" },
-  { label: "BAN KIỂM TRA VÀ <br/> KIỂM TOÁN NỘI BỘ", members: 4, type: "blue" },
-];
-
-const KHOI_BAN_THAM_MUU = [
-  { label: "VĂN PHÒNG", members: 24 },
-  { label: "BAN TỔ CHỨC - NHÂN SỰ", members: 7 },
-  { label: "VĂN PHÒNG ĐẢNG ĐOÀN", members: 5 },
-  { label: "BAN TÀI CHÍNH - KẾ TOÁN", members: 21 },
-  { label: "BAN THẨM ĐỊNH", members: 9 },
-  { label: "BAN ĐẤU THẦU", members: 7 },
-  { label: "BAN ĐẦU TƯ XÂY DỰNG", members: 6 },
-  { label: "BAN PHÁP CHẾ VÀ <br/> QUẢN TRỊ RỦI RO", members: 7 },
-  { label: "BAN QUẢN LÝ KHAI THÁC", members: 12 },
-];
-
-const KHOI_TRUNG_TAM_QLDA = [
-  { label: "BAN QUẢN LÝ DỰ ÁN CÁC ĐƯỜNG CAO TỐC PHÍA BẮC", members: 17 },
-  { label: "BAN QUẢN LÝ DỰ ÁN CÁC ĐƯỜNG CAO TỐC PHÍA NAM", members: 28 },
-  { label: "BAN QUẢN LÝ DỰ ÁN ĐCT <br/> ĐÀ NẴNG - QUẢNG NGÃI", members: 13 },
-  { label: "TRUNG TÂM NGHIÊN CỨU PHÁT TRIỂN VEC", members: 4 },
-  { label: "TRUNG TÂM GIÁM SÁT <br/> KHAI THÁC VẬN HÀNH ĐƯỜNG CAO TỐC VIỆT NAM", members: 36 },
-  { label: "TRUNG TÂM KHAI THÁC <br/> VẬN HÀNH ĐCT ĐÀ NẴNG - QUẢNG NGÃI", members: 91 },
-  { label: "TRUNG TÂM CÔNG NGHỆ THÔNG TIN", members: 10 },
-  { label: "TRUNG TÂM IMC TẠI <br/> TP. HỒ CHÍ MINH", members: null },
-];
-
-const KHOI_CONG_TY_THANH_VIEN = [
-  { label: "CÔNG TY CP DỊCH VỤ ĐƯỜNG CAO TỐC VIỆT NAM (VEC S)", members: null },
-  { label: "CÔNG TY VẬN HÀNH VÀ BẢO TRÌ ĐƯỜNG CAO TỐC VIỆT NAM (VEC O&M)", members: null },
-  { label: "CÔNG TY CP DỊCH VỤ KỸ THUẬT ĐƯỜNG CAO TỐC VIỆT NAM (VEC E)", members: null },
-  { label: "CÔNG TY CP TƯ VẤN ĐƯỜNG CAO TỐC VIỆT NAM (VEC C)", members: null },
-  { label: "CÔNG TY CP BT20 CỬU LONG", members: null },
-  { label: "CÔNG TY CP 715", members: null },
-  { label: "CÔNG TY CP CẦU CẦN THƠ", members: null },
-  { label: "CÔNG TY CP ĐẦU TƯ <br/> ĐƯỜNG CAO TỐC <br/> MỸ THUẬN - CẦN THƠ", members: null },
-];
-
 function NodeBox({ label, members, type = "white", children, onClick }) {
   return (
     <Node className={type} onClick={onClick} role={onClick ? "button" : undefined}>
       <NodeLabel dangerouslySetInnerHTML={{ __html: label }} />
-      {members != null && <NodeMembers>Số lượng thành viên: {members}</NodeMembers>}
+      {/* {members != null && <NodeMembers>Số lượng thành viên: {members}</NodeMembers>} */}
       {children}
     </Node>
   );
 }
 
 const SoDoToChuc = () => {
+  const CONTENT_ID = 1266992
+
   const [hoiDongModalOpen, setHoiDongModalOpen] = useState(false);
+  const [itemsHDTV, setItemsHDTV] = useState([]);
+  const [itemHDTV, setItemHDTV] = useState(null);
+  const [blockThamMuu, setBlockThamMuu] = useState(null);
+  const [blockQuanLyDuAn, setBlockQuanLyDuAn] = useState(null);
+  const [blockCongTy, setBlockCongTy] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const dataHDTV = await getStructuredContentsByFolder();
+
+      const filtered = dataHDTV.filter(item =>
+        [1269592, 1269608].includes(item.id)
+      );
+      const single = dataHDTV.find(item => item.id === 1266992);
+
+      setItemsHDTV(filtered);
+      setItemHDTV(single);
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const contentHDTV = await getContentById(CONTENT_ID);
+
+      if (Array.isArray(contentHDTV) && contentHDTV.length >= 3) {
+        setBlockThamMuu(contentHDTV[0]);
+        setBlockQuanLyDuAn(contentHDTV[1]);
+        setBlockCongTy(contentHDTV[2]);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
+    <ChartScrollContainer>
     <ChartWrap>
       <HoiDongThanhVienModal open={hoiDongModalOpen} onClose={() => setHoiDongModalOpen(false)} />
 
@@ -205,8 +191,8 @@ const SoDoToChuc = () => {
               </svg>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
-                {TOP_RIGHT.map((item) => (
-                  <NodeBox key={item.label} label={item.label} members={item.members} type={item.type} />
+                {itemsHDTV.map((item) => (
+                  <NodeBox key={item.id} label={item.title} members={item.members} type="blue" />
                 ))}
               </div>
             </TopRightCol>
@@ -224,7 +210,8 @@ const SoDoToChuc = () => {
             />
           </svg>
 
-          <NodeBox label="BAN TỔNG GIÁM ĐỐC" members={5} type="red" />
+          {/* <NodeBox label="BAN TỔNG GIÁM ĐỐC" members={5} type="red" /> */}
+          <NodeBox label={itemHDTV?.title} members={5} type="red" />
         </TopLeftCol>
       </MiddleRow>
 
@@ -245,62 +232,84 @@ const SoDoToChuc = () => {
 
           <ThreeColumns>
             <Column>
-              <ColumnHeader>
-                <NodeBox label="KHỐI CÁC BAN THAM MƯU" type="outline" />
-              </ColumnHeader>
-              <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
-                  fill="#D9D9D9"
-                />
-              </svg>
+              {blockThamMuu?.nestedContentFields && (() => {
+                const subtitle = blockThamMuu.nestedContentFields.find(f => f.name === "subtitle");
+                const contents = blockThamMuu.nestedContentFields.filter(f => f.name === "content");
+                const allItems = [subtitle, ...contents];
 
-              <ColumnList>
-                {KHOI_BAN_THAM_MUU.map((item, i) => (
-                  <NodeBox key={i} label={item.label} members={item.members} />
-                ))}
-              </ColumnList>
+                return allItems.map((f, index, arr) => (
+                  <React.Fragment key={index}>
+                    <NodeBox
+                      label={f.contentFieldValue.data}
+                      type={index === 0 ? "outline" : "white"}
+                    />
+                    {index < arr.length - 1 && (
+                      <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
+                          fill="#D9D9D9"
+                        />
+                      </svg>
+                    )}
+                  </React.Fragment>
+                ));
+              })()}
             </Column>
 
             <Column>
-              <ColumnHeader>
-                <NodeBox label="KHỐI CÁC TRUNG TÂM <br/> BAN QUẢN LÝ DỰ ÁN" type="outline" />
-              </ColumnHeader>
-              <svg width="9" height="18" viewBox="0 0 9 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 17.5801C3.8427 17.873 4.25691 17.873 4.5498 17.5801L7.87993 14.25C8.17282 13.9571 8.17282 13.5429 7.87993 13.25L4.0498 9.41987L0.219678 13.25C-0.0732155 13.5429 -0.0732155 13.9571 0.219678 14.25L3.5498 17.5801ZM4.0498 0.75H3.2998V13.75H4.0498H4.7998V0.75H4.0498Z"
-                  fill="#D9D9D9"
-                />
-              </svg>
+              {blockQuanLyDuAn?.nestedContentFields && (() => {
+                const subtitle = blockQuanLyDuAn.nestedContentFields.find(f => f.name === "subtitle");
+                const contents = blockQuanLyDuAn.nestedContentFields.filter(f => f.name === "content");
+                const allItems = [subtitle, ...contents];
 
-              <ColumnList>
-                {KHOI_TRUNG_TAM_QLDA.map((item, i) => (
-                  <NodeBox key={i} label={item.label} members={item.members} />
-                ))}
-              </ColumnList>
+                return allItems.map((f, index, arr) => (
+                  <React.Fragment key={index}>
+                    <NodeBox
+                      label={f.contentFieldValue.data}
+                      type={index === 0 ? "outline" : "white"}
+                    />
+                    {index < arr.length - 1 && (
+                      <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
+                          fill="#D9D9D9"
+                        />
+                      </svg>
+                    )}
+                  </React.Fragment>
+                ));
+              })()}
             </Column>
 
             <Column>
-              <ColumnHeader>
-                <NodeBox label="KHỐI CÁC CÔNG TY <br/> THÀNH VIÊN" type="outline" />
-              </ColumnHeader>
-              <svg width="9" height="18" viewBox="0 0 9 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 17.5801C3.8427 17.873 4.25691 17.873 4.5498 17.5801L7.87993 14.25C8.17282 13.9571 8.17282 13.5429 7.87993 13.25L4.0498 9.41987L0.219678 13.25C-0.0732155 13.5429 -0.0732155 13.9571 0.219678 14.25L3.5498 17.5801ZM4.0498 0.75H3.2998V13.75H4.0498H4.7998V0.75H4.0498Z"
-                  fill="#D9D9D9"
-                />
-              </svg>
+              {blockCongTy?.nestedContentFields && (() => {
+                const subtitle = blockCongTy.nestedContentFields.find(f => f.name === "subtitle");
+                const contents = blockCongTy.nestedContentFields.filter(f => f.name === "content");
+                const allItems = [subtitle, ...contents];
 
-              <ColumnList>
-                {KHOI_CONG_TY_THANH_VIEN.map((item, i) => (
-                  <NodeBox key={i} label={item.label} members={item.members} />
-                ))}
-              </ColumnList>
+                return allItems.map((f, index, arr) => (
+                  <React.Fragment key={index}>
+                    <NodeBox
+                      label={f.contentFieldValue.data}
+                      type={index === 0 ? "outline" : "white"}
+                    />
+                    {index < arr.length - 1 && (
+                      <svg width="9" height="28" viewBox="0 0 9 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          d="M4.7998 0.75C4.7998 0.335786 4.46402 0 4.0498 0C3.63559 0 3.2998 0.335786 3.2998 0.75H4.0498H4.7998ZM3.5498 27.5801C3.8427 27.873 4.25691 27.873 4.5498 27.5801L7.87993 24.25C8.17282 23.9571 8.17282 23.5429 7.87993 23.25L4.0498 19.4199L0.219678 23.25C-0.0732155 23.5429 -0.0732155 23.9571 0.219678 24.25L3.5498 27.5801ZM4.0498 0.75H3.2998V23.75H4.0498H4.7998V0.75H4.0498Z"
+                          fill="#D9D9D9"
+                        />
+                      </svg>
+                    )}
+                  </React.Fragment>
+                ));
+              })()}
             </Column>
           </ThreeColumns>
         </BranchConnectorWrap>
       </MiddleRow>
     </ChartWrap>
+    </ChartScrollContainer>
   );
 };
 

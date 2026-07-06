@@ -1,0 +1,149 @@
+#_com_liferay_journal_web_portlet_JournalPortlet_metadata .panel-header,
+#_com_liferay_journal_web_portlet_JournalPortlet_descriptionMapAsXMLWrapper,
+#_com_liferay_journal_web_portlet_JournalPortlet_friendlyURLWrapper {
+  display: none !important;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_metadata .panel-body {
+  padding: 1.25rem !important;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_titleMapAsXML {
+  font-size: 18px !important;
+}
+
+/* fieldset#basicInformation, */
+fieldset#defaultTemplate,
+fieldset#featuredImage,
+fieldset#relatedAssets {
+  display: none !important;
+}
+
+fieldset#categorization a[href^=https\:\/\/learn\.liferay\.com] {
+  display: none !important;
+}
+
+fieldset#categorization .lfr-tooltip-scope>div:last-child:not(#_com_liferay_journal_web_portlet_JournalPortlet_zomp___assetTagsSelector) {
+  display: none !important;
+}
+
+#categorizationContent .panel-body>div:last-child {
+  display: none !important;
+}
+
+fieldset#schedule .review-date.input-Date-wrapper {
+  display: none !important;
+}
+
+fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields .sheet-subtitle {
+  margin-bottom: 0 !important;
+}
+
+fieldset#_com_liferay_journal_web_portlet_JournalPortlet_fields #_com_liferay_journal_web_portlet_JournalPortlet_fieldsContent .panel-body {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#_com_liferay_journal_web_portlet_JournalPortlet_inputPermissionsTable {
+  display: none !important;
+}
+
+[name="_com_liferay_journal_web_portlet_JournalPortlet_displayDateYear"]~div {
+  display: none !important;
+}
+
+#displayPageContent .panel-body p.text-secondary {
+  display: none !important;
+}
+
+#portlet_com_liferay_journal_web_portlet_JournalPortlet .translation-manager {
+  display: none !important;
+}
+
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_style_book_web_internal_portlet_StyleBookPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_blogs_web_portlet_BlogsAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_bookmarks_web_portlet_BookmarksAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_dynamic_data_mapping_form_web_portlet_DDMFormAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_knowledge_base_web_portlet_AdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_message_boards_web_portlet_MBAdminPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_translation_web_internal_portlet_TranslationPortlet),
+#panel-manage-site_administration_content li:has(#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_segments_web_internal_portlet_SegmentsPortlet) {
+  display: none !important;
+}
+
+/* fieldset#categorization {
+  height: 0 !important;
+  overflow: hidden !important;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+fieldset#categorization.show {
+  height: auto !important;
+  opacity: 1;
+} */
+
+#portlet_com_liferay_fragment_web_portlet_FragmentPortlet .col-lg-3 {
+  opacity: 0;
+  transition: all .2s;
+}
+
+[data-searchcontainerid="_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTasks"] thead th {
+  font-size: 18px;
+}
+
+[data-searchcontainerid="_com_liferay_portal_workflow_task_web_portlet_MyWorkflowTaskPortlet_workflowTasks"] tbody tr.table-divider td {
+  font-weight: 700;
+  font-size: 17px;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
+  text-transform: math-auto;
+}
+
+.table-scrollable-horizotal {
+  overflow: auto;
+  cursor: grab;
+}
+
+.table-scrollable-horizotal.is-dragging {
+  cursor: grabbing;
+}
+
+html.table-horizontal-dragging,
+html.table-horizontal-dragging * {
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=1135686"],
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=31407"],
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=31408"],
+a[href*="AssetCategoriesAdminPortlet_vocabularyId=31406"] {
+  display: none !important;
+}
+
+a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_exportimport_web_portlet_ExportPortlet,
+a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_exportimport_web_portlet_ImportPortlet,
+a#_com_liferay_product_navigation_product_menu_web_portlet_ProductMenuPortlet_portlet_com_liferay_staging_processes_web_portlet_StagingProcessesPortlet {
+  display: none !important;
+}
+
+[id^="namespace_assetCategoriesSelector"] .input-group > .input-group-item-shrink:last-child {
+  display: none !important;
+}
+
+header.cadmin.portlet-topper:has(#portlet-topper-toolbar_com_liferay_notifications_web_portlet_NotificationsPortlet) {
+  display: none !important;
+
+  ~.portlet-content.portlet-content-editable {
+    border: 0 !important;
+  }
+}
+
+header#banner:has(#navbar_com_liferay_site_navigation_menu_web_portlet_SiteNavigationMenuPortlet) {
+  display: none;
+}
+
+#wrapper > footer#footer {
+  display: none !important;
+}

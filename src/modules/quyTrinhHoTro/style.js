@@ -18,6 +18,17 @@ export const PageHeader = styled.div`
         font-weight: 600;
         color: rgba(30, 30, 30, 1);
     }
+
+    @media (max-width: 1199px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px 0px;
+
+        .header-title {
+            font-size: 15px;
+        }
+    }
 `;
 
 export const MyRequestButton = styled.button`
@@ -41,6 +52,17 @@ export const MyRequestButton = styled.button`
     .anticon {
         font-size: 14px;
     }
+
+    @media (max-width: 1199px) {
+        flex: 1;
+        justify-content: center;
+        font-size: 12px;
+        padding: 8px 6px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.3;
+        min-height: 40px;
+    }
 `;
 
 export const ContentWrap = styled.div`
@@ -48,6 +70,13 @@ export const ContentWrap = styled.div`
     min-height: calc(100vh - 200px);
     margin-top: 10px;
     gap: 10px;
+
+    @media (max-width: 1199px) {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 0;
+        min-height: auto;
+    }
 `;
 
 // Sidebar styles
@@ -55,6 +84,11 @@ export const SidebarWrap = styled.div`
     width: 240px;
     flex-shrink: 0;
     background: #fff;
+
+    @media (max-width: 1199px) {
+        width: 100%;
+        flex-shrink: 1;
+    }
 `;
 
 export const SidebarSection = styled.div`
@@ -86,10 +120,19 @@ export const SectionHeader = styled.div`
     }
 
     .section-icon {
-        font-size: 12px;
+        font-size: 13px;
         color: #666;
         transition: transform 0.2s;
         transform: ${(props) => (props.$expanded ? "rotate(180deg)" : "rotate(0)")};
+    }
+
+    @media (max-width: 1199px) {
+        padding: 10px 12px;
+        border-radius: 0;
+
+        .section-title {
+            font-size: 13px;
+        }
     }
 `;
 
@@ -122,6 +165,14 @@ export const MenuItem = styled.div`
     .menu-label {
         font-size: 13px;
         color: ${(props) => (props.$active ? "rgba(0, 144, 207, 1)" : "#333")};
+    }
+
+    @media (max-width: 1199px) {
+        padding: 7px 12px 7px 20px;
+
+        .menu-label {
+            font-size: 12px;
+        }
     }
 `;
 
@@ -160,6 +211,11 @@ export const FormContent = styled.div`
     flex-direction: column;
     gap: 16px;
     padding: 0 12px 12px 12px;
+
+    @media (max-width: 1199px) {
+        padding: 0 8px 8px;
+        gap: 12px;
+    }
 `;
 
 export const FormRow = styled.div`
@@ -171,6 +227,12 @@ export const FormRow = styled.div`
         > * {
             flex: 1;
         }
+    }
+
+    @media (max-width: 1199px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
     }
 `;
 
@@ -224,6 +286,24 @@ export const FormGroup = styled.div`
         background: #f5f5f5;
         color: #666;
     }
+
+    @media (max-width: 1199px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+
+        .form-label {
+            min-width: auto;
+        }
+
+        .form-control {
+            width: 100%;
+        }
+
+        .ant-picker {
+            width: 100% !important;
+        }
+    }
 `;
 
 export const CheckboxGroup = styled.div`
@@ -234,6 +314,11 @@ export const CheckboxGroup = styled.div`
     .ant-checkbox-wrapper {
         font-size: 13px;
         color: #333;
+    }
+
+    @media (max-width: 1199px) {
+        flex-wrap: wrap;
+        gap: 8px;
     }
 `;
 
@@ -251,6 +336,21 @@ export const DateRangeGroup = styled.div`
 
     .ant-select {
         width: 150px;
+    }
+
+    @media (max-width: 1199px) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+
+        .ant-picker {
+            flex: none;
+            width: 100% !important;
+        }
+
+        .ant-select {
+            width: 100% !important;
+        }
     }
 `;
 
@@ -313,7 +413,7 @@ export const ToolbarSelect = styled.div`
 
         .ant-select-selection-item {
             line-height: 26px !important;
-            font-size: 12px;
+            font-size: 13px;
         }
     }
 `;
@@ -412,9 +512,461 @@ export const UploadButton = styled.button`
 `;
 
 export const UploadHint = styled.div`
-    font-size: 12px;
+    font-size: 13px;
     color: #999;
 `;
+
+// ── My Requests page ──────────────────────────────────────────────────────────
+
+export const MyRequestsWrap = styled.div`
+    flex: 1;
+    background: #fff;
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+`;
+
+export const MyRequestsHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(229, 247, 255, 1);
+    border-bottom: 1px solid rgba(0, 144, 207, 0.2);
+
+    .mr-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+    }
+`;
+
+export const MyRequestsFilter = styled.div`
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(229, 231, 235, 1);
+    background: #fafafa;
+
+    .filter-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        white-space: nowrap;
+    }
+
+    .ant-select-selector {
+        height: 36px !important;
+        border-radius: 4px !important;
+
+        .ant-select-selection-item {
+            line-height: 34px !important;
+            font-size: 13px;
+        }
+    }
+
+    .ant-picker {
+        height: 36px;
+        border-radius: 4px;
+    }
+
+    .ant-input-affix-wrapper {
+        height: 36px !important;
+        border-radius: 4px !important;
+        font-size: 13px;
+
+        .ant-input {
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 1199px) {
+        padding: 8px 12px;
+        gap: 6px;
+
+        .ant-input-affix-wrapper {
+            width: 100% !important;
+        }
+    }
+`;
+
+export const FilterGroup = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: ${(props) => props.$flex || "unset"};
+
+    .filter-label {
+        min-width: fit-content;
+    }
+
+    @media (max-width: 1199px) {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+
+        &.range-filter-group {
+            flex: 1;
+        }
+
+        .ant-select {
+            width: 100% !important;
+        }
+
+        .ant-picker {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+    }
+`;
+
+export const ResetFilterBtn = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fff;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+
+    &:hover {
+        border-color: rgba(0, 144, 207, 1);
+        color: rgba(0, 144, 207, 1);
+    }
+`;
+
+export const MyRequestsTable = styled.div`
+    padding: 0 16px 16px;
+
+    @media (max-width: 1199px) {
+        padding: 0 8px 12px;
+    }
+`;
+
+export const TableSummary = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+
+    .summary-text {
+        font-size: 13px;
+        color: #666;
+
+        span {
+            font-weight: 600;
+            color: rgba(0, 144, 207, 1);
+        }
+    }
+`;
+
+export const StatusBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    background: ${(props) => props.$bg || "#F5F5F5"};
+    color: ${(props) => props.$color || "#666"};
+    white-space: nowrap;
+`;
+
+export const PriorityBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    background: ${(props) => props.$bg || "#F5F5F5"};
+    color: ${(props) => props.$color || "#666"};
+    white-space: nowrap;
+`;
+
+export const RequestIdText = styled.span`
+    font-size: 13px;
+    color: rgba(0, 144, 207, 1);
+    font-weight: 500;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+`;
+
+export const RequestTitleText = styled.span`
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    &:hover {
+        color: rgba(0, 144, 207, 1);
+    }
+`;
+
+export const TablePaginationWrap = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+
+    .ant-pagination-item-active {
+        border-color: rgba(0, 144, 207, 1);
+
+        a {
+            color: rgba(0, 144, 207, 1);
+        }
+    }
+
+    @media (max-width: 1199px) {
+        justify-content: center;
+    }
+`;
+
+// ── Detail Modal ──────────────────────────────────────────────────────────────
+
+export const DetailRow = styled.div`
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+
+    .detail-label {
+        min-width: 140px;
+        color: #666;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    .detail-value {
+        color: #333;
+        flex: 1;
+    }
+`;
+
+// ── Support Request Detail Page ───────────────────────────────────────────────
+
+export const DetailPageWrap = styled.div`
+    flex: 1;
+    background: #fff;
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+`;
+
+export const DetailPageHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(229, 247, 255, 1);
+    border-bottom: 1px solid rgba(0, 144, 207, 0.2);
+
+    .detail-page-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+`;
+
+export const BackBtn = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid rgba(0, 144, 207, 0.4);
+    border-radius: 4px;
+    background: #fff;
+    color: rgba(0, 144, 207, 1);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: all 0.2s;
+
+    &:hover {
+        background: rgba(0, 144, 207, 0.08);
+    }
+`;
+
+export const DetailPageBody = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 2px; }
+`;
+
+export const DetailInfoCard = styled.div`
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+`;
+
+export const DetailInfoCardTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(0, 144, 207, 1);
+    padding: 10px 16px;
+    background: rgba(229, 247, 255, 0.6);
+    border-bottom: 1px solid rgba(229, 231, 235, 1);
+`;
+
+export const DetailInfoCardBody = styled.div`
+    padding: 16px 16px 4px;
+`;
+
+export const CommentSectionWrap = styled.div`
+    border: 1px solid rgba(229, 231, 235, 1);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+`;
+
+export const CommentListWrap = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    max-height: 380px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 2px; }
+`;
+
+export const CommentItemWrap = styled.div`
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+`;
+
+export const CommentAvatar = styled.div`
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(0, 144, 207, 1);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    user-select: none;
+`;
+
+export const CommentBubble = styled.div`
+    flex: 1;
+    background: #f5f5f5;
+    border-radius: 0 10px 10px 10px;
+    padding: 8px 12px;
+
+    .comment-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .comment-author {
+        font-size: 13px;
+        font-weight: 600;
+        color: #222;
+    }
+
+    .comment-time {
+        font-size: 11px;
+        color: #aaa;
+    }
+
+    .comment-content {
+        font-size: 13px;
+        color: #333;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+        line-height: 1.5;
+    }
+`;
+
+export const CommentInputArea = styled.div`
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(229, 231, 235, 1);
+    background: #fafafa;
+`;
+
+export const CommentTextarea = styled.textarea`
+    flex: 1;
+    resize: none;
+    border: 1px solid #d9d9d9;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #333;
+    outline: none;
+    line-height: 1.5;
+    background: #fff;
+    transition: border-color 0.2s;
+
+    &::placeholder { color: #bbb; }
+    &:focus { border-color: rgba(0, 144, 207, 0.6); }
+`;
+
+export const CommentSendBtn = styled.button`
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 144, 207, 1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) { background: #007bb5; }
+
+    &:disabled {
+        background: #e0e0e0;
+        color: #aaa;
+        cursor: not-allowed;
+    }
+`;
+
+// ── Submit button ─────────────────────────────────────────────────────────────
 
 // Submit button
 export const FormActions = styled.div`
@@ -423,11 +975,16 @@ export const FormActions = styled.div`
     margin-top: 24px;
     padding-top: 16px;
     border-top: 1px solid rgba(0, 144, 207, 0.1);
+
+    @media (max-width: 1199px) {
+        justify-content: stretch;
+    }
 `;
 
 export const SubmitButton = styled.button`
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 10px 32px;
     background: rgba(0, 144, 207, 1);
@@ -446,5 +1003,9 @@ export const SubmitButton = styled.button`
     &:disabled {
         background: #ccc;
         cursor: not-allowed;
+    }
+
+    @media (max-width: 1199px) {
+        width: 100%;
     }
 `;

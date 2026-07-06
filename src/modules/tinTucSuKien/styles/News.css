@@ -1,0 +1,210 @@
+.news-wrapper {
+    font-family: "Inter", sans-serif;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.news-layout {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.news-main {
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
+}
+
+.news-sidebar {
+    width: 360px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+
+    width: 100%;
+
+    background: #fff;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #0090CF;
+    margin-bottom: 16px;
+}
+
+.news-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    padding-bottom: 6px;
+
+    flex: 1;
+    min-width: 0;
+
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.news-sort {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+/* =========================
+   PAGINATION
+========================= */
+
+.news-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.news-pagination button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+    color: #1E1E1E;
+}
+
+.news-pagination button.active {
+    color: #0090CF;
+    font-weight: 600;
+}
+
+.news-pagination button:hover {
+    color: #0090CF;
+}
+
+/* =========================
+   DECORATIVE BAR
+========================= */
+
+.decorative-bar {
+    position: relative;
+    width: 100%;
+    height: 5px;
+    margin-top: 12px;
+}
+
+.bar-left {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 30%;
+    height: 17px;
+    background: #0090CF;
+    clip-path: url(#myClip);
+}
+
+.bar-right {
+    position: absolute;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: #E31C2A;
+}
+
+
+/* =========================
+   CSS tin tức sự kiện
+========================= */
+
+
+.news-main.ttsk {
+    flex: 1;
+    min-width: 0;
+}
+
+.news-layout.ttsk {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.news-sidebar.ttsk {
+    width: 360px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.news-header.ttsk {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+
+    width: 100%;
+
+    background: #fff;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #0090CF;
+    margin-bottom: 16px;
+}
+
+.news-section-title.ttsk {
+    font-size: 24px;
+    font-weight: 600;
+    padding-bottom: 6px;
+
+    flex: 1;
+    min-width: 0;
+
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+    color: #000000;
+}
+
+.news-sort.ttsk {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+@media (max-width: 1199px) {
+    .news-layout.ttsk {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 24px;
+    }
+
+    .news-main.ttsk {
+        width: 100%;
+    }
+
+    .news-sidebar.ttsk {
+        width: 100%;
+        flex-shrink: 1;
+    }
+}
+
+@media (max-width: 1199px) {
+    .news-section-title.ttsk {
+        font-size: 16px;
+    }
+}
+

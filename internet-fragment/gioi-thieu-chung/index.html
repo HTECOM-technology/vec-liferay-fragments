@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Giới thiệu chung - VEC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <style>
+      /* --- IMAGE + STATS COLUMN --- */
+      .image-box img {
+        display: block;
+        width: 100%;
+        border-radius: 12px;
+        object-fit: cover;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-top: 24px;
+        text-align: center;
+      }
+
+      .stats .row-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .stats .counter {
+        margin: 0;
+        color: #0090cf !important;
+        font-family: Inter;
+        font-size: 59.6px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: normal;
+        text-align: center;
+      }
+
+      .stats .counterIcon {
+        margin-left: 5px;
+        color: #0090cf;
+        font-family: Inter;
+        font-size: 30px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: normal;
+      }
+
+      .stats .counterText {
+        max-width: 30px;
+        margin-left: 5px;
+        color: #0090cf;
+        font-family: Inter;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: normal;
+        text-align: left;
+      }
+
+      .stats p {
+        color: #1e1e1e;
+        font-family: Inter;
+        font-size: 15px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: normal;
+      }
+
+      /* --- TEXT COLUMN --- */
+      .section-label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        color: #d60000;
+        font-size: 15px;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .right-content h2 {
+        gap: 40px;
+        color: #1e1e1e;
+        font-family: Inter;
+        font-size: 50px;
+        font-style: normal;
+        font-weight: bold;
+        line-height: 50px;
+        text-align: left;
+      }
+
+      .right-content p {
+        margin-bottom: 14px;
+        font-size: 16px;
+        line-height: 1.7;
+        text-align: justify;
+      }
+
+      /* --- CTA BUTTON --- */
+      .cta-download {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 24px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #d0d0d0;
+        border-bottom: 4px solid #d60000;
+        border-radius: 6px;
+        color: #333;
+        cursor: pointer;
+        font-size: 20px;
+        font-weight: bold;
+        text-decoration: none;
+        text-decoration: none !important;
+        transition: 0.3s;
+      }
+
+      .cta-icon-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 60px;
+        height: 60px;
+        background: #0287cd;
+        clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
+      }
+
+      .cta-download i {
+        color: #fff;
+        font-size: 24px;
+      }
+
+      .cta-download span {
+        padding: 0 20px;
+        line-height: 60px;
+        white-space: nowrap;
+      }
+
+      .cta-download:hover {
+        background: #e1eff5;
+        border-color: #0287cd;
+        border-bottom-color: #d60000;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      #title_mobile_show {
+        display: none;
+        justify-content: center;
+      }
+
+      #title_mobile_hidden {
+        display: inline;
+        justify-content: center;
+      }
+
+      .content_wrapper {
+        position: relative;
+        max-height: 600px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .content_wrapper.expanded {
+        max-height: none;
+      }
+
+      .content_wrapper::after {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        content: "";
+      }
+
+      .content_wrapper.expanded::after {
+        display: none;
+      }
+
+      .toggle-btn {
+        font-style: italic;
+        text-decoration: underline;
+      }
+
+      .intro_wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-top: 20px;
+        margin-bottom: 80px;
+      }
+
+      @media (max-width: 1440px) {
+        .tabs-wrapper {
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 1023px) {
+        .right-content h2 {
+          font-size: 40px;
+        }
+      }
+
+      @media (min-width: 768px) {
+        .stats .counterIcon {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          font-size: 59.6px;
+        }
+
+        .right-content h2 {
+          font-size: 24px;
+        }
+      }
+
+      @media (max-width: 766px) {
+        .cta-download {
+          font-size: 13px;
+        }
+
+        .cta-download span {
+          padding: 0 15px;
+        }
+
+        .stats .counterIcon {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          font-size: 30px;
+        }
+
+        .stats .counter {
+          font-size: 30px;
+        }
+
+        .section-label {
+          justify-content: center;
+          color: #d60000;
+          font-size: 14px;
+          font-weight: bold;
+        }
+
+        h2 {
+          margin-bottom: 15px;
+          color: #1e1e1e;
+          font-family: Inter;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: bold;
+          text-align: center;
+        }
+
+        #title_mobile_show {
+          display: inline;
+          justify-content: center;
+        }
+
+        #title_mobile_hidden {
+          display: none;
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 368px) {
+        .stats .counterIcon {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          font-size: 30px;
+        }
+
+        .stats .counter {
+          font-size: 30px;
+        }
+
+        .right-content {
+          display: inline-grid;
+          padding: 11px;
+        }
+
+        .section-label {
+          justify-content: center;
+          color: #d60000;
+          font-size: 14px;
+          font-weight: bold;
+        }
+
+        h2 {
+          margin-bottom: 15px;
+          color: #1e1e1e;
+          font-family: Inter;
+          font-size: 24px;
+          font-style: normal;
+          font-weight: bold;
+          text-align: center;
+        }
+
+        #title_mobile_show {
+          display: inline;
+          justify-content: center;
+        }
+
+        #title_mobile_hidden {
+          display: none;
+          justify-content: center;
+        }
+      }
+
+      @media (max-width: 1024px) and (min-width: 768px) {
+        .cta-download {
+          width: fit-content;
+          max-width: 100%;
+          margin-top: 24px;
+        }
+
+        .cta-download span {
+          padding: 0 18px;
+          line-height: 1.3;
+          text-align: center;
+          white-space: normal;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <#assign entries = entries![] />
+    <#list entries as entry>
+      <#assign renderer = entry.getAssetRenderer() />
+      <#assign article = renderer.getArticle() />
+      <#assign xml = article.getContentByLocale(locale) />
+      <#assign root = saxReaderUtil.read(xml).getRootElement() />
+
+      <#assign labelNode = root.selectSingleNode("//dynamic-element[@field-reference='label']/dynamic-content") />
+      <#assign titleNode = root.selectSingleNode("//dynamic-element[@field-reference='title']/dynamic-content") />
+      <#assign contentNode = root.selectSingleNode("//dynamic-element[@field-reference='content']/dynamic-content") />
+      <#assign imageNode = root.selectSingleNode("//dynamic-element[@field-reference='image']/dynamic-content") />
+      <#assign yearNode = root.selectSingleNode("//dynamic-element[@field-reference='years']/dynamic-content") />
+      <#assign vondieuleNode = root.selectSingleNode("//dynamic-element[@field-reference='vondieule']/dynamic-content") />
+      <#assign trafficNode = root.selectSingleNode("//dynamic-element[@field-reference='trafficStatistic']/dynamic-content") />
+      <#assign higwaysNode = root.selectSingleNode("//dynamic-element[@field-reference='highways']/dynamic-content") />
+      <#assign incomeNode = root.selectSingleNode("//dynamic-element[@field-reference='income']/dynamic-content") />
+
+      <#assign label = labelNode?has_content?then(labelNode.getText(), "") />
+      <#assign title = titleNode?has_content?then(titleNode.getText(), "") />
+      <#assign content = contentNode?has_content?then(contentNode.getText(), "") />
+      <#assign years = yearNode?has_content?then(yearNode.getText(), "") />
+      <#assign vondieule = vondieuleNode?has_content?then(vondieuleNode.getText(), "") />
+      <#assign trafficStatistic = trafficNode?has_content?then(trafficNode.getText(), "") />
+      <#assign highways = higwaysNode?has_content?then(higwaysNode.getText(), "") />
+      <#assign income = incomeNode?has_content?then(incomeNode.getText(), "") />
+
+      <#assign imageJson = imageNode?has_content?then(imageNode.getText(), "") />
+      <#assign imageUrl = "" />
+      <#if imageJson?has_content>
+        <#assign imageObj = jsonFactoryUtil.createJSONObject(imageJson) />
+        <#assign imageUrl = imageObj.getString("url") />
+      </#if>
+
+      <div class="container intro_wrapper">
+        <div class="left-content col-12 col-lg-6 col-md-6 col-sm-12">
+          <div id="title_mobile_show">
+            <div class="section-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
+                <path d="M0 0L8 7.25246L0 14V0Z" fill="#E31C2A" />
+              </svg>
+              <span style="padding-left: 6px">${label}</span>
+            </div>
+            <h2>${title}</h2>
+          </div>
+
+          <div class="image-box">
+            <img src="${imageUrl}" alt="Giới thiệu VEC" />
+          </div>
+
+          <div class="stats">
+            <div>
+              <div class="row-text">
+                <h3 class="counter" data-stat="namHoatDong" data-target="${years}"></h3>
+                <h3 class="counterIcon" style="display: inline-block">+</h3>
+              </div>
+              <p>Năm hoạt động</p>
+            </div>
+
+            <div>
+              <div class="row-text">
+                <h3 class="counter" data-stat="vonDieuLe" data-target="${vondieule}"></h3>
+                <h3 class="counterText" data-stat-unit="nVCaVniuL">ngàn tỷ</h3>
+              </div>
+              <p>Vốn điều lệ</p>
+            </div>
+
+            <div>
+              <div class="row-text">
+                <h3
+                  class="counter"
+                  data-stat="soTuyenCaoToc"
+                  data-target="${highways}"
+                  data-pad-length="2"
+                ></h3>
+              </div>
+              <p>Tuyến cao tốc</p>
+            </div>
+
+            <div>
+              <div class="row-text">
+                <h3 class="counter" data-stat="soPhuongTien" data-target="${trafficStatistic}">
+                  ${trafficStatistic}
+                </h3>
+                <h3 class="counterText" data-stat-unit="nVCaPhngTin" style="display: inline-block">
+                  triệu lượt
+                </h3>
+              </div>
+              <p>Phương tiện di chuyển</p>
+            </div>
+
+            <div>
+              <div class="row-text">
+                <h3 class="counter" data-stat="doanhThu" data-target="${income}"></h3>
+                <h3 class="counterText" data-stat-unit="nVCaDoanhThu">ngàn tỷ</h3>
+              </div>
+              <p>Doanh thu</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-content col-12 col-lg-6 col-md-6 col-sm-12">
+          <div id="title_mobile_hidden">
+            <div class="section-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
+                <path d="M0 0L8 7.25246L0 14V0Z" fill="#E31C2A" />
+              </svg>
+              <span style="padding-left: 6px">${label}</span>
+            </div>
+            <h2>${title}</h2>
+          </div>
+
+          <div class="content_wrapper">
+            <p>${content}</p>
+          </div>
+
+          <div>
+            <button class="toggle-btn" style="display: none">Xem thêm</button>
+          </div>
+
+          <a href="/documents/d/guest/group-1?download=true" download="Logo_VEC.pdf" class="cta-download">
+            <div class="cta-icon-box">
+              <i class="fa-solid fa-download"></i>
+            </div>
+            <span>LOGO VÀ NHẬN DIỆN THƯƠNG HIỆU</span>
+          </a>
+        </div>
+      </div>
+    </#list>
+
+    <script>
+      (function () {
+        const API_URL = window.location.origin + "/o/c/cacconsothongkes/";
+
+        function parseNumericValue(value) {
+          if (value === null || value === undefined) return null;
+
+          const normalizedValue = String(value).replace(/[^\d.-]/g, "");
+          const numericValue = Number(normalizedValue);
+
+          return Number.isFinite(numericValue) ? numericValue : null;
+        }
+
+        function formatCounterValue(counter, value) {
+          const padLength = Number(counter.dataset.padLength || 0);
+          const formattedValue = Math.floor(value).toLocaleString("vi-VN");
+
+          if (!padLength) {
+            return formattedValue;
+          }
+
+          const rawValue = String(Math.floor(value));
+          return rawValue.padStart(padLength, "0");
+        }
+
+        function animateCounter(counter) {
+          const target = parseNumericValue(counter.dataset.target);
+
+          if (target === null) {
+            counter.textContent = counter.dataset.target || "";
+            return;
+          }
+
+          const duration = 1500;
+          const fps = 20;
+          const step = target / (duration / (1000 / fps));
+          let current = 0;
+
+          const timer = setInterval(() => {
+            current += step;
+
+            if (current >= target) {
+              current = target;
+              clearInterval(timer);
+            }
+
+            counter.textContent = formatCounterValue(counter, current);
+          }, 1000 / fps);
+        }
+
+        if (!window._vecCounterObserver) {
+          window._vecCounterObserver = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting && !entry.target.dataset.counted) {
+                  entry.target.dataset.counted = "true";
+                  animateCounter(entry.target);
+                }
+              });
+            },
+            {
+              threshold: 0.3,
+            }
+          );
+        }
+
+        function observeCounters() {
+          document.querySelectorAll(".counter:not([data-observed])").forEach((element) => {
+            element.dataset.observed = "true";
+            window._vecCounterObserver.observe(element);
+          });
+        }
+
+        function updateCounterData(statKey, rawValue) {
+          if (rawValue === null || rawValue === undefined || rawValue === "") {
+            return;
+          }
+
+          const numericValue = parseNumericValue(rawValue);
+          const nextValue = numericValue === null ? String(rawValue).trim() : String(numericValue);
+
+          document.querySelectorAll('.counter[data-stat="' + statKey + '"]').forEach((counter) => {
+            counter.dataset.target = nextValue;
+            counter.dataset.counted = "";
+            counter.textContent = "";
+          });
+        }
+
+        function updateUnitData(unitKey, value) {
+          document.querySelectorAll('[data-stat-unit="' + unitKey + '"]').forEach((unitElement) => {
+            unitElement.textContent = value ? String(value).trim() : "";
+          });
+        }
+
+        async function fetchStatisticData() {
+          const headers = {
+            accept: "application/json",
+          };
+          const authToken = window.Liferay?.authToken;
+
+          if (authToken) {
+            headers["x-csrf-token"] = authToken;
+          }
+
+          const response = await fetch(API_URL, {
+            method: "GET",
+            cache: "no-store",
+            headers,
+          });
+
+          if (!response.ok) {
+            throw new Error("Fetch statistics failed with status " + response.status);
+          }
+
+          const data = await response.json();
+
+          if (!Array.isArray(data.items) || !data.items.length) {
+            return null;
+          }
+
+          return data.items
+            .slice()
+            .sort((firstItem, secondItem) => {
+              const firstDate = new Date(firstItem.dateModified || firstItem.dateCreated || 0).getTime();
+              const secondDate = new Date(secondItem.dateModified || secondItem.dateCreated || 0).getTime();
+
+              return secondDate - firstDate;
+            })[0];
+        }
+
+        async function applyStatisticData() {
+          try {
+            const stats = await fetchStatisticData();
+
+            if (!stats) return;
+
+            updateCounterData("namHoatDong", stats.namHoatDong);
+            updateCounterData("vonDieuLe", stats.vonDieuLe);
+            updateCounterData("soTuyenCaoToc", stats.soTuyenCaoToc);
+            updateCounterData("soPhuongTien", stats.soPhuongTien);
+            updateCounterData("doanhThu", stats.doanhThu);
+
+            updateUnitData("nVCaVniuL", stats.nVCaVniuL);
+            updateUnitData("nVCaPhngTin", stats.nVCaPhngTin);
+            updateUnitData("nVCaDoanhThu", stats.nVCaDoanhThu);
+          } catch (error) {
+            console.error("Khong the tai du lieu thong ke:", error);
+          }
+        }
+
+        function initContentToggle() {
+          document.querySelectorAll(".intro_wrapper").forEach((wrapper) => {
+            const content = wrapper.querySelector(".content_wrapper");
+            const btn = wrapper.querySelector(".toggle-btn");
+
+            if (!content || !btn) return;
+
+            if (content.scrollHeight > 600) {
+              btn.style.display = "inline-block";
+            }
+
+            if (btn.dataset.initialized === "true") {
+              return;
+            }
+
+            btn.dataset.initialized = "true";
+            btn.addEventListener("click", function () {
+              content.classList.toggle("expanded");
+
+              if (content.classList.contains("expanded")) {
+                btn.textContent = "Ẩn bớt";
+              } else {
+                btn.textContent = "Xem thêm";
+              }
+            });
+          });
+        }
+
+        async function initIntroSection() {
+          await applyStatisticData();
+          observeCounters();
+          initContentToggle();
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initIntroSection, { once: true });
+        } else {
+          initIntroSection();
+        }
+      })();
+    </script>
+  </body>
+</html>

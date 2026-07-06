@@ -1,208 +1,291 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import CameraModal from '../../giamSatGiaoThong/components/CameraModal';
 import '../styles/Trafficcameramonitor.css';
+import {
+  CAMERA_SHOW_STATE_MODES,
+  fetchCameraShowState,
+  filterCamerasByShowState,
+} from '@/services/cameraShowStateService';
+
+const API_BASE_URL = '';
+const API_HEADERS = {
+  accept: 'application/json',
+};
+const API_HIGHWAYS_URL = `${API_BASE_URL}/o/c/highways/`;
+const CAMERA_HIGHWAY_CONFIGS = {
+  42753: { apiBasePath: '/o/its-hld' },
+  44147: { apiBasePath: '/o/its' },
+};
+const INITIAL_VISIBLE_COUNT = 9;
+const cameraListCache = new Map();
+const THUMBNAIL_FALLBACK_URL =
+  'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original';
+
+function withCacheBust(url) {
+  const value = Date.now().toString();
+
+  try {
+    const parsedUrl = new URL(url, window.location.href);
+    parsedUrl.searchParams.set('_', value);
+    return parsedUrl.href;
+  } catch (error) {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}_=${encodeURIComponent(value)}`;
+  }
+}
+
+async function fetchHighwaysData() {
+  try {
+    const response = await fetch(API_HIGHWAYS_URL, {
+      method: 'GET',
+      headers: API_HEADERS,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Highways API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data.items) ? data.items : [];
+  } catch (error) {
+    console.error('Error fetching highways data:', error);
+    return [];
+  }
+}
+
+function getCameraApiUrl(highwayId) {
+  const config = CAMERA_HIGHWAY_CONFIGS[Number(highwayId)];
+  if (!config?.apiBasePath) return null;
+  return `https://portal.tctvec.vn${config.apiBasePath}/api/cameras`;
+}
+
+async function fetchCameras(highwayId) {
+  const cameraApiUrl = getCameraApiUrl(highwayId);
+
+  if (!cameraApiUrl) return [];
+
+  if (cameraListCache.has(cameraApiUrl)) return cameraListCache.get(cameraApiUrl);
+
+  const response = await fetch(withCacheBust(cameraApiUrl), {
+    method: 'GET',
+    cache: 'no-store',
+    headers: API_HEADERS,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Camera API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const cameras = Array.isArray(data.items)
+    ? data.items.map((camera) => ({
+        ...camera,
+        __cameraApiUrl: cameraApiUrl,
+        __highwayId: Number(highwayId),
+      }))
+    : [];
+
+  cameraListCache.set(cameraApiUrl, cameras);
+
+  return cameras;
+}
+
+function mapApiRoutesToOptions(items) {
+  return items
+    .filter((item) => item?.id && item?.name)
+    .map((item) => ({
+      id: item.id,
+      title: item.name,
+    }));
+}
 
 const TrafficCameraMonitor = () => {
-  const [selectedRoute, setSelectedRoute] = useState('cao-toc-hcm-long-thanh-dau-giay');
-  const [selectedDate, setSelectedDate] = useState('2025-01-15');
+  const [routes, setRoutes] = useState([]);
+  const [selectedRoute, setSelectedRoute] = useState('');
   const [cameras, setCameras] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
+  const [cameraModalData, setCameraModalData] = useState(null);
 
-  // Static data for demonstration - Replace with API call
-  const staticCameras = [
-    {
-      id: 1,
-      name: 'Cam 1',
-      thumbnail: '/documents/d/intranet/b9a7340e006d955b7cbd8867d0a0d14f3fdf1c3d',
-      videoUrl: '#',
-      location: 'Intersection A'
-    },
-    {
-      id: 2,
-      name: 'Cam 2',
-      thumbnail: '/documents/d/intranet/b8c7ab75a5005190f0cb595450b73c8f9ee5c2b3',
-      videoUrl: '#',
-      location: 'Highway Section B'
-    },
-    {
-      id: 3,
-      name: 'Cam 3',
-      thumbnail: '/documents/d/intranet/429da88e8e6eb9ac9152fafe3a917cc33f216b0f',
-      videoUrl: '#',
-      location: 'City Center'
-    },
-    {
-      id: 4,
-      name: 'Cam 4',
-      thumbnail: '/documents/d/intranet/d7536992e4b7afce1e2426e1fc3475e2c45e3340',
-      videoUrl: '#',
-      location: 'Downtown Area'
-    },
-    {
-      id: 5,
-      name: 'Cam 5',
-      thumbnail: '/documents/d/intranet/02eedf4acdd1f86a3c48ba4c07b8241d2540e6a0  ',
-      videoUrl: '#',
-      location: 'Express Lane'
-    },
-    {
-      id: 6,
-      name: 'Cam 6',
-      thumbnail: '/documents/d/intranet/5b65b612e31e1a6171d3c883e8a6d818f78dfded',
-      videoUrl: '#',
-      location: 'Junction C'
-    },
-    {
-      id: 7,
-      name: 'Cam 7',
-      thumbnail: '/documents/d/intranet/83ce94347bf61926720963008c61d4a8ae570e0b',
-      videoUrl: '#',
-      location: 'Bridge Overpass'
-    },
-    {
-      id: 8,
-      name: 'Cam 8',
-      thumbnail: '/documents/d/intranet/9891561172b8c0bd94fdc4507a269c4e0da17bd6',
-      videoUrl: '#',
-      location: 'Tunnel Entrance'
-    },
-    {
-      id: 9,
-      name: 'Cam 9',
-      thumbnail: '/documents/d/intranet/8e1aac44fccc3e55934ca897c7fb2be204dc6ff6',
-      videoUrl: '#',
-      location: 'Exit Ramp'
-    }
-  ];
-
-  const routes = [
-    { value: 'cao-toc-hcm-long-thanh-dau-giay', label: 'Cao tốc TP. Hồ Chí Minh - Long Thành - Dầu Giây' },
-    { value: 'cao-toc-hcm-trung-luong', label: 'Cao tốc TP. Hồ Chí Minh - Trung Lương' },
-    { value: 'cao-toc-hcm-bien-hoa', label: 'Cao tốc TP. Hồ Chí Minh - Biên Hòa' }
-  ];
-
-  // Simulate API call - Replace with actual API integration
   useEffect(() => {
-    fetchCameraData();
-  }, [selectedRoute, selectedDate]);
+    let isMounted = true;
 
-  const fetchCameraData = async () => {
-    setLoading(true);
-    
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/cameras?route=${selectedRoute}&date=${selectedDate}`);
-      // const data = await response.json();
-      // setCameras(data);
-      
-      // Simulating API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCameras(staticCameras);
-    } catch (error) {
-      console.error('Error fetching camera data:', error);
-      setCameras(staticCameras);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const initializeRoutes = async () => {
+      const routeData = mapApiRoutesToOptions(await fetchHighwaysData());
+      const nextRoutes = routeData;
+      const defaultRoute = nextRoutes[0];
 
-  const handleCameraClick = (camera) => {
-    // TODO: Implement video player modal or navigation
-    console.log('Camera clicked:', camera);
-    window.open(camera.videoUrl, '_blank');
-  };
+      if (!isMounted) return;
+
+      setRoutes(nextRoutes);
+      setSelectedRoute(String(defaultRoute?.id ?? ''));
+    };
+
+    initializeRoutes();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCameraData = async () => {
+      if (!selectedRoute) {
+        setCameras([]);
+        return;
+      }
+
+      setLoading(true);
+      setError('');
+      setVisibleCount(INITIAL_VISIBLE_COUNT);
+
+      try {
+        const [cameraData, cameraShowStateResponse] = await Promise.all([
+          fetchCameras(selectedRoute),
+          fetchCameraShowState(selectedRoute),
+        ]);
+        const visibleCameras = filterCamerasByShowState(
+          cameraData,
+          cameraShowStateResponse?.items || [],
+          CAMERA_SHOW_STATE_MODES.INTRANET
+        );
+
+        if (isMounted) {
+          setCameras(visibleCameras);
+        }
+      } catch (fetchError) {
+        console.error('Error fetching camera data:', fetchError);
+        if (isMounted) {
+          setCameras([]);
+          setError('Không tải được dữ liệu camera');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCameraData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedRoute]);
 
   const handleRouteChange = (e) => {
     setSelectedRoute(e.target.value);
   };
 
-  const handleDateChange = (e) => {
-    setSelectedDate(e.target.value);
-  };
+  const displayedCameras = cameras.slice(0, visibleCount);
 
   return (
-    <div className="traffic-camera-monitor doc-card">
-      <div className="doc-card-header d-flex align-items-center">
-                <div className="doc-card-icon-div d-flex justify-content-center align-items-center">
-                <img src={'/documents/d/intranet/container-1'} alt="icon" />
-                </div>
-                <span>Camera giao thông</span>
-              </div>
-    
-      <div className="d-flex align-items-center p-8 flex-column traffic-search-div flex-sm-row" style={{gap:'8px'}}>
-        <div className="traffic-select-input">
-          <select 
-            className="custom-select-1"
-            value={selectedRoute}
-            onChange={handleRouteChange}
-          >
-            {routes.map(route => (
-              <option key={route.value} value={route.value}>
-                {route.label}
-              </option>
-            ))}
-          </select>
-          
+    <>
+      <div className="traffic-camera-monitor doc-card">
+        <div className="doc-card-header d-flex align-items-center">
+          <span>Camera giao thông</span>
         </div>
 
-        <div className="traffic-date-input">
-          <input 
-            type="date" 
-            className="custom-date-1"
-            value={selectedDate}
-            onChange={handleDateChange}
-          />
-         
-        </div>
-      </div>
-
-        <div className='traffic-camera-inner-div'>
-      <div className="traffic-camera-monitor__grid">
-        {loading ? (
-          <div className="traffic-camera-monitor__loading">
-            <div className="traffic-camera-monitor__loading-spinner"></div>
-            <p>Đang tải...</p>
-          </div>
-        ) : (
-          cameras.map(camera => (
-            <div 
-              key={camera.id} 
-              className="traffic-camera-monitor__camera-card"
-              onClick={() => handleCameraClick(camera)}
+        <div className="d-flex align-items-center p-8 flex-column traffic-search-div flex-sm-row" style={{ gap: '8px' }}>
+          <div className="traffic-select-input">
+            <select
+              className="custom-select-1"
+              value={selectedRoute}
+              onChange={handleRouteChange}
+              disabled={routes.length === 0}
             >
-              <div className="traffic-camera-monitor__camera-card-image-wrapper">
-                <div className="traffic-camera-monitor__camera-card-label">
-                  {camera.name}
-                </div>
-                <img 
-                  src={camera.thumbnail} 
-                  alt={camera.name}
-                  className="traffic-camera-monitor__camera-card-image"
-                />
-                <div className="traffic-camera-monitor__camera-card-overlay">
-                  <button className="traffic-camera-monitor__camera-card-play-button">
-                       <img 
-                      src={"/documents/d/intranet/link"}
-                      alt="Play"
-                      className="traffic-camera-monitor__camera-card-play-icon"
-                      width="32"
-                      height="32"
-                    />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
+              {routes.length === 0 ? (
+                <option value="">Không có tuyến đường</option>
+              ) : null}
+              {routes.map((route) => (
+                <option key={route.id} value={route.id}>
+                  {route.title}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
-      <div className="extra-load-btn">
-         <div className="load">
-              <a href="" className="load-button">
-                Xem thêm
-              </a>
+
+        {error ? (
+          <div className="traffic-camera-monitor__error">
+            <span>{error}</span>
+          </div>
+        ) : null}
+
+        <div className="traffic-camera-inner-div">
+          <div className="traffic-camera-monitor__grid">
+            {loading ? (
+              <div className="traffic-camera-monitor__loading">
+                <div className="traffic-camera-monitor__loading-spinner"></div>
+                <p>Đang tải...</p>
               </div>
+            ) : displayedCameras.length > 0 ? (
+              displayedCameras.map((camera) => (
+                <div
+                  key={camera.camera_id || camera.id}
+                  className="traffic-camera-monitor__camera-card"
+                  onClick={() => setCameraModalData(camera)}
+                >
+                  <div className="traffic-camera-monitor__camera-card-image-wrapper">
+                    <div className="traffic-camera-monitor__camera-card-label">
+                      {camera.name || 'Camera'}
+                    </div>
+                    <img
+                      src={camera.thumbnail_url || THUMBNAIL_FALLBACK_URL}
+                      alt={camera.name || 'Camera'}
+                      className="traffic-camera-monitor__camera-card-image"
+                      onError={(event) => {
+                        event.currentTarget.src = THUMBNAIL_FALLBACK_URL;
+                      }}
+                    />
+                    <div className="traffic-camera-monitor__camera-card-overlay">
+                      <button type="button" className="traffic-camera-monitor__camera-card-play-button">
+                        <img
+                          src="https://res.cloudinary.com/drwairjk5/image/upload/v1767609285/Variant3_e7bc0u.svg"
+                          alt="Play"
+                          className="traffic-camera-monitor__camera-card-play-icon"
+                          width="32"
+                          height="32"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="traffic-camera-monitor__empty">
+                <p>Không có camera trực tuyến</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {!loading && visibleCount < cameras.length ? (
+          <div className="extra-load-btn">
+            <div className="load">
+              <button
+                type="button"
+                className="load-button"
+                onClick={() => setVisibleCount((prevCount) => prevCount + INITIAL_VISIBLE_COUNT)}
+              >
+                Xem thêm
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
-    </div>
+
+      {cameraModalData ? (
+        <CameraModal
+          camera={cameraModalData}
+          cameraName={cameraModalData.name}
+          onClose={() => setCameraModalData(null)}
+        />
+      ) : null}
+    </>
   );
 };
 

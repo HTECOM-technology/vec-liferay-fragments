@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Checkbox, Space, Grid } from "antd";
-import { PlusOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined, EyeOutlined, SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import {
   CInput,
   CSelect,
@@ -8,7 +8,6 @@ import {
   CModal,
 } from "../../../../components/common";
 import { HeaderSection, MobileFilterButton } from "../../style";
-import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
 import {
   EventsHeaderTitle,
   EventsHeaderRow,
@@ -86,9 +85,7 @@ function EventsFilter({
     </Space>
   );
 
-  const filterIcon = (
-    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
-  );
+  const filterIcon = <FilterOutlined style={{ fontSize: 18, color: "#0090CF" }} />;
 
   const filterModal = (
     <CModal
@@ -130,7 +127,11 @@ function EventsFilter({
               >
                 Thêm sự kiện
               </CButton>
-              <CButton type="primary" icon={<EyeOutlined />}>
+              <CButton
+                type="primary"
+                icon={<EyeOutlined />}
+                onClick={() => window.open("", "_blank")}
+              >
                 Xem đầy đủ lịch
               </CButton>
             </EventsActionGroup>
@@ -165,6 +166,22 @@ function EventsFilter({
               />
             </Space>
           </EventsFilterRow>
+          <EventsActionGroup style={{ marginBottom: 4 }}>
+            <CButton
+              className="add-event-button"
+              icon={<PlusOutlined />}
+              onClick={onAddEvent}
+            >
+              Thêm sự kiện
+            </CButton>
+            <CButton
+              type="primary"
+              icon={<EyeOutlined />}
+              onClick={() => window.open("", "_blank")}
+            >
+              Xem đầy đủ lịch
+            </CButton>
+          </EventsActionGroup>
           {filterModal}
         </>
       )}

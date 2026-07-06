@@ -4,7 +4,7 @@ import { CButton } from "../../components/common";
 export const PageWrap = styled.div`
   padding: 0;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     .ant-tabs-nav {
       .ant-tabs-nav-wrap {
         overflow-x: auto;
@@ -45,7 +45,7 @@ export const ContentWrap = styled.div`
   overflow: hidden;
   max-width: 100%;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex-direction: column;
   }
 `;
@@ -55,12 +55,21 @@ export const LeftSidebar = styled.div`
   flex-shrink: 0;
   padding: 12px;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     width: 100%;
-    padding: 12px 12px 0;
+    padding: 8px 12px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    border-bottom: 1px solid #0090cf1a;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 `;
 
@@ -83,7 +92,7 @@ export const MainContent = styled.div`
     vertical-align: middle;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     padding: 0 12px 12px;
 
     .content-title {
@@ -108,7 +117,7 @@ export const HeaderSection = styled.div`
     }
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     flex-wrap: nowrap;
     gap: 8px;
     padding-bottom: 8px;
@@ -190,7 +199,7 @@ export const TableContainer = styled.div`
     border-color: #0090cf33 !important;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     margin-top: 0;
 
     .ant-table {
@@ -240,14 +249,14 @@ export const SidebarItem = styled.div`
     font-size: 14px;
   }
 
-  @media (max-width: 767px) {
-    width: calc(50% - 4px);
-    flex: 0 0 calc(50% - 4px);
-    height: 36px;
+  @media (max-width: 1199px) {
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    height: 32px;
     padding: 0 12px;
     margin-bottom: 0;
     font-size: 13px;
-    justify-content: space-between;
 
     .count {
       font-size: 13px;
@@ -353,7 +362,7 @@ export const TabRow = styled.div`
   padding-bottom: 12px;
   border-bottom: 1px solid #e5e7eb;
 
-  @media (max-width: 767px) {
+  @media (max-width: 1199px) {
     border-bottom: none;
     padding-bottom: 8px;
   }

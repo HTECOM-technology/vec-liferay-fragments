@@ -57,7 +57,7 @@ function NhanSuTable({
             title: "Phòng ban",
             dataIndex: "phongBan",
             key: "phongBan",
-            width: 180,
+            width: 250,
             align: "center",
         },
         {
@@ -139,7 +139,7 @@ function NhanSuTable({
                     loading={loading}
                     pagination={false}
                     rowKey="maNV"
-                    scroll={{ x: 1200 }}
+                    scroll={{ x: "max-content" }}
                 />
             </TableContainer>
 

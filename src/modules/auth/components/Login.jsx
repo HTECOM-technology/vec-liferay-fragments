@@ -15,8 +15,7 @@ import {
 } from '../style';
 
 // Import images
-import loginBg from '../../../assets/image-login.png';
-import logoVec from '../../../assets/layout/logo.png';
+import logoVec from '@/assets/layout/logo.png';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -33,8 +32,8 @@ const Login = () => {
    */
   useEffect(() => {
     if (AuthService.isAuthenticated()) {
-      // Redirect to home if already logged in
-      window.location.href = '/web/guest/home';
+      // Redirect về trang chủ (path trống, không dùng /home)
+      window.location.href = '/web/guest';
     }
   }, []);
 
@@ -75,15 +74,8 @@ const Login = () => {
     e.preventDefault();
     
     // Validation
-    if (!credentials.username || !credentials.password) {
+    if (!credentials.username?.trim() || !credentials.password) {
       setError('Vui lòng nhập đầy đủ thông tin');
-      return;
-    }
-
-    // Email validation (basic)
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(credentials.username)) {
-      setError('Email không hợp lệ');
       return;
     }
 
@@ -93,7 +85,8 @@ const Login = () => {
     try {
       const result = await AuthService.login(
         credentials.username,
-        credentials.password
+        credentials.password,
+        rememberMe
       );
 
       if (result.success) {
@@ -102,8 +95,8 @@ const Login = () => {
           AuthService.storeUserData(result.user);
         }
         
-        // Redirect on success
-        window.location.href = '/web/guest/home';
+        // Redirect về trang chủ (path trống, không dùng /home)
+        window.location.href = '/web/intranet';
       } else {
         setError(result.error || 'Đăng nhập thất bại');
       }
@@ -120,7 +113,7 @@ const Login = () => {
       <LoginBox>
         {/* Left Section - Background Image */}
         <LeftSection>
-          <BackgroundImage src={loginBg} alt="VEC Highway" />
+          <BackgroundImage src="/login_bg.jpg" alt="VEC Highway" />
         </LeftSection>
 
         {/* Right Section - Login Form */}
@@ -134,8 +127,8 @@ const Login = () => {
           </CompanyName>
 
           <LoginHeader>
-            <LoginTitle>ĐĂNG NHẬP</LoginTitle>
             <LoginSubtitle>Trang thông tin nội bộ của VEC</LoginSubtitle>
+            <LoginTitle>ĐĂNG NHẬP</LoginTitle>
           </LoginHeader>
 
           {/* Login Form Component */}

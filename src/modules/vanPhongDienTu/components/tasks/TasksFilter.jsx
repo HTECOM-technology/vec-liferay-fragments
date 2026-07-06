@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Form, Space, Grid } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import {
   CInput,
   CSelect,
@@ -8,7 +8,6 @@ import {
   CModal,
 } from "../../../../components/common";
 import { MobileFilterButton, FilterSection } from "../../style";
-import MenuFilterIcon from "../../../../assets/icon/menu-filter-icon.svg";
 import { ButtonWrapper } from "./styles";
 import {
   ASSIGNOR_OPTIONS,
@@ -89,9 +88,7 @@ function TasksFilter({ initialValues, onSearch }) {
     </FilterSection>
   );
 
-  const filterIcon = (
-    <img src={MenuFilterIcon} alt="filter" style={FILTER_ICON_STYLE} />
-  );
+  const filterIcon = <FilterOutlined style={{ fontSize: 18, color: "#0090CF" }} />;
 
   const filterModal = (
     <CModal

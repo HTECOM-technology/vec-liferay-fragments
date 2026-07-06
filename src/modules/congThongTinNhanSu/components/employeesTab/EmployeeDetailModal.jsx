@@ -156,22 +156,12 @@ function EmployeeDetailModal({ visible, employee, onClose }) {
     if (!employee) return null;
 
     const employeeDetail = {
-        ...employee,
-        ngaySinhFull: `Thứ sáu, ${employee.ngaySinh}`,
-        nguyenQuan: "-",
-        tenTiengAnh: "-",
-        ngayVaoLam: "01/12/2020",
-        noiSinh: "Hà Nội",
-        honNhan: "Đã lập gia đình",
-        phongBanCT: employee.phongBan,
-        tonGiao: "Không",
-        soCMND: "***********",
-        theDoan: "-",
-        theDang: "-",
-        diaChiThuongTru:
-            "D2303 Tháp Đông - Tòa Hancorp Plaza - 72D Trần Đăng Ninh, Phường Dịch Vọng, Quận Cầu Giấy",
-        diaChiLienHe:
-            "D2303 Tháp Đông - Tòa Hancorp Plaza - 72D Trần Đăng Ninh, Phường Dịch Vọng, Quận Cầu Giấy",
+        ngaySinh: employee.ngaySinh || "-",
+        phongBanCT: employee.phongBan || "-",
+        donVi: employee.donVi || "-",
+        maBoPhan: employee.raw?.department?.ma_bp || employee.raw?.bp_ref || "-",
+        maViTri: employee.raw?.position?.ma_vtr || "-",
+        tinhTrang: employee.tinhTrang || "-",
     };
 
     return (
@@ -218,15 +208,11 @@ function EmployeeDetailModal({ visible, employee, onClose }) {
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Ngày sinh</span>
-                                <span className="info-value">
-                                    {employeeDetail.ngaySinhFull}
-                                </span>
+                                <span className="info-value">{employeeDetail.ngaySinh}</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Nguyên quán</span>
-                                <span className="info-value">
-                                    {employeeDetail.nguyenQuan}
-                                </span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Giới tính</span>
@@ -234,23 +220,19 @@ function EmployeeDetailModal({ visible, employee, onClose }) {
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Tên tiếng Anh</span>
-                                <span className="info-value">
-                                    {employeeDetail.tenTiengAnh}
-                                </span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Ngày vào làm</span>
-                                <span className="info-value">
-                                    {employeeDetail.ngayVaoLam}
-                                </span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Nơi sinh</span>
-                                <span className="info-value">{employeeDetail.noiSinh}</span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Hôn nhân</span>
-                                <span className="info-value">{employeeDetail.honNhan}</span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Phòng ban/CT</span>
@@ -271,31 +253,43 @@ function EmployeeDetailModal({ visible, employee, onClose }) {
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Tôn giáo</span>
-                                <span className="info-value">{employeeDetail.tonGiao}</span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Số CMND</span>
-                                <span className="info-value">{employeeDetail.soCMND}</span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Thẻ Đoàn</span>
-                                <span className="info-value">{employeeDetail.theDoan}</span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Thẻ Đảng</span>
-                                <span className="info-value">{employeeDetail.theDang}</span>
+                                <span className="info-value">-</span>
+                            </InfoRow>
+                            <InfoRow>
+                                <span className="info-label">Đơn vị</span>
+                                <span className="info-value">{employeeDetail.donVi}</span>
+                            </InfoRow>
+                            <InfoRow>
+                                <span className="info-label">Mã bộ phận</span>
+                                <span className="info-value">{employeeDetail.maBoPhan}</span>
+                            </InfoRow>
+                            <InfoRow>
+                                <span className="info-label">Mã vị trí</span>
+                                <span className="info-value">{employeeDetail.maViTri}</span>
+                            </InfoRow>
+                            <InfoRow>
+                                <span className="info-label">Tình trạng</span>
+                                <span className="info-value">{employeeDetail.tinhTrang}</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Địa chỉ thường trú</span>
-                                <span className="info-value">
-                                    {employeeDetail.diaChiThuongTru}
-                                </span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                             <InfoRow>
                                 <span className="info-label">Địa chỉ liên hệ</span>
-                                <span className="info-value">
-                                    {employeeDetail.diaChiLienHe}
-                                </span>
+                                <span className="info-value">-</span>
                             </InfoRow>
                         </InfoColumn>
                     </InfoSection>
@@ -319,7 +313,7 @@ EmployeeDetailModal.propTypes = {
 EmployeeDetailModal.defaultProps = {
     visible: false,
     employee: null,
-    onClose: () => {},
+    onClose: () => { },
 };
 
 export default EmployeeDetailModal;

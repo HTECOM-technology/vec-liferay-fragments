@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VEC Quản lý duyệt nội dung</title>
+</head>
+<body>
+    <main class="workflow-shell">
+        <header class="workflow-header">
+            <div>
+                <p class="eyebrow">VEC Admin</p>
+                <h1>Quản lý duyệt nội dung</h1>
+                <p class="subtle">
+                    Quản lý các bài viết và bình luận cần duyệt phê chuẩn, xem chi tiết trạng thái xử lý và lịch sử duyệt.
+                </p>
+            </div>
+        </header>
+
+        <section class="panel filters-panel">
+            <form id="filterForm" class="filters-grid filters-grid-5">
+                <label>
+                    <span>Từ khóa</span>
+                    <input id="keyword" name="keyword" type="text" placeholder="tiêu đề / nội dung">
+                </label>
+                <label>
+                    <span>Trạng thái</span>
+                    <select id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="pending">Chưa duyệt</option>
+                        <option value="approved">Đã duyệt</option>
+                        <option value="denied">Đã từ chối (chờ chỉnh sửa)</option>
+                        <option value="expired">Đã quá hạn duyệt</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Loại nội dung</span>
+                    <select id="assetType" name="assetType">
+                        <option value="">Tất cả</option>
+                        <option value="com.liferay.journal.model.JournalArticle">Bài viết (Web Content)</option>
+                        <option value="com.liferay.message.boards.model.MBDiscussion">Bình luận</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Tác giả</span>
+                    <select id="filterAuthor" name="filterAuthor">
+                        <option value="">Tất cả</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Điều phối cho</span>
+                    <select id="filterAssignee" name="filterAssignee">
+                        <option value="">Tất cả</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Người xử lý</span>
+                    <select id="filterProcessor" name="filterProcessor">
+                        <option value="">Tất cả</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Ngày tạo từ</span>
+                    <input id="filterDateFrom" name="filterDateFrom" type="date">
+                </label>
+                <label>
+                    <span>Ngày tạo đến</span>
+                    <input id="filterDateTo" name="filterDateTo" type="date">
+                </label>
+                <label>
+                    <span>Sắp xếp theo</span>
+                    <select id="filterSort" name="filterSort">
+                        <option value="createDate_desc">Ngày tạo giảm dần</option>
+                        <option value="createDate_asc">Ngày tạo tăng dần</option>
+                        <option value="modifiedDate_desc">Ngày cập nhật giảm dần</option>
+                        <option value="modifiedDate_asc">Ngày cập nhật tăng dần</option>
+                        <option value="dueDate_desc">Ngày hết hạn giảm dần</option>
+                        <option value="dueDate_asc">Ngày hết hạn tăng dần</option>
+                    </select>
+                </label>
+            </form>
+            <div class="filter-actions">
+                <button type="button" id="btn-search" class="btn-primary">Tìm kiếm</button>
+                <button type="button" id="btn-clear" class="btn-secondary">Xóa bộ lọc</button>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="tabs" id="tabs">
+                <button type="button" class="tab-button active" data-tab="all">Tất cả</button>
+                <button type="button" class="tab-button" data-tab="mine">Tôi xử lý</button>
+            </div>
+
+            <div id="message-container"></div>
+
+            <div id="loading-spinner" class="loading-spinner" style="display: none;">
+                Đang tải dữ liệu...
+            </div>
+
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📭</div>
+                <div class="empty-state-text">Không có dữ liệu</div>
+            </div>
+
+            <div class="table-container table-scrollable-horizotal" id="table-container" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề / Nội dung</th>
+                            <th>Loại</th>
+                            <th>Tác giả</th>
+                            <th>Điều phối cho</th>
+                            <th>Người xử lý</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th>Hạn duyệt</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workflow-table-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" id="pagination-container" style="display: none;">
+            </div>
+        </section>
+    </main>
+
+    <div id="detailModal" class="modal">
+        <div class="modal-content modal-content-lg">
+            <div class="modal-header" id="detailModalTitle">Chi tiết nội dung</div>
+            <div class="modal-body" id="detailModalBody">
+                <div class="detail-loading">Đang tải...</div>
+            </div>
+            <div class="modal-footer" id="detailModalFooter">
+                <span id="detailModalActions"></span>
+                <button type="button" class="btn-cancel" id="btn-detail-close">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="modalTitle">Xác nhận</div>
+            <div class="modal-body">
+                <label for="actionComment">Lý do / Ghi chú (tùy chọn):</label>
+                <textarea id="actionComment" placeholder="Nhập lý do hoặc ghi chú..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-cancel" class="btn-cancel">Hủy</button>
+                <button type="button" id="confirmActionBtn" class="btn-confirm-approve">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Điều phối xử lý</div>
+            <div class="modal-body">
+                <label for="assignUser">Người xử lý</label>
+                <select id="assignUser" class="modal-select">
+                    <option value="">Đang tải danh sách...</option>
+                </select>
+                <label for="assignComment" class="modal-label-spaced">Ghi chú (tùy chọn)</label>
+                <textarea id="assignComment" placeholder="Nhập ghi chú..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-assign-cancel" class="btn-cancel">Hủy</button>
+                <button type="button" id="btn-assign-confirm" class="btn-confirm-primary">Điều phối</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dueDateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Thời hạn xử lý</div>
+            <div class="modal-body">
+                <label for="dueDateInput">Hạn xử lý</label>
+                <input type="datetime-local" id="dueDateInput" class="modal-input">
+                <label for="dueDateComment" class="modal-label-spaced">Ghi chú (tùy chọn)</label>
+                <textarea id="dueDateComment" placeholder="Nhập ghi chú..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-duedate-clear" class="btn-cancel btn-duedate-clear">Xóa hạn</button>
+                <button type="button" id="btn-duedate-cancel" class="btn-cancel">Hủy</button>
+                <button type="button" id="btn-duedate-confirm" class="btn-confirm-primary">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="activitiesModal" class="modal">
+        <div class="modal-content modal-content-lg">
+            <div class="modal-header">Lịch sử thay đổi</div>
+            <div class="modal-body" id="activitiesModalBody">
+                <div class="detail-loading">Đang tải...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btn-activities-close" class="btn-cancel">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="actionMenu" class="action-menu"></div>
+</body>
+</html>

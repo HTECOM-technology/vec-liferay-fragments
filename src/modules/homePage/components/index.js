@@ -2,7 +2,7 @@ export {
     DocumentWidget,
     TaskWidget,
     MissionWidget,
-    TrafficWidget,
+    // TrafficWidget,
     GopYSangKienLink,
     KhaoSatBieuQuyetLink,
     QuyTrinhHoTroLink,
@@ -18,10 +18,10 @@ export {
 
 
 export {
-   default as Dashboard 
-}  from './Dashboard'
+    default as Dashboard
+} from './Dashboard'
 
 export {
-   default as News 
-}  from './News'
+    default as News
+} from './News'
 

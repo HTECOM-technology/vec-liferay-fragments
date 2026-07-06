@@ -14,9 +14,8 @@ import {
   Spinner,
   ForgotPasswordLink
 } from '../style';
-import iconUserName from '../../../assets/icon/user-name.svg';
-import iconPassword from '../../../assets/icon/password.svg';
-import iconShowPassword from '../../../assets/icon/show-password.svg';
+import { LuUser,LuLockKeyhole, LuEye } from "react-icons/lu";
+
 
 const LoginForm = ({
   credentials,
@@ -49,7 +48,7 @@ const LoginForm = ({
       {/* Email/Username Input */}
       <FormGroup>
         <InputWrapper>
-          <Icon aria-hidden="true"><img src={iconUserName} alt=""></img></Icon>
+          <Icon aria-hidden="true"><LuUser /></Icon>
           <Input
             type="text"
             name="username"
@@ -68,7 +67,7 @@ const LoginForm = ({
       {/* Password Input */}
       <FormGroup>
         <InputWrapper>
-          <Icon aria-hidden="true"><img src={iconPassword} alt=""></img></Icon>
+          <Icon aria-hidden="true"><LuLockKeyhole /></Icon>
           <Input
             type={showPassword ? 'text' : 'password'}
             name="password"
@@ -86,7 +85,7 @@ const LoginForm = ({
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             tabIndex={-1}
           >
-            <img src={iconShowPassword} alt=""></img>
+            <LuEye />
           </PasswordToggle>
         </InputWrapper>
       </FormGroup>
@@ -118,7 +117,7 @@ const LoginForm = ({
           </CheckboxLabel>
         </div>
         
-        <ForgotPasswordLink href="/forgot-password">
+        <ForgotPasswordLink href="/c/portal/forgot_password" target="_self">
           Quên mật khẩu?
         </ForgotPasswordLink>
       </CheckboxWrapper>
