@@ -16,7 +16,7 @@ import { DEFAULT_CSRF_TOKEN } from "../utils/const";
 export const axiosPrivate = axios.create({
   baseURL: window.Liferay
     ? window.location.origin
-    : process.env.REACT_APP_BASE_API_URL || window.location.origin,
+    : process.env.REACT_APP_API_DOMAIN || window.location.origin,
   headers: {
     "Content-Type": "application/json",
     "x-csrf-token": window.Liferay?.authToken || DEFAULT_CSRF_TOKEN || "",
