@@ -44,6 +44,12 @@ const LeftMenu = ({ collapsed, isMobile, showDrawer, setShowDrawer, userName, us
       <Menu collapsed={collapsed} setShowDrawer={setShowDrawer} />
 
       {(!collapsed || isMobile) && (
+        <a
+        href="https://portal.tctvec.vn/web/guest/trangchu"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ textDecoration: "none" }}
+        >
         <StyledBtnVEC>
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M16.6668 5.41634V12.083H3.3335V5.41634C3.3335 3.84499 3.3335 3.05932 3.82165 2.57116C4.30981 2.08301 5.09548 2.08301 6.66683 2.08301H13.3335C14.9048 2.08301 15.6905 2.08301 16.1787 2.57116C16.6668 3.05932 16.6668 3.84499 16.6668 5.41634Z" fill="white" fillOpacity="0.2" />
@@ -60,6 +66,7 @@ const LeftMenu = ({ collapsed, isMobile, showDrawer, setShowDrawer, userName, us
           </svg>
           Cổng thông tin VEC
         </StyledBtnVEC>
+        </a>
       )}
 
       <StyledBgMenu src={bgMenu} alt="" />

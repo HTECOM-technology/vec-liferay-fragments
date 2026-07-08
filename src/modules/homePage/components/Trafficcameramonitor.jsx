@@ -96,7 +96,8 @@ function mapApiRoutesToOptions(items) {
     .map((item) => ({
       id: item.id,
       title: item.name,
-    }));
+      order: Number(item.order) || 0,
+    })).sort((a, b) => a.order - b.order);
 }
 
 const TrafficCameraMonitor = () => {
