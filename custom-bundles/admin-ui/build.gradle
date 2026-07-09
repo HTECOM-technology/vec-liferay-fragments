@@ -18,6 +18,12 @@ def applicationListApiFiles = files(
     fileTree(dir: "${liferayHome}/osgi/static", include: "com.liferay.application.list.api*.jar"),
     fileTree(dir: "${liferayHome}/tools/sdk/dist", include: "com.liferay.application.list.api*.jar")
 )
+def osgiMetatypeAnnotationsFiles = files(
+    fileTree(dir: "${liferayHome}/osgi/modules", include: "org.osgi.service.metatype.annotations*.jar"),
+    fileTree(dir: "${liferayHome}/osgi/portal", include: "org.osgi.service.metatype.annotations*.jar"),
+    fileTree(dir: "${liferayHome}/osgi/static", include: "org.osgi.service.metatype.annotations*.jar"),
+    fileTree(dir: "${liferayHome}/tools/sdk/dist", include: "org.osgi.service.metatype.annotations*.jar")
+)
 
 repositories {
     maven {
@@ -43,6 +49,12 @@ dependencies {
     }
     else {
         compileOnly applicationListApiFiles
+    }
+    if (osgiMetatypeAnnotationsFiles.files.empty) {
+        compileOnly group: "org.osgi", name: "org.osgi.service.metatype.annotations", version: "1.4.0"
+    }
+    else {
+        compileOnly osgiMetatypeAnnotationsFiles
     }
     compileOnly fileTree(dir: "${liferayHome}/osgi/modules", include: "com.liferay.portal.editor.configuration.api*.jar")
     compileOnly fileTree(

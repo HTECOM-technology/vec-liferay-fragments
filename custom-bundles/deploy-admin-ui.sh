@@ -163,8 +163,10 @@ fi
 
 echo ">>> Uploading custom-bundles -> $SERVER:/root/vec/custom-bundles/"
 rsync -avz \
+    --delete \
     --exclude='.git/' \
     --exclude='node_modules/' \
+    --exclude='admin-ui/.gradle/' \
     --exclude='*/build/' \
     --exclude='*.class' \
     -e "ssh $SSH_OPTS" \
