@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import GripHandle from "./GripHandle";
 import useUserInfo from "@/hooks/useUserInfo";
-import { getTtnsUserId } from "@/utils";
 import { ttnsService } from "@/services/ttnsService";
 
 const DEFAULT_GROUP_COUNTS = {
@@ -15,13 +14,45 @@ const DEFAULT_GROUP_COUNTS = {
 function NhiemVuCard({ dragHandleProps }) {
   const { user } = useUserInfo();
   const [groupCounts, setGroupCounts] = useState(DEFAULT_GROUP_COUNTS);
-  const userId = useMemo(() => getTtnsUserId(user), [user]);
+  const [hrmUserId, setHrmUserId] = useState(null);
+
+  const userEmail = user?.emailAddress || "";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const resolveHrmUserId = async () => {
+      if (!userEmail) {
+        return;
+      }
+
+      try {
+        const items = await ttnsService.getAllEmployees();
+
+        const matched = items.find(
+          (item) => (item.email_cty || "").trim().toLowerCase() === userEmail.trim().toLowerCase()
+        );
+
+        if (isMounted && matched?.user_id) {
+          setHrmUserId(matched.user_id);
+        }
+      } catch (error) {
+        console.error("[NhiemVuCard] Failed to resolve HRM user_id by email:", error);
+      }
+    };
+
+    resolveHrmUserId();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userEmail]);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadGroupCounts = async () => {
-      if (!userId) {
+      if (!hrmUserId) {
         if (isMounted) {
           setGroupCounts(DEFAULT_GROUP_COUNTS);
         }
@@ -29,11 +60,9 @@ function NhiemVuCard({ dragHandleProps }) {
       }
 
       try {
-        const response = await ttnsService.getUnreadCountByGroup({ userId });
+        const response = await ttnsService.getUnreadCountByGroup({ userId: hrmUserId });
 
-        if (!isMounted) {
-          return;
-        }
+        if (!isMounted) return;
 
         setGroupCounts({
           "18": Number(response?.groups?.["18"]) || 0,
@@ -42,8 +71,8 @@ function NhiemVuCard({ dragHandleProps }) {
           "97_99": Number(response?.groups?.["97_99"]) || 0,
         });
       } catch (error) {
+        console.error("[NhiemVuCard] Failed to load unread notification counts by group:", error);
         if (isMounted) {
-          console.error("[NhiemVuCard] Failed to load unread notification counts by group:", error);
           setGroupCounts(DEFAULT_GROUP_COUNTS);
         }
       }
@@ -54,7 +83,7 @@ function NhiemVuCard({ dragHandleProps }) {
     return () => {
       isMounted = false;
     };
-  }, [userId]);
+  }, [hrmUserId]);
 
   const notificationCount = useMemo(() => {
     return groupCounts["18"] + groupCounts["31"] + groupCounts["33"] + groupCounts["97_99"];

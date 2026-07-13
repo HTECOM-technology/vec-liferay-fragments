@@ -6,6 +6,10 @@
   font-family: "Inter", sans-serif;
 }
 
+a:hover, a.hover {
+  text-decoration: none !important;
+}
+
 .news-header {
   background: #eaf4ff;
   padding: 10px;

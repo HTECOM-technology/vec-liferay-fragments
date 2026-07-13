@@ -1,15 +1,14 @@
 import axios from "axios";
 
-// const TTNS_API_ALIAS = "/ttns";
+const TTNS_API_ALIAS = "/ttns";
 const DEFAULT_PAGE_SIZE = 200;
 
 const TTNS_API_DOMAIN = process.env.REACT_APP_API_DOMAIN;
 const TTNS_API_USERNAME = process.env.REACT_APP_TTNS_API_USERNAME || "";
 const TTNS_API_PASSWORD = process.env.REACT_APP_TTNS_API_PASSWORD || "";
-// baseURL: `${TTNS_API_DOMAIN}${TTNS_API_ALIAS}`,
 
 const ttnsApiClient = axios.create({
-  baseURL: `${TTNS_API_DOMAIN}`,
+  baseURL: `${TTNS_API_DOMAIN}${TTNS_API_ALIAS}`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -107,6 +106,17 @@ export const ttnsService = {
         q: q || undefined,
         page,
         page_size: pageSize,
+      },
+    });
+
+    return response.data;
+  },
+
+  async markNotificationRead({ code, userId } = {}) {
+    const response = await ttnsApiClient.post("/api/notifications/mark-read", null, {
+      params: {
+        code,
+        user_id: userId,
       },
     });
 
