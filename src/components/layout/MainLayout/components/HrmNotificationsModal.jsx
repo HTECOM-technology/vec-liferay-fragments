@@ -84,6 +84,8 @@ const NotificationItem = styled.div`
     font-weight: 600;
     color: ${(props) => (props.$unread ? "#0958d9" : "#595959")};
     background: ${(props) => (props.$unread ? "#d6ecff" : "#ededed")};
+    cursor: pointer;
+    user-select: none;
   }
 
   .notification-content {
@@ -114,6 +116,8 @@ function HrmNotificationsModal({
   hasMore,
   onLoadMore,
   onClose,
+  onToggleRead,
+  togglingCode,
 }) {
   return (
     <StyledModal
@@ -136,26 +140,42 @@ function HrmNotificationsModal({
           <Empty description="Không có thông báo" />
         ) : (
           <>
-            {notifications.map((item, index) => (
-              <NotificationItem
-                key={`${item.code || item.notify_code || "notify"}-${item.datetime0 || index}-${index}`}
-                $unread={Number(item.sent) === 0}
-              >
-                <div className="notification-top">
-                  <div className="notification-top-left">
-                    <span className="notification-status-dot" />
-                    <div className="notification-code">{item.code || item.notify_code || "Thông báo"}</div>
+            {notifications.map((item, index) => {
+              const isUnread = Number(item.sent) === 0;
+              const code = item.code || item.notify_code;
+              const isToggling = togglingCode === code;
+
+              return (
+                <NotificationItem
+                  key={`${code || "notify"}-${item.datetime0 || index}-${index}`}
+                  $unread={isUnread}
+                >
+                  <div className="notification-top">
+                    <div className="notification-top-left">
+                      <span className="notification-status-dot" />
+                      <div className="notification-code">{code || "Thông báo"}</div>
+                    </div>
+                    <div
+                      className="notification-status"
+                      onClick={() => {
+                        if (!code || isToggling) return;
+                        onToggleRead?.(item);
+                      }}
+                      style={{
+                        opacity: isToggling ? 0.6 : 1,
+                        pointerEvents: isToggling ? "none" : "auto",
+                      }}
+                    >
+                      {isUnread ? "Chưa đọc" : "Đã đọc"}
+                    </div>
                   </div>
-                  <div className="notification-status">
-                    {Number(item.sent) === 0 ? "Chưa đọc" : "Đã đọc"}
+                  <div className="notification-content">{item.content || item.content_html || "-"}</div>
+                  <div className="notification-date">
+                    {item.datetime0 ? dayjs(item.datetime0).format("DD/MM/YYYY HH:mm") : "-"}
                   </div>
-                </div>
-                <div className="notification-content">{item.content || item.content_html || "-"}</div>
-                <div className="notification-date">
-                  {item.datetime0 ? dayjs(item.datetime0).format("DD/MM/YYYY HH:mm") : "-"}
-                </div>
-              </NotificationItem>
-            ))}
+                </NotificationItem>
+              );
+            })}
             {hasMore ? (
               <LoadMoreWrap>
                 <Button onClick={onLoadMore} loading={loadingMore}>

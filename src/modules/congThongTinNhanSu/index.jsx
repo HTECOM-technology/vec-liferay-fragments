@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { CTabs } from "../../components/common";
 import { PageWrap } from "./style";
 import { NhanSuTab } from "./components";
+import ThongBaoTab from "./components/ThongBaoTab";
+
 import LienKetTraCuuTab from "./components/LienKetTraCuuTab";
 
 function CongThongTinNhanSuPage() {
@@ -17,6 +19,11 @@ function CongThongTinNhanSuPage() {
             key: "nhanSu",
             label: "NHÂN SỰ",
             children: <NhanSuTab />,
+          },
+          {
+            key: "thongBao",
+            label: "THÔNG BÁO",
+            children: <ThongBaoTab />,
           },
           {
             key: "lienKetTraCuu",

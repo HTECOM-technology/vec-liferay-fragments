@@ -79,6 +79,7 @@ function MainLayout() {
   const [hrmNotificationsLoading, setHrmNotificationsLoading] = useState(false);
   const [hrmNotificationsLoadingMore, setHrmNotificationsLoadingMore] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [hrmTogglingCode, setHrmTogglingCode] = useState(null);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -123,6 +124,7 @@ function MainLayout() {
   const [userEmail, setUserEmail] = useState("");
   const [userInitials, setUserInitials] = useState("");
   const [currentUserId, setCurrentUserId] = useState(0);
+  const [hrmUserId, setHrmUserId] = useState(null);
   const notifications = useMemo(() => ([
     { key: "general", title: "Thông báo mới", count: 0 },
     { key: "hrm", title: "Tổng hợp nhân sự", count: hrmNotificationCount },
@@ -133,7 +135,7 @@ function MainLayout() {
   const hasMoreHrmNotifications = hrmNotifications.length < hrmNotificationsTotal;
 
   const fetchHrmNotifications = useCallback(async ({ page, append }) => {
-    if (!currentUserId) {
+    if (!hrmUserId) {
       return;
     }
 
@@ -145,7 +147,7 @@ function MainLayout() {
 
     try {
       const response = await ttnsService.getNotifications({
-        userId: currentUserId,
+        userId: hrmUserId,
         page,
         pageSize: HRM_NOTIFICATION_PAGE_SIZE,
       });
@@ -164,7 +166,56 @@ function MainLayout() {
         setHrmNotificationsLoading(false);
       }
     }
-  }, [currentUserId]);
+  }, [hrmUserId]);
+
+  const handleToggleHrmNotificationRead = useCallback(
+  async (record) => {
+    const code = record.code || record.notify_code;
+    if (!hrmUserId || !code || hrmTogglingCode === code) return;
+
+    const previousSent = record.sent;
+    setHrmTogglingCode(code);
+
+    setHrmNotifications((prev) =>
+      prev.map((item) =>
+        (item.code || item.notify_code) === code ? { ...item, sent: !previousSent } : item
+      )
+    );
+    setHrmNotificationCount((prev) => {
+      const wasUnread = Number(previousSent) === 0;
+      return wasUnread ? Math.max(0, prev - 1) : prev + 1;
+    });
+
+    try {
+      const result = await ttnsService.markNotificationRead({
+        code,
+        userId: hrmUserId,
+      });
+
+      if (typeof result?.sent === "boolean" && result.sent === previousSent) {
+        setHrmNotifications((prev) =>
+          prev.map((item) =>
+            (item.code || item.notify_code) === code ? { ...item, sent: result.sent } : item
+          )
+        );
+      }
+    } catch (error) {
+      setHrmNotifications((prev) =>
+        prev.map((item) =>
+          (item.code || item.notify_code) === code ? { ...item, sent: previousSent } : item
+        )
+      );
+      setHrmNotificationCount((prev) => {
+        const wasUnread = Number(previousSent) === 0;
+        return wasUnread ? prev + 1 : Math.max(0, prev - 1);
+      });
+      message.error(ttnsService.getErrorMessage(error));
+    } finally {
+      setHrmTogglingCode(null);
+    }
+  },
+  [hrmUserId, hrmTogglingCode]
+);
 
   const handleOpenHrmModal = useCallback(() => {
     setNotifyPopoverOpen(false);
@@ -228,13 +279,48 @@ function MainLayout() {
   useEffect(() => {
     let isMounted = true;
 
+    const resolveHrmUserId = async () => {
+      if (!userEmail) return;
+
+      try {
+        const items = await ttnsService.getAllEmployees();
+
+        const matched = items.find(
+          (item) => (item.email_cty || "").trim().toLowerCase() === userEmail.trim().toLowerCase()
+        );
+
+        if (!isMounted) return;
+
+        if (matched && matched.user_id) {
+          setHrmUserId(matched.user_id);
+        } else {
+          setHrmUserId(null);
+          message.warning("Không tìm thấy thông tin nhân sự tương ứng với email của bạn. Một số thông báo có thể không hiển thị.");
+        }
+      } catch (error) {
+        if (isMounted) {
+          message.error(ttnsService.getErrorMessage(error));
+        }
+      }
+    };
+
+    resolveHrmUserId();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userEmail]);
+
+  useEffect(() => {
+    let isMounted = true;
+
     const loadHrmCounter = async () => {
-      if (!currentUserId) {
+      if (!hrmUserId) {
         return;
       }
 
       try {
-        const response = await ttnsService.getUnreadCount({ userId: currentUserId });
+        const response = await ttnsService.getUnreadCount({ userId: hrmUserId });
 
         if (!isMounted) {
           return;
@@ -244,7 +330,6 @@ function MainLayout() {
       } catch (error) {
         if (isMounted) {
           setHrmNotificationCount(0);
-          console.error("[MainLayout] Failed to load HRM notification counter:", error);
         }
       }
     };
@@ -254,7 +339,7 @@ function MainLayout() {
     return () => {
       isMounted = false;
     };
-  }, [currentUserId]);
+  }, [hrmUserId]);
 
   return (
 
@@ -470,6 +555,8 @@ function MainLayout() {
         hasMore={hasMoreHrmNotifications}
         onLoadMore={handleLoadMoreHrmNotifications}
         onClose={handleCloseHrmModal}
+        onToggleRead={handleToggleHrmNotificationRead}
+        togglingCode={hrmTogglingCode}
       />
 
       {searchOpen && (
