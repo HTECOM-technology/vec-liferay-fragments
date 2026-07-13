@@ -10,6 +10,26 @@ import javax.naming.ldap.Rdn;
 
 public class ADDistinguishedNameUtil {
 
+	static List<String> toOrganizationNameCandidates(
+		List<String> organizationNames, int organizationNameIndex) {
+
+		// Organization names are unique in a Liferay company. Qualify a
+		// duplicated AD OU with its parent OU, then more ancestors if needed.
+
+		List<String> organizationNameCandidates = new ArrayList<>();
+		String organizationName = organizationNames.get(organizationNameIndex);
+
+		organizationNameCandidates.add(organizationName);
+
+		for (int i = organizationNameIndex - 1; i >= 0; i--) {
+			organizationName += " - " + organizationNames.get(i);
+
+			organizationNameCandidates.add(organizationName);
+		}
+
+		return organizationNameCandidates;
+	}
+
 	public static String toOrganizationPath(String distinguishedName)
 		throws InvalidNameException {
 

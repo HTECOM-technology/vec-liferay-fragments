@@ -1,6 +1,5 @@
 package vn.vec.custom.admin.ldap.organization;
 
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -100,23 +99,29 @@ public class ADOUOrganizationSyncService {
 			ListTypeConstants.ORGANIZATION_STATUS);
 		long userId = _userLocalService.getDefaultUserId(companyId);
 
-		for (String organizationName : organizationNames) {
-			organization = _findChildOrganization(
-				companyId, parentOrganizationId, organizationName);
+		for (int i = 0; i < organizationNames.size(); i++) {
+			String adOrganizationName = organizationNames.get(i);
+
+			organization = _findOrganization(
+				companyId, parentOrganizationId, organizationNames, i);
 
 			if (organization == null) {
+				String liferayOrganizationName =
+					_getAvailableOrganizationName(
+						companyId, organizationNames, i);
 				ServiceContext serviceContext = new ServiceContext();
 
 				serviceContext.setCompanyId(companyId);
 				serviceContext.setUserId(userId);
 
 				organization = _organizationLocalService.addOrganization(
-					null, userId, parentOrganizationId, organizationName,
+					null, userId, parentOrganizationId, liferayOrganizationName,
 					OrganizationConstants.TYPE_ORGANIZATION, 0, 0,
 					statusListTypeId, "", false, serviceContext);
 
 				_log.info(
-					"Created organization " + organizationName +
+					"Created organization " + liferayOrganizationName +
+						" for AD OU " + adOrganizationName +
 						" under parentOrganizationId=" + parentOrganizationId +
 							", companyId=" + companyId);
 			}
@@ -127,24 +132,6 @@ public class ADOUOrganizationSyncService {
 		return organization;
 	}
 
-	private Organization _findChildOrganization(
-			long companyId, long parentOrganizationId, String organizationName)
-		throws PortalException {
-
-		List<Organization> organizations =
-			_organizationLocalService.getOrganizations(
-				companyId, parentOrganizationId, QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
-
-		for (Organization organization : organizations) {
-			if (organizationName.equals(organization.getName())) {
-				return organization;
-			}
-		}
-
-		return null;
-	}
-
 	private Organization _findOrganizationPath(
 			long companyId, List<String> organizationNames)
 		throws PortalException {
@@ -153,9 +140,9 @@ public class ADOUOrganizationSyncService {
 			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID;
 		Organization organization = null;
 
-		for (String organizationName : organizationNames) {
-			organization = _findChildOrganization(
-				companyId, parentOrganizationId, organizationName);
+		for (int i = 0; i < organizationNames.size(); i++) {
+			organization = _findOrganization(
+				companyId, parentOrganizationId, organizationNames, i);
 
 			if (organization == null) {
 				return null;
@@ -165,6 +152,50 @@ public class ADOUOrganizationSyncService {
 		}
 
 		return organization;
+	}
+
+	private Organization _findOrganization(
+		long companyId, long parentOrganizationId,
+		List<String> organizationNames, int organizationNameIndex) {
+
+		for (String organizationName :
+				ADDistinguishedNameUtil.toOrganizationNameCandidates(
+					organizationNames, organizationNameIndex)) {
+
+			Organization organization =
+				_organizationLocalService.fetchOrganization(
+					companyId, organizationName);
+
+			if ((organization != null) &&
+				(organization.getParentOrganizationId() ==
+					parentOrganizationId)) {
+
+				return organization;
+			}
+		}
+
+		return null;
+	}
+
+	private String _getAvailableOrganizationName(
+			long companyId, List<String> organizationNames,
+			int organizationNameIndex)
+		throws PortalException {
+
+		for (String organizationName :
+				ADDistinguishedNameUtil.toOrganizationNameCandidates(
+					organizationNames, organizationNameIndex)) {
+
+			if (_organizationLocalService.fetchOrganization(
+					companyId, organizationName) == null) {
+
+				return organizationName;
+			}
+		}
+
+		throw new PortalException(
+			"Unable to generate a unique organization name for AD path " +
+				String.join("/", organizationNames));
 	}
 
 	private String _getCustomField(User user, String fieldName) {
