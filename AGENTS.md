@@ -122,6 +122,10 @@ Các nhóm chức năng lớn trong `custom-bundles/admin-ui`:
 - `backup`: API/tài nguyên admin backup restore.
 - `camera`: trạng thái hiển thị camera.
 - `survey`: API khảo sát nội bộ.
+- `support`: API cấu hình người xử lý và lưu/truy xuất yêu cầu hỗ trợ theo
+  `companyId`; script schema là `sql/support-handler-settings.sql`. Chỉ người
+  xử lý được chỉ định hoặc user `admin` được đổi trạng thái. Khi lưu cấu hình,
+  người xử lý của các yêu cầu `cho-xu-ly` được đồng bộ theo cấu hình mới.
 - `ckeditor`: custom cấu hình CKEditor.
 - `dashboard/layout`: API layout dashboard.
 - `webhook`: webhook và conversation resource.

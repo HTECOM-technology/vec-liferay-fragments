@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Input, Select, Checkbox, DatePicker, Upload } from "antd";
-import { axiosPrivate } from "../../../common/axios";
+import { Alert, Input, Select, Checkbox, DatePicker, Upload, message } from "antd";
+import { fetchSupportHandlerAssignment } from "@/services/supportHandlerSettingsService";
+import {
+    createSupportRequest,
+    fetchSupportRequestUsers,
+} from "@/services/supportRequestService";
 import {
     BoldOutlined,
     ItalicOutlined,
@@ -55,9 +59,15 @@ import {
     PARAGRAPH_STYLE_OPTIONS,
 } from "./constants";
 
-function RequestForm({ activeItem, activeSection }) {
-    const [users, setUsers] = useState([]);
-    const [usersLoading, setUsersLoading] = useState(false);
+function RequestForm({ activeItem, activeSection, assignmentVersion, onCreated }) {
+    const [messageApi, contextHolder] = message.useMessage();
+    const [handlerUsers, setHandlerUsers] = useState([]);
+    const [handlerLoading, setHandlerLoading] = useState(false);
+    const [handlerStatus, setHandlerStatus] = useState("loading");
+    const [handlerError, setHandlerError] = useState("");
+    const [followerUsers, setFollowerUsers] = useState([]);
+    const [followersLoading, setFollowersLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
         process: activeSection || "dich-vu-cntt",
@@ -66,7 +76,7 @@ function RequestForm({ activeItem, activeSection }) {
         handler: [],         // mảng id user được chọn
         handlerDetails: [],  // mảng { id, name, email, roles } để submit
         followers: [],
-        notifications: ["thong-bao", "tin-nhan"],
+        notifications: ["thong-bao"],
         dueDate: null,
         priority: "thuong",
         phase: "Ban CNTT ghi nhận ý kiến (Giai đoạn mặc định)",
@@ -78,23 +88,119 @@ function RequestForm({ activeItem, activeSection }) {
         relatedRequest: "",
     });
 
-    // Fetch danh sách user từ Liferay
     useEffect(() => {
-        const fetchUsers = async () => {
-            setUsersLoading(true);
+        if (!activeSection || !activeItem) {
+            setHandlerUsers([]);
+            setHandlerStatus("missing");
+            setFormData((previousFormData) => ({
+                ...previousFormData,
+                handler: [],
+                handlerDetails: [],
+            }));
+            return undefined;
+        }
+
+        let cancelled = false;
+
+        const fetchAssignment = async () => {
+            setHandlerLoading(true);
+            setHandlerStatus("loading");
+            setHandlerError("");
+            setHandlerUsers([]);
+            setFormData((previousFormData) => ({
+                ...previousFormData,
+                process: activeSection,
+                subProcess: activeItem,
+                handler: [],
+                handlerDetails: [],
+            }));
+
             try {
-                const res = await axiosPrivate.get(
-                    "/o/headless-admin-user/v1.0/user-accounts",
-                    { params: { pageSize: 50 } }
+                const assignment = await fetchSupportHandlerAssignment(
+                    activeSection,
+                    activeItem
                 );
-                setUsers(res.data.items || []);
-            } catch (err) {
-                console.error("Không thể tải danh sách người dùng:", err?.response?.status, err?.response?.data || err.message);
+
+                if (cancelled) {
+                    return;
+                }
+
+                const users = assignment.users || [];
+                const configured = assignment.configured && users.length > 0;
+
+                setHandlerUsers(users);
+                setHandlerStatus(configured ? "configured" : "missing");
+                setFormData((previousFormData) => ({
+                    ...previousFormData,
+                    process: activeSection,
+                    subProcess: activeItem,
+                    handler: configured ? users.map((user) => user.userId) : [],
+                    handlerDetails: configured
+                        ? users.map((user) => ({
+                            id: user.userId,
+                            name: user.fullName || user.screenName,
+                            email: user.emailAddress,
+                            roles: [],
+                        }))
+                        : [],
+                }));
+            } catch (error) {
+                if (cancelled) {
+                    return;
+                }
+
+                console.error("Không thể tải cấu hình người xử lý:", error);
+                setHandlerUsers([]);
+                setHandlerStatus("error");
+                setHandlerError(
+                    error?.message || "Không tải được cấu hình người xử lý."
+                );
+                setFormData((previousFormData) => ({
+                    ...previousFormData,
+                    process: activeSection,
+                    subProcess: activeItem,
+                    handler: [],
+                    handlerDetails: [],
+                }));
             } finally {
-                setUsersLoading(false);
+                if (!cancelled) {
+                    setHandlerLoading(false);
+                }
             }
         };
-        fetchUsers();
+
+        fetchAssignment();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeItem, activeSection, assignmentVersion]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        setFollowersLoading(true);
+        fetchSupportRequestUsers()
+            .then((items) => {
+                if (!cancelled) {
+                    setFollowerUsers(items);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    console.error("Không thể tải danh sách người theo dõi:", error);
+                    setFollowerUsers([]);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setFollowersLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     useEffect(() => {
@@ -116,24 +222,44 @@ function RequestForm({ activeItem, activeSection }) {
         handleChange("notifications", checkedValues);
     };
 
-    const handleHandlerChange = (selectedIds) => {
-        const details = users
-            .filter((u) => selectedIds.includes(u.id))
-            .map((u) => ({
-                id: u.id,
-                name: u.name,
-                email: u.emailAddress,
-                roles: u.roleBriefs?.map((r) => r.name) || [],
-            }));
-        setFormData((prev) => ({
-            ...prev,
-            handler: selectedIds,
-            handlerDetails: details,
-        }));
-    };
+    const handleSubmit = async () => {
+        if (handlerLoading) {
+            messageApi.warning("Đang tải cấu hình người xử lý. Vui lòng chờ.");
+            return;
+        }
 
-    const handleSubmit = () => {
-        console.log("Submit form:", formData);
+        if (handlerStatus === "error") {
+            messageApi.error(
+                handlerError || "Không tải được cấu hình người xử lý."
+            );
+            return;
+        }
+
+        if (handlerStatus !== "configured" || formData.handler.length === 0) {
+            messageApi.error(
+                "Loại yêu cầu chưa được cấu hình người xử lý"
+            );
+            return;
+        }
+
+        if (!formData.title.trim()) {
+            messageApi.error("Vui lòng nhập tiêu đề yêu cầu.");
+            return;
+        }
+
+        setSubmitting(true);
+
+        try {
+            const createdRequest = await createSupportRequest(formData);
+
+            onCreated(createdRequest);
+        } catch (error) {
+            messageApi.error(
+                error?.message || "Không tạo được yêu cầu hỗ trợ."
+            );
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     // const getSubProcessLabel = () => {
@@ -153,7 +279,9 @@ function RequestForm({ activeItem, activeSection }) {
     );
 
     return (
-        <FormWrap>
+        <>
+            {contextHolder}
+            <FormWrap>
             <FormHeader>
                 <FormIcon className="form-icon" />
                 <span className="form-title">Gửi yêu cầu</span>
@@ -210,21 +338,37 @@ function RequestForm({ activeItem, activeSection }) {
                         <div className="form-control">
                             <Select
                                 mode="multiple"
-                                placeholder="Chọn người xử lý"
-                                value={formData.handler}
-                                onChange={handleHandlerChange}
-                                loading={usersLoading}
-                                showSearch
-                                filterOption={(input, option) =>
-                                    option?.label?.toLowerCase().includes(input.toLowerCase())
+                                placeholder={
+                                    handlerStatus === "missing"
+                                        ? "Loại yêu cầu chưa được cấu hình người xử lý"
+                                        : "Người xử lý được cấu hình tự động"
                                 }
-                                options={users.map((u) => ({
-                                    value: u.id,
-                                    label: u.name,
-                                    emailAddress: u.emailAddress,
+                                value={formData.handler}
+                                loading={handlerLoading}
+                                disabled
+                                options={handlerUsers.map((user) => ({
+                                    value: user.userId,
+                                    label: user.fullName || user.screenName,
+                                    emailAddress: user.emailAddress,
                                 }))}
                                 style={{ width: "100%" }}
                             />
+                            {handlerStatus === "missing" && (
+                                <Alert
+                                    type="warning"
+                                    showIcon
+                                    message="Loại yêu cầu chưa được cấu hình người xử lý"
+                                    style={{ marginTop: 8 }}
+                                />
+                            )}
+                            {handlerStatus === "error" && (
+                                <Alert
+                                    type="error"
+                                    showIcon
+                                    message={handlerError}
+                                    style={{ marginTop: 8 }}
+                                />
+                            )}
                         </div>
                     </FormGroup>
                 </FormRow>
@@ -239,11 +383,12 @@ function RequestForm({ activeItem, activeSection }) {
                                 placeholder="Chọn"
                                 value={formData.followers}
                                 onChange={(value) => handleChange("followers", value)}
-                                options={[
-                                    { value: "user1", label: "Nguyễn Văn A" },
-                                    { value: "user2", label: "Trần Thị B" },
-                                    { value: "user3", label: "Lê Văn C" },
-                                ]}
+                                options={followerUsers}
+                                loading={followersLoading}
+                                showSearch
+                                optionFilterProp="label"
+                                allowClear
+                                maxTagCount="responsive"
                             />
                         </div>
                     </FormGroup>
@@ -426,7 +571,16 @@ function RequestForm({ activeItem, activeSection }) {
                         <Upload
                             fileList={formData.attachments}
                             onChange={({ fileList }) => handleChange("attachments", fileList)}
-                            beforeUpload={() => false}
+                            beforeUpload={(file) => {
+                                if (file.size > 10 * 1024 * 1024) {
+                                    messageApi.error(
+                                        `Tệp ${file.name} vượt quá giới hạn 10 MB.`
+                                    );
+                                    return Upload.LIST_IGNORE;
+                                }
+
+                                return false;
+                            }}
                             multiple
                         >
                             <UploadButton>Chọn tệp</UploadButton>
@@ -453,23 +607,31 @@ function RequestForm({ activeItem, activeSection }) {
 
                 {/* Submit button */}
                 <FormActions>
-                    <SubmitButton onClick={handleSubmit}>
-                        Gửi yêu cầu
+                    <SubmitButton
+                        onClick={handleSubmit}
+                        disabled={handlerLoading || submitting}
+                    >
+                        {submitting ? "Đang gửi..." : "Gửi yêu cầu"}
                     </SubmitButton>
                 </FormActions>
             </FormContent>
-        </FormWrap>
+            </FormWrap>
+        </>
     );
 }
 
 RequestForm.propTypes = {
     activeItem: PropTypes.string,
     activeSection: PropTypes.string,
+    assignmentVersion: PropTypes.number,
+    onCreated: PropTypes.func,
 };
 
 RequestForm.defaultProps = {
     activeItem: "gop-y-cai-tien",
     activeSection: "dich-vu-cntt",
+    assignmentVersion: 0,
+    onCreated: () => {},
 };
 
 export default RequestForm;

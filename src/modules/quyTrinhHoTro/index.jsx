@@ -1,13 +1,32 @@
-import React, { useState } from "react";
-import { Sidebar, RequestForm, MyRequests, SupportRequestList, MENU_SECTIONS } from "./components";
+import React, { useMemo, useState } from "react";
+import { message, Tooltip } from "antd";
+import { FiSettings } from "react-icons/fi";
+import useUserInfo from "@/hooks/useUserInfo";
+import {
+    fetchSupportHandlerConfigurations,
+    saveSupportHandlerConfigurations,
+} from "@/services/supportHandlerSettingsService";
+import {
+    Sidebar,
+    RequestForm,
+    MyRequests,
+    SupportRequestList,
+    SupportHandlerSettingsModal,
+    MENU_SECTIONS,
+} from "./components";
 import {
     PageWrap,
     PageHeader,
+    HeaderActions,
     MyRequestButton,
+    SettingsButton,
     ContentWrap,
 } from "./style";
 
 function QuyTrinhHoTroPage() {
+    const [messageApi, contextHolder] = message.useMessage();
+    const { user } = useUserInfo();
+
     // State cho màn danh sách (list view)
     const [listActiveSection, setListActiveSection] = useState("dich-vu-cntt");
     const [listActiveItem, setListActiveItem] = useState(null);
@@ -18,6 +37,27 @@ function QuyTrinhHoTroPage() {
 
     // "support-list" | "form" | "my-requests"
     const [view, setView] = useState("support-list");
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    const [settingsLoading, setSettingsLoading] = useState(false);
+    const [settingsSaving, setSettingsSaving] = useState(false);
+    const [handlerConfigurations, setHandlerConfigurations] = useState([]);
+    const [assignmentVersion, setAssignmentVersion] = useState(0);
+    const [requestRefreshVersion, setRequestRefreshVersion] = useState(0);
+
+    const isAllowUpdateSetting = useMemo(
+        () => user?.screenName === "admin",
+        [user]
+    );
+    const requestTypes = useMemo(
+        () =>
+            MENU_SECTIONS.flatMap((section) =>
+                section.items.map((item) => ({
+                    ...item,
+                    processKey: section.key,
+                }))
+            ),
+        []
+    );
 
     // Sidebar hiển thị active theo view hiện tại
     const sidebarActiveSection = view === "support-list" ? listActiveSection : formActiveSection;
@@ -55,6 +95,64 @@ function QuyTrinhHoTroPage() {
         }
     };
 
+    const handleOpenSettings = async () => {
+        setSettingsOpen(true);
+        setSettingsLoading(true);
+
+        try {
+            const items = await fetchSupportHandlerConfigurations();
+
+            setHandlerConfigurations(items);
+        } catch (error) {
+            setSettingsOpen(false);
+            messageApi.error(
+                error?.message || "Không tải được cấu hình người xử lý."
+            );
+        } finally {
+            setSettingsLoading(false);
+        }
+    };
+
+    const handleCloseSettings = () => {
+        if (!settingsSaving) {
+            setSettingsOpen(false);
+        }
+    };
+
+    const handleSaveSettings = async (items) => {
+        setSettingsSaving(true);
+
+        try {
+            const result = await saveSupportHandlerConfigurations(items);
+
+            setHandlerConfigurations(result.items || []);
+            setAssignmentVersion((currentVersion) => currentVersion + 1);
+            setRequestRefreshVersion((currentVersion) => currentVersion + 1);
+            setSettingsOpen(false);
+            messageApi.success(
+                `Đã lưu cấu hình và cập nhật ${
+                    result.updatedPendingRequestCount || 0
+                } yêu cầu đang chờ xử lý.`
+            );
+        } catch (error) {
+            messageApi.error(
+                error?.message || "Không lưu được cấu hình người xử lý."
+            );
+        } finally {
+            setSettingsSaving(false);
+        }
+    };
+
+    const handleRequestCreated = (createdRequest) => {
+        setListActiveSection(createdRequest.processKey);
+        setListActiveItem(createdRequest.requestTypeKey);
+        setRequestRefreshVersion((currentVersion) => currentVersion + 1);
+        setView("support-list");
+        messageApi.success(
+            `Đã tạo yêu cầu ${createdRequest.requestCode || "hỗ trợ"}.`
+        );
+    };
+
     const headerTitle = view === "my-requests"
         ? "Yêu cầu của tôi"
         : view === "form"
@@ -84,9 +182,21 @@ function QuyTrinhHoTroPage() {
 
     return (
         <PageWrap>
+            {contextHolder}
             <PageHeader>
                 <span className="header-title">{headerTitle}</span>
-                <div style={{ display: "flex", gap: 8 }}>
+                <HeaderActions>
+                    {isAllowUpdateSetting && (
+                        <Tooltip title="Cấu hình người xử lý yêu cầu hỗ trợ">
+                            <SettingsButton
+                                type="button"
+                                onClick={handleOpenSettings}
+                                aria-label="Cấu hình người xử lý yêu cầu hỗ trợ"
+                            >
+                                <FiSettings size={18} />
+                            </SettingsButton>
+                        </Tooltip>
+                    )}
                     <MyRequestButton
                         onClick={handleCreateNew}
                         style={view === "form" ? { background: "#007bb5" } : {}}
@@ -101,7 +211,7 @@ function QuyTrinhHoTroPage() {
                         <MySupportIcon />
                         {view === "my-requests" ? "Quay lại danh sách" : "Yêu cầu của tôi"}
                     </MyRequestButton>
-                </div>
+                </HeaderActions>
             </PageHeader>
 
             <ContentWrap>
@@ -111,13 +221,32 @@ function QuyTrinhHoTroPage() {
                     onItemSelect={handleItemSelect}
                 />
                 {view === "my-requests" ? (
-                    <MyRequests />
+                    <MyRequests refreshVersion={requestRefreshVersion} />
                 ) : view === "form" ? (
-                    <RequestForm activeItem={formActiveItem} activeSection={formActiveSection} />
+                    <RequestForm
+                        activeItem={formActiveItem}
+                        activeSection={formActiveSection}
+                        assignmentVersion={assignmentVersion}
+                        onCreated={handleRequestCreated}
+                    />
                 ) : (
-                    <SupportRequestList activeItem={listActiveItem} activeSection={listActiveSection} />
+                    <SupportRequestList
+                        activeItem={listActiveItem}
+                        activeSection={listActiveSection}
+                        refreshVersion={requestRefreshVersion}
+                    />
                 )}
             </ContentWrap>
+
+            <SupportHandlerSettingsModal
+                open={settingsOpen}
+                requestTypes={requestTypes}
+                configurations={handlerConfigurations}
+                loading={settingsLoading}
+                saving={settingsSaving}
+                onCancel={handleCloseSettings}
+                onSave={handleSaveSettings}
+            />
         </PageWrap>
     );
 }

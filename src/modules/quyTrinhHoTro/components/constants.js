@@ -63,6 +63,21 @@ export const SUB_PROCESS_OPTIONS = {
     "van-phong": [],
 };
 
+export const getProcessLabel = (processKey) =>
+    PROCESS_OPTIONS.find((item) => item.value === processKey)?.label || processKey || "";
+
+export const getRequestTypeLabel = (requestTypeKey) => {
+    for (const options of Object.values(SUB_PROCESS_OPTIONS)) {
+        const requestType = options.find((item) => item.value === requestTypeKey);
+
+        if (requestType) {
+            return requestType.label;
+        }
+    }
+
+    return requestTypeKey || "";
+};
+
 // Priority options
 export const PRIORITY_OPTIONS = [
     { value: "thuong", label: "Thường" },

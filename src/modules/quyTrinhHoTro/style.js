@@ -31,6 +31,47 @@ export const PageHeader = styled.div`
     }
 `;
 
+export const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    @media (max-width: 1199px) {
+        width: 100%;
+        align-items: stretch;
+    }
+`;
+
+export const SettingsButton = styled.button`
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    border: 1px solid #d5e4ef;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f8fb 100%);
+    color: #0f6ea8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(15, 110, 168, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+        transform: translateY(-1px);
+        border-color: #8fc2e3;
+        box-shadow: 0 10px 18px rgba(15, 110, 168, 0.16);
+        outline: none;
+    }
+
+    @media (max-width: 1199px) {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+`;
+
 export const MyRequestButton = styled.button`
     display: flex;
     align-items: center;

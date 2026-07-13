@@ -1,7 +1,12 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Input, Select, Table, Pagination, DatePicker } from "antd";
-import { FiSearch } from "react-icons/fi";
-import { FiList, FiRefreshCw, FiEye } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { DatePicker, Input, message, Pagination, Select, Table } from "antd";
+import { FiEye, FiList, FiRefreshCw, FiSearch } from "react-icons/fi";
+import {
+    fetchSupportRequests,
+    updateSupportRequestStatus,
+} from "@/services/supportRequestService";
+import { formatDate } from "@/utils/dateUtils";
 import {
     MyRequestsWrap,
     MyRequestsHeader,
@@ -16,66 +21,126 @@ import {
     TablePaginationWrap,
 } from "../style";
 import {
-    MOCK_SUPPORT_REQUESTS,
     PRIORITY_CONFIG,
     PRIORITY_OPTIONS,
     SUB_PROCESS_OPTIONS,
     REQUEST_STATUS_CONFIG,
     REQUEST_STATUS_OPTIONS,
+    getRequestTypeLabel,
 } from "./constants";
-import { normalize } from "../../../utils/helper";
 import SupportRequestDetail from "./SupportRequestDetail";
 
 const { RangePicker } = DatePicker;
-
 const PAGE_SIZE = 15;
-
-const ROW_STATUS_OPTIONS = REQUEST_STATUS_OPTIONS.filter((o) => o.value !== "all");
-
-// Lấy label sub-process từ key sidebar
-const getSubProcessLabel = (itemKey) => {
-    if (!itemKey) return "all";
-    for (const opts of Object.values(SUB_PROCESS_OPTIONS)) {
-        const found = opts.find((o) => o.value === itemKey);
-        if (found) return found.label;
-    }
-    return "all";
-};
-
-// Tất cả sub-process options (dùng label làm value để match với mock data)
-const SUB_PROCESS_FILTER_OPTS = [
+const ROW_STATUS_OPTIONS = REQUEST_STATUS_OPTIONS.filter(
+    (option) => option.value !== "all"
+);
+const SUB_PROCESS_FILTER_OPTIONS = [
     { value: "all", label: "Tất cả quy trình" },
-    ...Object.values(SUB_PROCESS_OPTIONS)
-        .flat()
-        .map((o) => ({ value: o.label, label: o.label })),
+    ...Object.values(SUB_PROCESS_OPTIONS).flat(),
 ];
 
-function SupportRequestList({ activeItem, activeSection }) {
-    const [data, setData] = useState(MOCK_SUPPORT_REQUESTS);
+function SupportRequestList({ activeItem, activeSection, refreshVersion }) {
+    const [messageApi, contextHolder] = message.useMessage();
+    const [data, setData] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [updatingId, setUpdatingId] = useState(null);
     const [search, setSearch] = useState("");
     const [filters, setFilters] = useState({
         status: "all",
         priority: "all",
-        subProcess: getSubProcessLabel(activeItem),
+        subProcess: activeItem || "all",
         dateRange: null,
     });
     const [page, setPage] = useState(1);
     const [selectedId, setSelectedId] = useState(null);
 
-    // Khi sidebar thay đổi → cập nhật filter sub-process
     useEffect(() => {
-        setFilters((prev) => ({ ...prev, subProcess: getSubProcessLabel(activeItem) }));
+        setFilters((previousFilters) => ({
+            ...previousFilters,
+            subProcess: activeItem || "all",
+        }));
         setPage(1);
     }, [activeItem]);
 
-    const handleStatusChange = (id, newStatus) => {
-        setData((prev) =>
-            prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-        );
+    useEffect(() => {
+        let cancelled = false;
+
+        setLoading(true);
+        fetchSupportRequests({
+            page,
+            pageSize: PAGE_SIZE,
+            search: search.trim(),
+            status: filters.status,
+            priority: filters.priority,
+            processKey: activeSection,
+            requestTypeKey: filters.subProcess,
+            dueFrom: filters.dateRange?.[0]?.format("YYYY-MM-DD") || "",
+            dueTo: filters.dateRange?.[1]?.format("YYYY-MM-DD") || "",
+        })
+            .then((result) => {
+                if (!cancelled) {
+                    setData(result.items || []);
+                    setTotal(result.total || 0);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setData([]);
+                    setTotal(0);
+                    messageApi.error(
+                        error?.message || "Không tải được danh sách yêu cầu hỗ trợ."
+                    );
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        activeSection,
+        filters.dateRange,
+        filters.priority,
+        filters.status,
+        filters.subProcess,
+        messageApi,
+        page,
+        refreshVersion,
+        search,
+    ]);
+
+    const handleStatusChange = async (requestId, status) => {
+        setUpdatingId(requestId);
+
+        try {
+            const updatedRequest = await updateSupportRequestStatus(
+                requestId,
+                status
+            );
+
+            setData((currentData) =>
+                currentData.map((item) =>
+                    item.requestId === requestId ? updatedRequest : item
+                )
+            );
+            messageApi.success("Đã cập nhật trạng thái yêu cầu.");
+        } catch (error) {
+            messageApi.error(
+                error?.message || "Không cập nhật được trạng thái yêu cầu."
+            );
+        } finally {
+            setUpdatingId(null);
+        }
     };
 
     const handleFilterChange = (key, value) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+        setFilters((previousFilters) => ({ ...previousFilters, [key]: value }));
         setPage(1);
     };
 
@@ -84,48 +149,27 @@ function SupportRequestList({ activeItem, activeSection }) {
         setFilters({
             status: "all",
             priority: "all",
-            subProcess: getSubProcessLabel(activeItem),
+            subProcess: activeItem || "all",
             dateRange: null,
         });
         setPage(1);
     };
 
-    const filteredData = useMemo(() => {
-        const q = search.trim();
-        return data.filter((item) => {
-            if (filters.status !== "all" && item.status !== filters.status) return false;
-            if (filters.priority !== "all" && item.priority !== filters.priority) return false;
-            if (filters.subProcess !== "all" && item.subProcess !== filters.subProcess) return false;
-            if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
-                const due = new Date(item.dueDate);
-                const from = filters.dateRange[0].startOf("day").toDate();
-                const to = filters.dateRange[1].endOf("day").toDate();
-                if (due < from || due > to) return false;
-            }
-            if (q) {
-                const nq = normalize(q);
-                const matchTitle = normalize(item.title).includes(nq);
-                const matchHandler = normalize(item.handler).includes(nq);
-                const matchWatcher = normalize(item.watcher).includes(nq);
-                if (!matchTitle && !matchHandler && !matchWatcher) return false;
-            }
-            return true;
-        });
-    }, [filters, search, data]);
+    const handleRecordUpdated = (updatedRequest) => {
+        setData((currentData) =>
+            currentData.map((item) =>
+                item.requestId === updatedRequest.requestId ? updatedRequest : item
+            )
+        );
+    };
 
-    const pagedData = useMemo(() => {
-        const start = (page - 1) * PAGE_SIZE;
-        return filteredData.slice(start, start + PAGE_SIZE);
-    }, [filteredData, page]);
-
-    // Nếu đang xem chi tiết → hiển thị trang chi tiết
-    const selectedRecord = selectedId ? data.find((item) => item.id === selectedId) : null;
-    if (selectedRecord) {
+    if (selectedId) {
         return (
             <SupportRequestDetail
-                record={selectedRecord}
+                requestId={selectedId}
+                refreshVersion={refreshVersion}
                 onBack={() => setSelectedId(null)}
-                onStatusChange={handleStatusChange}
+                onRecordUpdated={handleRecordUpdated}
             />
         );
     }
@@ -144,11 +188,13 @@ function SupportRequestList({ activeItem, activeSection }) {
         },
         {
             title: "Tên quy trình",
-            dataIndex: "subProcess",
-            key: "subProcess",
+            dataIndex: "requestTypeKey",
+            key: "requestTypeKey",
             width: 180,
-            render: (text) => (
-                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
+            render: (value) => (
+                <span style={{ fontSize: 13, color: "#555" }}>
+                    {getRequestTypeLabel(value)}
+                </span>
             ),
         },
         {
@@ -156,7 +202,7 @@ function SupportRequestList({ activeItem, activeSection }) {
             dataIndex: "title",
             key: "title",
             render: (text, record) => (
-                <RequestTitleText onClick={() => setSelectedId(record.id)}>
+                <RequestTitleText onClick={() => setSelectedId(record.requestId)}>
                     {text}
                 </RequestTitleText>
             ),
@@ -165,18 +211,18 @@ function SupportRequestList({ activeItem, activeSection }) {
             title: "Người xử lý",
             dataIndex: "handler",
             key: "handler",
-            width: 130,
+            width: 180,
             render: (text) => (
-                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
+                <span style={{ fontSize: 13, color: "#555" }}>{text || "—"}</span>
             ),
         },
         {
             title: "Người theo dõi",
             dataIndex: "watcher",
             key: "watcher",
-            width: 130,
+            width: 150,
             render: (text) => (
-                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
+                <span style={{ fontSize: 13, color: "#555" }}>{text || "—"}</span>
             ),
         },
         {
@@ -185,36 +231,49 @@ function SupportRequestList({ activeItem, activeSection }) {
             key: "dueDate",
             width: 160,
             render: (text) => (
-                <span style={{ fontSize: 13, color: "#666" }}>{text}</span>
+                <span style={{ fontSize: 13, color: "#666" }}>
+                    {formatDate(text) || "—"}
+                </span>
             ),
         },
         {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            width: 140,
+            width: 150,
             align: "center",
             render: (value, record) => (
                 <Select
                     value={value}
                     options={ROW_STATUS_OPTIONS}
-                    onChange={(v) => handleStatusChange(record.id, v)}
+                    onChange={(nextStatus) =>
+                        handleStatusChange(record.requestId, nextStatus)
+                    }
+                    disabled={!record.canUpdateStatus}
+                    loading={updatingId === record.requestId}
                     size="small"
-                    style={{ width: 120 }}
-                    styles={{ popup: { root: { minWidth: 130 } } }}
-                    labelRender={({ value: v }) => {
-                        const c = REQUEST_STATUS_CONFIG[v] || {};
+                    style={{ width: 130 }}
+                    labelRender={({ value: selectedValue }) => {
+                        const config = REQUEST_STATUS_CONFIG[selectedValue] || {};
+
                         return (
-                            <span style={{ color: c.color, fontWeight: 500, fontSize: 13 }}>
-                                {c.label}
+                            <span
+                                style={{
+                                    color: config.color,
+                                    fontWeight: 500,
+                                    fontSize: 13,
+                                }}
+                            >
+                                {config.label}
                             </span>
                         );
                     }}
-                    optionRender={(opt) => {
-                        const c = REQUEST_STATUS_CONFIG[opt.value] || {};
+                    optionRender={(option) => {
+                        const config = REQUEST_STATUS_CONFIG[option.value] || {};
+
                         return (
-                            <StatusBadge $color={c.color} $bg={c.bg}>
-                                {c.label}
+                            <StatusBadge $color={config.color} $bg={config.bg}>
+                                {config.label}
                             </StatusBadge>
                         );
                     }}
@@ -228,10 +287,11 @@ function SupportRequestList({ activeItem, activeSection }) {
             width: 130,
             align: "center",
             render: (value) => {
-                const cfg = PRIORITY_CONFIG[value] || {};
+                const config = PRIORITY_CONFIG[value] || {};
+
                 return (
-                    <PriorityBadge $color={cfg.color} $bg={cfg.bg}>
-                        {cfg.label}
+                    <PriorityBadge $color={config.color} $bg={config.bg}>
+                        {config.label}
                     </PriorityBadge>
                 );
             },
@@ -243,6 +303,7 @@ function SupportRequestList({ activeItem, activeSection }) {
             align: "center",
             render: (_, record) => (
                 <button
+                    type="button"
                     style={{
                         border: "none",
                         background: "none",
@@ -253,7 +314,7 @@ function SupportRequestList({ activeItem, activeSection }) {
                         alignItems: "center",
                     }}
                     title="Xem chi tiết"
-                    onClick={() => setSelectedId(record.id)}
+                    onClick={() => setSelectedId(record.requestId)}
                 >
                     <FiEye size={15} />
                 </button>
@@ -261,14 +322,9 @@ function SupportRequestList({ activeItem, activeSection }) {
         },
     ];
 
-    const statusOpts = [...REQUEST_STATUS_OPTIONS];
-    const priorityOpts = [
-        { value: "all", label: "Tất cả ưu tiên" },
-        ...PRIORITY_OPTIONS,
-    ];
-
     return (
         <MyRequestsWrap>
+            {contextHolder}
             <MyRequestsHeader>
                 <FiList size={16} color="rgba(0,144,207,1)" />
                 <span className="mr-title">Danh sách yêu cầu hỗ trợ</span>
@@ -277,9 +333,12 @@ function SupportRequestList({ activeItem, activeSection }) {
             <MyRequestsFilter>
                 <Input
                     prefix={<FiSearch size={13} color="#999" />}
-                    placeholder="Tìm theo tiêu đề, người xử lý..."
+                    placeholder="Tìm theo tiêu đề, người tạo..."
                     value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                    onChange={(event) => {
+                        setSearch(event.target.value);
+                        setPage(1);
+                    }}
                     allowClear
                 />
 
@@ -288,8 +347,8 @@ function SupportRequestList({ activeItem, activeSection }) {
                 <FilterGroup>
                     <Select
                         value={filters.status}
-                        options={statusOpts}
-                        onChange={(v) => handleFilterChange("status", v)}
+                        options={REQUEST_STATUS_OPTIONS}
+                        onChange={(value) => handleFilterChange("status", value)}
                         style={{ width: 160 }}
                     />
                 </FilterGroup>
@@ -297,8 +356,11 @@ function SupportRequestList({ activeItem, activeSection }) {
                 <FilterGroup>
                     <Select
                         value={filters.priority}
-                        options={priorityOpts}
-                        onChange={(v) => handleFilterChange("priority", v)}
+                        options={[
+                            { value: "all", label: "Tất cả ưu tiên" },
+                            ...PRIORITY_OPTIONS,
+                        ]}
+                        onChange={(value) => handleFilterChange("priority", value)}
                         style={{ width: 150 }}
                     />
                 </FilterGroup>
@@ -306,8 +368,10 @@ function SupportRequestList({ activeItem, activeSection }) {
                 <FilterGroup>
                     <Select
                         value={filters.subProcess}
-                        options={SUB_PROCESS_FILTER_OPTS}
-                        onChange={(v) => handleFilterChange("subProcess", v)}
+                        options={SUB_PROCESS_FILTER_OPTIONS}
+                        onChange={(value) =>
+                            handleFilterChange("subProcess", value)
+                        }
                         style={{ width: 220 }}
                     />
                 </FilterGroup>
@@ -322,7 +386,7 @@ function SupportRequestList({ activeItem, activeSection }) {
                     />
                 </FilterGroup>
 
-                <ResetFilterBtn onClick={handleReset} title="Đặt lại">
+                <ResetFilterBtn type="button" onClick={handleReset} title="Đặt lại">
                     <FiRefreshCw size={14} />
                 </ResetFilterBtn>
             </MyRequestsFilter>
@@ -330,18 +394,21 @@ function SupportRequestList({ activeItem, activeSection }) {
             <MyRequestsTable>
                 <TableSummary>
                     <span className="summary-text">
-                        Tổng số: <span>{filteredData.length}</span> yêu cầu
+                        Tổng số: <span>{total}</span> yêu cầu
                     </span>
                 </TableSummary>
 
                 <Table
-                    dataSource={pagedData}
+                    dataSource={data}
                     columns={columns}
-                    rowKey="id"
+                    rowKey="requestId"
                     pagination={false}
+                    loading={loading}
                     size="small"
                     locale={{ emptyText: "Không có yêu cầu nào" }}
-                    rowClassName={(_, idx) => (idx % 2 === 0 ? "" : "table-row-alt")}
+                    rowClassName={(_, index) =>
+                        index % 2 === 0 ? "" : "table-row-alt"
+                    }
                     style={{ fontSize: 13 }}
                     scroll={{ x: "max-content" }}
                 />
@@ -350,11 +417,11 @@ function SupportRequestList({ activeItem, activeSection }) {
                     <Pagination
                         current={page}
                         pageSize={PAGE_SIZE}
-                        total={filteredData.length}
+                        total={total}
                         onChange={setPage}
                         showSizeChanger={false}
-                        showTotal={(total, range) =>
-                            `${range[0]}-${range[1]} / ${total} yêu cầu`
+                        showTotal={(count, range) =>
+                            `${range[0]}-${range[1]} / ${count} yêu cầu`
                         }
                         size="small"
                     />
@@ -363,5 +430,17 @@ function SupportRequestList({ activeItem, activeSection }) {
         </MyRequestsWrap>
     );
 }
+
+SupportRequestList.propTypes = {
+    activeItem: PropTypes.string,
+    activeSection: PropTypes.string,
+    refreshVersion: PropTypes.number,
+};
+
+SupportRequestList.defaultProps = {
+    activeItem: null,
+    activeSection: "dich-vu-cntt",
+    refreshVersion: 0,
+};
 
 export default SupportRequestList;

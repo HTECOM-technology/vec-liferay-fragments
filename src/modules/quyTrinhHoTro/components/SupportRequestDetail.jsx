@@ -1,6 +1,20 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Select } from "antd";
-import { FiArrowLeft, FiSend, FiInfo, FiMessageSquare } from "react-icons/fi";
+import React, { useEffect, useRef, useState } from "react";
+import PropTypes from "prop-types";
+import { Empty, message, Select, Spin } from "antd";
+import {
+    FiArrowLeft,
+    FiDownload,
+    FiInfo,
+    FiMessageSquare,
+    FiSend,
+} from "react-icons/fi";
+import {
+    addSupportRequestComment,
+    fetchSupportRequest,
+    getSupportAttachmentUrl,
+    updateSupportRequestStatus,
+} from "@/services/supportRequestService";
+import { formatDate } from "@/utils/dateUtils";
 import {
     StatusBadge,
     PriorityBadge,
@@ -25,75 +39,192 @@ import {
     REQUEST_STATUS_CONFIG,
     REQUEST_STATUS_OPTIONS,
     PRIORITY_CONFIG,
+    getProcessLabel,
+    getRequestTypeLabel,
 } from "./constants";
 
-const ROW_STATUS_OPTIONS = REQUEST_STATUS_OPTIONS.filter((o) => o.value !== "all");
+const ROW_STATUS_OPTIONS = REQUEST_STATUS_OPTIONS.filter(
+    (option) => option.value !== "all"
+);
 
-const INITIAL_COMMENTS = [
-    {
-        id: 1,
-        author: "Nguyễn Văn A",
-        content: "Đã tiếp nhận yêu cầu và đang tiến hành phân công xử lý.",
-        createdAt: "08:30 10/04/2026",
-    },
-    {
-        id: 2,
-        author: "Trần Thị B",
-        content: "Đang trong quá trình xử lý, dự kiến sẽ hoàn thành đúng hạn.",
-        createdAt: "14:15 12/04/2026",
-    },
-];
+function formatDateTime(value) {
+    if (!value) {
+        return "";
+    }
 
-function SupportRequestDetail({ record, onBack, onStatusChange }) {
-    const [comments, setComments] = useState(INITIAL_COMMENTS);
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return new Intl.DateTimeFormat("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+    }).format(date);
+}
+
+function getInitial(name) {
+    const parts = String(name || "?").trim().split(/\s+/);
+    const lastPart = parts[parts.length - 1] || "?";
+
+    return lastPart.charAt(0).toUpperCase();
+}
+
+function SupportRequestDetail({
+    requestId,
+    refreshVersion,
+    onBack,
+    onRecordUpdated,
+}) {
+    const [messageApi, contextHolder] = message.useMessage();
+    const [record, setRecord] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [statusSaving, setStatusSaving] = useState(false);
+    const [commentSaving, setCommentSaving] = useState(false);
     const [commentText, setCommentText] = useState("");
     const commentsEndRef = useRef(null);
     const textareaRef = useRef(null);
 
     useEffect(() => {
+        let cancelled = false;
+
+        setLoading(true);
+        fetchSupportRequest(requestId)
+            .then((item) => {
+                if (!cancelled) {
+                    setRecord(item);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setRecord(null);
+                    messageApi.error(
+                        error?.message || "Không tải được chi tiết yêu cầu."
+                    );
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [messageApi, refreshVersion, requestId]);
+
+    useEffect(() => {
         commentsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [comments]);
+    }, [record?.comments]);
 
-    const handleSubmit = () => {
-        const text = commentText.trim();
-        if (!text) return;
-        const now = new Date();
-        const pad = (n) => String(n).padStart(2, "0");
-        const createdAt = `${pad(now.getHours())}:${pad(now.getMinutes())} ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
-        setComments((prev) => [
-            ...prev,
-            { id: Date.now(), author: "Tôi", content: text, createdAt },
-        ]);
-        setCommentText("");
-        setTimeout(() => textareaRef.current?.focus(), 0);
-    };
+    const handleStatusChange = async (status) => {
+        setStatusSaving(true);
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit();
+        try {
+            const updatedRequest = await updateSupportRequestStatus(
+                requestId,
+                status
+            );
+
+            setRecord(updatedRequest);
+            onRecordUpdated(updatedRequest);
+            messageApi.success("Đã cập nhật trạng thái yêu cầu.");
+        } catch (error) {
+            messageApi.error(
+                error?.message || "Không cập nhật được trạng thái yêu cầu."
+            );
+        } finally {
+            setStatusSaving(false);
         }
     };
 
-    const priorityCfg = PRIORITY_CONFIG[record.priority] || {};
+    const handleSubmitComment = async () => {
+        const content = commentText.trim();
 
-    const getInitial = (name) => {
-        const parts = name.trim().split(" ");
-        return parts[parts.length - 1][0].toUpperCase();
+        if (!content || commentSaving) {
+            return;
+        }
+
+        setCommentSaving(true);
+
+        try {
+            const comment = await addSupportRequestComment(requestId, content);
+
+            setRecord((currentRecord) => ({
+                ...currentRecord,
+                comments: [...(currentRecord.comments || []), comment],
+            }));
+            setCommentText("");
+            setTimeout(() => textareaRef.current?.focus(), 0);
+        } catch (error) {
+            messageApi.error(
+                error?.message || "Không gửi được bình luận."
+            );
+        } finally {
+            setCommentSaving(false);
+        }
     };
+
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            handleSubmitComment();
+        }
+    };
+
+    if (loading) {
+        return (
+            <DetailPageWrap>
+                {contextHolder}
+                <DetailPageBody
+                    style={{ alignItems: "center", justifyContent: "center" }}
+                >
+                    <Spin size="large" />
+                </DetailPageBody>
+            </DetailPageWrap>
+        );
+    }
+
+    if (!record) {
+        return (
+            <DetailPageWrap>
+                {contextHolder}
+                <DetailPageHeader>
+                    <BackBtn type="button" onClick={onBack}>
+                        <FiArrowLeft size={15} />
+                        Quay lại
+                    </BackBtn>
+                </DetailPageHeader>
+                <DetailPageBody>
+                    <Empty description="Không tìm thấy yêu cầu hỗ trợ" />
+                </DetailPageBody>
+            </DetailPageWrap>
+        );
+    }
+
+    const priorityConfig = PRIORITY_CONFIG[record.priority] || {};
+    const comments = record.comments || [];
+    const attachments = record.attachments || [];
 
     return (
         <DetailPageWrap>
+            {contextHolder}
             <DetailPageHeader>
-                <BackBtn onClick={onBack}>
+                <BackBtn type="button" onClick={onBack}>
                     <FiArrowLeft size={15} />
                     Quay lại
                 </BackBtn>
-                <span className="detail-page-title">{record.title}</span>
+                <span className="detail-page-title">
+                    {record.requestCode} - {record.title}
+                </span>
             </DetailPageHeader>
 
             <DetailPageBody>
-                {/* Thông tin yêu cầu */}
                 <DetailInfoCard>
                     <DetailInfoCardTitle>
                         <FiInfo size={14} />
@@ -101,8 +232,21 @@ function SupportRequestDetail({ record, onBack, onStatusChange }) {
                     </DetailInfoCardTitle>
                     <DetailInfoCardBody>
                         <DetailRow>
-                            <span className="detail-label">Tên quy trình:</span>
-                            <span className="detail-value">{record.process}</span>
+                            <span className="detail-label">Mã yêu cầu:</span>
+                            <span className="detail-value">{record.requestCode}</span>
+                        </DetailRow>
+                        <DetailRow>
+                            <span className="detail-label">Quy trình:</span>
+                            <span className="detail-value">
+                                {getProcessLabel(record.processKey)} / {" "}
+                                {getRequestTypeLabel(record.requestTypeKey)}
+                            </span>
+                        </DetailRow>
+                        <DetailRow>
+                            <span className="detail-label">Người tạo:</span>
+                            <span className="detail-value">
+                                {record.creatorUserName}
+                            </span>
                         </DetailRow>
                         <DetailRow>
                             <span className="detail-label">Tiêu đề:</span>
@@ -112,22 +256,67 @@ function SupportRequestDetail({ record, onBack, onStatusChange }) {
                         </DetailRow>
                         <DetailRow>
                             <span className="detail-label">Người xử lý:</span>
-                            <span className="detail-value">{record.handler}</span>
+                            <span className="detail-value">{record.handler || "—"}</span>
                         </DetailRow>
                         <DetailRow>
                             <span className="detail-label">Người theo dõi:</span>
-                            <span className="detail-value">{record.watcher}</span>
+                            <span className="detail-value">{record.watcher || "—"}</span>
+                        </DetailRow>
+                        <DetailRow>
+                            <span className="detail-label">Ngày tạo:</span>
+                            <span className="detail-value">
+                                {formatDateTime(record.createDate)}
+                            </span>
                         </DetailRow>
                         <DetailRow>
                             <span className="detail-label">Ngày cần hoàn thành:</span>
-                            <span className="detail-value">{record.dueDate}</span>
+                            <span className="detail-value">
+                                {formatDate(record.dueDate) || "—"}
+                            </span>
                         </DetailRow>
                         <DetailRow>
                             <span className="detail-label">Mức độ ưu tiên:</span>
                             <span className="detail-value">
-                                <PriorityBadge $color={priorityCfg.color} $bg={priorityCfg.bg}>
-                                    {priorityCfg.label}
+                                <PriorityBadge
+                                    $color={priorityConfig.color}
+                                    $bg={priorityConfig.bg}
+                                >
+                                    {priorityConfig.label}
                                 </PriorityBadge>
+                            </span>
+                        </DetailRow>
+                        <DetailRow>
+                            <span className="detail-label">Nội dung:</span>
+                            <span
+                                className="detail-value"
+                                style={{ whiteSpace: "pre-wrap" }}
+                            >
+                                {record.content || "—"}
+                            </span>
+                        </DetailRow>
+                        <DetailRow>
+                            <span className="detail-label">Tệp đính kèm:</span>
+                            <span className="detail-value">
+                                {attachments.length === 0
+                                    ? "—"
+                                    : attachments.map((attachment, index) => (
+                                        <React.Fragment key={attachment.attachmentId}>
+                                            {index > 0 && ", "}
+                                            <a
+                                                href={getSupportAttachmentUrl(
+                                                    record.requestId,
+                                                    attachment.attachmentId
+                                                )}
+                                                style={{ color: "#0090cf" }}
+                                            >
+                                                <FiDownload
+                                                    size={13}
+                                                    style={{ marginRight: 4 }}
+                                                />
+                                                {attachment.fileName}
+                                            </a>
+                                        </React.Fragment>
+                                    ))}
                             </span>
                         </DetailRow>
                         <DetailRow style={{ marginBottom: 0 }}>
@@ -136,32 +325,59 @@ function SupportRequestDetail({ record, onBack, onStatusChange }) {
                                 <Select
                                     value={record.status}
                                     options={ROW_STATUS_OPTIONS}
-                                    onChange={(v) => onStatusChange(record.id, v)}
+                                    onChange={handleStatusChange}
+                                    disabled={!record.canUpdateStatus}
+                                    loading={statusSaving}
                                     size="small"
-                                    style={{ width: 160 }}
-                                    labelRender={({ value: v }) => {
-                                        const c = REQUEST_STATUS_CONFIG[v] || {};
+                                    style={{ width: 170 }}
+                                    labelRender={({ value }) => {
+                                        const config =
+                                            REQUEST_STATUS_CONFIG[value] || {};
+
                                         return (
-                                            <span style={{ color: c.color, fontWeight: 500, fontSize: 13 }}>
-                                                {c.label}
+                                            <span
+                                                style={{
+                                                    color: config.color,
+                                                    fontWeight: 500,
+                                                    fontSize: 13,
+                                                }}
+                                            >
+                                                {config.label}
                                             </span>
                                         );
                                     }}
-                                    optionRender={(opt) => {
-                                        const c = REQUEST_STATUS_CONFIG[opt.value] || {};
+                                    optionRender={(option) => {
+                                        const config =
+                                            REQUEST_STATUS_CONFIG[option.value] || {};
+
                                         return (
-                                            <StatusBadge $color={c.color} $bg={c.bg}>
-                                                {c.label}
+                                            <StatusBadge
+                                                $color={config.color}
+                                                $bg={config.bg}
+                                            >
+                                                {config.label}
                                             </StatusBadge>
                                         );
                                     }}
                                 />
+                                {!record.canUpdateStatus && (
+                                    <span
+                                        style={{
+                                            display: "block",
+                                            marginTop: 4,
+                                            color: "#8c8c8c",
+                                            fontSize: 12,
+                                        }}
+                                    >
+                                        Chỉ người xử lý được chỉ định hoặc admin được
+                                        thay đổi trạng thái.
+                                    </span>
+                                )}
                             </span>
                         </DetailRow>
                     </DetailInfoCardBody>
                 </DetailInfoCard>
 
-                {/* Bình luận */}
                 <CommentSectionWrap>
                     <DetailInfoCardTitle>
                         <FiMessageSquare size={14} />
@@ -169,18 +385,33 @@ function SupportRequestDetail({ record, onBack, onStatusChange }) {
                     </DetailInfoCardTitle>
 
                     <CommentListWrap>
-                        {comments.map((c) => (
-                            <CommentItemWrap key={c.id}>
-                                <CommentAvatar>{getInitial(c.author)}</CommentAvatar>
-                                <CommentBubble>
-                                    <div className="comment-meta">
-                                        <span className="comment-author">{c.author}</span>
-                                        <span className="comment-time">{c.createdAt}</span>
-                                    </div>
-                                    <p className="comment-content">{c.content}</p>
-                                </CommentBubble>
-                            </CommentItemWrap>
-                        ))}
+                        {comments.length === 0 ? (
+                            <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description="Chưa có bình luận"
+                            />
+                        ) : (
+                            comments.map((comment) => (
+                                <CommentItemWrap key={comment.commentId}>
+                                    <CommentAvatar>
+                                        {getInitial(comment.userName)}
+                                    </CommentAvatar>
+                                    <CommentBubble>
+                                        <div className="comment-meta">
+                                            <span className="comment-author">
+                                                {comment.userName}
+                                            </span>
+                                            <span className="comment-time">
+                                                {formatDateTime(comment.createDate)}
+                                            </span>
+                                        </div>
+                                        <p className="comment-content">
+                                            {comment.content}
+                                        </p>
+                                    </CommentBubble>
+                                </CommentItemWrap>
+                            ))
+                        )}
                         <div ref={commentsEndRef} />
                     </CommentListWrap>
 
@@ -189,14 +420,17 @@ function SupportRequestDetail({ record, onBack, onStatusChange }) {
                         <CommentTextarea
                             ref={textareaRef}
                             value={commentText}
-                            onChange={(e) => setCommentText(e.target.value)}
+                            onChange={(event) => setCommentText(event.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Nhập bình luận... (Enter để gửi, Shift+Enter để xuống dòng)"
                             rows={1}
+                            maxLength={4000}
                         />
                         <CommentSendBtn
-                            onClick={handleSubmit}
-                            disabled={!commentText.trim()}
+                            type="button"
+                            onClick={handleSubmitComment}
+                            disabled={!commentText.trim() || commentSaving}
+                            aria-label="Gửi bình luận"
                         >
                             <FiSend size={15} />
                         </CommentSendBtn>
@@ -206,5 +440,18 @@ function SupportRequestDetail({ record, onBack, onStatusChange }) {
         </DetailPageWrap>
     );
 }
+
+SupportRequestDetail.propTypes = {
+    requestId: PropTypes.number.isRequired,
+    refreshVersion: PropTypes.number,
+    onBack: PropTypes.func,
+    onRecordUpdated: PropTypes.func,
+};
+
+SupportRequestDetail.defaultProps = {
+    refreshVersion: 0,
+    onBack: () => {},
+    onRecordUpdated: () => {},
+};
 
 export default SupportRequestDetail;

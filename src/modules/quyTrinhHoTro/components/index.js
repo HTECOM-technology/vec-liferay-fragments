@@ -4,4 +4,5 @@ export { default as MyRequests } from "./MyRequests";
 export { default as SupportRequestList } from "./SupportRequestList";
 export { default as SupportRequestDetail } from "./SupportRequestDetail";
 export { default as MyRequestDetail } from "./MyRequestDetail";
+export { default as SupportHandlerSettingsModal } from "./SupportHandlerSettingsModal";
 export * from "./constants";

@@ -1,6 +1,9 @@
-import React, { useState, useMemo } from "react";
-import { Select, Table, Pagination, DatePicker } from "antd";
-import { FiList, FiRefreshCw, FiEye } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
+import { DatePicker, message, Pagination, Select, Table } from "antd";
+import { FiEye, FiList, FiRefreshCw } from "react-icons/fi";
+import { fetchSupportRequests } from "@/services/supportRequestService";
+import { formatDate } from "@/utils/dateUtils";
 import {
     MyRequestsWrap,
     MyRequestsHeader,
@@ -16,21 +19,23 @@ import {
     TablePaginationWrap,
 } from "../style";
 import {
-    MOCK_MY_REQUESTS,
     REQUEST_STATUS_OPTIONS,
     REQUEST_STATUS_CONFIG,
     PRIORITY_CONFIG,
     PRIORITY_OPTIONS,
     PROCESS_OPTIONS,
+    getProcessLabel,
 } from "./constants";
-import MyRequestDetail from "./MyRequestDetail";
+import SupportRequestDetail from "./SupportRequestDetail";
 
 const { RangePicker } = DatePicker;
-
 const PAGE_SIZE = 5;
 
-function MyRequests() {
-    const [data, setData] = useState(MOCK_MY_REQUESTS);
+function MyRequests({ refreshVersion }) {
+    const [messageApi, contextHolder] = message.useMessage();
+    const [data, setData] = useState([]);
+    const [total, setTotal] = useState(0);
+    const [loading, setLoading] = useState(false);
     const [filters, setFilters] = useState({
         status: "all",
         priority: "all",
@@ -40,53 +45,84 @@ function MyRequests() {
     const [page, setPage] = useState(1);
     const [selectedId, setSelectedId] = useState(null);
 
-    const handleStatusChange = (id, newStatus) => {
-        setData((prev) =>
-            prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-        );
-    };
+    useEffect(() => {
+        let cancelled = false;
+
+        setLoading(true);
+        fetchSupportRequests({
+            mine: true,
+            page,
+            pageSize: PAGE_SIZE,
+            status: filters.status,
+            priority: filters.priority,
+            processKey: filters.process,
+            createdFrom: filters.dateRange?.[0]?.format("YYYY-MM-DD") || "",
+            createdTo: filters.dateRange?.[1]?.format("YYYY-MM-DD") || "",
+        })
+            .then((result) => {
+                if (!cancelled) {
+                    setData(result.items || []);
+                    setTotal(result.total || 0);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setData([]);
+                    setTotal(0);
+                    messageApi.error(
+                        error?.message || "Không tải được yêu cầu của tôi."
+                    );
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [
+        filters.dateRange,
+        filters.priority,
+        filters.process,
+        filters.status,
+        messageApi,
+        page,
+        refreshVersion,
+    ]);
 
     const handleFilterChange = (key, value) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
+        setFilters((previousFilters) => ({ ...previousFilters, [key]: value }));
         setPage(1);
     };
 
     const handleReset = () => {
-        setFilters({ status: "all", priority: "all", process: "all", dateRange: null });
+        setFilters({
+            status: "all",
+            priority: "all",
+            process: "all",
+            dateRange: null,
+        });
         setPage(1);
     };
 
-    const filteredData = useMemo(() => {
-        return data.filter((item) => {
-            if (filters.status !== "all" && item.status !== filters.status) return false;
-            if (filters.priority !== "all" && item.priority !== filters.priority) return false;
-            if (filters.process !== "all") {
-                const processLabel = PROCESS_OPTIONS.find((p) => p.value === filters.process)?.label;
-                if (processLabel && item.process !== processLabel) return false;
-            }
-            if (filters.dateRange && filters.dateRange[0] && filters.dateRange[1]) {
-                const created = new Date(item.createdAt);
-                const from = filters.dateRange[0].startOf("day").toDate();
-                const to = filters.dateRange[1].endOf("day").toDate();
-                if (created < from || created > to) return false;
-            }
-            return true;
-        });
-    }, [filters, data]);
+    const handleRecordUpdated = (updatedRequest) => {
+        setData((currentData) =>
+            currentData.map((item) =>
+                item.requestId === updatedRequest.requestId ? updatedRequest : item
+            )
+        );
+    };
 
-    const pagedData = useMemo(() => {
-        const start = (page - 1) * PAGE_SIZE;
-        return filteredData.slice(start, start + PAGE_SIZE);
-    }, [filteredData, page]);
-
-    // Nếu đang xem chi tiết → hiển thị trang chi tiết
-    const selectedRecord = selectedId ? data.find((item) => item.id === selectedId) : null;
-    if (selectedRecord) {
+    if (selectedId) {
         return (
-            <MyRequestDetail
-                record={selectedRecord}
+            <SupportRequestDetail
+                requestId={selectedId}
+                refreshVersion={refreshVersion}
                 onBack={() => setSelectedId(null)}
-                onStatusChange={handleStatusChange}
+                onRecordUpdated={handleRecordUpdated}
             />
         );
     }
@@ -94,11 +130,13 @@ function MyRequests() {
     const columns = [
         {
             title: "Mã yêu cầu",
-            dataIndex: "id",
-            key: "id",
-            width: 120,
+            dataIndex: "requestCode",
+            key: "requestCode",
+            width: 145,
             render: (text, record) => (
-                <RequestIdText onClick={() => setSelectedId(record.id)}>{text}</RequestIdText>
+                <RequestIdText onClick={() => setSelectedId(record.requestId)}>
+                    {text}
+                </RequestIdText>
             ),
         },
         {
@@ -106,16 +144,20 @@ function MyRequests() {
             dataIndex: "title",
             key: "title",
             render: (text, record) => (
-                <RequestTitleText onClick={() => setSelectedId(record.id)}>{text}</RequestTitleText>
+                <RequestTitleText onClick={() => setSelectedId(record.requestId)}>
+                    {text}
+                </RequestTitleText>
             ),
         },
         {
             title: "Quy trình",
-            dataIndex: "process",
-            key: "process",
+            dataIndex: "processKey",
+            key: "processKey",
             width: 130,
-            render: (text) => (
-                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
+            render: (value) => (
+                <span style={{ fontSize: 13, color: "#555" }}>
+                    {getProcessLabel(value)}
+                </span>
             ),
         },
         {
@@ -125,10 +167,11 @@ function MyRequests() {
             width: 100,
             align: "center",
             render: (value) => {
-                const cfg = PRIORITY_CONFIG[value] || {};
+                const config = PRIORITY_CONFIG[value] || {};
+
                 return (
-                    <PriorityBadge $color={cfg.color} $bg={cfg.bg}>
-                        {cfg.label}
+                    <PriorityBadge $color={config.color} $bg={config.bg}>
+                        {config.label}
                     </PriorityBadge>
                 );
             },
@@ -140,10 +183,11 @@ function MyRequests() {
             width: 120,
             align: "center",
             render: (value) => {
-                const cfg = REQUEST_STATUS_CONFIG[value] || {};
+                const config = REQUEST_STATUS_CONFIG[value] || {};
+
                 return (
-                    <StatusBadge $color={cfg.color} $bg={cfg.bg}>
-                        {cfg.label}
+                    <StatusBadge $color={config.color} $bg={config.bg}>
+                        {config.label}
                     </StatusBadge>
                 );
             },
@@ -152,27 +196,31 @@ function MyRequests() {
             title: "Người xử lý",
             dataIndex: "handler",
             key: "handler",
-            width: 130,
+            width: 180,
             render: (text) => (
-                <span style={{ fontSize: 13, color: "#555" }}>{text}</span>
+                <span style={{ fontSize: 13, color: "#555" }}>{text || "—"}</span>
             ),
         },
         {
             title: "Ngày tạo",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            width: 100,
+            dataIndex: "createDate",
+            key: "createDate",
+            width: 110,
             render: (text) => (
-                <span style={{ fontSize: 13, color: "#666" }}>{text}</span>
+                <span style={{ fontSize: 13, color: "#666" }}>
+                    {formatDate(text)}
+                </span>
             ),
         },
         {
             title: "Hạn xử lý",
             dataIndex: "dueDate",
             key: "dueDate",
-            width: 100,
+            width: 110,
             render: (text) => (
-                <span style={{ fontSize: 13, color: "#666" }}>{text}</span>
+                <span style={{ fontSize: 13, color: "#666" }}>
+                    {formatDate(text) || "—"}
+                </span>
             ),
         },
         {
@@ -182,6 +230,7 @@ function MyRequests() {
             align: "center",
             render: (_, record) => (
                 <button
+                    type="button"
                     style={{
                         border: "none",
                         background: "none",
@@ -192,7 +241,7 @@ function MyRequests() {
                         alignItems: "center",
                     }}
                     title="Xem chi tiết"
-                    onClick={() => setSelectedId(record.id)}
+                    onClick={() => setSelectedId(record.requestId)}
                 >
                     <FiEye size={15} />
                 </button>
@@ -200,18 +249,9 @@ function MyRequests() {
         },
     ];
 
-    const statusOpts = [...REQUEST_STATUS_OPTIONS];
-    const priorityOpts = [
-        { value: "all", label: "Tất cả ưu tiên" },
-        ...PRIORITY_OPTIONS,
-    ];
-    const processOpts = [
-        { value: "all", label: "Tất cả quy trình" },
-        ...PROCESS_OPTIONS,
-    ];
-
     return (
         <MyRequestsWrap>
+            {contextHolder}
             <MyRequestsHeader>
                 <FiList size={16} color="rgba(0,144,207,1)" />
                 <span className="mr-title">Yêu cầu của tôi</span>
@@ -223,8 +263,8 @@ function MyRequests() {
                 <FilterGroup>
                     <Select
                         value={filters.status}
-                        options={statusOpts}
-                        onChange={(v) => handleFilterChange("status", v)}
+                        options={REQUEST_STATUS_OPTIONS}
+                        onChange={(value) => handleFilterChange("status", value)}
                         style={{ width: 160 }}
                     />
                 </FilterGroup>
@@ -232,8 +272,11 @@ function MyRequests() {
                 <FilterGroup>
                     <Select
                         value={filters.priority}
-                        options={priorityOpts}
-                        onChange={(v) => handleFilterChange("priority", v)}
+                        options={[
+                            { value: "all", label: "Tất cả ưu tiên" },
+                            ...PRIORITY_OPTIONS,
+                        ]}
+                        onChange={(value) => handleFilterChange("priority", value)}
                         style={{ width: 150 }}
                     />
                 </FilterGroup>
@@ -241,8 +284,11 @@ function MyRequests() {
                 <FilterGroup>
                     <Select
                         value={filters.process}
-                        options={processOpts}
-                        onChange={(v) => handleFilterChange("process", v)}
+                        options={[
+                            { value: "all", label: "Tất cả quy trình" },
+                            ...PROCESS_OPTIONS,
+                        ]}
+                        onChange={(value) => handleFilterChange("process", value)}
                         style={{ width: 180 }}
                     />
                 </FilterGroup>
@@ -257,7 +303,7 @@ function MyRequests() {
                     />
                 </FilterGroup>
 
-                <ResetFilterBtn onClick={handleReset} title="Đặt lại">
+                <ResetFilterBtn type="button" onClick={handleReset} title="Đặt lại">
                     <FiRefreshCw size={14} />
                 </ResetFilterBtn>
             </MyRequestsFilter>
@@ -265,18 +311,21 @@ function MyRequests() {
             <MyRequestsTable>
                 <TableSummary>
                     <span className="summary-text">
-                        Tổng số: <span>{filteredData.length}</span> yêu cầu
+                        Tổng số: <span>{total}</span> yêu cầu
                     </span>
                 </TableSummary>
 
                 <Table
-                    dataSource={pagedData}
+                    dataSource={data}
                     columns={columns}
-                    rowKey="id"
+                    rowKey="requestId"
                     pagination={false}
+                    loading={loading}
                     size="small"
                     locale={{ emptyText: "Không có yêu cầu nào" }}
-                    rowClassName={(_, idx) => (idx % 2 === 0 ? "" : "table-row-alt")}
+                    rowClassName={(_, index) =>
+                        index % 2 === 0 ? "" : "table-row-alt"
+                    }
                     style={{ fontSize: 13 }}
                     scroll={{ x: "max-content" }}
                 />
@@ -285,11 +334,11 @@ function MyRequests() {
                     <Pagination
                         current={page}
                         pageSize={PAGE_SIZE}
-                        total={filteredData.length}
+                        total={total}
                         onChange={setPage}
                         showSizeChanger={false}
-                        showTotal={(total, range) =>
-                            `${range[0]}-${range[1]} / ${total} yêu cầu`
+                        showTotal={(count, range) =>
+                            `${range[0]}-${range[1]} / ${count} yêu cầu`
                         }
                         size="small"
                     />
@@ -298,5 +347,13 @@ function MyRequests() {
         </MyRequestsWrap>
     );
 }
+
+MyRequests.propTypes = {
+    refreshVersion: PropTypes.number,
+};
+
+MyRequests.defaultProps = {
+    refreshVersion: 0,
+};
 
 export default MyRequests;
