@@ -51,6 +51,9 @@ public class ADOUOrganizationSyncService {
 		_log.info(
 			"AD OU organization sync finished: scanned=" + result.scanned +
 				", synced=" + result.synced + ", skipped=" + result.skipped +
+				", skippedMissingDN=" + result.skippedMissingDistinguishedName +
+				", skippedNoOU=" + result.skippedWithoutOrganization +
+				", skippedAlreadySynced=" + result.skippedAlreadySynced +
 				", dryRunActions=" + result.dryRunActions + ", errors=" +
 					result.errors + ", dryRun=" + dryRun);
 
@@ -66,8 +69,23 @@ public class ADOUOrganizationSyncService {
 			return;
 		}
 
-		_organizationLocalService.addUserOrganization(
-			user.getUserId(), leafOrganization.getOrganizationId());
+		_userLocalService.addOrganizationUser(
+			leafOrganization.getOrganizationId(), user.getUserId());
+
+		if (!_organizationLocalService.hasUserOrganization(
+				user.getUserId(), leafOrganization.getOrganizationId())) {
+
+			throw new PortalException(
+				"Unable to verify organization membership for userId=" +
+					user.getUserId() + ", organizationId=" +
+						leafOrganization.getOrganizationId());
+		}
+
+		_log.info(
+			"Added userId=" + user.getUserId() + ", screenName=" +
+				user.getScreenName() + " to organizationId=" +
+					leafOrganization.getOrganizationId() + ", organizationName=" +
+						leafOrganization.getName());
 	}
 
 	private Organization _ensureOrganizationPath(
@@ -150,7 +168,10 @@ public class ADOUOrganizationSyncService {
 	}
 
 	private String _getCustomField(User user, String fieldName) {
-		Object value = user.getExpandoBridge().getAttribute(fieldName);
+		// This internal service also runs as the company default user. Read the
+		// Expando value locally so custom-field VIEW permissions do not hide it.
+
+		Object value = user.getExpandoBridge().getAttribute(fieldName, false);
 
 		if (value == null) {
 			return "";
@@ -204,8 +225,9 @@ public class ADOUOrganizationSyncService {
 			return;
 		}
 
-		_organizationLocalService.deleteUserOrganization(
-			user.getUserId(), oldLeafOrganization.getOrganizationId());
+		_userLocalService.unsetOrganizationUsers(
+			oldLeafOrganization.getOrganizationId(),
+			new long[] {user.getUserId()});
 	}
 
 	private void _syncCompany(
@@ -268,6 +290,7 @@ public class ADOUOrganizationSyncService {
 
 			if (distinguishedName.isEmpty()) {
 				result.skipped++;
+				result.skippedMissingDistinguishedName++;
 
 				return;
 			}
@@ -277,6 +300,7 @@ public class ADOUOrganizationSyncService {
 
 			if (organizationNames.isEmpty()) {
 				result.skipped++;
+				result.skippedWithoutOrganization++;
 
 				return;
 			}
@@ -286,9 +310,19 @@ public class ADOUOrganizationSyncService {
 				user, _AD_SYNCED_ORGANIZATION_PATH_FIELD);
 
 			if (organizationPath.equals(syncedOrganizationPath)) {
-				result.skipped++;
+				Organization leafOrganization = _findOrganizationPath(
+					companyId, organizationNames);
 
-				return;
+				if ((leafOrganization != null) &&
+					_organizationLocalService.hasUserOrganization(
+						user.getUserId(),
+						leafOrganization.getOrganizationId())) {
+
+					result.skipped++;
+					result.skippedAlreadySynced++;
+
+					return;
+				}
 			}
 
 			if (dryRun) {
@@ -314,8 +348,11 @@ public class ADOUOrganizationSyncService {
 					user, companyId, syncedOrganizationPath, leafOrganization);
 			}
 
+			// The sync service owns this internal marker field, so it must not
+			// depend on the default user's custom-field UPDATE permission.
+
 			user.getExpandoBridge().setAttribute(
-				_AD_SYNCED_ORGANIZATION_PATH_FIELD, organizationPath);
+				_AD_SYNCED_ORGANIZATION_PATH_FIELD, organizationPath, false);
 
 			result.synced++;
 		}
@@ -366,6 +403,9 @@ public class ADOUOrganizationSyncService {
 		public long errors;
 		public long scanned;
 		public long skipped;
+		public long skippedAlreadySynced;
+		public long skippedMissingDistinguishedName;
+		public long skippedWithoutOrganization;
 		public long synced;
 
 	}

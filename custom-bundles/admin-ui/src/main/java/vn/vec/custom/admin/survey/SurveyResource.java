@@ -722,16 +722,14 @@ public class SurveyResource {
 	}
 
 	private String _buildUserOrganizationFilter(long organizationId, long departmentId) {
-		if (departmentId > 0) {
-			return "INNER JOIN Users_Orgs uo ON u.userId = uo.userId " +
-				"AND uo.organizationId = " + departmentId + " ";
-		}
+		long rootOrganizationId = departmentId > 0 ?
+			departmentId : organizationId;
 
-		if (organizationId > 0) {
+		if (rootOrganizationId > 0) {
 			return "INNER JOIN Users_Orgs uo ON u.userId = uo.userId " +
 				"INNER JOIN Organization_ o ON uo.organizationId = o.organizationId " +
-				"AND (o.organizationId = " + organizationId +
-				" OR o.parentOrganizationId = " + organizationId + ") ";
+				"AND (o.organizationId = " + rootOrganizationId +
+				" OR o.treePath LIKE '%/" + rootOrganizationId + "/%') ";
 		}
 
 		return "";
