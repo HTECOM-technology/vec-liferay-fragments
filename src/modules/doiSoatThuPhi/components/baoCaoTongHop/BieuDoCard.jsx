@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from "react";
-import { Select, Button } from "antd";
+import React, { useState, useCallback, useEffect } from "react";
+import { Select, Button, Empty } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -15,7 +15,14 @@ import {
 } from "recharts";
 import { CDatePicker } from "../../../../components/common";
 import { processChartData } from "./chartUtils";
-import { ChartCard, ChartCardTitle, ChartFilterRow, FilterItem, ChartWrap } from "./styled";
+import {
+  ChartCard,
+  ChartCardTitle,
+  ChartEmpty,
+  ChartFilterRow,
+  FilterItem,
+  ChartWrap,
+} from "./styled";
 
 const LOAI_BIEU_DO_OPTIONS = [
   { value: "cot", label: "Biểu đồ cột" },
@@ -37,17 +44,47 @@ function formatYAxis(value, yUnit) {
   return value === 0 ? "0" : value;
 }
 
+function getDefaultRange(rawData) {
+  const dates = (Array.isArray(rawData) ? rawData : [])
+    .map((item) => dayjs(item?.date))
+    .filter((date) => date.isValid())
+    .sort((left, right) => left.valueOf() - right.valueOf());
+
+  if (dates.length === 0) {
+    const today = dayjs();
+
+    return { from: today.subtract(6, "day"), to: today };
+  }
+
+  const firstDate = dates[0];
+  const lastDate = dates[dates.length - 1];
+  const candidateFrom = lastDate.subtract(6, "day");
+
+  return {
+    from: candidateFrom.isBefore(firstDate, "day") ? firstDate : candidateFrom,
+    to: lastDate,
+  };
+}
+
 function BieuDoCard({ title, rawData, color, yUnit }) {
-  const defaultTu = dayjs("2026-01-01");
-  const defaultDen = dayjs("2026-01-08");
+  const defaultRange = getDefaultRange(rawData);
 
   const [loaiBieuDo, setLoaiBieuDo] = useState("cot");
   const [thoiGian, setThoiGian] = useState("ngay");
-  const [tuNgay, setTuNgay] = useState(defaultTu);
-  const [denNgay, setDenNgay] = useState(defaultDen);
+  const [tuNgay, setTuNgay] = useState(defaultRange.from);
+  const [denNgay, setDenNgay] = useState(defaultRange.to);
   const [chartData, setChartData] = useState(() =>
-    processChartData(rawData, defaultTu, defaultDen, "ngay")
+    processChartData(rawData, defaultRange.from, defaultRange.to, "ngay")
   );
+
+  useEffect(() => {
+    const range = getDefaultRange(rawData);
+
+    setTuNgay(range.from);
+    setDenNgay(range.to);
+    setChartData(processChartData(rawData, range.from, range.to, "ngay"));
+    setThoiGian("ngay");
+  }, [rawData]);
 
   const handleXemBieuDo = useCallback(() => {
     const data = processChartData(rawData, tuNgay, denNgay, thoiGian);
@@ -130,39 +167,48 @@ function BieuDoCard({ title, rawData, color, yUnit }) {
       </ChartFilterRow>
 
       <ChartWrap>
-        <ResponsiveContainer width="100%" height="100%">
-          {loaiBieuDo === "cot" ? (
-            <BarChart
-              data={chartData}
-              margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
-              barCategoryGap="35%"
-            >
-              <CartesianGrid vertical={false} stroke="#f0f0f0" />
-              {axisProps.xAxis}
-              {axisProps.yAxis}
-              <Tooltip cursor={false} formatter={tooltipFormatter} />
-              <Bar dataKey="value" fill={color} radius={[3, 3, 0, 0]} barSize={30} />
-            </BarChart>
-          ) : (
-            <LineChart
-              data={chartData}
-              margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
-            >
-              <CartesianGrid vertical={false} stroke="#f0f0f0" />
-              {axisProps.xAxis}
-              {axisProps.yAxis}
-              <Tooltip formatter={tooltipFormatter} />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke={color}
-                strokeWidth={2}
-                dot={{ r: 3, fill: color }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          )}
-        </ResponsiveContainer>
+        {chartData.length === 0 ? (
+          <ChartEmpty>
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="Không có dữ liệu trong khoảng đã chọn"
+            />
+          </ChartEmpty>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            {loaiBieuDo === "cot" ? (
+              <BarChart
+                data={chartData}
+                margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
+                barCategoryGap="35%"
+              >
+                <CartesianGrid vertical={false} stroke="#f0f0f0" />
+                {axisProps.xAxis}
+                {axisProps.yAxis}
+                <Tooltip cursor={false} formatter={tooltipFormatter} />
+                <Bar dataKey="value" fill={color} radius={[3, 3, 0, 0]} barSize={30} />
+              </BarChart>
+            ) : (
+              <LineChart
+                data={chartData}
+                margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
+              >
+                <CartesianGrid vertical={false} stroke="#f0f0f0" />
+                {axisProps.xAxis}
+                {axisProps.yAxis}
+                <Tooltip formatter={tooltipFormatter} />
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={color}
+                  strokeWidth={2}
+                  dot={{ r: 3, fill: color }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            )}
+          </ResponsiveContainer>
+        )}
       </ChartWrap>
     </ChartCard>
   );

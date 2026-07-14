@@ -91,6 +91,14 @@ export const ChartWrap = styled.div`
   }
 `;
 
+export const ChartEmpty = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 /* ---- Tables ---- */
 export const TableSection = styled.div`
   .ant-table-thead > tr > th {
@@ -130,9 +138,21 @@ export const StatusBadge = styled.span`
   font-weight: 500;
   white-space: nowrap;
   background: ${({ $type }) =>
-    $type === "done" ? "rgba(82, 196, 26, 0.12)" : "rgba(0, 144, 207, 0.12)"};
+    $type === "resolved"
+      ? "rgba(82, 196, 26, 0.12)"
+      : $type === "rejected"
+        ? "rgba(255, 77, 79, 0.12)"
+        : $type === "pending"
+          ? "rgba(250, 173, 20, 0.14)"
+          : "rgba(0, 144, 207, 0.12)"};
   color: ${({ $type }) =>
-    $type === "done" ? "rgba(82, 196, 26, 1)" : "rgba(0, 144, 207, 1)"};
+    $type === "resolved"
+      ? "rgba(82, 196, 26, 1)"
+      : $type === "rejected"
+        ? "rgba(255, 77, 79, 1)"
+        : $type === "pending"
+          ? "rgba(212, 136, 6, 1)"
+          : "rgba(0, 144, 207, 1)"};
 
   @media (max-width: 1199px) {
     font-size: 11px;

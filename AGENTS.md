@@ -132,6 +132,12 @@ Các nhóm chức năng lớn trong `custom-bundles/admin-ui`:
 - `ckeditor`: custom cấu hình CKEditor.
 - `dashboard/layout`: API layout dashboard.
 - `webhook`: webhook và conversation resource.
+- `HookTollReconciliation`: endpoint nhận hook Đối soát thu phí tại
+  `/o/toll-reconciliation/hook`, xác thực API key/HMAC raw body/timestamp/nonce,
+  validate và upsert 5 loại dữ liệu. Credential cùng tham số vận hành tập trung
+  tại `vn.vec.custom.admin.HookTollReconciliation.HookConstants`; migration là
+  `custom-bundles/admin-ui/sql/toll_reconciliation_hook.sql` và phải chạy trên
+  DB master trước khi deploy.
 - `ui`: dynamic include cho phần head/top admin.
 
 Khi sửa Java trong custom bundle:
