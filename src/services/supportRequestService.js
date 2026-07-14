@@ -82,16 +82,20 @@ async function request(path, options = {}) {
 
 function normalizeUser(user) {
   const userId = Number(user?.userId || 0);
+  const name =
+    user?.fullName ||
+    user?.screenName ||
+    user?.emailAddress ||
+    String(userId);
+  const unitParts = [user?.organizationName, user?.departmentName].filter(
+    Boolean
+  );
 
   return {
     ...user,
     userId,
     value: userId,
-    label:
-      user?.fullName ||
-      user?.screenName ||
-      user?.emailAddress ||
-      String(userId),
+    label: unitParts.length ? `${name} (${unitParts.join(" - ")})` : name,
   };
 }
 

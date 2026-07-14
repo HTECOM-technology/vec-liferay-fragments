@@ -744,21 +744,41 @@ public class SupportRequestResource {
 		long requestId = request.getLong("requestId");
 
 		request.put("handlers", _readRequestUsers(
-			con, "VEC_SupportRequestHandler", requestId));
+			con, "VEC_SupportRequestHandler", requestId, true));
 		request.put("followers", _readRequestUsers(
-			con, "VEC_SupportRequestFollower", requestId));
+			con, "VEC_SupportRequestFollower", requestId, false));
 	}
 
 	private JSONArray _readRequestUsers(
-			Connection con, String tableName, long requestId)
+			Connection con, String tableName, long requestId,
+			boolean includeOrganizations)
 		throws Exception {
 
-		PreparedStatement ps = con.prepareStatement(
-			"SELECT relation.userId, u.screenName, u.emailAddress, " +
-			"u.firstName, u.middleName, u.lastName FROM " + tableName +
-			" relation LEFT JOIN User_ u ON relation.userId = u.userId " +
-			"WHERE relation.requestId = ? " +
-			"ORDER BY u.lastName ASC, u.firstName ASC");
+		String sql;
+
+		if (includeOrganizations) {
+			sql = "SELECT relation.userId, u.screenName, u.emailAddress, " +
+				"u.firstName, u.middleName, u.lastName, " +
+				"relation.organizationId, ho.name AS organizationName, " +
+				"relation.departmentId, hd.name AS departmentName FROM " +
+				tableName + " relation " +
+				"LEFT JOIN User_ u ON relation.userId = u.userId " +
+				"LEFT JOIN Organization_ ho " +
+				"ON relation.organizationId = ho.organizationId " +
+				"LEFT JOIN Organization_ hd " +
+				"ON relation.departmentId = hd.organizationId " +
+				"WHERE relation.requestId = ? " +
+				"ORDER BY u.lastName ASC, u.firstName ASC";
+		}
+		else {
+			sql = "SELECT relation.userId, u.screenName, u.emailAddress, " +
+				"u.firstName, u.middleName, u.lastName FROM " + tableName +
+				" relation LEFT JOIN User_ u ON relation.userId = u.userId " +
+				"WHERE relation.requestId = ? " +
+				"ORDER BY u.lastName ASC, u.firstName ASC";
+		}
+
+		PreparedStatement ps = con.prepareStatement(sql);
 
 		try {
 			ps.setLong(1, requestId);
@@ -768,7 +788,21 @@ public class SupportRequestResource {
 
 			try {
 				while (rs.next()) {
-					users.put(_toUserJSONObject(rs, "userId"));
+					JSONObject user = _toUserJSONObject(rs, "userId");
+
+					if (includeOrganizations) {
+						user.put(
+							"organizationId", rs.getLong("organizationId"));
+						user.put(
+							"organizationName",
+							_trim(rs.getString("organizationName")));
+						user.put("departmentId", rs.getLong("departmentId"));
+						user.put(
+							"departmentName",
+							_trim(rs.getString("departmentName")));
+					}
+
+					users.put(user);
 				}
 			}
 			finally {
@@ -960,9 +994,10 @@ public class SupportRequestResource {
 
 		PreparedStatement ps = con.prepareStatement(
 			"INSERT INTO VEC_SupportRequestHandler " +
-			"(requestId, userId, assignedByUserId, createDate) " +
-			"SELECT ?, userId, ?, ? FROM VEC_SupportHandlerConfigUser " +
-			"WHERE configId = ?");
+			"(requestId, userId, organizationId, departmentId, " +
+			"assignedByUserId, createDate) " +
+			"SELECT ?, userId, organizationId, departmentId, ?, ? " +
+			"FROM VEC_SupportHandlerConfigUser WHERE configId = ?");
 
 		try {
 			ps.setLong(1, requestId);

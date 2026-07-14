@@ -395,16 +395,20 @@ public class SupportHandlerSettingResource {
 
 		PreparedStatement ps = con.prepareStatement(
 			"SELECT c.configId, c.processKey, c.requestTypeKey, " +
-			"c.organizationId, o.name AS organizationName, " +
-			"c.departmentId, d.name AS departmentName, " +
 			"c.createDate, c.modifiedDate, cu.userId AS handlerUserId, " +
+			"cu.organizationId AS handlerOrganizationId, " +
+			"ho.name AS handlerOrganizationName, " +
+			"cu.departmentId AS handlerDepartmentId, " +
+			"hd.name AS handlerDepartmentName, " +
 			"u.screenName, u.emailAddress, u.firstName, u.middleName, " +
 			"u.lastName FROM VEC_SupportHandlerConfig c " +
-			"INNER JOIN Organization_ o ON c.organizationId = o.organizationId " +
-			"INNER JOIN Organization_ d ON c.departmentId = d.organizationId " +
 			"LEFT JOIN VEC_SupportHandlerConfigUser cu " +
 			"ON c.configId = cu.configId " +
 			"LEFT JOIN User_ u ON cu.userId = u.userId " +
+			"LEFT JOIN Organization_ ho " +
+			"ON cu.organizationId = ho.organizationId " +
+			"LEFT JOIN Organization_ hd " +
+			"ON cu.departmentId = hd.organizationId " +
 			"WHERE c.companyId = ? " +
 			"ORDER BY c.requestTypeKey ASC, u.lastName ASC, u.firstName ASC");
 
@@ -427,13 +431,6 @@ public class SupportHandlerSettingResource {
 						item.put(
 							"requestTypeKey", rs.getString("requestTypeKey"));
 						item.put(
-							"organizationId", rs.getLong("organizationId"));
-						item.put(
-							"organizationName", rs.getString("organizationName"));
-						item.put("departmentId", rs.getLong("departmentId"));
-						item.put(
-							"departmentName", rs.getString("departmentName"));
-						item.put(
 							"createDate", _timestamp(rs.getTimestamp("createDate")));
 						item.put(
 							"modifiedDate",
@@ -447,9 +444,23 @@ public class SupportHandlerSettingResource {
 					long handlerUserId = rs.getLong("handlerUserId");
 
 					if (!rs.wasNull() && handlerUserId > 0) {
+						JSONObject handlerUser = _toUserJSONObject(
+							rs, "handlerUserId");
+
+						handlerUser.put(
+							"organizationId",
+							rs.getLong("handlerOrganizationId"));
+						handlerUser.put(
+							"organizationName",
+							_trim(rs.getString("handlerOrganizationName")));
+						handlerUser.put(
+							"departmentId", rs.getLong("handlerDepartmentId"));
+						handlerUser.put(
+							"departmentName",
+							_trim(rs.getString("handlerDepartmentName")));
+
 						item.getJSONArray("userIds").put(handlerUserId);
-						item.getJSONArray("users").put(
-							_toUserJSONObject(rs, "handlerUserId"));
+						item.getJSONArray("users").put(handlerUser);
 					}
 				}
 			}
@@ -503,32 +514,41 @@ public class SupportHandlerSettingResource {
 					"Loại yêu cầu bị trùng: " + requestTypeKey);
 			}
 
-			long organizationId = item.getLong("organizationId");
-			long departmentId = item.getLong("departmentId");
+			JSONArray users = item.getJSONArray("users");
 
-			if (!_isValidOrganizationSelection(
-					con, companyId, organizationId, departmentId)) {
-
-				throw new IllegalArgumentException(
-					"Đơn vị hoặc phòng ban không hợp lệ cho " + requestTypeKey);
-			}
-
-			JSONArray userIds = item.getJSONArray("userIds");
-
-			if (userIds == null || userIds.length() == 0) {
+			if (users == null || users.length() == 0) {
 				throw new IllegalArgumentException(
 					"Phải chọn ít nhất một người xử lý cho " + requestTypeKey);
 			}
 
 			Set<Long> normalizedUserIds = new LinkedHashSet<>();
+			JSONArray normalizedUsers = JSONFactoryUtil.createJSONArray();
 
-			for (int userIndex = 0; userIndex < userIds.length(); userIndex++) {
-				long userId = userIds.getLong(userIndex);
+			for (int userIndex = 0; userIndex < users.length(); userIndex++) {
+				JSONObject handlerUser = users.getJSONObject(userIndex);
+
+				if (handlerUser == null) {
+					throw new IllegalArgumentException(
+						"Danh sách người xử lý không hợp lệ cho " +
+							requestTypeKey);
+				}
+
+				long userId = handlerUser.getLong("userId");
+				long organizationId = handlerUser.getLong("organizationId");
+				long departmentId = handlerUser.getLong("departmentId");
 
 				if (userId <= 0 || !normalizedUserIds.add(userId)) {
 					throw new IllegalArgumentException(
 						"Danh sách người xử lý không hợp lệ cho " +
 							requestTypeKey);
+				}
+
+				if (!_isValidOrganizationSelection(
+						con, companyId, organizationId, departmentId)) {
+
+					throw new IllegalArgumentException(
+						"Đơn vị hoặc phòng ban không hợp lệ cho người xử lý " +
+							userId + " của " + requestTypeKey);
 				}
 
 				if (!_isValidHandlerUser(
@@ -538,20 +558,21 @@ public class SupportHandlerSettingResource {
 						"Người xử lý không thuộc phòng ban đã chọn hoặc " +
 							"các phòng ban cấp dưới: " + userId);
 				}
+
+				JSONObject normalizedUser = JSONFactoryUtil.createJSONObject();
+
+				normalizedUser.put("userId", userId);
+				normalizedUser.put("organizationId", organizationId);
+				normalizedUser.put("departmentId", departmentId);
+
+				normalizedUsers.put(normalizedUser);
 			}
 
 			JSONObject normalizedItem = JSONFactoryUtil.createJSONObject();
-			JSONArray normalizedUserIdArray = JSONFactoryUtil.createJSONArray();
-
-			for (Long userId : normalizedUserIds) {
-				normalizedUserIdArray.put(userId.longValue());
-			}
 
 			normalizedItem.put("processKey", processKey);
 			normalizedItem.put("requestTypeKey", requestTypeKey);
-			normalizedItem.put("organizationId", organizationId);
-			normalizedItem.put("departmentId", departmentId);
-			normalizedItem.put("userIds", normalizedUserIdArray);
+			normalizedItem.put("users", normalizedUsers);
 
 			normalizedItems.put(normalizedItem);
 		}
@@ -591,7 +612,7 @@ public class SupportHandlerSettingResource {
 			JSONObject item = items.getJSONObject(i);
 			long configId = _insertConfiguration(con, user, item, now);
 
-			_insertHandlerUsers(con, configId, item.getJSONArray("userIds"));
+			_insertHandlerUsers(con, configId, item.getJSONArray("users"));
 		}
 
 		return _reassignPendingRequests(con, user, now);
@@ -618,8 +639,10 @@ public class SupportHandlerSettingResource {
 
 		PreparedStatement insertHandlers = con.prepareStatement(
 			"INSERT INTO VEC_SupportRequestHandler " +
-			"(requestId, userId, assignedByUserId, createDate) " +
-			"SELECT request.requestId, configUser.userId, ?, ? " +
+			"(requestId, userId, organizationId, departmentId, " +
+			"assignedByUserId, createDate) " +
+			"SELECT request.requestId, configUser.userId, " +
+			"configUser.organizationId, configUser.departmentId, ?, ? " +
 			"FROM VEC_SupportRequest request " +
 			"INNER JOIN VEC_SupportHandlerConfig config " +
 			"ON config.companyId = request.companyId " +
@@ -671,8 +694,8 @@ public class SupportHandlerSettingResource {
 			ps.setLong(1, user.getCompanyId());
 			ps.setString(2, item.getString("processKey"));
 			ps.setString(3, item.getString("requestTypeKey"));
-			ps.setLong(4, item.getLong("organizationId"));
-			ps.setLong(5, item.getLong("departmentId"));
+			ps.setLong(4, 0);
+			ps.setLong(5, 0);
 			ps.setLong(6, user.getUserId());
 			ps.setLong(7, user.getUserId());
 			ps.setTimestamp(8, now);
@@ -698,17 +721,22 @@ public class SupportHandlerSettingResource {
 	}
 
 	private void _insertHandlerUsers(
-			Connection con, long configId, JSONArray userIds)
+			Connection con, long configId, JSONArray users)
 		throws Exception {
 
 		PreparedStatement ps = con.prepareStatement(
-			"INSERT INTO VEC_SupportHandlerConfigUser (configId, userId) " +
-			"VALUES (?, ?)");
+			"INSERT INTO VEC_SupportHandlerConfigUser " +
+			"(configId, userId, organizationId, departmentId) " +
+			"VALUES (?, ?, ?, ?)");
 
 		try {
-			for (int i = 0; i < userIds.length(); i++) {
+			for (int i = 0; i < users.length(); i++) {
+				JSONObject handlerUser = users.getJSONObject(i);
+
 				ps.setLong(1, configId);
-				ps.setLong(2, userIds.getLong(i));
+				ps.setLong(2, handlerUser.getLong("userId"));
+				ps.setLong(3, handlerUser.getLong("organizationId"));
+				ps.setLong(4, handlerUser.getLong("departmentId"));
 				ps.addBatch();
 			}
 

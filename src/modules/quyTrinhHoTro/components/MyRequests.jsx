@@ -196,7 +196,7 @@ function MyRequests({ refreshVersion }) {
             title: "Người xử lý",
             dataIndex: "handler",
             key: "handler",
-            width: 180,
+            width: 240,
             render: (text) => (
                 <span style={{ fontSize: 13, color: "#555" }}>{text || "—"}</span>
             ),

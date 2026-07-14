@@ -138,7 +138,7 @@ function RequestForm({ activeItem, activeSection, assignmentVersion, onCreated }
                     handlerDetails: configured
                         ? users.map((user) => ({
                             id: user.userId,
-                            name: user.fullName || user.screenName,
+                            name: user.label || user.fullName || user.screenName,
                             email: user.emailAddress,
                             roles: [],
                         }))
@@ -348,7 +348,7 @@ function RequestForm({ activeItem, activeSection, assignmentVersion, onCreated }
                                 disabled
                                 options={handlerUsers.map((user) => ({
                                     value: user.userId,
-                                    label: user.fullName || user.screenName,
+                                    label: user.label || user.fullName || user.screenName,
                                     emailAddress: user.emailAddress,
                                 }))}
                                 style={{ width: "100%" }}

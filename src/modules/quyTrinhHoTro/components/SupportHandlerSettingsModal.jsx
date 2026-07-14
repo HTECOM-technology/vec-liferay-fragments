@@ -1,11 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Alert, Button, Empty, Modal, Select, Spin, Tag, message } from "antd";
-import { CheckCircleFilled, UsergroupAddOutlined } from "@ant-design/icons";
+import {
+    CheckCircleFilled,
+    CloseOutlined,
+    UsergroupAddOutlined,
+} from "@ant-design/icons";
 import styled from "styled-components";
 import {
     fetchSupportHandlerUsers,
     fetchSupportOrganizations,
+    formatHandlerLabel,
 } from "@/services/supportHandlerSettingsService";
 
 const ModalBody = styled.div`
@@ -133,6 +138,62 @@ const SelectGroup = styled.div`
     }
 `;
 
+const SelectedArea = styled.div`
+    border: 1px solid #e8edf3;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+`;
+
+const SelectedAreaHeader = styled.div`
+    padding: 10px 14px;
+    background: linear-gradient(180deg, #f7fbfe 0%, #eef6fb 100%);
+    border-bottom: 1px solid #e8edf3;
+    color: #365168;
+    font-size: 13px;
+    font-weight: 700;
+`;
+
+const SelectedAreaContent = styled.div`
+    max-height: 168px;
+    overflow-y: auto;
+`;
+
+const SelectedRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 14px;
+    border-bottom: 1px solid #f0f3f7;
+    font-size: 13px;
+    color: #263746;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    .selected-remove {
+        border: 0;
+        background: transparent;
+        color: #96a5b3;
+        cursor: pointer;
+        padding: 2px;
+        line-height: 1;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: #ff4d4f;
+        }
+    }
+`;
+
+const SelectedEmpty = styled.div`
+    padding: 12px 14px;
+    color: #96a5b3;
+    font-size: 12px;
+`;
+
 const EmptyEditor = styled.div`
     display: flex;
     min-height: 360px;
@@ -151,9 +212,6 @@ function createDrafts(requestTypes, configurations) {
         result[requestType.key] = {
             processKey: requestType.processKey,
             requestTypeKey: requestType.key,
-            organizationId: configuration?.organizationId || null,
-            departmentId: configuration?.departmentId || null,
-            userIds: configuration?.userIds || [],
             users: configuration?.users || [],
         };
 
@@ -162,21 +220,19 @@ function createDrafts(requestTypes, configurations) {
 }
 
 function isConfigured(draft) {
-    return Boolean(
-        draft?.organizationId &&
-        draft?.departmentId &&
-        draft?.userIds?.length
-    );
+    return Boolean(draft?.users?.length);
 }
 
-function mergeUserOptions(primaryOptions, fallbackOptions) {
+function mergeUserOptions(preferredOptions, fallbackOptions) {
     const optionsMap = new Map();
 
-    [...(fallbackOptions || []), ...(primaryOptions || [])].forEach((option) => {
-        if (option?.userId) {
-            optionsMap.set(Number(option.userId), option);
+    [...(fallbackOptions || []), ...(preferredOptions || [])].forEach(
+        (option) => {
+            if (option?.userId) {
+                optionsMap.set(Number(option.userId), option);
+            }
         }
-    });
+    );
 
     return Array.from(optionsMap.values());
 }
@@ -194,7 +250,10 @@ function SupportHandlerSettingsModal({
     const [drafts, setDrafts] = useState({});
     const [activeTypeKey, setActiveTypeKey] = useState(null);
     const [organizationOptions, setOrganizationOptions] = useState([]);
-    const [departmentOptions, setDepartmentOptions] = useState([]);
+    const [filterOrganizationIds, setFilterOrganizationIds] = useState([]);
+    const [filterDepartmentIds, setFilterDepartmentIds] = useState([]);
+    const [departmentGroups, setDepartmentGroups] = useState([]);
+    const [departmentMap, setDepartmentMap] = useState(new Map());
     const [memberOptions, setMemberOptions] = useState([]);
     const [loadingOrganizations, setLoadingOrganizations] = useState(false);
     const [loadingDepartments, setLoadingDepartments] = useState(false);
@@ -205,10 +264,18 @@ function SupportHandlerSettingsModal({
         [activeTypeKey, requestTypes]
     );
     const activeDraft = activeTypeKey ? drafts[activeTypeKey] : null;
-    const currentMemberOptions = useMemo(
-        () => mergeUserOptions(memberOptions, activeDraft?.users),
-        [activeDraft?.users, memberOptions]
+    const selectedUsers = useMemo(
+        () => activeDraft?.users || [],
+        [activeDraft?.users]
     );
+    // Giữ những người đã chọn (kể cả từ đơn vị/phòng ban khác) luôn có mặt
+    // trong options; bản ghi đã lưu được ưu tiên để không mất cặp ĐV-PB.
+    const currentMemberOptions = useMemo(
+        () => mergeUserOptions(selectedUsers, memberOptions),
+        [memberOptions, selectedUsers]
+    );
+    const organizationIdsKey = filterOrganizationIds.join(",");
+    const departmentIdsKey = filterDepartmentIds.join(",");
 
     useEffect(() => {
         if (!open) {
@@ -217,6 +284,8 @@ function SupportHandlerSettingsModal({
 
         setDrafts(createDrafts(requestTypes, configurations));
         setActiveTypeKey(requestTypes[0]?.key || null);
+        setFilterOrganizationIds([]);
+        setFilterDepartmentIds([]);
     }, [configurations, open, requestTypes]);
 
     useEffect(() => {
@@ -253,23 +322,66 @@ function SupportHandlerSettingsModal({
     }, [messageApi, open]);
 
     useEffect(() => {
-        if (!open || !activeDraft?.organizationId) {
-            setDepartmentOptions([]);
-            return;
+        if (!open || !filterOrganizationIds.length) {
+            setDepartmentGroups([]);
+            setDepartmentMap(new Map());
+            setFilterDepartmentIds([]);
+            return undefined;
         }
 
         let cancelled = false;
 
         setLoadingDepartments(true);
-        fetchSupportOrganizations(activeDraft.organizationId)
-            .then((items) => {
-                if (!cancelled) {
-                    setDepartmentOptions(items);
+        Promise.all(
+            filterOrganizationIds.map(async (organizationId) => {
+                const organization = organizationOptions.find(
+                    (item) => item.organizationId === organizationId
+                );
+                const departments = await fetchSupportOrganizations(
+                    organizationId
+                );
+
+                return { organization, departments };
+            })
+        )
+            .then((results) => {
+                if (cancelled) {
+                    return;
                 }
+
+                const map = new Map();
+                const groups = results
+                    .filter((result) => result.organization)
+                    .map((result) => ({
+                        label: result.organization.name,
+                        title: result.organization.name,
+                        options: result.departments.map((department) => {
+                            const option = {
+                                value: department.organizationId,
+                                label: department.name,
+                                departmentId: department.organizationId,
+                                departmentName: department.name,
+                                organizationId:
+                                    result.organization.organizationId,
+                                organizationName: result.organization.name,
+                            };
+
+                            map.set(department.organizationId, option);
+
+                            return option;
+                        }),
+                    }));
+
+                setDepartmentGroups(groups);
+                setDepartmentMap(map);
+                setFilterDepartmentIds((previous) =>
+                    previous.filter((departmentId) => map.has(departmentId))
+                );
             })
             .catch((error) => {
                 if (!cancelled) {
-                    setDepartmentOptions([]);
+                    setDepartmentGroups([]);
+                    setDepartmentMap(new Map());
                     messageApi.error(
                         error?.message || "Không tải được danh sách phòng ban."
                     );
@@ -284,28 +396,48 @@ function SupportHandlerSettingsModal({
         return () => {
             cancelled = true;
         };
-    }, [activeDraft?.organizationId, messageApi, open]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [organizationIdsKey, organizationOptions, messageApi, open]);
 
     useEffect(() => {
-        if (
-            !open ||
-            !activeDraft?.organizationId ||
-            !activeDraft?.departmentId
-        ) {
+        if (!open || !filterDepartmentIds.length) {
             setMemberOptions([]);
-            return;
+            return undefined;
         }
 
         let cancelled = false;
 
         setLoadingMembers(true);
-        fetchSupportHandlerUsers(
-            activeDraft.organizationId,
-            activeDraft.departmentId
+        Promise.all(
+            filterDepartmentIds
+                .map((departmentId) => departmentMap.get(departmentId))
+                .filter(Boolean)
+                .map(async (department) => {
+                    const users = await fetchSupportHandlerUsers(
+                        department.organizationId,
+                        department.departmentId
+                    );
+
+                    return users.map((user) => {
+                        const taggedUser = {
+                            ...user,
+                            organizationId: department.organizationId,
+                            organizationName: department.organizationName,
+                            departmentId: department.departmentId,
+                            departmentName: department.departmentName,
+                        };
+
+                        return {
+                            ...taggedUser,
+                            label: formatHandlerLabel(taggedUser),
+                        };
+                    });
+                })
         )
-            .then((items) => {
+            .then((results) => {
                 if (!cancelled) {
-                    setMemberOptions(items);
+                    // Một người thuộc nhiều phòng ban đã lọc chỉ hiện một lần
+                    setMemberOptions(mergeUserOptions([], results.flat()));
                 }
             })
             .catch((error) => {
@@ -325,12 +457,8 @@ function SupportHandlerSettingsModal({
         return () => {
             cancelled = true;
         };
-    }, [
-        activeDraft?.departmentId,
-        activeDraft?.organizationId,
-        messageApi,
-        open,
-    ]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [departmentIdsKey, departmentMap, messageApi, open]);
 
     const updateActiveDraft = (changes) => {
         if (!activeTypeKey) {
@@ -346,29 +474,28 @@ function SupportHandlerSettingsModal({
         }));
     };
 
-    const handleOrganizationChange = (organizationId) => {
-        updateActiveDraft({
-            organizationId: organizationId || null,
-            departmentId: null,
-            userIds: [],
-            users: [],
-        });
+    const handleOrganizationFilterChange = (organizationIds) => {
+        setFilterOrganizationIds(organizationIds || []);
     };
 
-    const handleDepartmentChange = (departmentId) => {
-        updateActiveDraft({
-            departmentId: departmentId || null,
-            userIds: [],
-            users: [],
-        });
+    const handleDepartmentFilterChange = (departmentIds) => {
+        setFilterDepartmentIds(departmentIds || []);
     };
 
     const handleMembersChange = (userIds) => {
-        const selectedUsers = currentMemberOptions.filter((item) =>
-            userIds.includes(item.userId)
-        );
+        const users = (userIds || [])
+            .map((userId) =>
+                currentMemberOptions.find((item) => item.userId === userId)
+            )
+            .filter(Boolean);
 
-        updateActiveDraft({ userIds, users: selectedUsers });
+        updateActiveDraft({ users });
+    };
+
+    const handleRemoveUser = (userId) => {
+        updateActiveDraft({
+            users: selectedUsers.filter((user) => user.userId !== userId),
+        });
     };
 
     const handleSave = () => {
@@ -382,7 +509,7 @@ function SupportHandlerSettingsModal({
 
             setActiveTypeKey(incompleteDraft.requestTypeKey);
             messageApi.error(
-                `Vui lòng chọn đủ đơn vị, phòng ban và ít nhất một người xử lý cho “${
+                `Vui lòng chọn ít nhất một người xử lý cho “${
                     requestType?.label || incompleteDraft.requestTypeKey
                 }”. Tất cả loại yêu cầu đều bắt buộc có người xử lý.`
             );
@@ -421,7 +548,7 @@ function SupportHandlerSettingsModal({
                 <Alert
                     type="info"
                     showIcon
-                    message="Mỗi loại yêu cầu được gán cho nhiều người thuộc phòng ban đã chọn hoặc các phòng ban cấp dưới. Thay đổi áp dụng cho yêu cầu tạo mới và toàn bộ yêu cầu đang chờ xử lý."
+                    message="Mỗi loại yêu cầu được gán cho nhiều người xử lý, có thể thuộc nhiều đơn vị, phòng ban khác nhau. Thay đổi áp dụng cho yêu cầu tạo mới và toàn bộ yêu cầu đang chờ xử lý."
                     style={{ marginBottom: 16 }}
                 />
 
@@ -477,8 +604,10 @@ function SupportHandlerSettingsModal({
                                             {activeRequestType.label}
                                         </h3>
                                         <p className="heading-description">
-                                            Chọn một đơn vị, một phòng ban và các thành
-                                            viên thuộc phòng ban đó hoặc các phòng ban cấp dưới.
+                                            Chọn đơn vị, phòng ban để lọc danh sách
+                                            thành viên rồi chọn người xử lý. Có thể
+                                            lặp lại với đơn vị, phòng ban khác để
+                                            chọn thêm người.
                                         </p>
                                     </div>
                                     <UsergroupAddOutlined
@@ -487,35 +616,35 @@ function SupportHandlerSettingsModal({
                                 </EditorHeading>
 
                                 <SelectGroup>
-                                    <label className="select-label">
-                                        Đơn vị <span className="required">*</span>
-                                    </label>
+                                    <label className="select-label">Đơn vị</label>
                                     <Select
+                                        mode="multiple"
                                         placeholder="Chọn Đơn vị"
-                                        value={activeDraft.organizationId}
-                                        onChange={handleOrganizationChange}
+                                        value={filterOrganizationIds}
+                                        onChange={handleOrganizationFilterChange}
                                         options={organizationOptions}
                                         loading={loadingOrganizations}
                                         showSearch
                                         allowClear
                                         optionFilterProp="label"
+                                        maxTagCount="responsive"
                                     />
                                 </SelectGroup>
 
                                 <SelectGroup>
-                                    <label className="select-label">
-                                        Phòng ban <span className="required">*</span>
-                                    </label>
+                                    <label className="select-label">Phòng ban</label>
                                     <Select
+                                        mode="multiple"
                                         placeholder="Chọn phòng ban"
-                                        value={activeDraft.departmentId}
-                                        onChange={handleDepartmentChange}
-                                        options={departmentOptions}
-                                        disabled={!activeDraft.organizationId}
+                                        value={filterDepartmentIds}
+                                        onChange={handleDepartmentFilterChange}
+                                        options={departmentGroups}
+                                        disabled={!filterOrganizationIds.length}
                                         loading={loadingDepartments}
                                         showSearch
                                         allowClear
                                         optionFilterProp="label"
+                                        maxTagCount="responsive"
                                     />
                                 </SelectGroup>
 
@@ -525,11 +654,17 @@ function SupportHandlerSettingsModal({
                                     </label>
                                     <Select
                                         mode="multiple"
-                                        placeholder="Chọn người xử lý"
-                                        value={activeDraft.userIds}
+                                        placeholder={
+                                            filterDepartmentIds.length
+                                                ? "Chọn người xử lý"
+                                                : "Chọn đơn vị, phòng ban để hiển thị thành viên"
+                                        }
+                                        value={selectedUsers.map(
+                                            (user) => user.userId
+                                        )}
                                         onChange={handleMembersChange}
                                         options={currentMemberOptions}
-                                        disabled={!activeDraft.departmentId}
+                                        disabled={!currentMemberOptions.length}
                                         loading={loadingMembers}
                                         showSearch
                                         allowClear
@@ -538,6 +673,36 @@ function SupportHandlerSettingsModal({
                                     />
                                 </SelectGroup>
 
+                                <SelectedArea>
+                                    <SelectedAreaHeader>
+                                        Người xử lý đã chọn ({selectedUsers.length})
+                                    </SelectedAreaHeader>
+                                    <SelectedAreaContent>
+                                        {selectedUsers.length === 0 ? (
+                                            <SelectedEmpty>
+                                                Chưa chọn người xử lý nào
+                                            </SelectedEmpty>
+                                        ) : (
+                                            selectedUsers.map((user) => (
+                                                <SelectedRow key={user.userId}>
+                                                    <span>
+                                                        {formatHandlerLabel(user)}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        className="selected-remove"
+                                                        aria-label={`Bỏ chọn ${user.fullName || user.screenName}`}
+                                                        onClick={() =>
+                                                            handleRemoveUser(user.userId)
+                                                        }
+                                                    >
+                                                        <CloseOutlined />
+                                                    </button>
+                                                </SelectedRow>
+                                            ))
+                                        )}
+                                    </SelectedAreaContent>
+                                </SelectedArea>
                             </EditorPanel>
                         ) : null}
                     </SettingsLayout>

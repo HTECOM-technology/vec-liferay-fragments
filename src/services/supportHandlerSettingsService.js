@@ -82,18 +82,31 @@ function buildQuery(params = {}) {
   return queryString ? `?${queryString}` : "";
 }
 
+export function formatHandlerLabel(user) {
+  const name =
+    user?.fullName ||
+    user?.screenName ||
+    user?.emailAddress ||
+    String(user?.userId || "");
+  const unitParts = [user?.organizationName, user?.departmentName].filter(
+    Boolean
+  );
+
+  return unitParts.length ? `${name} (${unitParts.join(" - ")})` : name;
+}
+
 function normalizeUser(user) {
   const userId = Number(user?.userId || 0);
 
   return {
     ...user,
     userId,
+    organizationId: Number(user?.organizationId || 0),
+    organizationName: user?.organizationName || "",
+    departmentId: Number(user?.departmentId || 0),
+    departmentName: user?.departmentName || "",
     value: userId,
-    label:
-      user?.fullName ||
-      user?.screenName ||
-      user?.emailAddress ||
-      String(userId),
+    label: formatHandlerLabel(user),
   };
 }
 
@@ -101,8 +114,6 @@ function normalizeConfiguration(item) {
   return {
     ...item,
     configured: item?.configured === true,
-    organizationId: Number(item?.organizationId || 0),
-    departmentId: Number(item?.departmentId || 0),
     userIds: (item?.userIds || []).map(Number).filter(Boolean),
     users: (item?.users || []).map(normalizeUser),
   };
@@ -156,9 +167,11 @@ export async function saveSupportHandlerConfigurations(items = []) {
       items: items.map((item) => ({
         processKey: item.processKey,
         requestTypeKey: item.requestTypeKey,
-        organizationId: Number(item.organizationId),
-        departmentId: Number(item.departmentId),
-        userIds: (item.userIds || []).map(Number),
+        users: (item.users || []).map((user) => ({
+          userId: Number(user.userId),
+          organizationId: Number(user.organizationId),
+          departmentId: Number(user.departmentId),
+        })),
       })),
     },
   });
