@@ -110,6 +110,7 @@ const LoadMoreWrap = styled.div`
 
 function HrmNotificationsModal({
   open,
+  title,
   notifications,
   loading,
   loadingMore,
@@ -123,7 +124,7 @@ function HrmNotificationsModal({
     <StyledModal
       open={open}
       onCancel={onClose}
-      title="Thông báo về Nhân sự"
+      title={title}
       width={760}
       footer={[
         <Button key="close" onClick={onClose}>

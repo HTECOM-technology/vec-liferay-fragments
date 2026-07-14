@@ -39,6 +39,7 @@ function DocumentSection({ groupId }) {
         setLoading(true);
         try {
             const fetchedDocs = await getDocuments(folderId);
+            console.log("Document data:", fetchedDocs);
             setDocuments(fetchedDocs);
         } catch (error) {
             console.error("Error fetching documents:", error);

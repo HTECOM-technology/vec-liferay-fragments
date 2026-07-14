@@ -27,6 +27,7 @@ const CAMERA_HIGHWAY_CONFIGS = {
   42753: { apiBasePath: '/o/its-hld' },
   44147: { apiBasePath: '/o/its' },
 };
+const DEFAULT_ROUTE_ID = 42753;
 const cameraListCache = new Map();
 
 const DEFAULT_ANALYTICS = {
@@ -209,6 +210,7 @@ function mapApiDataToRouteData(apiItems) {
       id: item.id,
       title: item.name || '',
       location: item.location || '',
+      order: Number(item.order) || 0,
       img: item.image?.link?.href ? `${API_BASE_URL}${item.image.link.href}` : '',
       description: item.description || '',
       intro: item.description || '',
@@ -312,12 +314,13 @@ const GiamSatGiaoThong = () => {
     }
   }, []);
 
+
   useEffect(() => {
     let isMounted = true;
 
     const initializeData = async () => {
       const apiItems = await fetchHighwaysData();
-      const sourceRoutes = mapApiDataToRouteData(apiItems);
+      const sourceRoutes = mapApiDataToRouteData(apiItems).sort((a, b) => a.order - b.order);
 
       const routesWithTolls = await Promise.all(
         sourceRoutes.map(async (route) => ({
@@ -334,7 +337,11 @@ const GiamSatGiaoThong = () => {
       setRoutes(routesWithTolls);
 
       if (routesWithTolls.length > 0) {
-        await loadDataForRoute(routesWithTolls[0].id, routesWithTolls);
+        const preferredRoute = routesWithTolls.find(
+          (route) => Number(route.id) === DEFAULT_ROUTE_ID)
+        ;
+        const defaultRoute = preferredRoute || routesWithTolls[0];
+        await loadDataForRoute(defaultRoute.id, routesWithTolls);
       } else {
         setSelectedRoute(null);
         setSelectedRouteFilter('');

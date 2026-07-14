@@ -113,11 +113,9 @@ export const ttnsService = {
   },
 
   async markNotificationRead({ code, userId } = {}) {
-    const response = await ttnsApiClient.post("/api/notifications/mark-read", null, {
-      params: {
-        code,
-        user_id: userId,
-      },
+    const response = await ttnsApiClient.post("/api/notifications/mark-read", {
+      code,
+      user_id: userId,
     });
 
     return response.data;

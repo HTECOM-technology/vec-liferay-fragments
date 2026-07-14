@@ -1,6 +1,6 @@
 import React from "react";
 import { Form, Input, Row, Col } from "antd";
-import { CInput, CSelect, CDatePicker, CButton, CModal } from "../../../../components/common";
+import { CInput, CSelect, CDatePicker , CButton, CModal } from "../../../../components/common";
 import styled from "styled-components";
 import dayjs from "dayjs";
 import { HOST_OPTIONS, NOTIFICATION_OPTIONS } from "./constants";
@@ -180,8 +180,24 @@ function AddEventModal({ visible, onClose, onSubmit }) {
               <Form.Item
                 name="gio"
                 label="Chọn giờ"
+                dependencies={["ngay"]}
+                rules={[
+                  { required: true, message: "Vui lòng chọn giờ" },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value) return Promise.resolve();
+                      const ngay = getFieldValue("ngay");
+                      if (!ngay) return Promise.resolve();
+                      const isSelectedToday = dayjs(ngay).isSame(dayjs(), "day");
+                      if (isSelectedToday && dayjs(value).isBefore(dayjs())) {
+                        return Promise.reject(new Error("Giờ chọn đã qua, vui lòng chọn lại"));
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
+                ]}
               >
-                <CInput placeholder="08:00 AM" />
+                <CDatePicker picker="time" format="HH:mm" placeholder="Chọn giờ" />
               </Form.Item>
             </Col>
           </Row>
@@ -190,7 +206,7 @@ function AddEventModal({ visible, onClose, onSubmit }) {
             <Col span={24}>
               <Form.Item
                 name="danhSachThongBao"
-                label="Đánh sách thông báo"
+                label="Danh sách thông báo"
               >
                 <CSelect
                   placeholder="Chọn danh sách thông báo"
@@ -219,10 +235,10 @@ function AddEventModal({ visible, onClose, onSubmit }) {
 
         <ModalFooter>
           <CButton onClick={handleCancel}>
-            Hủy tao
+            Hủy tạo
           </CButton>
           <CButton type="primary" onClick={handleSubmit}>
-            Tao sự kiện
+            Tạo sự kiện
           </CButton>
         </ModalFooter>
       </ModalContent>

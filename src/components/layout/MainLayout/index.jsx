@@ -73,6 +73,8 @@ function MainLayout() {
   const [mobileNotifyPopoverOpen, setMobileNotifyPopoverOpen] = useState(false);
   const [hrmNotificationCount, setHrmNotificationCount] = useState(0);
   const [hrmModalOpen, setHrmModalOpen] = useState(false);
+  const [congViecModalOpen, setCongViecModalOpen] = useState(false);
+  const [thongBaoMoiModalOpen, setThongBaoMoiModalOpen] = useState(false);
   const [hrmNotifications, setHrmNotifications] = useState([]);
   const [hrmNotificationsTotal, setHrmNotificationsTotal] = useState(0);
   const [hrmNotificationsPage, setHrmNotificationsPage] = useState(1);
@@ -227,6 +229,24 @@ function MainLayout() {
     setHrmModalOpen(false);
   }, []);
 
+  const handleOpenCongViecModal = useCallback(() => {
+    setNotifyPopoverOpen(false);
+    setCongViecModalOpen(true);
+  }, []);
+
+  const handleCloseCongViecModal = useCallback(() => {
+    setCongViecModalOpen(false);
+  }, []);
+
+  const handleOpenThongBaoMoiModal = useCallback(() => {
+    setNotifyPopoverOpen(false);
+    setThongBaoMoiModalOpen(true);
+  }, []);
+
+  const handleCloseThongBaoMoiModal = useCallback(() => {
+    setThongBaoMoiModalOpen(false);
+  }, []);
+
   const handleLoadMoreHrmNotifications = useCallback(() => {
     if (!hasMoreHrmNotifications || hrmNotificationsLoadingMore) {
       return;
@@ -363,7 +383,7 @@ function MainLayout() {
                   <TitlePopover>Thông báo</TitlePopover>
                   <hr style={{ marginBottom: "10px" }} />
                   {notifications.map((item, index) => (
-                    <TitleNotiWrapper key={index} onClick={item.key === "hrm" ? handleOpenHrmModal : undefined}>
+                    <TitleNotiWrapper key={index} onClick={item.key === "hrm" ? handleOpenHrmModal : item.key === "work" ? handleOpenCongViecModal : item.key === "general" ? handleOpenThongBaoMoiModal : undefined}>
                       <TitleNoti>{item.title}</TitleNoti>
                       <div className="count-number">
                         <QuantityNoti>{item.count}</QuantityNoti>
@@ -478,7 +498,7 @@ function MainLayout() {
                     <TitlePopover>Thông báo</TitlePopover>
                     <hr style={{ marginBottom: "10px" }} />
                     {notifications.map((item, index) => (
-                      <TitleNotiWrapper key={index} onClick={item.key === "hrm" ? handleOpenHrmModal : undefined}>
+                      <TitleNotiWrapper key={index} onClick={item.key === "hrm" ? handleOpenHrmModal : item.key === "work" ? handleOpenCongViecModal : item.key === "general" ? handleOpenThongBaoMoiModal : undefined}>
                         <TitleNoti>{item.title}</TitleNoti>
                         <div className="count-number">
                           <QuantityNoti>{item.count}</QuantityNoti>
@@ -549,6 +569,7 @@ function MainLayout() {
       </StyledBottomSheet>
       <HrmNotificationsModal
         open={hrmModalOpen}
+        title="Thông báo về Nhân sự"
         notifications={hrmNotifications}
         loading={hrmNotificationsLoading}
         loadingMore={hrmNotificationsLoadingMore}
@@ -557,6 +578,32 @@ function MainLayout() {
         onClose={handleCloseHrmModal}
         onToggleRead={handleToggleHrmNotificationRead}
         togglingCode={hrmTogglingCode}
+      />
+
+      <HrmNotificationsModal
+        open={congViecModalOpen}
+        title="Thông báo về Công việc"
+        notifications={[]}
+        loading={false}
+        loadingMore={false}
+        hasMore={false}
+        onLoadMore={() => {}}
+        onClose={handleCloseCongViecModal}
+        onToggleRead={() => {}}
+        togglingCode={null}
+      />
+
+      <HrmNotificationsModal
+        open={thongBaoMoiModalOpen}
+        title="Thông báo mới"
+        notifications={[]}
+        loading={false}
+        loadingMore={false}
+        hasMore={false}
+        onLoadMore={() => {}}
+        onClose={handleCloseThongBaoMoiModal}
+        onToggleRead={() => {}}
+        togglingCode={null}
       />
 
       {searchOpen && (
