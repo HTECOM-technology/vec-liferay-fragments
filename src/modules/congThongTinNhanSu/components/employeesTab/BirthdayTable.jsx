@@ -23,6 +23,8 @@ const MONTH_OPTIONS = [
     { value: 12, label: "Tháng 12" },
 ];
 
+const VISIBLE_WORK_STATUSES = ["LV", "CTV", "TV"];
+
 function BirthdayTable({
     data,
     loading,
@@ -30,6 +32,9 @@ function BirthdayTable({
     onMonthChange,
     onEmployeeClick,
 }) {
+    const filteredData = data.filter((item) =>
+        VISIBLE_WORK_STATUSES.includes(item.tinhTrangValue)
+    );
     const columns = [
         {
             title: "STT",
@@ -86,7 +91,7 @@ function BirthdayTable({
     return (
         <>
             <BirthdayHeaderRow>
-                <BirthdayTitle>Danh sách sinh nhật ({data.length})</BirthdayTitle>
+                <BirthdayTitle>Danh sách sinh nhật ({filteredData.length})</BirthdayTitle>
                 <BirthdayFilterSelect>
                     <Select
                         value={selectedMonth}
@@ -100,7 +105,7 @@ function BirthdayTable({
             <BirthdayTableContainer>
                 <Table
                     columns={columns}
-                    dataSource={data}
+                    dataSource={filteredData}
                     loading={loading}
                     pagination={false}
                     rowKey="maNV"
@@ -122,7 +127,6 @@ BirthdayTable.propTypes = {
 BirthdayTable.defaultProps = {
     data: [],
     loading: false,
-    selectedMonth: 1,
     onMonthChange: () => { },
     onEmployeeClick: () => { },
 };

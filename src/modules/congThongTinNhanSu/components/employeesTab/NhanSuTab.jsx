@@ -149,7 +149,7 @@ function NhanSuTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [activeTag, setActiveTag] = useState("organization");
-  const [selectedMonth, setSelectedMonth] = useState(1);
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().month() + 1);
   const [appliedSearch, setAppliedSearch] = useState("");
   const [filters, setFilters] = useState({
     search: "",
