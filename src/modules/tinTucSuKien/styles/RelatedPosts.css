@@ -40,6 +40,7 @@
 
 .related-card {
     cursor: pointer;
+    box-sizing: border-box;
 }
 
 .related-card-image {
@@ -120,7 +121,7 @@
     }
 
     .related-card {
-        min-width: calc((100% - 16px * 5) / 6);
+        flex: 0 0 calc((100% - 16px * 5) / 6);
         scroll-snap-align: start;
     }
 
@@ -137,7 +138,7 @@
     }
 
     .related-card {
-        min-width: calc((100% - 14px * 3) / 4);
+        flex-basis: calc((100% - 14px * 3) / 4);
     }
 
 }
@@ -149,7 +150,7 @@
     }
 
     .related-card {
-        min-width: calc((100% - 12px * 2) / 3);
+        flex-basis: calc((100% - 12px * 2) / 3);
     }
 
     .related-card-image {
@@ -165,7 +166,7 @@
     }
 
     .related-card {
-        min-width: calc((100% - 10px * 1) / 2);
+        flex-basis: calc((100% - 10px * 1) / 2);
     }
 
 }
