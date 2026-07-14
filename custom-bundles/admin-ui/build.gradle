@@ -24,6 +24,12 @@ def osgiMetatypeAnnotationsFiles = files(
     fileTree(dir: "${liferayHome}/osgi/static", include: "org.osgi.service.metatype.annotations*.jar"),
     fileTree(dir: "${liferayHome}/tools/sdk/dist", include: "org.osgi.service.metatype.annotations*.jar")
 )
+def mailApiIncludes = ["mail*.jar", "jakarta.mail*.jar", "javax.mail*.jar", "com.sun.mail*.jar"]
+def mailApiFiles = files(
+    fileTree(dir: "${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib", include: mailApiIncludes),
+    fileTree(dir: "${liferayHome}/tomcat/webapps/ROOT/WEB-INF/lib", include: mailApiIncludes),
+    fileTree(dir: "${liferayHome}/tomcat/lib", include: mailApiIncludes)
+)
 
 repositories {
     maven {
@@ -55,6 +61,12 @@ dependencies {
     }
     else {
         compileOnly osgiMetatypeAnnotationsFiles
+    }
+    if (mailApiFiles.files.empty) {
+        compileOnly group: "com.sun.mail", name: "jakarta.mail", version: "1.6.7"
+    }
+    else {
+        compileOnly mailApiFiles
     }
     compileOnly fileTree(dir: "${liferayHome}/osgi/modules", include: "com.liferay.portal.editor.configuration.api*.jar")
     compileOnly fileTree(

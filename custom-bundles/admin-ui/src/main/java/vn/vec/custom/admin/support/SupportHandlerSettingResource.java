@@ -260,15 +260,20 @@ public class SupportHandlerSettingResource {
 
 			PreparedStatement ps = con.prepareStatement(
 				"SELECT DISTINCT u.userId, u.screenName, u.emailAddress, " +
-				"u.firstName, u.middleName, u.lastName FROM User_ u " +
-				"INNER JOIN Users_Orgs uo ON u.userId = uo.userId " +
-				"WHERE u.companyId = ? AND u.status = 0 " +
-				"AND uo.organizationId = ? " +
-				"ORDER BY u.lastName ASC, u.firstName ASC");
+					"u.firstName, u.middleName, u.lastName FROM User_ u " +
+					"INNER JOIN Users_Orgs uo ON u.userId = uo.userId " +
+					"INNER JOIN Organization_ memberOrganization ON " +
+					"uo.organizationId = memberOrganization.organizationId " +
+					"WHERE u.companyId = ? AND memberOrganization.companyId = ? " +
+					"AND u.status = 0 AND (memberOrganization.organizationId = ? " +
+					"OR memberOrganization.treePath LIKE ?) " +
+					"ORDER BY u.lastName ASC, u.firstName ASC");
 
 			try {
 				ps.setLong(1, user.getCompanyId());
-				ps.setLong(2, departmentId);
+				ps.setLong(2, user.getCompanyId());
+				ps.setLong(3, departmentId);
+				ps.setString(4, "%/" + departmentId + "/%");
 
 				ResultSet rs = ps.executeQuery();
 				JSONArray items = JSONFactoryUtil.createJSONArray();
@@ -530,7 +535,8 @@ public class SupportHandlerSettingResource {
 						con, companyId, departmentId, userId)) {
 
 					throw new IllegalArgumentException(
-						"Người xử lý không thuộc phòng ban đã chọn: " + userId);
+						"Người xử lý không thuộc phòng ban đã chọn hoặc " +
+							"các phòng ban cấp dưới: " + userId);
 				}
 			}
 
@@ -755,14 +761,21 @@ public class SupportHandlerSettingResource {
 		throws Exception {
 
 		PreparedStatement ps = con.prepareStatement(
-			"SELECT COUNT(*) FROM User_ u INNER JOIN Users_Orgs uo " +
-			"ON u.userId = uo.userId WHERE u.companyId = ? AND u.status = 0 " +
-			"AND u.userId = ? AND uo.organizationId = ?");
+			"SELECT COUNT(DISTINCT u.userId) FROM User_ u " +
+				"INNER JOIN Users_Orgs uo ON u.userId = uo.userId " +
+				"INNER JOIN Organization_ memberOrganization ON " +
+				"uo.organizationId = memberOrganization.organizationId " +
+				"WHERE u.companyId = ? AND memberOrganization.companyId = ? " +
+				"AND u.status = 0 AND u.userId = ? " +
+				"AND (memberOrganization.organizationId = ? " +
+				"OR memberOrganization.treePath LIKE ?)");
 
 		try {
 			ps.setLong(1, companyId);
-			ps.setLong(2, userId);
-			ps.setLong(3, departmentId);
+			ps.setLong(2, companyId);
+			ps.setLong(3, userId);
+			ps.setLong(4, departmentId);
+			ps.setString(5, "%/" + departmentId + "/%");
 
 			ResultSet rs = ps.executeQuery();
 

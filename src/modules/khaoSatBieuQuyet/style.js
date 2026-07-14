@@ -275,6 +275,7 @@ export const CardFooter = styled.div`
     border-top: 1px solid rgba(229, 231, 235, 1);
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 8px;
 `;
 
@@ -308,6 +309,22 @@ export const DeleteButton = styled(VoteButton)`
     &:hover:not(:disabled) {
         background: rgba(254, 242, 242, 1);
     }
+`;
+
+export const EndButton = styled(VoteButton)`
+    background: #fff;
+    color: rgba(217, 119, 6, 1);
+    border-color: rgba(253, 230, 138, 1);
+
+    &:hover:not(:disabled) {
+        background: rgba(255, 251, 235, 1);
+    }
+`;
+
+export const ResultsButton = styled(VoteButton)`
+    background: #fff;
+    color: rgba(0, 144, 207, 1);
+    border-color: rgba(0, 144, 207, 0.2);
 `;
 
 export const StatusBadge = styled.span`

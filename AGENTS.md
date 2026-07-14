@@ -125,7 +125,10 @@ Các nhóm chức năng lớn trong `custom-bundles/admin-ui`:
 - `support`: API cấu hình người xử lý và lưu/truy xuất yêu cầu hỗ trợ theo
   `companyId`; script schema là `sql/support-handler-settings.sql`. Chỉ người
   xử lý được chỉ định hoặc user `admin` được đổi trạng thái. Khi lưu cấu hình,
-  người xử lý của các yêu cầu `cho-xu-ly` được đồng bộ theo cấu hình mới.
+  người xử lý của các yêu cầu `cho-xu-ly` được đồng bộ theo cấu hình mới. Người
+  xử lý có thể thuộc phòng ban được chọn hoặc bất kỳ phòng ban cấp dưới nào.
+  Khi tạo yêu cầu, hệ thống gửi mail cho các người xử lý và CC người tạo; lỗi
+  gửi mail chỉ được ghi log, không rollback yêu cầu đã tạo.
 - `ckeditor`: custom cấu hình CKEditor.
 - `dashboard/layout`: API layout dashboard.
 - `webhook`: webhook và conversation resource.

@@ -13,6 +13,8 @@ import {
     VoteButton,
     EditButton,
     DeleteButton,
+    EndButton,
+    ResultsButton,
 } from "../style";
 import { SURVEY_STATUS } from "./constants";
 import IconTrash1 from "@/assets/icon/Trash1";
@@ -49,11 +51,12 @@ const SurveyIcon = () => (
     </svg>
 );
 
-function SurveyCard({ data, onVote, onEdit, onDelete, showOwnerActions }) {
+function SurveyCard({ data, onVote, onEdit, onDelete, onEnd, onViewResults }) {
     const isOpen = data.status === SURVEY_STATUS.OPEN;
     const totalVotes = data.totalVotes || 0;
-    const canEdit = showOwnerActions && data.isOwner && totalVotes === 0;
-    const canDelete = canEdit;
+    const canManage = Boolean(data.canManage || data.isOwner);
+    const canEdit = canManage && totalVotes === 0;
+    const canDelete = canManage;
 
     const getPercentage = (votes) => {
         if (totalVotes === 0) return 0;
@@ -95,6 +98,16 @@ function SurveyCard({ data, onVote, onEdit, onDelete, showOwnerActions }) {
                         <IconTrash1 />
                     </DeleteButton>
                 )}
+                {canManage && isOpen && (
+                    <EndButton onClick={() => onEnd && onEnd(data)}>
+                        Kết thúc
+                    </EndButton>
+                )}
+                {canManage && (
+                    <ResultsButton onClick={() => onViewResults && onViewResults(data)}>
+                        Kết quả
+                    </ResultsButton>
+                )}
                 {isOpen ? (
                     <VoteButton onClick={() => onVote && onVote(data)}>
                         Bình chọn
@@ -123,19 +136,22 @@ SurveyCard.propTypes = {
         ).isRequired,
         totalVotes: PropTypes.number,
         isOwner: PropTypes.bool,
+        canManage: PropTypes.bool,
         voteDisabledText: PropTypes.string,
     }).isRequired,
     onVote: PropTypes.func,
     onEdit: PropTypes.func,
     onDelete: PropTypes.func,
-    showOwnerActions: PropTypes.bool,
+    onEnd: PropTypes.func,
+    onViewResults: PropTypes.func,
 };
 
 SurveyCard.defaultProps = {
     onVote: () => { },
     onEdit: () => { },
     onDelete: () => { },
-    showOwnerActions: false,
+    onEnd: () => { },
+    onViewResults: () => { },
 };
 
 export default SurveyCard;

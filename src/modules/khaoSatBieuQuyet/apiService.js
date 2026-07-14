@@ -41,6 +41,16 @@ class KhaoSatBieuQuyetApiService {
     });
   }
 
+  async endSurvey(surveyId) {
+    return this.request(`/surveys/${encodeURIComponent(surveyId)}/end`, {
+      method: "POST"
+    });
+  }
+
+  async getSurveyResults(surveyId) {
+    return this.request(`/surveys/${encodeURIComponent(surveyId)}/results`);
+  }
+
   async vote(surveyId, optionIds) {
     const payload = Array.isArray(optionIds) ? { optionIds } : optionIds;
 

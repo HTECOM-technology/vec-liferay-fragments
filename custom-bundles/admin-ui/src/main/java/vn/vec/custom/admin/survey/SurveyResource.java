@@ -1,22 +1,44 @@
 package vn.vec.custom.admin.survey;
 
+import com.liferay.mail.kernel.model.MailMessage;
+import com.liferay.mail.kernel.service.MailServiceUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+
+import java.nio.charset.StandardCharsets;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.mail.internet.InternetAddress;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -78,12 +100,12 @@ public class SurveyResource {
 
 		if ("active".equals(normalizedState)) {
 			where += "AND s.status = 'ACTIVE' " +
-				"AND (s.startDate IS NULL OR s.startDate <= NOW(6)) " +
-				"AND (s.endDate IS NULL OR s.endDate >= NOW(6)) ";
+				"AND (s.startDate IS NULL OR s.startDate <= ?) " +
+				"AND (s.endDate IS NULL OR s.endDate >= ?) ";
 		}
 		else if ("expired".equals(normalizedState)) {
 			where += "AND (s.status != 'ACTIVE' " +
-				"OR (s.endDate IS NOT NULL AND s.endDate < NOW(6))) ";
+				"OR (s.endDate IS NOT NULL AND s.endDate < ?)) ";
 		}
 
 		if ("my_surveys".equals(normalizedFilter)) {
@@ -117,10 +139,11 @@ public class SurveyResource {
 					con, request, userId, normalizedFilter, normalizedState, order,
 					status, search, page, pageSize);
 
-				String databaseNow = _getDatabaseNowString(con);
+				String databaseNow = _vnNow();
+				boolean isAdmin = _isAdminUser(userId);
 				int total = _countSurveys(
 					con, where, search, status, hasSearch, hasStatus,
-					normalizedFilter, userId);
+					normalizedState, databaseNow, normalizedFilter, userId);
 				JSONArray items = JSONFactoryUtil.createJSONArray();
 				PreparedStatement ps = con.prepareStatement(
 					"SELECT s.* FROM VEC_InternalSurvey s " + where +
@@ -129,7 +152,7 @@ public class SurveyResource {
 				try {
 					int idx = _bindSurveyFilters(
 						ps, search, status, hasSearch, hasStatus,
-						normalizedFilter, userId);
+						normalizedState, databaseNow, normalizedFilter, userId);
 					ps.setInt(idx++, pageSize);
 					ps.setInt(idx, (page - 1) * pageSize);
 
@@ -137,7 +160,9 @@ public class SurveyResource {
 
 					try {
 						while (rs.next()) {
-							items.put(_toSurveyJson(con, rs, userId, databaseNow));
+							items.put(
+								_toSurveyJson(
+									con, rs, userId, isAdmin, databaseNow));
 						}
 					}
 					finally {
@@ -194,7 +219,8 @@ public class SurveyResource {
 			Connection con = DataAccess.getConnection();
 
 			try {
-				String databaseNow = _getDatabaseNowString(con);
+				String databaseNow = _vnNow();
+				boolean isAdmin = _isAdminUser(userId);
 				PreparedStatement ps = con.prepareStatement(
 					"SELECT * FROM VEC_InternalSurvey WHERE surveyId = ? AND status != 'DELETED'");
 
@@ -208,7 +234,8 @@ public class SurveyResource {
 							return _notFound("Survey not found");
 						}
 
-						return _ok(_toSurveyJson(con, rs, userId, databaseNow));
+						return _ok(
+							_toSurveyJson(con, rs, userId, isAdmin, databaseNow));
 					}
 					finally {
 						DataAccess.cleanUp(rs);
@@ -268,6 +295,8 @@ public class SurveyResource {
 
 				con.commit();
 
+				_sendSurveyInvitationEmails(con, surveyId, userId, title, payload);
+
 				JSONObject result = JSONFactoryUtil.createJSONObject();
 
 				result.put("surveyId", surveyId);
@@ -326,7 +355,7 @@ public class SurveyResource {
 					return _notFound("Survey not found");
 				}
 
-				if (!_isSurveyOwner(con, surveyId, userId)) {
+				if (!_canManageSurvey(con, surveyId, userId)) {
 					return _forbidden("Bạn không có quyền chỉnh sửa cuộc bình chọn này.");
 				}
 
@@ -384,12 +413,8 @@ public class SurveyResource {
 					return _notFound("Survey not found");
 				}
 
-				if (!_isSurveyOwner(con, surveyId, userId)) {
+				if (!_canManageSurvey(con, surveyId, userId)) {
 					return _forbidden("Bạn không có quyền xóa cuộc bình chọn này.");
-				}
-
-				if (_hasAnyVote(con, surveyId)) {
-					return _badRequest("Không thể xóa cuộc bình chọn đã có người tham gia.");
 				}
 
 				PreparedStatement ps = con.prepareStatement(
@@ -397,7 +422,7 @@ public class SurveyResource {
 					"WHERE surveyId = ?");
 
 				try {
-					ps.setTimestamp(1, _now());
+					ps.setString(1, _vnNow());
 					ps.setLong(2, surveyId);
 
 					if (ps.executeUpdate() == 0) {
@@ -420,6 +445,128 @@ public class SurveyResource {
 		}
 		catch (Exception e) {
 			_log.error("Error deleting survey " + surveyId + ": " + e.getMessage(), e);
+
+			return _serverError();
+		}
+	}
+
+	@POST
+	@Path("/surveys/{surveyId}/end")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response endSurvey(
+		@Context HttpServletRequest request,
+		@PathParam("surveyId") long surveyId) {
+
+		long userId = _getSignedInUserId(request);
+
+		if (userId <= 0) {
+			return _unauthorized();
+		}
+
+		try {
+			Connection con = DataAccess.getConnection();
+
+			try {
+				JSONObject survey = _getSurveyConfig(con, surveyId);
+
+				if (survey == null) {
+					return _notFound("Survey not found");
+				}
+
+				if (!_canManageSurvey(con, surveyId, userId)) {
+					return _forbidden("Bạn không có quyền kết thúc cuộc bình chọn này.");
+				}
+
+				if (!"ACTIVE".equalsIgnoreCase(survey.getString("status"))) {
+					return _badRequest("Cuộc bình chọn đã kết thúc trước đó.");
+				}
+
+				PreparedStatement ps = con.prepareStatement(
+					"UPDATE VEC_InternalSurvey SET status = 'ENDED', modifiedDate = ? " +
+					"WHERE surveyId = ?");
+
+				try {
+					ps.setString(1, _vnNow());
+					ps.setLong(2, surveyId);
+					ps.executeUpdate();
+				}
+				finally {
+					DataAccess.cleanUp(ps);
+				}
+
+				JSONObject result = JSONFactoryUtil.createJSONObject();
+
+				result.put("ended", true);
+
+				return _ok(result);
+			}
+			finally {
+				DataAccess.cleanUp(con);
+			}
+		}
+		catch (Exception e) {
+			_log.error("Error ending survey " + surveyId + ": " + e.getMessage(), e);
+
+			return _serverError();
+		}
+	}
+
+	@GET
+	@Path("/surveys/{surveyId}/results")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getSurveyResults(
+		@Context HttpServletRequest request,
+		@PathParam("surveyId") long surveyId) {
+
+		long userId = _getSignedInUserId(request);
+
+		if (userId <= 0) {
+			return _unauthorized();
+		}
+
+		try {
+			Connection con = DataAccess.getConnection();
+
+			try {
+				if (!_surveyExists(con, surveyId)) {
+					return _notFound("Survey not found");
+				}
+
+				if (!_canManageSurvey(con, surveyId, userId)) {
+					return _forbidden("Bạn không có quyền xem kết quả cuộc bình chọn này.");
+				}
+
+				JSONArray options = _getOptions(con, surveyId);
+				Map<Long, JSONArray> votersByOption = _getVotersByOption(
+					con, surveyId);
+
+				for (int i = 0; i < options.length(); i++) {
+					JSONObject option = options.getJSONObject(i);
+					JSONArray voters = votersByOption.get(
+						option.getLong("optionId"));
+
+					option.put(
+						"voters",
+						voters != null ? voters :
+							JSONFactoryUtil.createJSONArray());
+				}
+
+				JSONObject result = JSONFactoryUtil.createJSONObject();
+
+				result.put("surveyId", surveyId);
+				result.put("options", options);
+
+				return _ok(result);
+			}
+			finally {
+				DataAccess.cleanUp(con);
+			}
+		}
+		catch (Exception e) {
+			_log.error(
+				"Error getting survey results " + surveyId + ": " +
+					e.getMessage(),
+				e);
 
 			return _serverError();
 		}
@@ -463,7 +610,7 @@ public class SurveyResource {
 				}
 
 				if (!_canParticipate(con, surveyId, userId) &&
-					!_isSurveyOwner(con, surveyId, userId)) {
+					!_canManageSurvey(con, surveyId, userId)) {
 
 					return _forbidden("Bạn không nằm trong danh sách người tham gia bình chọn này.");
 				}
@@ -681,7 +828,8 @@ public class SurveyResource {
 
 	private int _bindSurveyFilters(
 			PreparedStatement ps, String search, String status,
-			boolean hasSearch, boolean hasStatus, String filter, long userId)
+			boolean hasSearch, boolean hasStatus, String state, String now,
+			String filter, long userId)
 		throws Exception {
 
 		int idx = 1;
@@ -692,6 +840,14 @@ public class SurveyResource {
 
 		if (hasStatus) {
 			ps.setString(idx++, status.trim());
+		}
+
+		if ("active".equals(state)) {
+			ps.setString(idx++, now);
+			ps.setString(idx++, now);
+		}
+		else if ("expired".equals(state)) {
+			ps.setString(idx++, now);
 		}
 
 		if ("my_surveys".equals(filter)) {
@@ -848,7 +1004,8 @@ public class SurveyResource {
 
 	private int _countSurveys(
 			Connection con, String where, String search, String status,
-			boolean hasSearch, boolean hasStatus, String filter, long userId)
+			boolean hasSearch, boolean hasStatus, String state, String now,
+			String filter, long userId)
 		throws Exception {
 
 		PreparedStatement ps = con.prepareStatement(
@@ -856,7 +1013,8 @@ public class SurveyResource {
 
 		try {
 			_bindSurveyFilters(
-				ps, search, status, hasSearch, hasStatus, filter, userId);
+				ps, search, status, hasSearch, hasStatus, state, now, filter,
+				userId);
 
 			ResultSet rs = ps.executeQuery();
 
@@ -912,7 +1070,7 @@ public class SurveyResource {
 				survey.put("status", rs.getString("status"));
 				survey.put("startDate", _formatDateTimeString(rs.getString("startDate")));
 				survey.put("endDate", _formatDateTimeString(rs.getString("endDate")));
-				survey.put("databaseNow", _getDatabaseNowString(con));
+				survey.put("databaseNow", _vnNow());
 
 				return survey;
 			}
@@ -1040,10 +1198,6 @@ public class SurveyResource {
 	}
 
 	private String _getUnavailableVoteReason(JSONObject survey) {
-		if (!"ACTIVE".equalsIgnoreCase(survey.getString("status"))) {
-			return "Cuộc bình chọn không còn hoạt động.";
-		}
-
 		return _getUnavailableVoteReason(
 			survey.getString("status"), survey.getString("startDate"),
 			survey.getString("endDate"), survey.getString("databaseNow"));
@@ -1062,7 +1216,7 @@ public class SurveyResource {
 
 		try {
 			UserContext userContext = _getUserContext(con, userId);
-			Timestamp now = _now();
+			String now = _vnNow();
 
 			ps.setLong(1, payload.getLong("companyId"));
 			ps.setLong(2, payload.getLong("groupId"));
@@ -1072,10 +1226,10 @@ public class SurveyResource {
 			ps.setString(6, payload.getString("description", ""));
 			ps.setBoolean(7, payload.getBoolean("multipleChoice"));
 			ps.setString(8, payload.getString("status", "ACTIVE"));
-			ps.setTimestamp(9, _parseTimestamp(payload.getString("startDate")));
-			ps.setTimestamp(10, _parseTimestamp(payload.getString("endDate")));
-			ps.setTimestamp(11, now);
-			ps.setTimestamp(12, now);
+			_setDateTime(ps, 9, _normalizeDateTime(payload.getString("startDate")));
+			_setDateTime(ps, 10, _normalizeDateTime(payload.getString("endDate")));
+			ps.setString(11, now);
+			ps.setString(12, now);
 			ps.executeUpdate();
 
 			ResultSet rs = ps.getGeneratedKeys();
@@ -1112,7 +1266,7 @@ public class SurveyResource {
 			ps.setString(4, userContext.userName);
 			ps.setLong(5, userContext.organizationId);
 			ps.setLong(6, userContext.departmentId);
-			ps.setTimestamp(7, _now());
+			ps.setString(7, _vnNow());
 			ps.executeUpdate();
 		}
 		finally {
@@ -1144,7 +1298,7 @@ public class SurveyResource {
 		}
 	}
 
-	private Timestamp _parseTimestamp(String value) {
+	private String _normalizeDateTime(String value) {
 		if (value == null || value.trim().isEmpty()) {
 			return null;
 		}
@@ -1159,7 +1313,18 @@ public class SurveyResource {
 			normalized = normalized.substring(0, 19);
 		}
 
-		return Timestamp.valueOf(normalized);
+		return normalized;
+	}
+
+	private void _setDateTime(PreparedStatement ps, int index, String value)
+		throws Exception {
+
+		if (value == null || value.isEmpty()) {
+			ps.setNull(index, Types.TIMESTAMP);
+		}
+		else {
+			ps.setString(index, value);
+		}
 	}
 
 	private void _replaceOptions(Connection con, long surveyId, JSONArray options)
@@ -1208,13 +1373,13 @@ public class SurveyResource {
 					continue;
 				}
 
-				Timestamp now = _now();
+				String now = _vnNow();
 
 				insertPs.setLong(1, surveyId);
 				insertPs.setString(2, optionText);
 				insertPs.setInt(3, i);
-				insertPs.setTimestamp(4, now);
-				insertPs.setTimestamp(5, now);
+				insertPs.setString(4, now);
+				insertPs.setString(5, now);
 				insertPs.addBatch();
 			}
 
@@ -1270,7 +1435,7 @@ public class SurveyResource {
 			ps.setLong(3, organizationId);
 			ps.setLong(4, departmentId);
 			ps.setLong(5, userId);
-			ps.setTimestamp(6, _now());
+			ps.setString(6, _vnNow());
 			ps.executeUpdate();
 		}
 		finally {
@@ -1315,9 +1480,9 @@ public class SurveyResource {
 			ps.setString(2, payload.getString("description", ""));
 			ps.setBoolean(3, payload.getBoolean("multipleChoice"));
 			ps.setString(4, payload.getString("status", "ACTIVE"));
-			ps.setTimestamp(5, _parseTimestamp(payload.getString("startDate")));
-			ps.setTimestamp(6, _parseTimestamp(payload.getString("endDate")));
-			ps.setTimestamp(7, _now());
+			_setDateTime(ps, 5, _normalizeDateTime(payload.getString("startDate")));
+			_setDateTime(ps, 6, _normalizeDateTime(payload.getString("endDate")));
+			ps.setString(7, _vnNow());
 			ps.setLong(8, surveyId);
 			ps.executeUpdate();
 		}
@@ -1348,7 +1513,8 @@ public class SurveyResource {
 	}
 
 	private JSONObject _toSurveyJson(
-			Connection con, ResultSet rs, long userId, String databaseNow)
+			Connection con, ResultSet rs, long userId, boolean isAdmin,
+			String databaseNow)
 		throws Exception {
 
 		long surveyId = rs.getLong("surveyId");
@@ -1378,10 +1544,13 @@ public class SurveyResource {
 		item.put("participants", _getParticipants(con, surveyId));
 		item.put("hasVoted", _hasVoted(con, surveyId, userId));
 		item.put("votedOptions", _getVotedOptions(con, surveyId, userId));
+
+		boolean isOwner = rs.getLong("userId") == userId;
+
 		item.put(
 			"canParticipate",
-			_canParticipate(con, surveyId, userId) ||
-				_isSurveyOwner(con, surveyId, userId));
+			isAdmin || isOwner || _canParticipate(con, surveyId, userId));
+		item.put("canManage", isAdmin || isOwner);
 
 		return item;
 	}
@@ -1520,6 +1689,10 @@ public class SurveyResource {
 	private String _getUnavailableVoteReason(
 		String status, String startDate, String endDate, String databaseNow) {
 
+		if ("ENDED".equalsIgnoreCase(status)) {
+			return "Cuộc bình chọn đã kết thúc.";
+		}
+
 		if (!"ACTIVE".equalsIgnoreCase(status)) {
 			return "Cuộc bình chọn không còn hoạt động.";
 		}
@@ -1568,28 +1741,6 @@ public class SurveyResource {
 		return sdf.format(timestamp);
 	}
 
-	private String _getDatabaseNowString(Connection con) throws Exception {
-		PreparedStatement ps = con.prepareStatement("SELECT NOW(6)");
-
-		try {
-			ResultSet rs = ps.executeQuery();
-
-			try {
-				if (rs.next()) {
-					return _formatDateTimeString(rs.getString(1));
-				}
-			}
-			finally {
-				DataAccess.cleanUp(rs);
-			}
-		}
-		finally {
-			DataAccess.cleanUp(ps);
-		}
-
-		return "";
-	}
-
 	private String _formatDateTimeString(String value) {
 		if (value == null || value.trim().isEmpty()) {
 			return "";
@@ -1614,8 +1765,343 @@ public class SurveyResource {
 			(lastName != null ? lastName : "")).replaceAll("\\s+", " ").trim();
 	}
 
-	private Timestamp _now() {
-		return new Timestamp(System.currentTimeMillis());
+	private String _vnNow() {
+		return LocalDateTime.now(_VN_ZONE).format(_DATE_TIME_FORMATTER);
+	}
+
+	private boolean _isAdminUser(long userId) {
+		try {
+			User user = UserLocalServiceUtil.fetchUser(userId);
+
+			if (user == null) {
+				return false;
+			}
+
+			PermissionChecker permissionChecker =
+				PermissionThreadLocal.getPermissionChecker();
+
+			if ((permissionChecker != null) && permissionChecker.isOmniadmin()) {
+				return true;
+			}
+
+			if ("admin".equalsIgnoreCase(user.getScreenName())) {
+				return true;
+			}
+
+			for (Role role : user.getRoles()) {
+				if ("Administrator".equalsIgnoreCase(role.getName())) {
+					return true;
+				}
+			}
+		}
+		catch (Exception exception) {
+		}
+
+		return false;
+	}
+
+	private boolean _canManageSurvey(Connection con, long surveyId, long userId)
+		throws Exception {
+
+		return _isSurveyOwner(con, surveyId, userId) || _isAdminUser(userId);
+	}
+
+	private Map<Long, JSONArray> _getVotersByOption(Connection con, long surveyId)
+		throws Exception {
+
+		Map<Long, JSONArray> votersByOption = new HashMap<>();
+
+		PreparedStatement ps = con.prepareStatement(
+			"SELECT v.optionId, v.userId, v.userName, v.createDate, " +
+			"od.name AS departmentName, oo.name AS organizationName " +
+			"FROM VEC_InternalSurveyVote v " +
+			"LEFT JOIN Organization_ od ON v.departmentId = od.organizationId " +
+			"LEFT JOIN Organization_ oo ON v.organizationId = oo.organizationId " +
+			"WHERE v.surveyId = ? ORDER BY v.createDate ASC, v.voteId ASC");
+
+		try {
+			ps.setLong(1, surveyId);
+
+			ResultSet rs = ps.executeQuery();
+
+			try {
+				while (rs.next()) {
+					long optionId = rs.getLong("optionId");
+					JSONArray voters = votersByOption.get(optionId);
+
+					if (voters == null) {
+						voters = JSONFactoryUtil.createJSONArray();
+
+						votersByOption.put(optionId, voters);
+					}
+
+					JSONObject voter = JSONFactoryUtil.createJSONObject();
+
+					voter.put("userId", rs.getLong("userId"));
+					voter.put("userName", rs.getString("userName"));
+					voter.put(
+						"departmentName",
+						rs.getString("departmentName") != null ?
+							rs.getString("departmentName") : "");
+					voter.put(
+						"organizationName",
+						rs.getString("organizationName") != null ?
+							rs.getString("organizationName") : "");
+					voter.put(
+						"votedAt",
+						_formatDateTimeString(rs.getString("createDate")));
+
+					voters.put(voter);
+				}
+			}
+			finally {
+				DataAccess.cleanUp(rs);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(ps);
+		}
+
+		return votersByOption;
+	}
+
+	private void _sendSurveyInvitationEmails(
+		Connection con, long surveyId, long creatorUserId, String title,
+		JSONObject payload) {
+
+		try {
+			User creator = UserLocalServiceUtil.fetchUser(creatorUserId);
+
+			if (creator == null) {
+				return;
+			}
+
+			List<InternetAddress> recipients = _getSurveyInvitationRecipients(
+				con, surveyId, creator);
+
+			if (recipients.isEmpty()) {
+				_log.info(
+					"Survey " + surveyId +
+						" was created but no participant has a valid email " +
+							"address");
+
+				return;
+			}
+
+			long companyId = creator.getCompanyId();
+			InternetAddress fromAddress = _createInternetAddress(
+				PrefsPropsUtil.getString(
+					companyId, PropsKeys.ADMIN_EMAIL_FROM_ADDRESS),
+				PrefsPropsUtil.getString(
+					companyId, PropsKeys.ADMIN_EMAIL_FROM_NAME));
+
+			if (fromAddress == null) {
+				_log.warn(
+					"Survey " + surveyId +
+						" was created but Liferay sender email is invalid");
+
+				return;
+			}
+
+			String subject =
+				"[Khảo sát nội bộ] " + title.replaceAll("[\\r\\n]+", " ");
+			String body = _buildSurveyInvitationEmailBody(
+				creator, title,
+				_normalizeDateTime(payload.getString("startDate")),
+				_normalizeDateTime(payload.getString("endDate")));
+
+			for (int i = 0; i < recipients.size();
+					i += _EMAIL_BCC_BATCH_SIZE) {
+
+				List<InternetAddress> batch = recipients.subList(
+					i, Math.min(i + _EMAIL_BCC_BATCH_SIZE, recipients.size()));
+
+				MailMessage mailMessage = new MailMessage();
+
+				mailMessage.setFrom(fromAddress);
+				mailMessage.setTo(fromAddress);
+				mailMessage.setBCC(
+					batch.toArray(new InternetAddress[batch.size()]));
+				mailMessage.setSubject(subject);
+				mailMessage.setBody(body);
+				mailMessage.setHTMLFormat(true);
+
+				MailServiceUtil.sendEmail(mailMessage);
+			}
+
+			_log.info(
+				"Queued invitation email for survey " + surveyId + " to " +
+					recipients.size() + " participant(s)");
+		}
+		catch (Exception e) {
+			_log.error(
+				"Survey " + surveyId +
+					" was created but invitation email could not be sent: " +
+						e.getMessage(),
+				e);
+		}
+	}
+
+	private List<InternetAddress> _getSurveyInvitationRecipients(
+			Connection con, long surveyId, User creator)
+		throws Exception {
+
+		List<InternetAddress> recipients = new ArrayList<>();
+		Set<String> seenEmailAddresses = new HashSet<>();
+
+		PreparedStatement ps = con.prepareStatement(
+			"SELECT DISTINCT u.userId, u.emailAddress, u.firstName, " +
+			"u.middleName, u.lastName FROM User_ u " +
+			"WHERE u.status = 0 AND u.companyId = ? AND u.userId != ? " +
+			"AND u.emailAddress IS NOT NULL AND u.emailAddress != '' " +
+			"AND u.emailAddress NOT LIKE '%@liferay.com' " +
+			"AND EXISTS (" +
+			" SELECT 1 FROM VEC_InternalSurveyParticipant p " +
+			" WHERE p.surveyId = ? AND (" +
+			"  p.scopeType = 'ALL' OR " +
+			"  (p.scopeType = 'USER' AND p.userId = u.userId) OR " +
+			"  (p.scopeType IN ('ORGANIZATION', 'DEPARTMENT') AND EXISTS (" +
+			"   SELECT 1 FROM Users_Orgs uo LEFT JOIN Organization_ o " +
+			"   ON uo.organizationId = o.organizationId " +
+			"   WHERE uo.userId = u.userId AND (" +
+			"    uo.organizationId = p.organizationId OR " +
+			"    uo.organizationId = p.departmentId OR " +
+			"    o.parentOrganizationId = p.organizationId" +
+			"   )" +
+			"  ))" +
+			" ))");
+
+		try {
+			ps.setLong(1, creator.getCompanyId());
+			ps.setLong(2, creator.getUserId());
+			ps.setLong(3, surveyId);
+
+			ResultSet rs = ps.executeQuery();
+
+			try {
+				while (rs.next()) {
+					String emailAddress = rs.getString("emailAddress");
+
+					if (emailAddress == null) {
+						continue;
+					}
+
+					String normalizedEmailAddress = emailAddress.trim(
+						).toLowerCase();
+
+					if (normalizedEmailAddress.isEmpty() ||
+						!seenEmailAddresses.add(normalizedEmailAddress)) {
+
+						continue;
+					}
+
+					InternetAddress recipient = _createInternetAddress(
+						emailAddress, _fullName(rs));
+
+					if (recipient != null) {
+						recipients.add(recipient);
+					}
+				}
+			}
+			finally {
+				DataAccess.cleanUp(rs);
+			}
+		}
+		finally {
+			DataAccess.cleanUp(ps);
+		}
+
+		return recipients;
+	}
+
+	private String _buildSurveyInvitationEmailBody(
+		User creator, String title, String startDate, String endDate) {
+
+		StringBuilder body = new StringBuilder();
+
+		body.append(
+			"<div style=\"font-family:Arial,Helvetica,sans-serif;" +
+				"font-size:14px;color:#1f2937;line-height:1.6\">");
+		body.append("<p>Kính gửi Anh/Chị,</p>");
+		body.append(
+			"<p>Anh/Chị được mời tham gia cuộc bình chọn: <strong>");
+		body.append(HtmlUtil.escape(title));
+		body.append("</strong></p>");
+		body.append("<p>Người tạo: <strong>");
+		body.append(HtmlUtil.escape(creator.getFullName()));
+		body.append("</strong></p>");
+
+		if (startDate != null || endDate != null) {
+			body.append("<p>Thời gian: <strong>");
+
+			if (startDate != null) {
+				body.append(
+					"từ " + HtmlUtil.escape(_displayDateTime(startDate)));
+			}
+
+			if (endDate != null) {
+				body.append(
+					(startDate != null ? " " : "") + "đến " +
+						HtmlUtil.escape(_displayDateTime(endDate)));
+			}
+
+			body.append("</strong></p>");
+		}
+
+		body.append(
+			"<p style=\"margin:24px 0\"><a href=\"" + _SURVEY_PORTAL_URL +
+				"\" style=\"display:inline-block;padding:10px 24px;" +
+					"background:#0090CF;color:#ffffff;text-decoration:none;" +
+						"border-radius:4px;font-weight:600\">" +
+							"Tham gia bình chọn</a></p>");
+		body.append(
+			"<p>Hoặc truy cập đường dẫn: <a href=\"" + _SURVEY_PORTAL_URL +
+				"\">" + _SURVEY_PORTAL_URL + "</a></p>");
+		body.append(
+			"<p style=\"color:#6b7280;font-size:12px\">Email được gửi tự " +
+				"động từ hệ thống, vui lòng không trả lời email này.</p>");
+		body.append("</div>");
+
+		return body.toString();
+	}
+
+	private String _displayDateTime(String value) {
+		try {
+			return LocalDateTime.parse(value, _DATE_TIME_FORMATTER).format(
+				_DISPLAY_DATE_TIME_FORMATTER);
+		}
+		catch (Exception e) {
+			return value;
+		}
+	}
+
+	private InternetAddress _createInternetAddress(
+		String emailAddress, String personalName) {
+
+		String normalizedEmailAddress =
+			emailAddress != null ? emailAddress.trim() : "";
+
+		if (normalizedEmailAddress.isEmpty()) {
+			return null;
+		}
+
+		try {
+			InternetAddress internetAddress = new InternetAddress(
+				normalizedEmailAddress,
+				personalName != null ? personalName.trim() : "",
+				StandardCharsets.UTF_8.name());
+
+			internetAddress.validate();
+
+			return internetAddress;
+		}
+		catch (Exception e) {
+			_log.warn(
+				"Invalid survey notification email address: " +
+					normalizedEmailAddress);
+
+			return null;
+		}
 	}
 
 	private Response _badRequest(String message) {
@@ -1671,8 +2157,21 @@ public class SurveyResource {
 		String userName = "";
 	}
 
+	private static final DateTimeFormatter _DATE_TIME_FORMATTER =
+		DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 	private static final long _DEV_USER_ID = 1;
 
+	private static final DateTimeFormatter _DISPLAY_DATE_TIME_FORMATTER =
+		DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
+
+	private static final int _EMAIL_BCC_BATCH_SIZE = 50;
+
 	private static final Log _log = LogFactoryUtil.getLog(SurveyResource.class);
+
+	private static final String _SURVEY_PORTAL_URL =
+		"https://portal.tctvec.vn/en/intranet#/khao-sat-va-bieu-quyet-noi-bo";
+
+	private static final ZoneId _VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
 }

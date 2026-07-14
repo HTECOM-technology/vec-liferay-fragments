@@ -79,6 +79,7 @@ function normalizeSurvey(survey) {
   const status = typeof survey.votingOpen === "boolean"
     ? (survey.votingOpen && !voteUnavailableReason ? SURVEY_STATUS.OPEN : SURVEY_STATUS.CLOSED)
     : normalizeStatus(survey);
+  const isOwner = currentUserId ? Number(survey.userId) === currentUserId : false;
 
   return {
     ...survey,
@@ -91,7 +92,8 @@ function normalizeSurvey(survey) {
     allowMultiple: Boolean(survey.multipleChoice),
     hasVoted: Boolean(survey.hasVoted),
     canParticipate: Boolean(survey.canParticipate),
-    isOwner: currentUserId ? Number(survey.userId) === currentUserId : false,
+    isOwner,
+    canManage: typeof survey.canManage === "boolean" ? survey.canManage : isOwner,
     voteUnavailableReason,
     voteDisabledText: voteUnavailableReason.includes("chưa bắt đầu") ? "Chưa bắt đầu" : "Đã kết thúc",
     votedOptions: survey.votedOptions || []
@@ -190,6 +192,28 @@ export async function updateSurvey(surveyId, surveyData) {
 
 export async function deleteSurvey(surveyId) {
   return surveyApi.deleteSurvey(surveyId);
+}
+
+export async function endSurvey(surveyId) {
+  return surveyApi.endSurvey(surveyId);
+}
+
+export async function getSurveyResults(surveyId) {
+  const data = await surveyApi.getSurveyResults(surveyId);
+  const options = (data?.options || []).map((option) => ({
+    id: option.optionId,
+    name: option.optionText,
+    votes: Number(option.voteCount || 0),
+    voters: (option.voters || []).map((voter) => ({
+      userId: voter.userId,
+      userName: voter.userName || "",
+      departmentName: voter.departmentName || "",
+      organizationName: voter.organizationName || "",
+      votedAt: voter.votedAt || ""
+    }))
+  }));
+
+  return { surveyId: data?.surveyId, options };
 }
 
 export async function submitVote(surveyId, selectedOptionIds) {

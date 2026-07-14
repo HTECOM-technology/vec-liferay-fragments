@@ -1,5 +1,7 @@
 package vn.vec.custom.admin.support;
 
+import com.liferay.mail.kernel.model.MailMessage;
+import com.liferay.mail.kernel.service.MailServiceUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -9,7 +11,10 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 
 import java.net.URLEncoder;
 
@@ -26,7 +31,10 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+
+import javax.mail.internet.InternetAddress;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -295,7 +303,12 @@ public class SupportRequestResource {
 				con.setAutoCommit(true);
 			}
 
-			return _created(_getRequest(con, requestId, user, true));
+			JSONObject createdRequest = _getRequest(
+				con, requestId, user, true);
+
+			_sendRequestCreatedEmail(request, createdRequest, user);
+
+			return _created(createdRequest);
 		}
 		catch (IllegalArgumentException e) {
 			return _badRequest(e.getMessage());
@@ -1095,6 +1108,249 @@ public class SupportRequestResource {
 		}
 	}
 
+	private String _buildRequestCreatedEmailBody(
+		HttpServletRequest request, JSONObject createdRequest) {
+
+		String requestUrl = PortalUtil.getPortalURL(request) +
+			"/web/intranet/quy-trinh-yeu-cau-ho-tro";
+		String content = _trim(createdRequest.getString("content"));
+
+		if (content.length() > _MAIL_CONTENT_MAX_LENGTH) {
+			content = content.substring(0, _MAIL_CONTENT_MAX_LENGTH) + "…";
+		}
+
+		StringBuilder body = new StringBuilder();
+
+		body.append("<div style=\"font-family:Arial,sans-serif;color:#1f2937;" +
+			"line-height:1.6\">");
+		body.append("<p>Kính gửi Anh/Chị,</p>");
+		body.append("<p>Một yêu cầu hỗ trợ mới đã được tạo và chuyển đến " +
+			"những người xử lý được chỉ định.</p>");
+		body.append("<table style=\"border-collapse:collapse;width:100%;" +
+			"max-width:760px\">");
+		_appendEmailRow(
+			body, "Mã yêu cầu", createdRequest.getString("requestCode"));
+		_appendEmailRow(
+			body, "Loại yêu cầu",
+			_requestTypeLabel(createdRequest.getString("requestTypeKey")));
+		_appendEmailRow(body, "Tiêu đề", createdRequest.getString("title"));
+		_appendEmailRow(
+			body, "Mức độ", _priorityLabel(
+				createdRequest.getString("priority")));
+		_appendEmailRow(
+			body, "Người tạo", createdRequest.getString("creatorUserName"));
+		_appendEmailRow(
+			body, "Thời gian tạo", createdRequest.getString("createDate"));
+
+		if (!content.isEmpty()) {
+			_appendEmailRow(
+				body, "Nội dung",
+				HtmlUtil.escape(content).replace("\r\n", "<br />").replace(
+					"\n", "<br />"),
+				true);
+		}
+
+		body.append("</table>");
+		body.append("<p style=\"margin-top:20px\"><a href=\"");
+		body.append(HtmlUtil.escape(requestUrl));
+		body.append("\" style=\"background:#0090cf;color:#fff;" +
+			"text-decoration:none;padding:10px 18px;border-radius:4px;" +
+			"display:inline-block\">Xem danh sách yêu cầu hỗ trợ</a></p>");
+		body.append("<p style=\"color:#6b7280;font-size:13px\">Đây là email " +
+			"được gửi tự động từ hệ thống Intranet VEC.</p>");
+		body.append("</div>");
+
+		return body.toString();
+	}
+
+	private void _appendEmailRow(
+		StringBuilder body, String label, String value) {
+
+		_appendEmailRow(body, label, value, false);
+	}
+
+	private void _appendEmailRow(
+		StringBuilder body, String label, String value, boolean htmlValue) {
+
+		body.append("<tr><td style=\"border:1px solid #d1d5db;padding:8px 12px;" +
+			"font-weight:600;width:150px;background:#f3f4f6\">");
+		body.append(HtmlUtil.escape(label));
+		body.append("</td><td style=\"border:1px solid #d1d5db;" +
+			"padding:8px 12px\">");
+		body.append(htmlValue ? value : HtmlUtil.escape(_trim(value)));
+		body.append("</td></tr>");
+	}
+
+	private InternetAddress _createInternetAddress(
+		String emailAddress, String personalName) {
+
+		String normalizedEmailAddress = _trim(emailAddress);
+
+		if (normalizedEmailAddress.isEmpty()) {
+			return null;
+		}
+
+		try {
+			InternetAddress internetAddress = new InternetAddress(
+				normalizedEmailAddress, _trim(personalName),
+				StandardCharsets.UTF_8.name());
+
+			internetAddress.validate();
+
+			return internetAddress;
+		}
+		catch (Exception e) {
+			_log.warn("Invalid support notification email address: " +
+				normalizedEmailAddress);
+
+			return null;
+		}
+	}
+
+	private String _priorityLabel(String priority) {
+		switch (_trim(priority)) {
+			case "khan":
+				return "Khẩn";
+			case "rat-khan":
+				return "Rất khẩn";
+			default:
+				return "Thường";
+		}
+	}
+
+	private String _requestTypeLabel(String requestTypeKey) {
+		switch (_trim(requestTypeKey)) {
+			case "gop-y-cai-tien":
+				return "Góp ý cải tiến";
+			case "ho-tro-dao-tao-hdsd":
+				return "Hỗ trợ đào tạo - HDSD";
+			case "ho-tro-hoi-nghi-truyen-hinh":
+				return "Hỗ trợ hội nghị truyền hình";
+			case "yc-cap-tai-khoan-quyen-truy-cap":
+				return "YC cấp tài khoản & quyền truy cập";
+			case "yc-ho-tro-phan-mem":
+				return "YC hỗ trợ phần mềm";
+			case "yc-kiem-tra-may-nang-cap-ssd":
+				return "YC kiểm tra máy, nâng cấp SSD";
+			case "yc-su-co-ket-noi-mang":
+				return "YC sự cố kết nối mạng";
+			case "yc-sua-chua-khac-phuc-thiet-bi-cntt":
+				return "YC sửa chữa, khắc phục thiết bị CNTT";
+			default:
+				return requestTypeKey;
+		}
+	}
+
+	private void _sendRequestCreatedEmail(
+		HttpServletRequest request, JSONObject createdRequest, User creator) {
+
+		if (createdRequest == null) {
+			_log.warn(
+				"A support request was created but its notification data " +
+					"could not be loaded");
+
+			return;
+		}
+
+		try {
+			JSONArray handlers = createdRequest.getJSONArray("handlers");
+			List<InternetAddress> toAddresses = new ArrayList<>();
+			Set<String> seenEmailAddresses = new HashSet<>();
+
+			if (handlers != null) {
+				for (int i = 0; i < handlers.length(); i++) {
+					JSONObject handler = handlers.getJSONObject(i);
+					String emailAddress = _trim(
+						handler.getString("emailAddress"));
+					String normalizedEmailAddress = emailAddress.toLowerCase(
+						Locale.ROOT);
+
+					if (normalizedEmailAddress.isEmpty() ||
+						!seenEmailAddresses.add(normalizedEmailAddress)) {
+
+						continue;
+					}
+
+					InternetAddress toAddress = _createInternetAddress(
+						emailAddress, handler.getString("fullName"));
+
+					if (toAddress != null) {
+						toAddresses.add(toAddress);
+					}
+				}
+			}
+
+			if (toAddresses.isEmpty()) {
+				_log.warn(
+					"Support request " +
+						createdRequest.getString("requestCode") +
+						" was created but no handler has a valid email address");
+
+				return;
+			}
+
+			long companyId = creator.getCompanyId();
+			InternetAddress fromAddress = _createInternetAddress(
+				PrefsPropsUtil.getString(
+					companyId, PropsKeys.ADMIN_EMAIL_FROM_ADDRESS),
+				PrefsPropsUtil.getString(
+					companyId, PropsKeys.ADMIN_EMAIL_FROM_NAME));
+
+			if (fromAddress == null) {
+				_log.warn(
+					"Support request " +
+						createdRequest.getString("requestCode") +
+						" was created but Liferay sender email is invalid");
+
+				return;
+			}
+
+			MailMessage mailMessage = new MailMessage();
+
+			mailMessage.setFrom(fromAddress);
+			mailMessage.setTo(
+				toAddresses.toArray(new InternetAddress[toAddresses.size()]));
+
+			InternetAddress creatorAddress = _createInternetAddress(
+				creator.getEmailAddress(), creator.getFullName());
+
+			if (creatorAddress != null) {
+				mailMessage.setCC(creatorAddress);
+			}
+			else {
+				_log.warn(
+					"Support request " +
+						createdRequest.getString("requestCode") +
+						" was created but creator has no valid email address");
+			}
+
+			String subjectTitle = _trim(createdRequest.getString("title"))
+				.replaceAll("[\\r\\n]+", " ");
+
+			mailMessage.setSubject(
+				"[Yêu cầu hỗ trợ] " +
+					createdRequest.getString("requestCode") + " - " + subjectTitle);
+			mailMessage.setBody(
+				_buildRequestCreatedEmailBody(request, createdRequest));
+			mailMessage.setHTMLFormat(true);
+
+			MailServiceUtil.sendEmail(mailMessage);
+
+			_log.info(
+				"Queued creation email for support request " +
+					createdRequest.getString("requestCode") + " to " +
+					toAddresses.size() + " handler(s)");
+		}
+		catch (Exception e) {
+			_log.error(
+				"Support request " +
+					createdRequest.getString("requestCode") +
+					" was created but notification email could not be sent: " +
+					e.getMessage(),
+				e);
+		}
+	}
+
 	private long _getConfigurationId(
 			Connection con, long companyId, String processKey,
 			String requestTypeKey)
@@ -1527,6 +1783,7 @@ public class SupportRequestResource {
 	}
 
 	private static final long _DEV_USER_ID = 1;
+	private static final int _MAIL_CONTENT_MAX_LENGTH = 1000;
 	private static final long _MAX_ATTACHMENT_SIZE = 10L * 1024L * 1024L;
 	private static final long _MAX_TOTAL_ATTACHMENT_SIZE = 20L * 1024L * 1024L;
 

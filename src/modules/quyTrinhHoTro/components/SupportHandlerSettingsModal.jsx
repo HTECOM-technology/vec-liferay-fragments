@@ -421,7 +421,7 @@ function SupportHandlerSettingsModal({
                 <Alert
                     type="info"
                     showIcon
-                    message="Mỗi loại yêu cầu được gán cho nhiều người trong cùng một phòng ban. Thay đổi áp dụng cho yêu cầu tạo mới và toàn bộ yêu cầu đang chờ xử lý."
+                    message="Mỗi loại yêu cầu được gán cho nhiều người thuộc phòng ban đã chọn hoặc các phòng ban cấp dưới. Thay đổi áp dụng cho yêu cầu tạo mới và toàn bộ yêu cầu đang chờ xử lý."
                     style={{ marginBottom: 16 }}
                 />
 
@@ -478,7 +478,7 @@ function SupportHandlerSettingsModal({
                                         </h3>
                                         <p className="heading-description">
                                             Chọn một đơn vị, một phòng ban và các thành
-                                            viên sẽ xử lý loại yêu cầu này.
+                                            viên thuộc phòng ban đó hoặc các phòng ban cấp dưới.
                                         </p>
                                     </div>
                                     <UsergroupAddOutlined
