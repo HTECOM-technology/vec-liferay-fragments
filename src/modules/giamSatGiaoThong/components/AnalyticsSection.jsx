@@ -1,9 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
-import iconPtvp from '../../../assets/icon/icon-ptvp.svg';
-import iconTocdo from '../../../assets/icon/icon-tdlt.svg';
-import iconGiasuc from '../../../assets/icon/icon-slgs.svg';
-import iconCameraLoi from '../../../assets/icon/icon-cameraloi.svg';
+// import iconPtvp from '../../../assets/icon/icon-ptvp.svg';
+// import iconTocdo from '../../../assets/icon/icon-tdlt.svg';
+// import iconGiasuc from '../../../assets/icon/icon-slgs.svg';
+// import iconCameraLoi from '../../../assets/icon/icon-cameraloi.svg';
+
+const API_DOMAIN = process.env.REACT_APP_API_DOMAIN || '';
+
+const iconPtvp =  `${API_DOMAIN}/documents/20117/1203544/icon-ptvp.png/44a34f4f-540d-56f4-da8d-7ead3df67fc1?version=1.0&t=1784077768938&imagePreview=1`;
+const iconTocdo =  `${API_DOMAIN}/documents/20117/1203544/icon-tdlt.svg/59c3432f-43b3-832f-9247-e2c774bfcd0b?version=1.0&t=1784077782426&imagePreview=1`;
+const iconGiasuc =  `${API_DOMAIN}/documents/20117/1203544/icon-slgs.svg/0c12c288-cc60-48df-338a-5755dfcaeb81?version=1.0&t=1784077804013&imagePreview=1`;
+const iconCameraLoi =  `${API_DOMAIN}/documents/20117/1203544/icon-cameraloi.svg/eb6d839d-9851-71da-14d3-5724ed720be4?version=1.0&t=1784077815690&imagePreview=1`;
 
 const AnalyticsContainer = styled.div`
   display: grid;
