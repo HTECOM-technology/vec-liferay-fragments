@@ -26,6 +26,7 @@ function NhiemVuCard({ dragHandleProps }) {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsLoadingMore, setNotificationsLoadingMore] = useState(false);
   const [togglingCode, setTogglingCode] = useState(null);
+  const [phepConLai, setPhepConLai] = useState(null);
 
   const userEmail = user?.emailAddress || "";
   const hasMoreNotifications = notifications.length < notificationsTotal;
@@ -63,6 +64,7 @@ function NhiemVuCard({ dragHandleProps }) {
   const loadGroupCounts = useCallback(async () => {
     if (!hrmUserId) {
       setGroupCounts(DEFAULT_GROUP_COUNTS);
+      setPhepConLai(null);
       return;
     }
 
@@ -75,9 +77,16 @@ function NhiemVuCard({ dragHandleProps }) {
         "33": Number(response?.groups?.["33"]) || 0,
         "97_99": Number(response?.groups?.["97_99"]) || 0,
       });
+
+      setPhepConLai(
+      response?.phep_cl !== null && response?.phep_cl !== undefined
+        ? Number(response.phep_cl)
+        : null
+      );
     } catch (error) {
       console.error("[NhiemVuCard] Failed to load unread notification counts by group:", error);
       setGroupCounts(DEFAULT_GROUP_COUNTS);
+      setPhepConLai(null);
     }
   }, [hrmUserId]);
 
@@ -215,7 +224,7 @@ function NhiemVuCard({ dragHandleProps }) {
           <div className="d-flex justify-content-between align-items-start">
             <div>
               <p className="min-hight-30">Số ngày phép còn lại</p>
-              <h3>00</h3>
+              <h3>{phepConLai !== null ? phepConLai.toLocaleString("vi-VN") : "00"}</h3>
             </div>
             <div className="doc-item-icon">
               <img src={"/documents/d/guest/file-shredder"} alt="" />
