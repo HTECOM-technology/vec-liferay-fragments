@@ -17,6 +17,7 @@ const CAMERA_HIGHWAY_CONFIGS = {
   44147: { apiBasePath: '/o/its' },
 };
 const INITIAL_VISIBLE_COUNT = 9;
+const DEFAULT_ROUTE_ID = 42753;
 const cameraListCache = new Map();
 const THUMBNAIL_FALLBACK_URL =
   'https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original';
@@ -115,7 +116,8 @@ const TrafficCameraMonitor = () => {
     const initializeRoutes = async () => {
       const routeData = mapApiRoutesToOptions(await fetchHighwaysData());
       const nextRoutes = routeData;
-      const defaultRoute = nextRoutes[0];
+      const preferredRoute = nextRoutes.find((route) => Number(route.id) === DEFAULT_ROUTE_ID);
+      const defaultRoute = preferredRoute || nextRoutes[0];
 
       if (!isMounted) return;
 

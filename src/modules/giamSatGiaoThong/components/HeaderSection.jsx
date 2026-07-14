@@ -5,6 +5,8 @@ import { FiSettings } from 'react-icons/fi';
 import { Header, Title, Filters } from '../style';
 import useUserInfo from '@/hooks/useUserInfo';
 
+const DEFAULT_ROUTE_ID = 42753;
+
 const CustomSelect = styled(Select)`
   width: 350px;
   height: 40px !important;
@@ -72,17 +74,24 @@ const HeaderSection = ({
   }, [user]);
 
   const routeOptions = useMemo(() => {
-    return routes.map((route) => ({
-      value: String(route.id),
-      label: route.title || route.name || String(route.id),
-    }));
+    return [...routes]
+      .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+      .map((route) => ({
+        value: String(route.id),
+        label: route.title || route.name || String(route.id),
+      }));
   }, [routes]);
 
   useEffect(() => {
     if (selectedRoute || routeOptions.length === 0) return;
 
+    const preferredOption = routeOptions.find(
+      (option) => Number(option.value) === DEFAULT_ROUTE_ID
+    );
+    const defaultOption = preferredOption || routeOptions[0];
+
     const timer = setTimeout(() => {
-      onFilterChange('route', routeOptions[0].value);
+      onFilterChange('route', defaultOption.value);
     }, 100);
 
     return () => {
