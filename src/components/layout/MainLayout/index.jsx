@@ -124,6 +124,7 @@ function MainLayout() {
   const currentMenu = allItems.find((item) => item.key === pathname);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [userScreenName, setUserScreenName] = useState("");
   const [userInitials, setUserInitials] = useState("");
   const [currentUserId, setCurrentUserId] = useState(0);
   const [hrmUserId, setHrmUserId] = useState(null);
@@ -268,6 +269,7 @@ function MainLayout() {
       const firstName = user.firstName || "";
       const lastName = user.lastName || "";
       const email = user.emailAddress || "";
+      const screenName = user.screenName || "";
       const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
       const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
 
@@ -282,6 +284,10 @@ function MainLayout() {
 
       if (email) {
         setUserEmail(email);
+      }
+
+      if (screenName) {
+        setUserScreenName(screenName);
       }
 
       if (shortName) {
@@ -300,22 +306,18 @@ function MainLayout() {
     let isMounted = true;
 
     const resolveHrmUserId = async () => {
-      if (!userEmail) return;
+      if (!userScreenName) return;
 
       try {
-        const items = await ttnsService.getAllEmployees();
-
-        const matched = items.find(
-          (item) => (item.email_cty || "").trim().toLowerCase() === userEmail.trim().toLowerCase()
-        );
+        const resolvedUserId = await ttnsService.resolveHrmUserIdByScreenName(userScreenName);
 
         if (!isMounted) return;
 
-        if (matched && matched.user_id) {
-          setHrmUserId(matched.user_id);
+        if (resolvedUserId) {
+          setHrmUserId(resolvedUserId);
         } else {
           setHrmUserId(null);
-          message.warning("Không tìm thấy thông tin nhân sự tương ứng với email của bạn. Một số thông báo có thể không hiển thị.");
+          message.warning("Không tìm thấy thông tin nhân sự tương ứng với tài khoản của bạn. Một số thông báo có thể không hiển thị.");
         }
       } catch (error) {
         if (isMounted) {
@@ -329,7 +331,7 @@ function MainLayout() {
     return () => {
       isMounted = false;
     };
-  }, [userEmail]);
+  }, [userScreenName]);
 
   useEffect(() => {
     let isMounted = true;

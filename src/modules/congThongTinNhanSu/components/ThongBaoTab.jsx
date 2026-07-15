@@ -132,32 +132,29 @@ function ThongBaoTab() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [togglingCode, setTogglingCode] = useState(null);
 
-  const userEmail = user?.emailAddress || "";
+  const userScreenName = user?.screenName || "";
   const hasMore = notifications.length < total;
 
   useEffect(() => {
     let isMounted = true;
 
     const resolveHrmUserId = async () => {
-      if (!userEmail) return;
+      if (!userScreenName) return;
 
       try {
-        const items = await ttnsService.getAllEmployees();
-        const matched = items.find(
-          (item) => (item.email_cty || "").trim().toLowerCase() === userEmail.trim().toLowerCase()
-        );
+        const resolvedUserId = await ttnsService.resolveHrmUserIdByScreenName(userScreenName);
 
         if (!isMounted) return;
 
-        if (matched?.user_id) {
-          setHrmUserId(matched.user_id);
+        if (resolvedUserId) {
+          setHrmUserId(resolvedUserId);
         } else {
           setHrmUserId(null);
-          message.warning("Không tìm thấy thông tin nhân sự tương ứng với email của bạn. Danh sách thông báo có thể không hiển thị.");
+          message.warning("Không tìm thấy thông tin nhân sự tương ứng với tài khoản của bạn. Danh sách thông báo có thể không hiển thị.");
         }
       } catch (error) {
         if (isMounted) {
-          console.error("[ThongBaoTab] Failed to resolve HRM user_id by email:", error);
+          console.error("[ThongBaoTab] Failed to resolve HRM user_id by screenName:", error);
           message.error(ttnsService.getErrorMessage(error));
         }
       }
@@ -168,7 +165,7 @@ function ThongBaoTab() {
     return () => {
       isMounted = false;
     };
-  }, [userEmail]);
+  }, [userScreenName]);
 
   const fetchNotifications = useCallback(async ({ page: fetchPage, append }) => {
     if (!hrmUserId) return;
