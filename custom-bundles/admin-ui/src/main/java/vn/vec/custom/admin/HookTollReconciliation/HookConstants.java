@@ -84,6 +84,10 @@ public final class HookConstants {
 	public static final long NONCE_RETENTION_SECONDS = 300;
 	public static final boolean LOG_RAW_BODY = false;
 	public static final String NONCE_CLEANUP_CRON = "0 0/10 * * * ?";
+	public static final int DASHBOARD_DEFAULT_DAYS = 365;
+	public static final int DASHBOARD_MAX_DAYS = 731;
+	public static final int DASHBOARD_DEFAULT_TABLE_LIMIT = 10;
+	public static final int DASHBOARD_MAX_TABLE_LIMIT = 100;
 
 	public static final int MAX_CLIENT_ID_LENGTH = 100;
 	public static final int MAX_NONCE_LENGTH = 128;

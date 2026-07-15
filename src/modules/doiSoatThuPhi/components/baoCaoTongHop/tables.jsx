@@ -1,11 +1,22 @@
 import React from "react";
 import { StatusBadge } from "./styled";
 
-const renderStatus = (trangThai) => (
-  <StatusBadge $type={trangThai}>
-    {trangThai === "done" ? "Đã xử lý" : "Đang xử lý"}
-  </StatusBadge>
-);
+const STATUS_LABELS = {
+  pending: "Chờ xử lý",
+  processing: "Đang xử lý",
+  resolved: "Đã xử lý",
+  rejected: "Từ chối",
+};
+
+const renderStatus = (trangThai) => {
+  const status = trangThai === "done" ? "resolved" : trangThai;
+
+  return (
+    <StatusBadge $type={status}>
+      {STATUS_LABELS[status] || status || "Không xác định"}
+    </StatusBadge>
+  );
+};
 
 const renderMultiLine = (text) => (
   <span style={{ whiteSpace: "pre-line", fontSize: 13 }}>{text}</span>
@@ -13,7 +24,7 @@ const renderMultiLine = (text) => (
 
 /* ---- Thông báo sự cố ---- */
 export const suCoColumns = [
-  { title: "STT", dataIndex: "key", key: "key", width: 60, align: "center" },
+  { title: "STT", dataIndex: "stt", key: "stt", width: 60, align: "center" },
   { title: "Loại sự cố", dataIndex: "loai", key: "loai", align: "center" },
   { title: "Tuyến", dataIndex: "tuyen", key: "tuyen", align: "center" },
   { title: "Trạm", dataIndex: "tram", key: "tram", align: "center" },
@@ -29,7 +40,7 @@ export const suCoColumns = [
 
 /* ---- Thông tin sự kiện ---- */
 export const suKienColumns = [
-  { title: "STT", dataIndex: "key", key: "key", width: 60, align: "center" },
+  { title: "STT", dataIndex: "stt", key: "stt", width: 60, align: "center" },
   { title: "Tên sự kiện", dataIndex: "tenSuKien", key: "tenSuKien" },
   { title: "Loại sự kiện", dataIndex: "loai", key: "loai", align: "center" },
   { title: "Tuyến", dataIndex: "tuyen", key: "tuyen", align: "center" },
@@ -60,7 +71,7 @@ export const suKienColumns = [
 
 /* ---- Thông tin lỗi ---- */
 export const loiColumns = [
-  { title: "STT", dataIndex: "key", key: "key", width: 60, align: "center" },
+  { title: "STT", dataIndex: "stt", key: "stt", width: 60, align: "center" },
   { title: "Tên yêu cầu", dataIndex: "tenYeuCau", key: "tenYeuCau" },
   { title: "Loại lỗi", dataIndex: "loaiLoi", key: "loaiLoi", align: "center" },
   { title: "Tuyến", dataIndex: "tuyen", key: "tuyen", align: "center" },
@@ -94,4 +105,5 @@ export const commonTableProps = {
   bordered: true,
   size: "small",
   scroll: { x: "max-content" },
+  locale: { emptyText: "Không có dữ liệu" },
 };
