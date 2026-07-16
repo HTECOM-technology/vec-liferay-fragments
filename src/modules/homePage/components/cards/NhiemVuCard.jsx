@@ -28,29 +28,25 @@ function NhiemVuCard({ dragHandleProps }) {
   const [togglingCode, setTogglingCode] = useState(null);
   const [phepConLai, setPhepConLai] = useState(null);
 
-  const userEmail = user?.emailAddress || "";
+  const userScreenName = user?.screenName || "";
   const hasMoreNotifications = notifications.length < notificationsTotal;
 
   useEffect(() => {
     let isMounted = true;
 
     const resolveHrmUserId = async () => {
-      if (!userEmail) {
+      if (!userScreenName) {
         return;
       }
 
       try {
-        const items = await ttnsService.getAllEmployees();
+        const resolvedUserId = await ttnsService.resolveHrmUserIdByScreenName(userScreenName);
 
-        const matched = items.find(
-          (item) => (item.email_cty || "").trim().toLowerCase() === userEmail.trim().toLowerCase()
-        );
-
-        if (isMounted && matched?.user_id) {
-          setHrmUserId(matched.user_id);
+        if (isMounted && resolvedUserId) {
+          setHrmUserId(resolvedUserId);
         }
       } catch (error) {
-        console.error("[NhiemVuCard] Failed to resolve HRM user_id by email:", error);
+        console.error("[NhiemVuCard] Failed to resolve HRM user_id by screenName:", error);
       }
     };
 
@@ -59,7 +55,7 @@ function NhiemVuCard({ dragHandleProps }) {
     return () => {
       isMounted = false;
     };
-  }, [userEmail]);
+  }, [userScreenName]);
 
   const loadGroupCounts = useCallback(async () => {
     if (!hrmUserId) {

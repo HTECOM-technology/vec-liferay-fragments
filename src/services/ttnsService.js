@@ -121,6 +121,46 @@ export const ttnsService = {
     return response.data;
   },
 
+  async getVhrQuyenNv({ q = "" } = {}) {
+    const response = await ttnsApiClient.get("/api/vhrquyennv", {
+      params: {
+        q: q || undefined,
+      },
+    });
+
+    return response.data?.items || [];
+  },
+
+  async resolveHrmUserIdByScreenName(screenName) {
+    const normalizedScreenName = (screenName || "").trim().toLowerCase();
+    if (!normalizedScreenName) {
+      return null;
+    }
+
+    try {
+      const quyenNvItems = await this.getVhrQuyenNv({ q: screenName });
+      const matchedQuyenNv = quyenNvItems.find(
+        (item) => (item.name2 || "").trim().toLowerCase() === normalizedScreenName
+      );
+
+      if (!matchedQuyenNv?.ma_nv) {
+        return null;
+      }
+
+      const targetMaNv = String(matchedQuyenNv.ma_nv).trim().toLowerCase();
+
+      const employees = await this.getAllEmployees();
+      const matchedEmployee = employees.find(
+        (item) => String(item.ma_nv || "").trim().toLowerCase() === targetMaNv
+      );
+
+      return matchedEmployee?.user_id || null;
+    } catch (error) {
+      console.error("[ttnsService] Failed to resolve HRM user_id by screenName:", error);
+      return null;
+    }
+  },
+
   getErrorMessage(error) {
     const detail = error?.response?.data?.detail;
 
