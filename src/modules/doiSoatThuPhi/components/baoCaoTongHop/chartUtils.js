@@ -3,6 +3,13 @@ import isoWeek from "dayjs/plugin/isoWeek";
 
 dayjs.extend(isoWeek);
 
+/** Khoảng mặc định của biểu đồ: từ đầu tuần hiện tại (thứ 2) đến hôm nay. */
+export function getCurrentWeekRange() {
+  const today = dayjs();
+
+  return { from: today.startOf("isoWeek"), to: today };
+}
+
 /**
  * Filter raw data by date range, then group by thoiGian unit (ngay/tuan/thang)
  * rawData: [{ date: "YYYY-MM-DD", value: number }]

@@ -104,6 +104,6 @@ export const commonTableProps = {
   pagination: false,
   bordered: true,
   size: "small",
-  scroll: { x: "max-content" },
+  scroll: { x: "max-content", y: 240 },
   locale: { emptyText: "Không có dữ liệu" },
 };

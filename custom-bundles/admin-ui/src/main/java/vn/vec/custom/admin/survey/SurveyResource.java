@@ -124,7 +124,10 @@ public class SurveyResource {
 				"   WHERE uo.userId = ? AND (" +
 				"    uo.organizationId = p.organizationId OR " +
 				"    uo.organizationId = p.departmentId OR " +
-				"    o.parentOrganizationId = p.organizationId" +
+				"    (p.organizationId > 0 AND o.treePath LIKE " +
+				"     CONCAT('%/', p.organizationId, '/%')) OR " +
+				"    (p.departmentId > 0 AND o.treePath LIKE " +
+				"     CONCAT('%/', p.departmentId, '/%'))" +
 				"   )" +
 				"  ))" +
 				" )" +
@@ -905,7 +908,10 @@ public class SurveyResource {
 			" WHERE uo.userId = ? AND (" +
 			"  uo.organizationId = p.organizationId OR " +
 			"  uo.organizationId = p.departmentId OR " +
-			"  o.parentOrganizationId = p.organizationId" +
+			"  (p.organizationId > 0 AND o.treePath LIKE " +
+			"   CONCAT('%/', p.organizationId, '/%')) OR " +
+			"  (p.departmentId > 0 AND o.treePath LIKE " +
+			"   CONCAT('%/', p.departmentId, '/%'))" +
 			" )))" +
 			")");
 
@@ -1111,7 +1117,8 @@ public class SurveyResource {
 		}
 
 		PreparedStatement orgPs = con.prepareStatement(
-			"SELECT o.organizationId, o.parentOrganizationId FROM Users_Orgs uo " +
+			"SELECT o.organizationId, o.parentOrganizationId, o.treePath " +
+			"FROM Users_Orgs uo " +
 			"INNER JOIN Organization_ o ON uo.organizationId = o.organizationId " +
 			"WHERE uo.userId = ? ORDER BY o.parentOrganizationId DESC");
 
@@ -1125,12 +1132,50 @@ public class SurveyResource {
 					long orgId = rs.getLong("organizationId");
 					long parentOrgId = rs.getLong("parentOrganizationId");
 
-					if (parentOrgId > 0 && context.departmentId == 0) {
-						context.departmentId = orgId;
-						context.organizationId = parentOrgId;
+					// treePath dạng /cấp1/cấp2/.../chínhNó/ nên user ở cấp sâu
+					// hơn 2 vẫn được quy về organization=cấp 1, department=cấp 2
+					long rootId = 0;
+					long secondLevelId = 0;
+
+					String treePath = rs.getString("treePath");
+
+					if (treePath != null) {
+						for (String part : treePath.split("/")) {
+							if (part.isEmpty()) {
+								continue;
+							}
+
+							long id;
+
+							try {
+								id = Long.parseLong(part.trim());
+							}
+							catch (NumberFormatException numberFormatException) {
+								continue;
+							}
+
+							if (rootId == 0) {
+								rootId = id;
+							}
+							else {
+								secondLevelId = id;
+
+								break;
+							}
+						}
 					}
-					else if (parentOrgId == 0 && context.organizationId == 0) {
-						context.organizationId = orgId;
+
+					if (rootId == 0) {
+						rootId = (parentOrgId > 0) ? parentOrgId : orgId;
+						secondLevelId = (parentOrgId > 0) ? orgId : 0;
+					}
+
+					if ((secondLevelId > 0) && (context.departmentId == 0)) {
+						context.organizationId = rootId;
+						context.departmentId = secondLevelId;
+					}
+					else if (context.organizationId == 0) {
+						context.organizationId = rootId;
 					}
 				}
 			}
@@ -1966,7 +2011,10 @@ public class SurveyResource {
 			"   WHERE uo.userId = u.userId AND (" +
 			"    uo.organizationId = p.organizationId OR " +
 			"    uo.organizationId = p.departmentId OR " +
-			"    o.parentOrganizationId = p.organizationId" +
+			"    (p.organizationId > 0 AND o.treePath LIKE " +
+			"     CONCAT('%/', p.organizationId, '/%')) OR " +
+			"    (p.departmentId > 0 AND o.treePath LIKE " +
+			"     CONCAT('%/', p.departmentId, '/%'))" +
 			"   )" +
 			"  ))" +
 			" ))");

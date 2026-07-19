@@ -118,15 +118,41 @@ export const TableSection = styled.div`
   }
 `;
 
+export const TableSectionHeader = styled.div`
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  @media (max-width: 1199px) {
+    margin-bottom: 8px;
+  }
+`;
+
 export const TableSectionTitle = styled.div`
   font-size: 15px;
   font-weight: 600;
   color: rgba(0, 0, 0, 0.85);
-  margin-bottom: 12px;
 
   @media (max-width: 1199px) {
     font-size: 13px;
-    margin-bottom: 8px;
+  }
+`;
+
+export const TableSectionLink = styled.a`
+  font-size: 13px;
+  font-weight: 500;
+  color: #0090cf;
+  white-space: nowrap;
+
+  &:hover {
+    color: #0090cf;
+    text-decoration: underline;
+  }
+
+  @media (max-width: 1199px) {
+    font-size: 12px;
   }
 `;
 

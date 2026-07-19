@@ -1,7 +1,6 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { Select, Button, Empty } from "antd";
+import React, { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { Alert, Select, Button, Empty, Spin } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
 import {
   BarChart,
   Bar,
@@ -14,7 +13,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CDatePicker } from "../../../../components/common";
-import { processChartData } from "./chartUtils";
+import { fetchTollReconciliationDashboard } from "../../../../services/tollReconciliationService";
+import { processChartData, getCurrentWeekRange } from "./chartUtils";
 import {
   ChartCard,
   ChartCardTitle,
@@ -44,52 +44,82 @@ function formatYAxis(value, yUnit) {
   return value === 0 ? "0" : value;
 }
 
-function getDefaultRange(rawData) {
-  const dates = (Array.isArray(rawData) ? rawData : [])
-    .map((item) => dayjs(item?.date))
-    .filter((date) => date.isValid())
-    .sort((left, right) => left.valueOf() - right.valueOf());
-
-  if (dates.length === 0) {
-    const today = dayjs();
-
-    return { from: today.subtract(6, "day"), to: today };
-  }
-
-  const firstDate = dates[0];
-  const lastDate = dates[dates.length - 1];
-  const candidateFrom = lastDate.subtract(6, "day");
-
-  return {
-    from: candidateFrom.isBefore(firstDate, "day") ? firstDate : candidateFrom,
-    to: lastDate,
-  };
-}
-
-function BieuDoCard({ title, rawData, color, yUnit }) {
-  const defaultRange = getDefaultRange(rawData);
-
+function BieuDoCard({ title, dataKey, rawData, color, yUnit }) {
   const [loaiBieuDo, setLoaiBieuDo] = useState("cot");
   const [thoiGian, setThoiGian] = useState("ngay");
-  const [tuNgay, setTuNgay] = useState(defaultRange.from);
-  const [denNgay, setDenNgay] = useState(defaultRange.to);
-  const [chartData, setChartData] = useState(() =>
-    processChartData(rawData, defaultRange.from, defaultRange.to, "ngay")
-  );
+  const [tuNgay, setTuNgay] = useState(() => getCurrentWeekRange().from);
+  const [denNgay, setDenNgay] = useState(() => getCurrentWeekRange().to);
+
+  // customSeries = null: hiển thị dữ liệu tuần hiện tại từ dashboard (cập nhật
+  // theo chu kỳ 60 phút). Khác null: người dùng đã "Xem biểu đồ" theo khoảng
+  // ngày tự chọn, giữ nguyên khi dashboard tự refresh.
+  const [customSeries, setCustomSeries] = useState(null);
+  const [applied, setApplied] = useState(() => ({
+    ...getCurrentWeekRange(),
+    thoiGian: "ngay",
+  }));
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+
+  const abortRef = useRef(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
-    const range = getDefaultRange(rawData);
+    if (customSeries !== null) return;
 
-    setTuNgay(range.from);
-    setDenNgay(range.to);
-    setChartData(processChartData(rawData, range.from, range.to, "ngay"));
-    setThoiGian("ngay");
-  }, [rawData]);
+    setApplied((prev) => ({ ...prev, ...getCurrentWeekRange() }));
+  }, [rawData, customSeries]);
 
-  const handleXemBieuDo = useCallback(() => {
-    const data = processChartData(rawData, tuNgay, denNgay, thoiGian);
-    setChartData(data);
-  }, [rawData, tuNgay, denNgay, thoiGian]);
+  const chartData = useMemo(
+    () =>
+      processChartData(
+        customSeries ?? rawData,
+        applied.from,
+        applied.to,
+        applied.thoiGian
+      ),
+    [customSeries, rawData, applied]
+  );
+
+  const handleXemBieuDo = useCallback(async () => {
+    if (!tuNgay || !denNgay) {
+      setFetchError("Vui lòng chọn Từ ngày và Đến ngày.");
+      return;
+    }
+
+    if (tuNgay.isAfter(denNgay, "day")) {
+      setFetchError("Từ ngày không được sau Đến ngày.");
+      return;
+    }
+
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    const { signal } = abortRef.current;
+
+    try {
+      setFetching(true);
+      setFetchError("");
+
+      const data = await fetchTollReconciliationDashboard({
+        signal,
+        fromDate: tuNgay.format("YYYY-MM-DD"),
+        toDate: denNgay.format("YYYY-MM-DD"),
+      });
+
+      setCustomSeries(data?.[dataKey] || []);
+      setApplied({ from: tuNgay, to: denNgay, thoiGian });
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        setFetchError(error?.message || "Không thể tải dữ liệu biểu đồ.");
+      }
+    } finally {
+      if (!signal.aborted) {
+        setFetching(false);
+      }
+    }
+  }, [tuNgay, denNgay, thoiGian, dataKey]);
 
   const tooltipFormatter = (value) =>
     yUnit === "tỷ"
@@ -160,56 +190,68 @@ function BieuDoCard({ title, rawData, color, yUnit }) {
         <Button
           type="primary"
           onClick={handleXemBieuDo}
+          loading={fetching}
           style={{ background: "#0090cf", borderColor: "#0090cf", height: 38 }}
         >
           Xem biểu đồ
         </Button>
       </ChartFilterRow>
 
-      <ChartWrap>
-        {chartData.length === 0 ? (
-          <ChartEmpty>
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Không có dữ liệu trong khoảng đã chọn"
-            />
-          </ChartEmpty>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            {loaiBieuDo === "cot" ? (
-              <BarChart
-                data={chartData}
-                margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
-                barCategoryGap="35%"
-              >
-                <CartesianGrid vertical={false} stroke="#f0f0f0" />
-                {axisProps.xAxis}
-                {axisProps.yAxis}
-                <Tooltip cursor={false} formatter={tooltipFormatter} />
-                <Bar dataKey="value" fill={color} radius={[3, 3, 0, 0]} barSize={30} />
-              </BarChart>
-            ) : (
-              <LineChart
-                data={chartData}
-                margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
-              >
-                <CartesianGrid vertical={false} stroke="#f0f0f0" />
-                {axisProps.xAxis}
-                {axisProps.yAxis}
-                <Tooltip formatter={tooltipFormatter} />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke={color}
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: color }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            )}
-          </ResponsiveContainer>
-        )}
-      </ChartWrap>
+      {fetchError && (
+        <Alert
+          type="error"
+          showIcon
+          message={fetchError}
+          style={{ marginBottom: 8 }}
+        />
+      )}
+
+      <Spin spinning={fetching}>
+        <ChartWrap>
+          {chartData.length === 0 ? (
+            <ChartEmpty>
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="Không có dữ liệu trong khoảng đã chọn"
+              />
+            </ChartEmpty>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              {loaiBieuDo === "cot" ? (
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
+                  barCategoryGap="35%"
+                >
+                  <CartesianGrid vertical={false} stroke="#f0f0f0" />
+                  {axisProps.xAxis}
+                  {axisProps.yAxis}
+                  <Tooltip cursor={false} formatter={tooltipFormatter} />
+                  <Bar dataKey="value" fill={color} radius={[3, 3, 0, 0]} barSize={30} />
+                </BarChart>
+              ) : (
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 4, right: 8, left: 16, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} stroke="#f0f0f0" />
+                  {axisProps.xAxis}
+                  {axisProps.yAxis}
+                  <Tooltip formatter={tooltipFormatter} />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={color}
+                    strokeWidth={2}
+                    dot={{ r: 3, fill: color }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              )}
+            </ResponsiveContainer>
+          )}
+        </ChartWrap>
+      </Spin>
     </ChartCard>
   );
 }

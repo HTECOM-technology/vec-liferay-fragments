@@ -83,8 +83,16 @@ function normalizeErrors(items) {
   }));
 }
 
-export async function fetchTollReconciliationDashboard({ signal, limit = 10 } = {}) {
+export async function fetchTollReconciliationDashboard({
+  signal,
+  limit = 10,
+  fromDate,
+  toDate,
+} = {}) {
   const query = new URLSearchParams({ limit: String(limit) });
+
+  if (fromDate) query.set("fromDate", fromDate);
+  if (toDate) query.set("toDate", toDate);
   const response = await fetch(`${baseApiUrl()}${API_PATH}?${query.toString()}`, {
     method: "GET",
     credentials: "include",
