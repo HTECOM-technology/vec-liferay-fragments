@@ -160,11 +160,11 @@
     const arrFolderWillReplace = Object.keys(mappingData);
 
     if (!arrFolderWillReplace.includes(folderId)) {
-      get('[data-qa-id="creationMenuNewButton"]', (btn) => {
-        document.querySelectorAll('[data-qa-id="creationMenuNewButton"]').forEach((btn) => {
-          btn.style.setProperty('display', 'none', 'important');
-        });
-      });
+      // get('[data-qa-id="creationMenuNewButton"]', (btn) => {
+      //   document.querySelectorAll('[data-qa-id="creationMenuNewButton"]').forEach((btn) => {
+      //     btn.style.setProperty('display', 'none', 'important');
+      //   });
+      // });
       if (folderId === '1414353') {
         modifyOnlyBriefContent();
       }
