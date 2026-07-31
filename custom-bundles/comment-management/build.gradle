@@ -49,14 +49,18 @@ dependencies {
     compileOnly group: "org.osgi", name: "org.osgi.service.cm", version: "1.6.0"
 
     if (applicationListApiFiles.files.empty) {
-        compileOnly group: "com.liferay", name: "com.liferay.application.list.api", version: "13.1.3"
+        // 13.1.2 = version đang chạy trên server.
+        compileOnly group: "com.liferay", name: "com.liferay.application.list.api", version: "13.1.2"
     }
     else {
         compileOnly applicationListApiFiles
     }
 
     if (messageBoardsApiFiles.files.empty) {
-        compileOnly group: "com.liferay", name: "com.liferay.message.boards.api", version: "latest.release"
+        // Pin đúng version đang chạy trên server (bundle com.liferay.message.boards.api
+        // 27.0.1) thay vì latest.release, để build local compile đúng API của
+        // production và kết quả build lặp lại được.
+        compileOnly group: "com.liferay", name: "com.liferay.message.boards.api", version: "27.0.1"
     }
     else {
         compileOnly messageBoardsApiFiles

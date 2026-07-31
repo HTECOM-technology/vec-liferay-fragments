@@ -57,7 +57,8 @@ dependencies {
 
     // portal.kernel and osgi-annotations already provided via local jars above
     if (applicationListApiFiles.files.empty) {
-        compileOnly group: "com.liferay", name: "com.liferay.application.list.api", version: "13.1.3"
+        // 13.1.2 = version đang chạy trên server.
+        compileOnly group: "com.liferay", name: "com.liferay.application.list.api", version: "13.1.2"
     }
     else {
         compileOnly applicationListApiFiles

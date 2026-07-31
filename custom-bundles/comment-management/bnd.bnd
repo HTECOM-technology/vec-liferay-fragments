@@ -4,7 +4,18 @@ Bundle-Version: 1.0.1
 
 -dsannotations-options: inherit
 
+# Bắt buộc mọi package com.liferay import không kèm version range.
+#
+# Khi build bằng Docker, classpath là artifact Maven (application.list.api,
+# message.boards.api) có khai báo Export-Package version, nên bnd tự sinh range
+# kiểu com.liferay.message.boards.service;version="11.1". Server export version
+# khác -> bundle không resolve được:
+#   BundleException: Unresolved requirement: Import-Package:
+#   com.liferay.message.boards.service; version="11.1.0"
+# JAR build từ JAR thật trong LIFERAY_HOME không có range nào, nên pin 0.0.0 để
+# hai đường build cho ra manifest tương đương.
 Import-Package: \
+    com.liferay.*;version="0.0.0",\
     javax.portlet;version="0.0.0",\
     javax.servlet.*;version="0.0.0",\
     *
