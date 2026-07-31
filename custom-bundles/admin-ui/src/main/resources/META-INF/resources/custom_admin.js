@@ -501,7 +501,7 @@ async function __appendWebContentAdvancedSearchMenu() {
             ATTR_BUTTON + '="1" ' +
             'href="' + href + '" ' +
             'rel="noopener noreferrer" ' +
-            'class="btn btn-secondary btn-sm ml-2">' +
+            'class="btn btn-secondary btn-sm mx-2">' +
             'Tìm kiếm nâng cao' +
             '</a>';
 
