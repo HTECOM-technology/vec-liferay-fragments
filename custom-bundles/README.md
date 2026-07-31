@@ -12,7 +12,7 @@ Thư mục `custom-bundles` chứa mã nguồn các custom module và tài nguy�
 | `frontend-ui/` | CSS và JavaScript custom cho giao diện frontend. |
 | `workflow/` | Các định nghĩa workflow XML dùng trong Liferay. |
 | `libs/` | Thư viện cục bộ phục vụ quá trình build. |
-| `dist/` | JAR build ra từ Docker (gitignore). |
+| `dist/` | JAR build ra từ Docker, được commit vào git. |
 | `deploy-admin-ui.sh` | Script upload mã nguồn, build module trên server và deploy JAR. |
 
 ## Build bằng Docker (build local, không cần server)
