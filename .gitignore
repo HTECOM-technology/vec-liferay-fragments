@@ -52,6 +52,5 @@ custom-bundles/.env
 # Docker build custom-bundles
 # =========================
 # JAR build ra và cache Gradle của container (xem build-custom-bundles.sh)
-custom-bundles/dist/
 .gradle-docker/
 .gradle/
