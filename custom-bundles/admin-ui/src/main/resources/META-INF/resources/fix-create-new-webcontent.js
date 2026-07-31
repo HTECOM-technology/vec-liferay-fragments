@@ -174,7 +174,7 @@
     const currentFolderMapping = mappingData[folderId];
     const newStructId = currentFolderMapping.structureID;
 
-    get('[id="clay-dropdown-menu-4"] [href*="JournalPortlet_ddmStructureId=38305"]', (el) => {
+    get('[id="clay-dropdown-menu-4"] [href*="JournalPortlet_ddmStructureId="]', (el) => {
       const defaultUrl = el.getAttribute('href');
       let newUrl = replaceDdmStructureId(defaultUrl, newStructId);
 

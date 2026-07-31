@@ -21,10 +21,12 @@ Usage:
 Modules:
   1  admin-ui
   2  expired-password (vec-expired-password-force-change)
+  3  comment-management
 
 Examples:
   bash deploy-admin-ui.sh 1
   bash deploy-admin-ui.sh 2
+  bash deploy-admin-ui.sh 3
 EOF
 }
 
@@ -36,10 +38,44 @@ resolve_module_name() {
         2)
             echo "vec-expired-password-force-change"
             ;;
+        3)
+            echo "comment-management"
+            ;;
         *)
             echo ""
             ;;
     esac
+}
+
+# Cảnh báo khi trong osgi/modules còn JAR cũ của cùng một bundle nhưng khác tên
+# file (ví dụ khác version). Liferay sẽ install cả hai bundle cùng
+# Bundle-SymbolicName và portal có thể vẫn dùng code cũ.
+warn_stale_jars() {
+    local new_jar_name="$1"
+    local prefix="${new_jar_name%%-[0-9]*}"
+
+    [ -n "$prefix" ] || return 0
+
+    local stale_found=0
+
+    while IFS= read -r stale_jar; do
+        [ -n "$stale_jar" ] || continue
+        [ "$(basename "$stale_jar")" != "$new_jar_name" ] || continue
+
+        if [ "$stale_found" -eq 0 ]; then
+            echo ""
+            echo "!!! CẢNH BÁO: còn JAR cũ của bundle '$prefix' trong $DEPLOY_DIR:"
+            stale_found=1
+        fi
+
+        echo "      $stale_jar"
+    done < <(find "$DEPLOY_DIR" -maxdepth 1 -name "${prefix}*.jar" 2>/dev/null)
+
+    if [ "$stale_found" -eq 1 ]; then
+        echo "    Hãy xoá các file trên rồi restart Liferay để tránh chạy code cũ:"
+        echo "      rm <đường dẫn JAR cũ>"
+        echo ""
+    fi
 }
 
 build_and_deploy_module() {
@@ -85,6 +121,7 @@ build_and_deploy_module() {
 
     echo ">>> Deploying $(basename "$jar_file") -> $DEPLOY_DIR/"
     mkdir -p "$DEPLOY_DIR"
+    warn_stale_jars "$(basename "$jar_file")"
     cp "$jar_file" "$DEPLOY_DIR/"
 
     if [ -d "$module_dir/osgi/configs" ]; then
@@ -166,7 +203,7 @@ rsync -avz \
     --delete \
     --exclude='.git/' \
     --exclude='node_modules/' \
-    --exclude='admin-ui/.gradle/' \
+    --exclude='.gradle/' \
     --exclude='*/build/' \
     --exclude='*.class' \
     -e "ssh $SSH_OPTS" \

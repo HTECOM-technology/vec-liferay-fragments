@@ -8,10 +8,37 @@ Thư mục `custom-bundles` chứa mã nguồn các custom module và tài nguy�
 | --- | --- |
 | `admin-ui/` | Module OSGi chính `vn.vec.custom.admin.ui`, chứa REST API, portlet, filter, listener, scheduler và giao diện quản trị. |
 | `vec-expired-password-force-change/` | Module buộc người dùng xử lý mật khẩu hết hạn. |
+| `comment-management/` | Module OSGi `comment.management`, portlet quản lý bình luận (Site Administration → Content). |
 | `frontend-ui/` | CSS và JavaScript custom cho giao diện frontend. |
 | `workflow/` | Các định nghĩa workflow XML dùng trong Liferay. |
 | `libs/` | Thư viện cục bộ phục vụ quá trình build. |
+| `dist/` | JAR build ra từ Docker (gitignore). |
 | `deploy-admin-ui.sh` | Script upload mã nguồn, build module trên server và deploy JAR. |
+
+## Build bằng Docker (build local, không cần server)
+
+Chạy từ thư mục gốc dự án. Không cần cài JDK, Gradle hay Liferay bundle trên máy:
+
+```bash
+bash build-custom-bundles.sh all      # build cả 3 module
+bash build-custom-bundles.sh 3        # chỉ comment-management
+bash build-custom-bundles.sh 1 3      # admin-ui + comment-management
+bash build-custom-bundles.sh --clean all
+```
+
+Module: `1` = admin-ui, `2` = expired-password, `3` = comment-management (đánh số giống `deploy-admin-ui.sh`).
+
+JAR kết quả nằm ở `custom-bundles/dist/`. Copy thủ công vào `$LIFERAY_HOME/osgi/modules/` trên server, hoặc dùng `deploy-admin-ui.sh` để build+deploy trên server như trước.
+
+Cách hoạt động:
+
+- [`Dockerfile.custom-bundles`](../Dockerfile.custom-bundles) tạo image chỉ gồm JDK 17 (Liferay 7.4.3.132 yêu cầu `osgi.ee=JavaSE 17`) và Gradle 7.6.4.
+- Container **không** set `LIFERAY_HOME`, nên các `build.gradle` tự đi nhánh fallback Maven `com.liferay.portal:release.portal.api:7.4.3.132`. Artifact này chứa đủ `portal-kernel`, `javax.portlet`, các app API (journal, message-boards, application-list…) và OSGi annotations, nên build được mà không cần bundle Liferay. Trên server có `LIFERAY_HOME` thì vẫn ưu tiên JAR thật như trước — hành vi build trên server không đổi.
+- Logic build nằm trong [`build-custom-bundles.sh`](../build-custom-bundles.sh) (mount cùng repo), nên sửa script **không** cần rebuild image. Chỉ rebuild khi sửa Dockerfile: `bash build-custom-bundles.sh --rebuild-image all`.
+- Cache Gradle nằm ở `.gradle-docker/` trong repo (gitignore) để lần build sau nhanh (~1-3 giây/module) và file sinh ra thuộc đúng user, không bị root-owned.
+- Debug trong container: `bash build-custom-bundles.sh --shell`.
+
+Lưu ý: **giữ Gradle 7.x**. Liferay Gradle plugin còn dùng API đã bị bỏ ở Gradle 8 (build sẽ báo "incompatible with Gradle 8.0").
 
 ## Chuẩn bị cấu hình deploy
 
@@ -43,6 +70,9 @@ bash custom-bundles/deploy-admin-ui.sh 1
 
 # Build/deploy module force change password
 bash custom-bundles/deploy-admin-ui.sh 2
+
+# Build/deploy comment-management
+bash custom-bundles/deploy-admin-ui.sh 3
 ```
 
 Luồng chạy từ local:

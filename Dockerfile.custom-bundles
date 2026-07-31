@@ -1,0 +1,32 @@
+# Image build custom-bundles thành JAR OSGi, không cần Liferay bundle trên máy.
+#
+# Các build.gradle trong custom-bundles ưu tiên JAR trong $LIFERAY_HOME, và tự
+# fallback sang artifact Maven khi không tìm thấy. Trong container không có
+# LIFERAY_HOME nên nhánh fallback được dùng: com.liferay.portal:release.portal.api
+# (chứa cả portal-kernel, javax.portlet, các app API và org.osgi annotations).
+#
+# Image chỉ chứa JDK + Gradle. Toàn bộ logic build nằm trong
+# build-custom-bundles.sh (được mount cùng repo) nên sửa script không cần
+# rebuild image.
+
+FROM eclipse-temurin:17-jdk-jammy
+
+# Liferay 7.4.3.132 yêu cầu JavaSE 17 (osgi.ee=JavaSE version=17 trong manifest).
+ARG GRADLE_VERSION=7.6.4
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL -o /tmp/gradle.zip \
+        "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
+    && unzip -q /tmp/gradle.zip -d /opt \
+    && rm /tmp/gradle.zip \
+    && ln -s "/opt/gradle-${GRADLE_VERSION}/bin/gradle" /usr/local/bin/gradle
+
+# Không set LIFERAY_HOME: để build.gradle đi nhánh fallback Maven.
+ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dfile.encoding=UTF-8"
+
+WORKDIR /workspace
+
+ENTRYPOINT ["/bin/bash"]

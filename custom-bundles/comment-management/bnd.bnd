@@ -1,0 +1,12 @@
+Bundle-Name: comment-management
+Bundle-SymbolicName: comment.management
+Bundle-Version: 1.0.1
+
+-dsannotations-options: inherit
+
+Import-Package: \
+    javax.portlet;version="0.0.0",\
+    javax.servlet.*;version="0.0.0",\
+    *
+
+-contract: !JavaServlet
