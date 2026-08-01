@@ -1,0 +1,192 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tinytalk.ai/latest/tiny-talk-sdk.min.umd.js" data-tiny-bot-id="25c1f74d-152a-4e1c-9049-839d7c3caee0" defer></script>
+
+<div class="fragment_207">
+  <div class="bg-[#0090CF]">
+    <div class="container grid grid-cols-1 md:grid-cols-2 xl:grid-cols-7 gap-2 md:gap-3 xl:gap-10 place-items-end py-4 gap-y-5">
+
+      <!-- Cột 1: Logo + tên tổ chức + social -->
+      <div class="flex flex-col md:flex-row xl:flex-row gap-6 items-center md:items-start text-center md:text-left xl:col-span-2 col-span-1 size-full">
+        <div class="col-span-1 cursor-pointer w-full md:w-auto flex justify-center md:justify-start">
+          <svg xmlns="http://www.w3.org/2000/svg" width="90" height="78" viewBox="0 0 90 78" fill="none">
+            <path d="M45 0.5C69.6501 0.5 89.5 17.671 89.5 38.7002C89.4999 59.7293 69.65 76.9004 45 76.9004C20.35 76.9004 0.500122 59.7293 0.5 38.7002C0.5 17.671 20.3499 0.5 45 0.5Z" fill="#0090CF" stroke="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M20.061 62.2013L45.2417 2.32617L29.8338 50.6043L39.1397 39.6533H41.5387L25.9859 62.1852H20.061V62.2013Z" fill="#E31C2A" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M42.9393 39.3623L41.4902 50.9432L52.3901 50.8625L51.585 48.6174L45.0967 48.4558V44.434L50.4741 44.2725L50.0716 42.8188L45.0967 42.8996V40.6545L49.5886 40.7352L49.1056 39.5238L42.9393 39.3623Z" fill="#E31C2A" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M51.6816 39.5245L60.424 39.2822L61.229 41.3012L58.7496 41.382L58.3471 40.6551L54.6602 40.7359L57.3811 48.5373H61.4705L61.0841 47.3259H63.8534L65.3346 50.8793L55.3525 50.9439L51.6816 39.5245Z" fill="#E31C2A" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M28.0308 62.1049L46.4977 61.9595L46.5299 52.9952L34.2776 52.7529L28.0308 62.1049Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M50.0234 52.9141L66.1719 52.9464L69.9394 61.8299L50.8606 62.0237L50.0234 52.9141Z" fill="white" />
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M45.7567 16.1687L45.9177 22.6294H47.4311L46.9159 16.1687H45.7567ZM46.1431 5.66992L59.6189 37.4407L48.6708 37.57H48.6064L48.1073 31.2546H46.1431L46.3041 37.57H35.9355L46.1431 5.66992Z" fill="white" />
+          </svg>
+        </div>
+
+        <div class="col-span-1 md:col-span-2 w-full">
+          <div class="pb-3 border-b border-bottom-white-opacity">
+            <h1 class="!text-white !text-[16px] !font-bold text-center md:!text-left md:max-w-[350px]">${configuration.orgNameVi}</h1>
+            <h2 class="!text-white !text-[14px] !font-bold text-center md:!text-left">${configuration.orgNameEn}</h2>
+          </div>
+
+          <div class="flex flex-col sm:flex-row justify-center md:justify-start items-center sm:item-center self-center pt-3 gap-2 sm:gap-0">
+            <div class="flex justify-center md:justify-start item-center pr-2">
+              <a href="${configuration.facebookUrl}">
+                <img class="cursor-pointer" src="/documents/d/guest/fb" alt="Facebook VEC" />
+              </a>
+              <a href="${configuration.youtubeUrl}">
+                <img class="cursor-pointer" src="/documents/d/guest/vec-yt" alt="YouTube VEC" />
+              </a>
+            </div>
+            <div class="!text-white text-[14px] !font-light self-center">${configuration.followLabel}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột 2: Thông tin liên hệ (bản desktop) -->
+      <div class="hidden xl:grid grid-cols-1 w-full place-items-start gap-2 xl:!col-span-3 h-full">
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.addressLabel}:</span>
+          <span class="!text-white !font-medium text-[14px] block sm:inline">${configuration.addressValue}</span>
+        </div>
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.telLabel}:</span>
+          <span class="!text-white !font-medium text-[14px]">${configuration.telValue}</span>
+          <span class="!text-white !font-bold text-[14px] ml-2">${configuration.faxLabel}:</span>
+          <span class="!text-white !font-medium text-[14px]">${configuration.faxValue}</span>
+        </div>
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.emailLabel}:</span>
+          <span class="!text-white !font-medium text-[14px]">${configuration.emailValue}</span>
+        </div>
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.websiteLabel}:</span>
+          <span class="!text-white !font-medium text-[14px] block sm:inline">${configuration.site1} / ${configuration.site2}</span>
+        </div>
+      </div>
+
+      <!-- Cột 3: Ảnh follow -->
+      <div class="grid grid-cols-1 w-full xl:col-span-2 col-span-1 h-full">
+        <div class="flex md:justify-end justify-center w-full">
+          <a href="${configuration.facebookUrl}" class="cursor-pointer">
+            <img src="/documents/d/guest/footer-image" alt="Theo dõi VEC" class="w-auto h-auto max-w-full" />
+          </a>
+        </div>
+      </div>
+
+      <!-- Cột 4: Thông tin liên hệ (bản mobile/tablet, tel-fax tách dòng ở màn hẹp) -->
+      <div class="xl:hidden grid grid-cols-1 w-full place-items-start gap-2 md:col-span-2 col-span-1 h-full">
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.addressLabel}:</span>
+          <span class="!text-white !font-medium text-[14px] block sm:inline">${configuration.addressValue}</span>
+        </div>
+        <div class="w-full d-flex gap-3 break-fax">
+          <div>
+            <span class="!text-white !font-bold text-[14px]">${configuration.telLabel}:</span>
+            <span class="!text-white !font-medium text-[14px]">${configuration.telValue}</span>
+          </div>
+          <div>
+            <span class="!text-white !font-bold text-[14px]">${configuration.faxLabel}:</span>
+            <span class="!text-white !font-medium text-[14px]">${configuration.faxValue}</span>
+          </div>
+        </div>
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.emailLabel}:</span>
+          <span class="!text-white !font-medium text-[14px]">${configuration.emailValue}</span>
+        </div>
+        <div class="w-full">
+          <span class="!text-white !font-bold text-[14px]">${configuration.websiteLabel}:</span>
+          <span class="!text-white !font-medium text-[14px] block sm:inline">${configuration.site1} / ${configuration.site2}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nút nổi: mở menu tròn + cuộn lên đầu trang -->
+  <div id="btn-menu" class="fixed rounded-full cursor-pointer border-2 border-white" role="button" tabindex="0" aria-label="Mở menu nhanh">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 7H21" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M3 12H21" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M3 17H21" stroke="white" stroke-width="1.5" stroke-linecap="round" />
+    </svg>
+  </div>
+
+  <div id="btn-scroll-toll" class="hidden-btn-scroll-toll fixed rounded-full bg-white cursor-pointer" role="button" tabindex="0" aria-label="Lên đầu trang">
+    <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6.34981 0.222391L0.296907 5.29055C0.11943 5.43881 0.0213506 5.62219 0.00266883 5.84068C-0.016013 6.05917 0.0633846 6.25425 0.240862 6.42592C0.418339 6.57418 0.640185 6.65611 0.9064 6.67172C1.17262 6.68732 1.4038 6.62099 1.59996 6.47273L1.642 6.46103C1.66068 6.45323 1.67002 6.44152 1.67002 6.42592L6.11161 2.7038V16.2462C6.11161 16.4647 6.21203 16.65 6.41286 16.8022C6.61369 16.9544 6.84955 17.0187 7.12043 16.9953C7.36329 16.9953 7.57346 16.9192 7.75094 16.7671C7.92842 16.6149 8.01716 16.4413 8.01716 16.2462V2.7038L12.4728 6.42592C12.6409 6.56637 12.8534 6.63075 13.1103 6.61904C13.3672 6.60734 13.589 6.52736 13.7758 6.3791C13.9253 6.22303 14 6.04746 14 5.85238C14 5.6573 13.9253 5.48563 13.7758 5.33737L7.72292 0.222391C7.54544 0.074131 7.32593 0 7.06439 0C6.80284 0 6.56465 0.074131 6.34981 0.222391Z" fill="#0090CF" />
+    </svg>
+  </div>
+
+  <div id="list-item" class="fixed w-[140px] h-[140px] right-0 bottom-0"></div>
+
+  <!-- Modal video trực tiếp -->
+  <div id="liveModal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="liveBackdrop"></div>
+      <div class="bg-white rounded-2xl shadow-2xl w-[1000px] max-w-7xl max-h-[95vh] overflow-hidden flex flex-col animate-modalIn content-modal relative">
+        <iframe id="iframeLive" width="962" height="553" data-src="${configuration.liveVideoUrl}" title="${configuration.liveVideoTitle}" frameborder="0" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <p style="margin-bottom: 10px; margin-top: 10px">Youtube.com</p>
+        <h2 class="title-live-modal text-center text-[#000000] text-[24px] font-bold leading-[100%]">${configuration.liveVideoTitle}</h2>
+        <button id="closeLiveModal" type="button" aria-label="Đóng" class="w-10 h-10 flex items-center justify-center rounded-xl transition-colors absolute right-0 top-0">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="13.5" fill="#E31C2A" stroke="white" />
+            <path d="M18.6663 9.33301L9.33301 18.6663M9.33301 9.33301L18.6663 18.6663" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2 cột: danh sách camera trực tuyến -->
+  <div id="ftrCamerasModal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="ftrCamerasBackdrop"></div>
+      <div class="bg-white rounded-2xl shadow-2xl w-[1100px] max-w-7xl max-h-[95vh] overflow-hidden flex flex-col animate-modalIn relative">
+        <button id="ftrCamerasCloseBtn" type="button" aria-label="Đóng" class="w-10 h-10 flex items-center justify-center rounded-xl transition-colors absolute right-3 top-3 z-10">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="13.5" fill="#E31C2A" stroke="white" />
+            <path d="M18.6663 9.33301L9.33301 18.6663M9.33301 9.33301L18.6663 18.6663" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+
+        <div class="p-5 md:p-6 overflow-y-auto">
+          <h2 class="text-center text-[22px] md:text-[24px] font-bold text-[#000000] mb-4">Camera trực tuyến</h2>
+          <div class="grid grid-cols-1 md:grid-cols-[1fr_2px_1fr] gap-6">
+            <div class="flex flex-col">
+              <h3 class="text-[16px] font-bold text-[#0090CF] mb-3 text-center md:text-left">Cao tốc TP. Hồ Chí Minh - Long Thành - Dầu Giây</h3>
+              <div id="ftrCamLeftList" class="grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-[120px]">
+                <div class="col-span-full text-center text-gray-400 text-sm py-6">Đang tải camera...</div>
+              </div>
+            </div>
+            <div class="hidden md:block w-[2px] bg-[#0090CF] rounded-full"></div>
+            <div class="flex flex-col">
+              <h3 class="text-[16px] font-bold text-[#0090CF] mb-3 text-center md:text-left">Cao tốc Cầu Giẽ - Ninh Bình</h3>
+              <div id="ftrCamRightList" class="grid grid-cols-2 sm:grid-cols-3 gap-3 min-h-[120px]">
+                <div class="col-span-full text-center text-gray-400 text-sm py-6">Đang tải camera...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal xem trực tiếp 1 camera -->
+  <div id="ftrCamWatchModal" class="fixed inset-0 z-[110] hidden">
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60" id="ftrCamWatchBackdrop"></div>
+      <div class="bg-white rounded-2xl shadow-2xl w-[900px] max-w-full overflow-hidden relative ftr-cam-watch-box">
+        <button id="ftrCamWatchCloseBtn" type="button" aria-label="Đóng" class="ftr-cam-watch-close absolute top-2 right-2 z-10 bg-red-500 hover:bg-red-600 transition-colors rounded-full flex items-center justify-center">
+          <span>&times;</span>
+        </button>
+        <div id="ftrCamWatchVideoContainer" class="relative bg-black rounded-lg overflow-hidden ftr-cam-watch-video">
+          <video id="ftrCamWatchVideo" class="w-full h-full" autoplay muted playsinline disablepictureinpicture controlslist="nodownload noplaybackrate nofullscreen noremoteplayback"></video>
+          <div id="ftrCamWatchStatus" class="ftr-cam-watch-status absolute inset-0 flex items-center justify-center text-white text-sm">Đang khởi động camera...</div>
+        </div>
+        <h3 id="ftrCamWatchTitle" class="text-gray-900 text-lg font-semibold mt-4"></h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copyright -->
+  <div class="w-full flex justify-center item-center footer-bg p-2">
+    <p class="desktop-copyright mb-1 !text-light !font-light text-center px-2 cpr-footer">${configuration.copyrightDesktop}</p>
+    <p class="mobile-copyright mb-1 !text-light !font-light text-center px-2 cpr-footer">${configuration.copyrightMobile}</p>
+  </div>
+</div>

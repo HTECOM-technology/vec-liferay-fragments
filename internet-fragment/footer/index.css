@@ -1,0 +1,191 @@
+/* Ẩn thanh cảnh báo của Liferay admin (do portal sinh ra, không có trong markup fragment) */
+.alert-container.cadmin.container {
+    display: none !important;
+}
+
+/* Chatbot TinyTalk đang tắt: ẩn shadow host là ẩn toàn bộ widget */
+.tiny-talk-shadow-host,
+.tiny-talk-launcher {
+    display: none !important;
+}
+
+.vec-member-units {
+    z-index: 3 !important;
+}
+
+.fragment_207 .border-bottom-white-opacity {
+    border-bottom-color: #ffffff33 !important;
+}
+
+.fragment_207 .sub-menu__item {
+    height: 58px;
+    width: 58px;
+}
+
+/* d-flex là class Bootstrap/Clay; khai báo thêm để không phụ thuộc framework ngoài */
+.break-fax {
+    display: flex;
+}
+
+.footer-bg {
+    position: relative;
+    height: 44px;
+    overflow: hidden;
+    background-image: var(--theme-footer-bg);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: var(--theme-footer-color, #ffffff) !important;
+    font-size: 14px;
+}
+
+.cpr-footer {
+    margin-bottom: 0 !important;
+    line-height: 28px !important;
+}
+
+.mobile-copyright {
+    display: none;
+}
+
+.content-modal {
+    padding: 21px 19px;
+}
+
+.title-live-modal {
+    color: #000000;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 100%;
+    text-align: left;
+}
+
+.ftr-cam-watch-box {
+    padding: 20px;
+}
+
+.ftr-cam-watch-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ftr-cam-watch-video {
+    aspect-ratio: 16 / 9;
+}
+
+.ftr-cam-watch-status {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+/* ---- Nút nổi góc phải ---- */
+
+#btn-menu,
+#btn-scroll-toll {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px !important;
+    width: 50px !important;
+    padding: 10px;
+    margin-bottom: 15px;
+    bottom: 72px;
+    right: 22px !important;
+    box-shadow: 0px 0px 13px 0px #00000040;
+    transition: all 0.3s ease;
+    z-index: 10 !important;
+}
+
+#btn-menu {
+    background-color: #0090cf;
+}
+
+#btn-scroll-toll {
+    margin-bottom: 15px !important;
+}
+
+/* Đẩy nút menu lên khi nút "lên đầu trang" xuất hiện.
+   Trước đây làm bằng cách add/remove class Tailwind bottom-[Npx] trong JS,
+   nhưng class cũ vẫn còn trên element nên thứ tự CSS quyết định -> vị trí bất định. */
+#btn-menu.btn-menu--raised {
+    bottom: 138px;
+}
+
+.hidden-btn-scroll-toll {
+    display: none !important;
+}
+
+#list-item {
+    z-index: 5;
+}
+
+@media (max-width: 1024px) {
+    #btn-menu {
+        height: 52px !important;
+        width: 52px !important;
+    }
+
+    #btn-scroll-toll {
+        height: 50px !important;
+        width: 50px !important;
+    }
+
+    .fragment_207 .sub-menu__item {
+        height: 44px !important;
+        width: 44px !important;
+    }
+}
+
+/* Mốc 1023px khớp với MOBILE_BREAKPOINT trong index.js */
+@media (max-width: 1023px) {
+    #btn-menu,
+    #btn-scroll-toll {
+        bottom: 60px;
+    }
+
+    #btn-menu.btn-menu--raised {
+        bottom: 110px;
+    }
+}
+
+@media (max-width: 768px) {
+    .desktop-copyright {
+        display: none;
+    }
+
+    .mobile-copyright {
+        display: block;
+    }
+
+    #iframeLive {
+        width: 100%;
+        height: 240px;
+    }
+
+    .title-live-modal {
+        font-size: 22px;
+    }
+
+    #btn-menu {
+        height: 42px !important;
+        width: 42px !important;
+        margin-bottom: 20px !important;
+    }
+
+    #btn-scroll-toll {
+        height: 40px !important;
+        width: 40px !important;
+        margin-bottom: 10px !important;
+    }
+}
+
+@media (max-width: 450px) {
+    .break-fax {
+        flex-direction: column;
+    }
+}

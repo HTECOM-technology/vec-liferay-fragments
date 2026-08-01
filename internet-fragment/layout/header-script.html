@@ -1,0 +1,978 @@
+<script>
+  var SEARCH_URL = "/web/guest/trangchu/ketquatimkiem?q=";
+  var VEC_SKIP_TAGS = ["SCRIPT", "STYLE", "NOSCRIPT", "IFRAME", "CODE", "PRE"];
+  var VEC_TRANSLATE_API = "https://translate.googleapis.com/translate_a/single";
+  var VEC_WEATHER_API = "https://api.open-meteo.com/v1/forecast";
+
+  var vecAnimationTimer = null;
+  var vecWeatherText = "";
+
+  var feeModalSelectedStations = { station1: "", station2: "" };
+  var feeModalCurrentRoute = null;
+  var feeModalTollStations = [];
+  var feeModalCurrentMarkerData = null;
+  var feeModalRouteData = [];
+  var feeModalCurrentRouteIndex = -1;
+  var feeModalAutoSelectDone = false;
+  var feeModalHighwaysPromise = null;
+  var feeModalRequestId = 0;
+
+  window.isFirstTimeLoadTranslate = true;
+
+  function onDomReady(callback) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", callback, { once: true });
+    } else {
+      callback();
+    }
+  }
+
+  // Chạy sau khi browser vẽ xong frame đầu tiên
+  function vecAfterPaint(callback) {
+    if (typeof requestAnimationFrame !== "function") {
+      setTimeout(callback, 0);
+      return;
+    }
+    requestAnimationFrame(() => requestAnimationFrame(callback));
+  }
+
+  // Chạy khi browser rảnh, chậm nhất là sau timeout
+  function vecWhenIdle(callback, timeout = 2000) {
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(callback, { timeout });
+      return;
+    }
+    setTimeout(callback, 200);
+  }
+
+  // Bind bằng addEventListener (không đè onxxx inline trong markup) và chỉ bind 1 lần/element
+  function bindOnce(el, type, handler) {
+    if (!el) return;
+
+    const key = "vecBound" + type;
+    if (el.dataset[key]) return;
+
+    el.dataset[key] = "1";
+    el.addEventListener(type, handler);
+  }
+
+  function vecCollectTextNodes(options) {
+    const skipIgnored = !(options && options.includeIgnored);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        if (VEC_SKIP_TAGS.includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+        if (skipIgnored && parent.getAttribute("data-ignore-translate") === "true") {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    return nodes;
+  }
+
+  function vecTranslateNode(node, text, from, to) {
+    fetch(
+      VEC_TRANSLATE_API +
+      "?client=gtx&sl=" + from +
+      "&tl=" + to +
+      "&dt=t&q=" + encodeURIComponent(text)
+    )
+      .then((r) => r.json())
+      .then((d) => {
+        node.nodeValue = d[0].map((x) => x[0]).join("");
+      })
+      .catch(() => { });
+  }
+
+  function vecApplyTranslation(lang, flagUrl, from = "auto") {
+    if (!lang) return;
+
+    const currentLang = document.body.getAttribute("data-vec-lang");
+    if (currentLang === lang) return;
+
+    const isViDefault = lang === "vi" && !currentLang;
+    const isRollbackToVi = lang === "vi" && !!currentLang;
+
+    document.body.setAttribute("data-vec-lang", lang);
+
+    if (flagUrl) {
+      const image = document.querySelector("#vecLangToggle image");
+      if (image) image.setAttribute("xlink:href", flagUrl);
+    }
+
+    const nodes = vecCollectTextNodes();
+
+    if (isRollbackToVi) {
+      nodes.forEach((node) => {
+        const parent = node.parentElement;
+        const viTranslate = parent?.getAttribute("data-vi-translate") ?? "";
+        if (viTranslate) {
+          node.nodeValue = viTranslate;
+          return;
+        }
+        if (parent?.dataset.originalText) node.nodeValue = parent.dataset.originalText;
+      });
+      return;
+    }
+
+    nodes.forEach((node) => {
+      const parent = node.parentElement;
+      if (parent.closest(".notranslate")) return;
+
+      if (window.isFirstTimeLoadTranslate) {
+        if (!parent.dataset.originalText) parent.dataset.originalText = node.nodeValue;
+        if (isViDefault) return;
+      }
+
+      const defaultTranslate = parent.getAttribute("data-default-translate") ?? "";
+      if (defaultTranslate) {
+        node.nodeValue = defaultTranslate;
+        return;
+      }
+
+      vecTranslateNode(node, node.nodeValue.trim(), from, lang);
+    });
+
+    window.isFirstTimeLoadTranslate = false;
+  }
+
+  function resetVecTranslationGuard() {
+    document.body.removeAttribute("data-vec-lang");
+  }
+
+  function vecTranslate(btn, from = "auto") {
+    const lang = btn.getAttribute("data-lang");
+    const flag = btn.getAttribute("data-flag-url");
+
+    localStorage.setItem("vec_selected_lang", lang);
+    localStorage.setItem("vec_selected_flag", flag);
+
+    vecApplyTranslation(lang, flag, from);
+  }
+
+  function vecTranslateMobile(btn, from = "auto") {
+    const to = btn.getAttribute("data-lang");
+    const flagUrl = btn.getAttribute("data-flag-url");
+
+    localStorage.setItem("vec_selected_lang", to);
+    localStorage.setItem("vec_selected_flag", flagUrl);
+
+    if (flagUrl) {
+      const image = document.querySelector("#vecLangToggleMobile #imageLangGlobeMobile");
+      if (image) image.setAttribute("xlink:href", flagUrl);
+    }
+
+    vecCollectTextNodes({ includeIgnored: true }).forEach((node) => {
+      vecTranslateNode(node, node.nodeValue.trim(), from, to);
+    });
+  }
+
+  function applySavedLanguage() {
+    const lang = localStorage.getItem("vec_selected_lang");
+    const flag = localStorage.getItem("vec_selected_flag");
+    if (!lang) return;
+
+    resetVecTranslationGuard();
+    // Cần delay để DOM của trang mới render xong mới dịch
+    setTimeout(() => vecApplyTranslation(lang, flag), 400);
+  }
+
+  function openModal() {
+    const modal = document.getElementById("modal");
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+    modal.offsetHeight; // ép reflow để animation chạy lại
+    modal.classList.add("show");
+    modal.classList.remove("hide");
+  }
+
+  function closeModal() {
+    const modal = document.getElementById("modal");
+    if (!modal) return;
+
+    modal.classList.remove("show");
+    modal.classList.add("hide");
+    // 400ms khớp với thời lượng animation trong header-style.html
+    setTimeout(() => {
+      modal.classList.add("hidden");
+      modal.classList.remove("hide");
+    }, 400);
+  }
+
+  function submit() {
+    const submitBtn = document.querySelector("input[type='submit']");
+    if (submitBtn) submitBtn.click();
+  }
+
+  function goToSearch(keyword) {
+    if (!keyword) return;
+    window.location.href = SEARCH_URL + encodeURIComponent(keyword.trim());
+  }
+
+  function bindSearch(inputId, buttonId) {
+    const input = document.getElementById(inputId);
+    const button = document.getElementById(buttonId);
+
+    bindOnce(input, "keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      goToSearch(input.value);
+    });
+
+    bindOnce(button, "click", () => goToSearch(input ? input.value : ""));
+  }
+
+  function initDrawer() {
+    const drawer = document.getElementById("drawer");
+    const overlay = document.getElementById("overlay");
+    const openMenu = document.getElementById("openMenu");
+    const closeMenu = document.getElementById("closeMenu");
+    if (!drawer || !overlay || !openMenu) return;
+
+    const closeDrawer = () => {
+      drawer.classList.remove("active");
+      overlay.classList.remove("active");
+    };
+
+    openMenu.onclick = () => {
+      drawer.classList.add("active");
+      overlay.classList.add("active");
+    };
+    overlay.onclick = closeDrawer;
+    if (closeMenu) closeMenu.onclick = closeDrawer;
+  }
+
+  // Delegation: 1 listener thay vì 1 listener cho mỗi .menu-toggle
+  function initAccordion() {
+    const root = document.getElementById("drawer") || document.body;
+
+    bindOnce(root, "click", (e) => {
+      const toggle = e.target.closest?.(".menu-toggle");
+      if (toggle) toggle.closest(".menu-item")?.classList.toggle("open");
+    });
+  }
+
+  function initUserMenu() {
+    const userBtn = document.getElementById("userBtn");
+
+    bindOnce(userBtn, "click", (e) => {
+      e.stopPropagation();
+      userBtn.classList.toggle("active");
+    });
+  }
+
+  function initHeaderScroll() {
+    const header = document.getElementById("header-wrapper");
+    if (!header) return;
+
+    const path = window.location.pathname.toLowerCase().split("/");
+    if (path[path.length - 1] === "trangchu") header.style.top = "0";
+
+    const SCROLL_UP_THRESHOLD = 100;
+    let lastScrollY = window.pageYOffset || document.documentElement.scrollTop;
+    let scrollUpStart = null;
+
+    const onScroll = () => {
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+      if (currentScrollY <= 50) {
+        header.classList.remove("show-header", "hide-header");
+        lastScrollY = currentScrollY;
+        scrollUpStart = null;
+        return;
+      }
+
+      if (currentScrollY > lastScrollY) {
+        header.classList.remove("show-header");
+        header.classList.add("hide-header");
+        scrollUpStart = null;
+      } else if (currentScrollY < lastScrollY) {
+        if (scrollUpStart === null) scrollUpStart = lastScrollY;
+        if (scrollUpStart - currentScrollY >= SCROLL_UP_THRESHOLD) {
+          header.classList.remove("hide-header");
+          header.classList.add("show-header");
+        }
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    if (window.__vecScrollHandler) {
+      window.removeEventListener("scroll", window.__vecScrollHandler);
+    }
+    window.__vecScrollHandler = onScroll;
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
+
+  function initSwiper() {
+    if (typeof Swiper === "undefined" || !document.querySelector(".mySwiper")) return;
+
+    window.swiper = new Swiper(".mySwiper", {
+      direction: "vertical",
+      autoplay: { delay: 2500, disableOnInteraction: false },
+      pagination: { el: ".swiper-pagination", clickable: true }
+    });
+  }
+
+  function cleanupSearchForm() {
+    document.querySelectorAll(".vec-input-search").forEach((el) => el.classList.remove("form-control"));
+    document.querySelectorAll(".form-group").forEach((el) => el.classList.remove("form-group"));
+    document.querySelectorAll(".input-text-wrapper").forEach((el) => el.classList.add("!w-full"));
+    document.querySelectorAll(".search-submit").forEach((el) => el.parentElement?.classList.add("!hidden"));
+  }
+
+  function initVecAnimations() {
+    if (!("IntersectionObserver" in window)) return;
+
+    const elements = document.querySelectorAll(
+      '[class*="vec-fade-in"], [class*="vec-mobile:"], [class*="vec-md:"], [class*="vec-lg:"], [class*="vec-xl:"]'
+    );
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("vec-animated");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    elements.forEach((element) => {
+      if (!element.classList.contains("vec-animated")) observer.observe(element);
+    });
+  }
+
+  function scheduleVecAnimations() {
+    clearTimeout(vecAnimationTimer);
+    vecAnimationTimer = setTimeout(initVecAnimations, 100);
+  }
+
+  function formatVecDate(now) {
+    const days = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+    const day = String(now.getDate()).padStart(2, "0");
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    return days[now.getDay()] + ", " + day + "/" + month + "/" + now.getFullYear();
+  }
+
+  // Chỉ ghi DOM khi chuỗi thật sự đổi -> bản mobile (giờ:phút) chỉ ghi 1 lần/phút
+  function setTextIfChanged(el, text) {
+    if (el && el.textContent !== text) el.textContent = text;
+  }
+
+  function updateDateTime() {
+    const now = new Date();
+    const prefix = "🕐 " + formatVecDate(now) + ", ";
+
+    setTextIfChanged(document.getElementById("date-time"), prefix + now.toLocaleTimeString("vi-VN"));
+    setTextIfChanged(
+      document.getElementById("date-time-mobile"),
+      prefix + now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+    );
+  }
+
+  function startClock() {
+    updateDateTime();
+
+    setInterval(() => {
+      if (!document.hidden) updateDateTime();
+    }, 1000);
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) updateDateTime();
+    });
+  }
+
+  function getWeatherInfo(code) {
+    const weatherMap = {
+      0: { label: "Trời quang", icon: "☀️" },
+      1: { label: "Chủ yếu quang đãng", icon: "🌤️" },
+      2: { label: "Mây rải rác", icon: "⛅" },
+      3: { label: "U ám", icon: "☁️" },
+      45: { label: "Sương mù", icon: "🌫️" },
+      48: { label: "Sương muối", icon: "🌫️" },
+      51: { label: "Mưa phùn nhẹ", icon: "🌦️" },
+      53: { label: "Mưa phùn vừa", icon: "🌦️" },
+      55: { label: "Mưa phùn đặc", icon: "🌦️" },
+      61: { label: "Mưa nhẹ", icon: "🌧️" },
+      63: { label: "Mưa vừa", icon: "🌧️" },
+      65: { label: "Mưa to", icon: "🌧️" },
+      71: { label: "Tuyết rơi nhẹ", icon: "❄️" },
+      80: { label: "Mưa rào nhẹ", icon: "🌦️" },
+      81: { label: "Mưa rào vừa", icon: "🌧️" },
+      82: { label: "Mưa rào rất mạnh", icon: "⛈️" },
+      95: { label: "Dông bão", icon: "⛈️" }
+    };
+
+    return weatherMap[code] || { label: "Không xác định", icon: "❓" };
+  }
+
+  function renderWeather() {
+    if (!vecWeatherText) return;
+
+    const el = document.getElementById("weather");
+    if (el) el.textContent = vecWeatherText;
+
+    const elMobile = document.getElementById("weather-mobile");
+    if (elMobile) elMobile.textContent = vecWeatherText;
+  }
+
+  async function fetchWeatherData(latitude, longitude) {
+    try {
+      const response = await fetch(
+        VEC_WEATHER_API +
+        "?latitude=" + latitude +
+        "&longitude=" + longitude +
+        "&current_weather=true&timezone=auto"
+      );
+      if (!response.ok) throw new Error("Không thể kết nối tới máy chủ thời tiết");
+
+      const data = await response.json();
+      const weather = data.current_weather;
+      vecWeatherText = getWeatherInfo(weather.weathercode).icon + weather.temperature + "°C";
+      renderWeather();
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu thời tiết:", error);
+    }
+  }
+
+  function handleLocationError(error) {
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        console.error("Lỗi: Bạn cần cho phép truy cập vị trí để xem thời tiết tại chỗ.");
+        break;
+      case error.POSITION_UNAVAILABLE:
+        console.error("Lỗi: Không thể xác định được vị trí của bạn.");
+        break;
+      case error.TIMEOUT:
+        console.error("Lỗi: Quá thời gian yêu cầu vị trí.");
+        break;
+      default:
+        console.error("Lỗi: Đã xảy ra lỗi không xác định.");
+    }
+  }
+
+  async function requestAndGetWeather() {
+    // Đã có dữ liệu thì chỉ render lại, không hỏi vị trí / gọi API lần nữa
+    if (vecWeatherText) {
+      renderWeather();
+      return;
+    }
+    if (!navigator.geolocation) return;
+
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        const status = await navigator.permissions.query({ name: "geolocation" });
+        if (status.state === "denied") return;
+      } catch (error) {
+        // Trình duyệt không hỗ trợ query('geolocation') -> bỏ qua, hỏi trực tiếp
+      }
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => fetchWeatherData(position.coords.latitude, position.coords.longitude),
+      handleLocationError,
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+  }
+
+  async function fetchTollDetail(id) {
+    const response = await fetch("/o/c/highways/" + id + "/stationInfoAndHighwayFK?page=1&pageSize=100");
+    const toll = await response.json();
+
+    return toll.items
+      .filter((item) => item.type.key === "tollStation")
+      .map((item) => ({
+        lat: Number(item.lat),
+        lng: Number(item.lng),
+        name: item.name,
+        id: item.id,
+        img: item.image?.link.href || "https://placehold.co/104x104/?text=Không%20có%20dữ%20liệu",
+        address: item.address,
+        status: "Mở cả ngày",
+        location: item.location,
+        fees: []
+      }));
+  }
+
+  function fetchTwoTollFee(idToll1, idToll2) {
+    const params = new URLSearchParams();
+    params.append(
+      "filter",
+      "r_fromStationFK_c_stationInfoId eq '" + idToll1 + "' and r_toStationFK_c_stationInfoId eq '" + idToll2 + "'"
+    );
+    return fetch("/o/c/tollstationinfos/?" + params.toString()).then((r) => r.json());
+  }
+
+  async function ensureTollLocations(route) {
+    if (!route) return null;
+    if (route.mapData?.tollLocations?.length) return route.mapData.tollLocations;
+
+    try {
+      const toll = await fetchTollDetail(route.id);
+      route.mapData.tollLocations = toll;
+      return toll;
+    } catch (error) {
+      console.error("Error fetching toll details:", error);
+      return null;
+    }
+  }
+
+  async function loadHighways() {
+    const response = await fetch("/o/c/highways");
+    const highways = await response.json();
+
+    const tollData = highways.items
+      .filter((item) => item.status.code === 0)
+      .map((item) => ({
+        title: item.name,
+        id: item.id,
+        order: Number(item.order) || 0,
+        mapData: {
+          origin: { lat: Number(item.startLat), lng: Number(item.startLng) },
+          destination: { lat: Number(item.endLat), lng: Number(item.endLng) },
+          tollLocations: []
+        }
+      }))
+      .sort((a, b) => a.order - b.order);
+
+    const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+    if (routeSelect) {
+      routeSelect.innerHTML =
+        '<option value="">Chọn tuyến đường</option>' +
+        tollData.map((item, index) => '<option value="' + index + '">' + item.title + "</option>").join("");
+    }
+
+    feeModalRouteData = tollData;
+
+    await Promise.all(
+      tollData.map((item) =>
+        fetchTollDetail(item.id).then((toll) => {
+          item.mapData.tollLocations = toll;
+        })
+      )
+    );
+  }
+
+  // Gom nhiều lời gọi về cùng 1 request đang chạy; reset state sẽ xoá cache này
+  function fetchHighways() {
+    if (feeModalHighwaysPromise) return feeModalHighwaysPromise;
+
+    feeModalHighwaysPromise = loadHighways().catch((error) => {
+      feeModalHighwaysPromise = null;
+      console.error("Error fetching highways:", error);
+    });
+    return feeModalHighwaysPromise;
+  }
+
+  function createStationOption(index, name, selectedValue) {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = name || "";
+    if (String(index) === selectedValue) option.selected = true;
+    return option;
+  }
+
+  // Trả về true nếu đã tự chọn 2 trạm và tự gọi updateFeeModalContent()
+  function populateFeeModalStations() {
+    const station1Select = document.getElementById("feeModalSelectSpdvStation1");
+    const station2Select = document.getElementById("feeModalSelectSpdvStation2");
+    if (!station1Select || !station2Select) return false;
+
+    station1Select.innerHTML = '<option value="">Điểm đầu trạm</option>';
+    station2Select.innerHTML = '<option value="">Điểm cuối trạm</option>';
+
+    const hasStations = !!feeModalRouteData[feeModalCurrentRouteIndex] && feeModalTollStations.length > 0;
+    station1Select.disabled = !hasStations;
+    station2Select.disabled = !hasStations;
+    if (!hasStations) return false;
+
+    feeModalTollStations.forEach((toll, index) => {
+      station1Select.appendChild(createStationOption(index, toll.name, feeModalSelectedStations.station1));
+      station2Select.appendChild(createStationOption(index, toll.name, feeModalSelectedStations.station2));
+    });
+
+    const canAutoSelect =
+      feeModalTollStations.length >= 2 &&
+      !feeModalSelectedStations.station1 &&
+      !feeModalSelectedStations.station2;
+    if (!canAutoSelect) return false;
+
+    feeModalSelectedStations.station1 = "0";
+    feeModalSelectedStations.station2 = "1";
+    station1Select.value = "0";
+    station2Select.value = "1";
+    updateFeeModalContent();
+    return true;
+  }
+
+  function parseTollPrice(value) {
+    if (typeof value === "number") return value;
+    if (typeof value === "string") return parseFloat(value.replace(/[^\d]/g, "")) || 0;
+    return 0;
+  }
+
+  function mapTollFee(item) {
+    const firstPrice = parseTollPrice(item.firstPrice);
+    const secondPrice = parseTollPrice(item.secondPrice);
+
+    let price = item.price;
+    if (!price && (firstPrice || secondPrice)) price = firstPrice + secondPrice;
+    else if (typeof price === "string") price = parseFloat(price.replace(/[^\d]/g, "")) || 0;
+    else if (typeof price !== "number") price = firstPrice + secondPrice;
+
+    return {
+      totalPrice: price.toLocaleString("vi-VN"),
+      firstPrice: firstPrice ? firstPrice.toLocaleString("vi-VN") : "-",
+      secondPrice: secondPrice ? secondPrice.toLocaleString("vi-VN") : "-",
+      description: item.type?.name || item.description || item.name || "Khác"
+    };
+  }
+
+  async function updateFeeModalContent() {
+    const station1Select = document.getElementById("feeModalSelectSpdvStation1");
+    const station2Select = document.getElementById("feeModalSelectSpdvStation2");
+    const table = document.getElementById("feeModalTableSpdv");
+    const tableBody = document.getElementById("feeModalTableBodySpdv");
+    const emptyMessage = document.getElementById("feeModalEmptyMessageSpdv");
+    const vatNote = document.getElementById("feeModalVATNoteSpdv");
+    if (!table || !tableBody || !emptyMessage || !vatNote) return;
+
+    const showEmpty = (message) => {
+      table.classList.add("hidden");
+      vatNote.classList.add("hidden");
+      tableBody.innerHTML = "";
+      if (message) emptyMessage.textContent = message;
+      emptyMessage.classList.remove("hidden");
+    };
+
+    const station1Index = station1Select?.value || "";
+    const station2Index = station2Select?.value || "";
+    if (!station1Index || !station2Index || station1Index === station2Index) {
+      showEmpty();
+      return;
+    }
+
+    const station1 = feeModalTollStations[parseInt(station1Index, 10)];
+    const station2 = feeModalTollStations[parseInt(station2Index, 10)];
+    if (!station1?.id || !station2?.id) {
+      showEmpty();
+      return;
+    }
+
+    // Chống race: chỉ render kết quả của lần gọi mới nhất
+    const requestId = ++feeModalRequestId;
+
+    try {
+      const response = await fetchTwoTollFee(station1.id, station2.id);
+      if (requestId !== feeModalRequestId) return;
+
+      const fees = (response.items || []).map(mapTollFee);
+      if (fees.length === 0) {
+        showEmpty("Chưa có thông tin bảng giá");
+        return;
+      }
+
+      tableBody.innerHTML = fees
+        .map(
+          (fee) =>
+            '<tr class="hover:bg-gray-50 transition-colors">' +
+            '<td class="py-2 pr-2 leading-relaxed">' + fee.description + "</td>" +
+            '<td class="py-2 px-2 text-center">' + fee.totalPrice + "</td>" +
+            "</tr>"
+        )
+        .join("");
+      table.classList.remove("hidden");
+      emptyMessage.classList.add("hidden");
+      vatNote.classList.remove("hidden");
+    } catch (error) {
+      if (requestId !== feeModalRequestId) return;
+      console.error("Error fetching toll fee:", error);
+      showEmpty("Lỗi khi tải dữ liệu");
+    }
+  }
+
+  async function openFeeModal(markerData = null, routeData = null, tollStations = []) {
+    feeModalCurrentMarkerData = markerData;
+    feeModalCurrentRoute = routeData;
+    feeModalTollStations = tollStations || [];
+
+    // Marker đã chỉ định tuyến -> chặn auto-select tuyến đầu tiên của toggleModal đè lên
+    if (markerData?.id) feeModalAutoSelectDone = true;
+
+    toggleModal(true);
+    if (!markerData?.id) return;
+
+    await fetchHighways();
+
+    for (let i = 0; i < feeModalRouteData.length; i++) {
+      const route = feeModalRouteData[i];
+      const tollLocations = await ensureTollLocations(route);
+      if (!tollLocations) continue;
+
+      const foundIndex = tollLocations.findIndex(
+        (toll) => toll.id === markerData.id || toll.stationInfoId === markerData.id
+      );
+      if (foundIndex === -1) continue;
+
+      feeModalCurrentRouteIndex = i;
+      feeModalTollStations = tollLocations;
+      feeModalSelectedStations.station1 = String(foundIndex);
+      if (feeModalSelectedStations.station2 === String(foundIndex)) {
+        feeModalSelectedStations.station2 = "";
+      }
+
+      const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+      if (routeSelect) routeSelect.value = i;
+      break;
+    }
+
+    if (!populateFeeModalStations()) updateFeeModalContent();
+  }
+
+  function applyFeeModalAutoSelect() {
+    if (feeModalAutoSelectDone || feeModalRouteData.length === 0) return;
+    feeModalAutoSelectDone = true;
+
+    const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+    if (!routeSelect) return;
+
+    routeSelect.value = "0";
+    feeModalCurrentRouteIndex = 0;
+    feeModalCurrentRoute = feeModalRouteData[0];
+
+    const tollLocations = feeModalCurrentRoute.mapData?.tollLocations;
+    if (!tollLocations?.length) return;
+
+    feeModalTollStations = tollLocations;
+    feeModalSelectedStations.station1 = "";
+    feeModalSelectedStations.station2 = "";
+    populateFeeModalStations();
+  }
+
+  function toggleModal(show) {
+    const modal = document.getElementById("feeModal");
+    if (!modal) return;
+
+    if (!show) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      document.body.style.overflow = "auto";
+      return;
+    }
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.body.style.overflow = "hidden";
+
+    // Markup feeModal có thể render sau lần bind ở idle -> bind lại cho chắc (bindOnce nên không trùng)
+    initFeeModalBindings();
+
+    // Lazy: chỉ tải danh sách tuyến ở lần mở modal đầu tiên, modal vẫn hiện ngay
+    if (feeModalAutoSelectDone) return;
+    fetchHighways().then(applyFeeModalAutoSelect);
+  }
+
+  function closeIfOutside(e) {
+    if (e.target.id === "feeModal") toggleModal(false);
+  }
+
+  function resetFeeModalState() {
+    feeModalAutoSelectDone = false;
+    feeModalRouteData = [];
+    feeModalCurrentRoute = null;
+    feeModalTollStations = [];
+    feeModalSelectedStations = { station1: "", station2: "" };
+    feeModalHighwaysPromise = null;
+  }
+
+  function initFeeModalBindings() {
+    const routeSelect = document.getElementById("feeModalSelectRouteSpdv");
+    const station1Select = document.getElementById("feeModalSelectSpdvStation1");
+    const station2Select = document.getElementById("feeModalSelectSpdvStation2");
+    const swapBtn = document.getElementById("feeModalSwapStations");
+
+    bindOnce(routeSelect, "change", async (e) => {
+      feeModalSelectedStations.station1 = "";
+      feeModalSelectedStations.station2 = "";
+
+      const routeIndex = parseInt(e.target.value, 10);
+      const route = feeModalRouteData[routeIndex];
+      if (!route) {
+        feeModalCurrentRouteIndex = -1;
+        feeModalTollStations = [];
+        populateFeeModalStations();
+        updateFeeModalContent();
+        return;
+      }
+
+      feeModalCurrentRouteIndex = routeIndex;
+      feeModalCurrentRoute = route;
+      feeModalTollStations = (await ensureTollLocations(route)) || [];
+
+      if (!populateFeeModalStations()) updateFeeModalContent();
+    });
+
+    bindOnce(station1Select, "change", (e) => {
+      feeModalSelectedStations.station1 = e.target.value || "";
+      updateFeeModalContent();
+    });
+
+    bindOnce(station2Select, "change", (e) => {
+      feeModalSelectedStations.station2 = e.target.value || "";
+      updateFeeModalContent();
+    });
+
+    bindOnce(swapBtn, "click", () => {
+      const station1Value = station1Select?.value || "";
+      const station2Value = station2Select?.value || "";
+
+      feeModalSelectedStations.station1 = station2Value;
+      feeModalSelectedStations.station2 = station1Value;
+
+      if (station1Select) station1Select.value = station2Value;
+      if (station2Select) station2Select.value = station1Value;
+
+      updateFeeModalContent();
+    });
+  }
+
+  async function renderMenu() {
+    const container = document.getElementById("menu-container-deeplink");
+    if (!container) return;
+
+    try {
+      const response = await fetch("/o/c/deeplinkheadersearches/", {
+        method: "GET",
+        credentials: "include"
+      });
+      const data = await response.json();
+
+      if (!data.items || data.items.length === 0) {
+        container.innerHTML = "<p>Không có dữ liệu</p>";
+        return;
+      }
+
+      container.innerHTML = data.items
+        .map(
+          (item) =>
+            '<a href="' + (item.uRL || "#") +
+            '" class="p-[10px] hover:!no-underline hover:!text-white hover:bg-[#0090CF] !text-sm xl:!text-base bg-[#0090CF14] text-[#0090CF] border-1 border-[#0090cf33] rounded-[6px]">' +
+            (item.name || "") +
+            "</a>"
+        )
+        .join("");
+    } catch (error) {
+      console.error("Lỗi:", error);
+    }
+  }
+
+  function onLiferayNavigate() {
+    applySavedLanguage();
+    scheduleVecAnimations();
+    resetFeeModalState();
+    populateFeeModalStations();
+    updateFeeModalContent();
+  }
+
+  // Fallback phát hiện đổi URL cho router không bắn sự kiện Liferay.
+  // Patch history rẻ hơn nhiều so với MutationObserver quét toàn bộ document.
+  function watchUrlChanges(onChange) {
+    let lastUrl = location.href;
+
+    const notify = () => {
+      if (location.href === lastUrl) return;
+      lastUrl = location.href;
+      onChange();
+    };
+
+    ["pushState", "replaceState"].forEach((method) => {
+      const original = history[method];
+      history[method] = function () {
+        const result = original.apply(this, arguments);
+        notify();
+        return result;
+      };
+    });
+
+    window.addEventListener("popstate", notify);
+    window.addEventListener("hashchange", notify);
+  }
+
+  // Tier 0 - chạy ngay: mọi thứ người dùng có thể bấm/cuộn tức thì
+  function initInteractive() {
+    initDrawer();
+    initAccordion();
+    bindSearch("searchInput", "searchBtn");
+    bindSearch("mSearchInput", "mSearchBtn");
+    initHeaderScroll();
+    initUserMenu();
+  }
+
+  // Tier 1 - sau frame đầu: những thứ ảnh hưởng nội dung nhìn thấy
+  function initVisible() {
+    updateDateTime();
+    renderMenu();
+    initVecAnimations();
+    cleanupSearchForm();
+  }
+
+  // Tier 2 - khi browser rảnh: không ai chờ những thứ này
+  function initDeferred() {
+    initSwiper();
+    initFeeModalBindings();
+    requestAndGetWeather();
+
+    if (window.__vecClockStarted) return;
+    window.__vecClockStarted = true;
+    startClock();
+  }
+
+  // Script này có thể bị nạp dưới dạng type="module" -> function declaration KHÔNG tự lên window.
+  // Chỉ export đúng những hàm markup/fragment khác gọi tới, tránh rác global và va chạm tên.
+  // Inline handler đang dùng: toggleModal, closeIfOutside, openModal, closeModal, vecTranslate, vecTranslateMobile
+  Object.assign(window, {
+    toggleModal,
+    closeIfOutside,
+    openFeeModal,
+    openModal,
+    closeModal,
+    submit,
+    vecTranslate,
+    vecTranslateMobile
+  });
+
+  initInteractive();
+  onDomReady(() => {
+    vecAfterPaint(initVisible);
+    vecWhenIdle(initDeferred);
+  });
+
+  // Listener toàn cục: chỉ đăng ký 1 lần cho cả vòng đời trang
+  if (!window.__vecHeaderGlobalInit) {
+    window.__vecHeaderGlobalInit = true;
+
+    window.addEventListener("load", applySavedLanguage);
+
+    document.addEventListener("click", () => {
+      document.getElementById("userBtn")?.classList.remove("active");
+    });
+
+    watchUrlChanges(scheduleVecAnimations);
+
+    if (window.Liferay) {
+      Liferay.on("endNavigate", onLiferayNavigate);
+      Liferay.on("allPortletsReady", scheduleVecAnimations);
+    }
+  }
+</script>
