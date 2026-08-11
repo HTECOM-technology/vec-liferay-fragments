@@ -562,8 +562,8 @@ function __modifyTableListCourtFee() {
         style: 'currency',
         currency: 'VND',
     });
-    document.querySelectorAll('.cell-price-name:not(.cell-price-name-inited)').forEach((el) => {
-        el.classList.add('cell-price-name-inited');
+    document.querySelectorAll('.cell-price:not(.cell-price-inited)').forEach((el) => {
+        el.classList.add('cell-price-inited');
 
         const span = el.querySelector('span');
         const price = span.innerText.replace(/\D/g, '');
