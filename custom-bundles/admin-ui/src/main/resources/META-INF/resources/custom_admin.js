@@ -514,10 +514,13 @@ function __appendButtonImportCourtFee() {
         const parentUl = buttonCreate.closest('ul');
         if (!parentUl) return;
 
+        buttonCreate.classList.add('px-2');
+        buttonCreate.insertAdjacentHTML('beforeend', '<span style="font-size: 15px;" class="ml-2">Thêm</span>');
+
         parentUl.insertAdjacentHTML('beforeend', `
 <li class="nav-item">
-  <a href="/web/guest/nhap-gia-cuoc-tuyen-duong" target="_blank">
-    <button class="nav-btn nav-btn-monospaced btn btn-success" type="button" aria-label="Upload Thông tin trạm thu phí"
+  <a href="/web/guest/nhap-gia-cuoc-tuyen-duong" target="_blank" style="text-decoration: none;">
+    <button class="nav-btn nav-btn-monospaced btn btn-success px-2" type="button" aria-label="Upload Thông tin trạm thu phí"
       data-testid="fdsUploadActionButton" data-tooltip-align="top" title="Upload Thông tin trạm thu phí">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -526,10 +529,45 @@ function __appendButtonImportCourtFee() {
         <path d="m17 8-5-5-5 5"></path>
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
       </svg>
+      <span style="font-size: 15px;" class="ml-2">Upload</span>
+    </button>
+  </a>
+</li>
+<li class="nav-item">
+  <a href="https://portal.tctvec.vn/documents/d/guest/template_thu_phi_cao_toc" target="_blank" style="text-decoration: none;">
+    <button class="nav-btn nav-btn-monospaced btn btn-warning px-2" type="button" aria-label="Tải Template"
+      data-testid="fdsDownloadTemplateActionButton" data-tooltip-align="top" title="Tải Template">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="lucide lucide-download-icon lucide-download">
+        <path d="M12 15V3"></path>
+        <path d="m7 10 5 5 5-5"></path>
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      </svg>
+      <span style="font-size: 15px;" class="ml-2">Tải Template</span>
     </button>
   </a>
 </li>
 `);
+    });
+}
+
+function __modifyTableListCourtFee() {
+    document.querySelectorAll('.cell-type-name:not(.cell-type-name-inited)').forEach((el) => {
+        el.classList.add('cell-type-name-inited');
+        el.querySelector('span').classList.remove('text-truncate');
+    });
+
+    const formatter = new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+    });
+    document.querySelectorAll('.cell-price-name:not(.cell-price-name-inited)').forEach((el) => {
+        el.classList.add('cell-price-name-inited');
+
+        const span = el.querySelector('span');
+        const price = span.innerText.replace(/\D/g, '');
+        span.innerHTML = formatter.format(price);
     });
 }
 
@@ -1115,6 +1153,9 @@ async function __custom_admin_js() {
 
     if (isSettingCourtFee) {
         __appendButtonImportCourtFee();
+        setInterval(() => {
+            __modifyTableListCourtFee();
+        }, 500);
     }
 
     if (isUsersAdminPage && typeof window.__initDownloadUser === 'function') {
