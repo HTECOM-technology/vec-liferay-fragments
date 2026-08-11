@@ -575,7 +575,9 @@ function __modifyTableListCourtFee() {
 
         const span = el.querySelector('span');
         const price = span.innerText.replace(/\D/g, '');
-        span.innerHTML = formatter.format(price);
+        if (parseInt(price) > 0) {
+           span.innerHTML = formatter.format(price); 
+        }
     });
 }
 
