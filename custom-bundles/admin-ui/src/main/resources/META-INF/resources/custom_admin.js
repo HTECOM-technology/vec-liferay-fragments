@@ -557,6 +557,14 @@ function __modifyTableListCourtFee() {
         el.classList.add('cell-type-name-inited');
         el.querySelector('span').classList.remove('text-truncate');
     });
+    document.querySelectorAll('.cell-r_toStationFK_c_stationInfo-name:not(.cell-r_toStationFK_c_stationInfo-name-inited)').forEach((el) => {
+        el.classList.add('cell-r_toStationFK_c_stationInfo-name-inited');
+        el.querySelector('span').classList.remove('text-truncate');
+    });
+    document.querySelectorAll('.cell-r_fromStationFK_c_stationInfo-name:not(.cell-r_fromStationFK_c_stationInfo-name-inited)').forEach((el) => {
+        el.classList.add('cell-r_fromStationFK_c_stationInfo-name-inited');
+        el.querySelector('span').classList.remove('text-truncate');
+    });
 
     const formatter = new Intl.NumberFormat('vi-VN', {
         style: 'currency',
@@ -1113,8 +1121,10 @@ async function __custom_admin_js() {
         && screen.portletParams.mvcRenderCommandName === '/journal/edit_article';
 
     const isSettingCourtFee = screen.portletId.includes('com_liferay_object_web_internal_object_definitions_portlet_ObjectDefinitionsPortlet')
-        && screen.groupId === '20117'
-        && screen.objectDefinitionId === '42207';
+        && (
+            (screen.groupId === '20117' && screen.objectDefinitionId === '42207')
+            || screen.shortId === 'S4B0'
+        );
 
     const isUsersAdminPage = screen.portletId === 'com_liferay_users_admin_web_portlet_UsersAdminPortlet';
 
