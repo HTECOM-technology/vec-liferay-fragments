@@ -1,0 +1,19 @@
+Bundle-Name: VEC Custom Counter
+Bundle-SymbolicName: vn.vec.custom.counter
+Bundle-Version: 1.0.0
+Bundle-Vendor: Vietnam Expressway Corporation (VEC)
+Bundle-DocURL: https://www.expressway.com.vn/
+
+-dsannotations-options: inherit
+
+# Bắt buộc mọi package com.liferay import không kèm version range, xem
+# AGENTS.md ("BẮT BUỘC: pin version trong bnd.bnd"). Build local (artifact
+# Maven) và build trên server (JAR thật trong LIFERAY_HOME) phải cho ra manifest
+# tương đương, nếu không bundle kẹt ở trạng thái Installed trên server.
+Import-Package: \
+    com.liferay.*;version="0.0.0",\
+    javax.servlet.*;version="0.0.0",\
+    javax.ws.rs.*;version="0.0.0",\
+    *
+
+-contract: !JavaServlet

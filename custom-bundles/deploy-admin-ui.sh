@@ -22,11 +22,13 @@ Modules:
   1  admin-ui
   2  expired-password (vec-expired-password-force-change)
   3  comment-management
+  4  counter
 
 Examples:
   bash deploy-admin-ui.sh 1
   bash deploy-admin-ui.sh 2
   bash deploy-admin-ui.sh 3
+  bash deploy-admin-ui.sh 4
 EOF
 }
 
@@ -40,6 +42,9 @@ resolve_module_name() {
             ;;
         3)
             echo "comment-management"
+            ;;
+        4)
+            echo "counter"
             ;;
         *)
             echo ""

@@ -31,7 +31,8 @@ Modules:
   1    admin-ui
   2    expired-password (vec-expired-password-force-change)
   3    comment-management
-  all  build cả 3 module
+  4    counter
+  all  build cả 4 module
 
 Options:
   --rebuild-image   Build lại Docker image (dùng khi sửa Dockerfile.custom-bundles)
@@ -54,6 +55,7 @@ resolve_module_name() {
         1) echo "admin-ui" ;;
         2) echo "vec-expired-password-force-change" ;;
         3) echo "comment-management" ;;
+        4) echo "counter" ;;
         *) echo "" ;;
     esac
 }
@@ -144,8 +146,8 @@ while [ $# -gt 0 ]; do
         --clean)         DO_CLEAN=1 ;;
         --shell)         OPEN_SHELL=1 ;;
         -h|--help)       show_help; exit 0 ;;
-        all)             MODULES+=(1 2 3) ;;
-        1|2|3)           MODULES+=("$1") ;;
+        all)             MODULES+=(1 2 3 4) ;;
+        1|2|3|4)         MODULES+=("$1") ;;
         *)
             echo "ERROR: Tham số không hợp lệ: $1"
             echo ""

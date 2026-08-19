@@ -33,6 +33,7 @@ Ngôn ngữ viết tài liệu, ghi chú kỹ thuật và trao đổi mặc đ�
 - `custom-bundles/frontend-ui/`: CSS/JS custom cho frontend UI.
 - `custom-bundles/vec-expired-password-force-change/`: module custom riêng cho yêu cầu đổi mật khẩu hết hạn.
 - `custom-bundles/comment-management/`: module OSGi `comment.management`, portlet quản lý bình luận.
+- `custom-bundles/counter/`: module OSGi `vn.vec.custom.counter`, 3 counter (lượt truy cập website, người đang online, lượt đọc bài viết) với REST API `/o/vec-counter` **không cần xác thực**. Bảng dùng tiền tố `VEC_Counter*`, tự tạo khi activate; schema tham chiếu ở `custom-bundles/counter/sql/counter.sql`. Tài liệu API: `custom-bundles/counter/README.md`.
 - `custom-bundles/dist/`: JAR output của build Docker. Thư mục này **được commit vào git** (chỉ `.gradle-docker/` và `.gradle/` bị gitignore), nên JAR đã build được lưu kèm source.
 - `Dockerfile.custom-bundles`, `build-custom-bundles.sh` (thư mục gốc): image và script build custom bundle bằng Docker.
 - `public/`: tài nguyên public và template HTML của React app.
@@ -89,14 +90,14 @@ Lưu ý:
 Chạy từ thư mục gốc. Không cần cài JDK, Gradle hay Liferay bundle trên máy:
 
 ```bash
-bash build-custom-bundles.sh all        # build cả 3 module
+bash build-custom-bundles.sh all        # build cả 4 module
 bash build-custom-bundles.sh 3          # chỉ comment-management
 bash build-custom-bundles.sh 1 3        # nhiều module
 bash build-custom-bundles.sh --clean all
 bash build-custom-bundles.sh --shell    # mở bash trong container để debug
 ```
 
-Module: `1` = admin-ui, `2` = expired-password, `3` = comment-management (đánh số giống `deploy-admin-ui.sh`). JAR ra ở `custom-bundles/dist/`. Script này **chỉ build, không deploy**.
+Module: `1` = admin-ui, `2` = expired-password, `3` = comment-management, `4` = counter (đánh số giống `deploy-admin-ui.sh`). JAR ra ở `custom-bundles/dist/`. Script này **chỉ build, không deploy**.
 
 Cách hoạt động:
 
@@ -141,6 +142,7 @@ Lệnh deploy từ local:
 bash custom-bundles/deploy-admin-ui.sh 1    # admin-ui
 bash custom-bundles/deploy-admin-ui.sh 2    # expired-password
 bash custom-bundles/deploy-admin-ui.sh 3    # comment-management
+bash custom-bundles/deploy-admin-ui.sh 4    # counter
 ```
 
 Script local sẽ:
@@ -154,7 +156,7 @@ Script server sẽ build module, copy JAR vào `$LIFERAY_HOME/osgi/modules`, và
 Lưu ý:
 
 - `build.gradle` và `deploy-admin-ui.sh` mặc định `LIFERAY_HOME=/root/vec/bundles`, nhưng **server thật dùng `/home/vecadmin/vec/bundles`**. Đừng suy ra đường dẫn server từ default trong script.
-- Symbolic name và version hiện tại: `vn.vec.custom.admin.ui` 1.0.1, `vn.vec.custom.admin.password` 1.0.0, `comment.management` 1.0.1.
+- Symbolic name và version hiện tại: `vn.vec.custom.admin.ui` 1.0.1, `vn.vec.custom.admin.password` 1.0.0, `comment.management` 1.0.1, `vn.vec.custom.counter` 1.0.0.
 - Manifest của từng module nằm ở `<module>/bnd.bnd`.
 - Khi gặp lỗi classloader hoặc `ClassNotFoundException` trong OSGi, cần clean build và redeploy JAR đúng version; tránh để Liferay giữ artifact cũ trong `osgi/modules`.
 - **Hai JAR cùng `Bundle-SymbolicName` khác version sẽ cùng được install** và portal có thể vẫn chạy code cũ. Khi bump version, phải xoá file JAR version cũ trong `osgi/modules` rồi restart.

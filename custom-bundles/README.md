@@ -9,6 +9,7 @@ Thư mục `custom-bundles` chứa mã nguồn các custom module và tài nguy�
 | `admin-ui/` | Module OSGi chính `vn.vec.custom.admin.ui`, chứa REST API, portlet, filter, listener, scheduler và giao diện quản trị. |
 | `vec-expired-password-force-change/` | Module buộc người dùng xử lý mật khẩu hết hạn. |
 | `comment-management/` | Module OSGi `comment.management`, portlet quản lý bình luận (Site Administration → Content). |
+| `counter/` | Module OSGi `vn.vec.custom.counter`, 3 counter (lượt truy cập, người online, lượt đọc bài viết) kèm REST API không cần xác thực. |
 | `frontend-ui/` | CSS và JavaScript custom cho giao diện frontend. |
 | `workflow/` | Các định nghĩa workflow XML dùng trong Liferay. |
 | `libs/` | Thư viện cục bộ phục vụ quá trình build. |
@@ -20,13 +21,13 @@ Thư mục `custom-bundles` chứa mã nguồn các custom module và tài nguy�
 Chạy từ thư mục gốc dự án. Không cần cài JDK, Gradle hay Liferay bundle trên máy:
 
 ```bash
-bash build-custom-bundles.sh all      # build cả 3 module
+bash build-custom-bundles.sh all      # build cả 4 module
 bash build-custom-bundles.sh 3        # chỉ comment-management
 bash build-custom-bundles.sh 1 3      # admin-ui + comment-management
 bash build-custom-bundles.sh --clean all
 ```
 
-Module: `1` = admin-ui, `2` = expired-password, `3` = comment-management (đánh số giống `deploy-admin-ui.sh`).
+Module: `1` = admin-ui, `2` = expired-password, `3` = comment-management, `4` = counter (đánh số giống `deploy-admin-ui.sh`).
 
 JAR kết quả nằm ở `custom-bundles/dist/`. Copy thủ công vào `$LIFERAY_HOME/osgi/modules/` trên server, hoặc dùng `deploy-admin-ui.sh` để build+deploy trên server như trước.
 
@@ -73,6 +74,9 @@ bash custom-bundles/deploy-admin-ui.sh 2
 
 # Build/deploy comment-management
 bash custom-bundles/deploy-admin-ui.sh 3
+
+# Build/deploy counter
+bash custom-bundles/deploy-admin-ui.sh 4
 ```
 
 Luồng chạy từ local:
@@ -101,3 +105,4 @@ bash /root/vec/custom-bundles/deploy-admin-ui.sh --server 1
 - `deploy-admin-ui.sh` dùng `rsync --delete`; không đặt file chỉ tồn tại trên server bên trong `/root/vec/custom-bundles/` nếu không muốn chúng bị xóa khi deploy.
 - Các service wrapper, listener, filter và scheduler chạy trong luồng Liferay core/background. Cần xử lý null và lỗi theo hướng không làm hỏng thao tác chính của portal.
 - Tài liệu chi tiết của module mật khẩu hết hạn nằm tại [`vec-expired-password-force-change/README.md`](vec-expired-password-force-change/README.md).
+- Tài liệu API của module counter nằm tại [`counter/README.md`](counter/README.md). Module này tự tạo bảng khi activate; schema tham chiếu ở `counter/sql/counter.sql`.
