@@ -1,0 +1,14 @@
+/* Lượt xem bài viết: text căn phải, in nghiêng */
+.fragment_23201 .article-view-counter {
+    font-size: 14px;
+    font-style: italic;
+    text-align: right;
+
+    /* Số không nhảy ngang khi cập nhật */
+    font-variant-numeric: tabular-nums;
+}
+
+/* Chưa có số hoặc API lỗi thì ẩn hẳn thay vì để dòng trống */
+.fragment_23201 .article-view-counter[hidden] {
+    display: none !important;
+}

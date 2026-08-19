@@ -200,6 +200,22 @@ Danh sách bài viết được đọc nhiều nhất (tối đa 100), sắp x�
 `totalReads`. Response chỉ có số liệu, không có tiêu đề bài viết — frontend tự
 lấy tiêu đề từ API web content của Liferay.
 
+## Nơi đang dùng
+
+- `internet-fragment/footer/`: hiển thị counter 1 (lượt truy cập) và counter 2
+  (đang online) ở góc phải, ngay trên box theo dõi Facebook. Fragment gọi
+  `POST /site-visits/hit` một lần khi trang mở, `POST /online/heartbeat` mỗi 60
+  giây, `GET /site-visits/summary` mỗi 5 phút và `POST /online/leave` qua
+  `navigator.sendBeacon` khi rời trang.
+- `internet-fragment/news_article_banner/`: hiển thị counter 3 (lượt xem bài
+  viết) ở cột meta bên phải banner. Fragment gọi
+  `POST /articles/{articleId}/reads` một lần khi mở bài (`window.articleId`),
+  các lần điều hướng sau trong cùng session chỉ `GET` để đọc lại số.
+- `internet-fragment/Article View Counter/`: fragment độc lập hiển thị counter 3
+  dạng một dòng text căn phải, in nghiêng. Cũng gọi
+  `POST /articles/{articleId}/reads`; đặt chung trang với banner cũng không làm
+  sai số vì server chặn tăng ảo 30 phút/visitor/bài.
+
 ## Ví dụ gọi từ fragment
 
 ```js

@@ -83,6 +83,101 @@
     background: rgba(0, 0, 0, 0.75);
 }
 
+/* ---- Counter lượt truy cập / đang online (góc phải, trên box follow) ---- */
+
+.ftr-counter-wrap {
+    padding-top: 4px;
+    padding-bottom: 10px;
+}
+
+.ftr-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    /* Màn hẹp: xuống dòng trong pill thay vì tràn ngang */
+    max-width: 100%;
+    gap: 6px 14px;
+    padding: 6px 14px;
+    border: 1px solid #ffffff40;
+    border-radius: 999px;
+    background: #ffffff1f;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1;
+}
+
+.ftr-counter__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    /* Nhãn không bị ngắt giữa dòng khi pill hẹp */
+    white-space: nowrap;
+}
+
+.ftr-counter__label {
+    font-weight: 300;
+}
+
+.ftr-counter__value {
+    font-weight: 700;
+
+    /* Số không bị nhảy ngang khi cập nhật */
+    font-variant-numeric: tabular-nums;
+}
+
+.ftr-counter__divider {
+    flex: 0 0 auto;
+    width: 1px;
+    height: 14px;
+    background: #ffffff59;
+}
+
+/* Hai counter xuống hai dòng thì bỏ vạch phân cách cho khỏi lửng lơ */
+@media (max-width: 560px) {
+    .ftr-counter__divider {
+        display: none;
+    }
+}
+
+.ftr-counter__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #4ade80;
+    box-shadow: 0 0 0 3px #4ade8040;
+    animation: ftr-counter-pulse 2.4s ease-in-out infinite;
+}
+
+/* Trạng thái chờ API trả số */
+.ftr-counter.is-loading .ftr-counter__value {
+    opacity: 0.6;
+}
+
+/* API lỗi: ẩn hẳn thay vì để "--" trên giao diện */
+.ftr-counter.is-hidden {
+    display: none;
+}
+
+@keyframes ftr-counter-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.45;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ftr-counter__dot {
+        animation: none;
+    }
+}
+
 /* ---- Nút nổi góc phải ---- */
 
 #btn-menu,
@@ -187,5 +282,11 @@
 @media (max-width: 450px) {
     .break-fax {
         flex-direction: column;
+    }
+
+    .ftr-counter {
+        gap: 4px 10px;
+        padding: 5px 12px;
+        font-size: 12px;
     }
 }

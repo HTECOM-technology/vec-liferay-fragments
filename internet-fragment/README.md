@@ -8,10 +8,13 @@ Thư mục `internet-fragment` lưu bản mã nguồn HTML, CSS và JavaScript c
 
 | Đường dẫn | Nội dung |
 | --- | --- |
+| `Article View Counter/` | Fragment độc lập hiển thị lượt xem bài viết (text căn phải, in nghiêng), lấy từ API `/o/vec-counter`. |
 | `cac-doi-tac-cua-vec/` | Fragment khu vực các đối tác của VEC. |
+| `footer/` | Fragment footer: thông tin liên hệ, nút nổi, modal camera và counter lượt truy cập/đang online (gọi API `/o/vec-counter` của module `custom-bundles/counter`). |
 | `gioi-thieu-chung/` | Fragment giới thiệu chung. |
 | `home-page-information/` | Fragment thông tin trang chủ. |
 | `live-camera/` | Fragment hiển thị camera trực tiếp. |
+| `news_article_banner/` | Fragment banner đầu bài viết: tiêu đề, meta (tác giả, chuyên mục, ngày) và lượt xem lấy từ API `/o/vec-counter`. |
 | `workflow-default.xml` | Bản lưu workflow mặc định liên quan đến nội dung Internet. |
 
 Tùy fragment, thư mục có thể chứa:

@@ -615,3 +615,129 @@
   url.searchParams.delete("_reset");
   window.location.replace(url.toString());
 })();
+
+/* Counter lượt truy cập + đang online (module OSGi vn.vec.custom.counter) */
+(function () {
+  const COUNTER_API_BASE = `${window.location.origin}/o/vec-counter`;
+  const VISITOR_KEY_STORAGE_KEY = "vec_counter_visitor_key";
+  const HEARTBEAT_INTERVAL_MS = 60000;
+  const VISITS_REFRESH_INTERVAL_MS = 300000;
+
+  const counterEl = document.getElementById("ftrCounter");
+  const visitsEl = document.getElementById("ftrCounterVisits");
+  const onlineEl = document.getElementById("ftrCounterOnline");
+
+  if (!counterEl || !visitsEl || !onlineEl) return;
+
+  // Liferay SPA (SennaJS) chạy lại script fragment khi điều hướng, nếu không dọn
+  // thì mỗi lần điều hướng lại thêm một bộ interval mới.
+  if (window.__vecFooterCounter) window.__vecFooterCounter.stop();
+
+  const numberFormatter = new Intl.NumberFormat("vi-VN");
+  const timers = [];
+  let stopped = false;
+
+  function stop() {
+    stopped = true;
+    timers.forEach(clearInterval);
+    timers.length = 0;
+    window.removeEventListener("pagehide", leave);
+  }
+
+  function getVisitorKey() {
+    // visitorKey giúp server đếm khách chính xác hơn IP + User-Agent.
+    try {
+      let visitorKey = localStorage.getItem(VISITOR_KEY_STORAGE_KEY);
+      if (visitorKey) return visitorKey;
+
+      visitorKey =
+        window.crypto?.randomUUID?.() ??
+        `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+
+      localStorage.setItem(VISITOR_KEY_STORAGE_KEY, visitorKey);
+      return visitorKey;
+    } catch (error) {
+      // Trình duyệt chặn localStorage: để server tự nhận diện theo session.
+      return null;
+    }
+  }
+
+  const visitorKey = getVisitorKey();
+
+  function buildUrl(path) {
+    const url = new URL(`${COUNTER_API_BASE}${path}`);
+    if (visitorKey) url.searchParams.set("visitorKey", visitorKey);
+    return url.toString();
+  }
+
+  async function callApi(path, method) {
+    const headers = { accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
+    const authToken = window.Liferay?.authToken;
+    if (authToken) headers["x-csrf-token"] = authToken;
+
+    const response = await fetch(buildUrl(path), { method, credentials: "include", headers });
+    if (!response.ok) throw new Error(`Counter API error: ${response.status}`);
+
+    return response.json();
+  }
+
+  function renderVisits(data) {
+    if (typeof data?.totalVisits !== "number") return;
+    visitsEl.textContent = numberFormatter.format(data.totalVisits);
+  }
+
+  function renderOnline(data) {
+    // /site-visits/hit trả object online, /online/* trả số online trực tiếp.
+    const online = typeof data?.online === "object" ? data.online?.total : data?.online;
+    if (typeof online !== "number") return;
+    onlineEl.textContent = numberFormatter.format(online);
+  }
+
+  function leave() {
+    // Bỏ khỏi danh sách online ngay khi rời trang, không chờ hết 5 phút.
+    if (!navigator.sendBeacon) return;
+    navigator.sendBeacon(buildUrl("/online/leave"));
+  }
+
+  async function heartbeat() {
+    if (stopped) return;
+    try {
+      renderOnline(await callApi("/online/heartbeat", "POST"));
+    } catch (error) {
+      console.error("Counter heartbeat failed", error);
+    }
+  }
+
+  async function refreshVisits() {
+    if (stopped) return;
+    try {
+      renderVisits(await callApi("/site-visits/summary", "GET"));
+    } catch (error) {
+      console.error("Counter summary failed", error);
+    }
+  }
+
+  async function init() {
+    try {
+      // Một lần gọi vừa ghi nhận lượt truy cập vừa báo online, vừa trả về số liệu.
+      const data = await callApi("/site-visits/hit", "POST");
+
+      renderVisits(data);
+      renderOnline(data);
+      counterEl.classList.remove("is-loading");
+    } catch (error) {
+      console.error("Counter init failed", error);
+      counterEl.classList.add("is-hidden");
+      stop();
+      return;
+    }
+
+    timers.push(setInterval(heartbeat, HEARTBEAT_INTERVAL_MS));
+    timers.push(setInterval(refreshVisits, VISITS_REFRESH_INTERVAL_MS));
+    window.addEventListener("pagehide", leave);
+  }
+
+  window.__vecFooterCounter = { stop };
+
+  init();
+})();
