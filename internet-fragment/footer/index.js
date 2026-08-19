@@ -682,14 +682,16 @@
   }
 
   function renderVisits(data) {
-    if (typeof data?.totalVisits !== "number") return;
+    const totalVisits = Number(data?.totalVisits || 0);
+    if (totalVisits <= 0) return;
     visitsEl.textContent = numberFormatter.format(data.totalVisits);
   }
 
   function renderOnline(data) {
     // /site-visits/hit trả object online, /online/* trả số online trực tiếp.
     const online = typeof data?.online === "object" ? data.online?.total : data?.online;
-    if (typeof online !== "number") return;
+    const totalOnline = Number(online || 0);
+    if (typeof totalOnline <= 0) return;
     onlineEl.textContent = numberFormatter.format(online);
   }
 

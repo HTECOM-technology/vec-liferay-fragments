@@ -34,8 +34,33 @@
   function render(totalReads) {
     if (typeof totalReads !== "number") return;
 
-    viewsEl.textContent = `${new Intl.NumberFormat("vi-VN").format(totalReads)} lượt xem`;
-    viewsEl.removeAttribute("hidden");
+    const text = `${new Intl.NumberFormat("vi-VN").format(totalReads)} lượt xem`;
+
+    // Trên trang chi tiết bài viết, hiển thị ngay sau khối nội dung bài thay vì
+    // ở đúng chỗ fragment được đặt.
+    const articleWrapperEl = document.querySelector(".news-article-detail .article-wrapper");
+
+    if (!articleWrapperEl) {
+      viewsEl.textContent = text;
+      viewsEl.removeAttribute("hidden");
+      return;
+    }
+
+    const nextEl = articleWrapperEl.nextElementSibling;
+
+    // render có thể chạy lại (SPA điều hướng): cập nhật lại số thay vì chèn thêm.
+    if (nextEl?.hasAttribute("data-article-view-counter")) {
+      nextEl.textContent = text;
+    } else {
+      articleWrapperEl.insertAdjacentHTML(
+        "afterend",
+        `<div class="article-view-counter panel-body" data-article-view-counter>${text}</div>`
+      );
+    }
+
+    // Dòng lượt xem đã chiếm khoảng trống phía trên khối meta.
+    const articleMetaEl = document.querySelector(".article-meta");
+    if (articleMetaEl) articleMetaEl.style.marginTop = "0px";
   }
 
   async function load(articleId) {
@@ -56,8 +81,8 @@
         headers
       });
       if (!response.ok) throw new Error(`Counter API error: ${response.status}`);
-
-      render((await response.json()).totalReads);
+      const data = await response.json();
+      render(Number(data.totalReads || 0));
     } catch (error) {
       // Counter lỗi thì giữ nguyên trạng thái ẩn, không hiện dòng trống.
       console.error("Article view counter failed", error);

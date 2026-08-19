@@ -1,5 +1,7 @@
-/* Lượt xem bài viết: text căn phải, in nghiêng */
-.fragment_23201 .article-view-counter {
+/* Lượt xem bài viết: text căn phải, in nghiêng.
+   Không scope theo .fragment_23201 vì trên trang chi tiết bài viết, index.js
+   chèn dòng này ra ngoài fragment (ngay sau .article-wrapper). */
+.article-view-counter {
     font-size: 14px;
     font-style: italic;
     text-align: right;
@@ -9,6 +11,6 @@
 }
 
 /* Chưa có số hoặc API lỗi thì ẩn hẳn thay vì để dòng trống */
-.fragment_23201 .article-view-counter[hidden] {
+.article-view-counter[hidden] {
     display: none !important;
 }
