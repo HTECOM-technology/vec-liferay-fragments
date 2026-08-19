@@ -2,7 +2,7 @@
   const get = window.waitForElement || null;
   const set = window.__reactJs_setValueForInput || null;
   const WEB_CONTENT_FORM_MAPPING_CACHE_KEY = 'vec_webcontent_form_mapping_settings_cache';
-  const WEB_CONTENT_FORM_MAPPING_CACHE_TTL = 24 * 60 * 60 * 1000;
+  const WEB_CONTENT_FORM_MAPPING_CACHE_TTL = 60 * 1000;
 
   if (!get || !set) {
     return;
