@@ -50,16 +50,23 @@ import vn.vec.custom.admin.networkpolicy.service.AdminNetworkPolicyPermission;
  * không được truyền vào filter đăng ký thuần OSGi.</li>
  * </ul>
  *
+ * <p>Phải đăng ký cả {@code dispatcher=FORWARD}, không chỉ {@code REQUEST}:
+ * {@code VirtualHostFilter} đứng trước vị trí này trong chain và nó
+ * {@code forward()} {@code /} sang {@code /web/guest/...}. Forward mở một
+ * dispatch mới, nên filter chỉ khai báo {@code REQUEST} sẽ không bao giờ thấy
+ * request vào trang chủ — chỉ thấy các URL tường minh. Đổi lại, filter có thể
+ * bị gọi nhiều lần cho cùng một request, nên {@link #_ATTRIBUTE_PROCESSED} bảo
+ * đảm chỉ xét đúng một lần.</p>
+ *
  * <p>Vì chạy trước Auto Login Filter nên người dùng vào bằng SSO/remember-me sẽ
  * bị đẩy sang trang đăng nhập một nhịp, rồi auto-login xử lý và đưa tiếp tới
- * {@code redirect}. Chỉ đăng ký {@code dispatcher=REQUEST} — thêm
- * {@code FORWARD} trên {@code url-pattern=/*} sẽ khiến filter chạy lại trên mọi
- * forward nội bộ của Liferay.</p>
+ * {@code redirect}.</p>
  */
 @Component(
 	immediate = true,
 	property = {
 		"before-filter=Auto Login Filter",
+		"dispatcher=FORWARD",
 		"dispatcher=REQUEST",
 		"servlet-context-name=",
 		"servlet-filter-name=VEC Domain Access Policy Filter",
@@ -74,6 +81,15 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
 		throws Exception {
+
+		// Đăng ký cả REQUEST và FORWARD nên cùng một request có thể đi qua
+		// đây nhiều lần. Chỉ xét lần đầu.
+
+		if (httpServletRequest.getAttribute(_ATTRIBUTE_PROCESSED) != null) {
+			return true;
+		}
+
+		httpServletRequest.setAttribute(_ATTRIBUTE_PROCESSED, Boolean.TRUE);
 
 		String host = DomainPolicyRules.resolveHost(httpServletRequest);
 		DomainRole domainRole = DomainPolicyRules.resolveRole(host);
@@ -314,6 +330,7 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		String message =
 			"Domain access policy: node=" + _nodeName + ", host=" + host +
 				", role=" + domainRole +
+				", dispatcher=" + httpServletRequest.getDispatcherType() +
 				", method=" + httpServletRequest.getMethod() + ", path=" +
 					path + ", xForwardedHost=" +
 						httpServletRequest.getHeader("X-Forwarded-Host") +
@@ -345,6 +362,17 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			return false;
 		}
 
+		// Trên nhánh FORWARD response có thể đã commit; sendRedirect lúc đó ném
+		// IllegalStateException và làm hỏng cả trang.
+
+		if (httpServletResponse.isCommitted()) {
+			_log.warn(
+				"Unable to redirect " + currentPath + " to " + location +
+					": response already committed");
+
+			return false;
+		}
+
 		httpServletResponse.setHeader(
 			"Cache-Control", "no-store, no-cache, must-revalidate");
 		httpServletResponse.setHeader("Pragma", "no-cache");
@@ -352,6 +380,9 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 
 		return true;
 	}
+
+	private static final String _ATTRIBUTE_PROCESSED =
+		DomainAccessPolicyFilter.class.getName() + "#PROCESSED";
 
 	private static final int _DIAGNOSTIC_LOG_LIMIT = 200;
 

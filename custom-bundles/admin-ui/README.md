@@ -96,9 +96,10 @@ Lưu cờ hiển thị (internet/intranet) cho từng camera theo tuyến cao t�
 Lưu thứ tự và danh sách card bị ẩn trên trang chủ dashboard của từng user (bảng `VEC_DashboardLayout`); có thứ tự mặc định khi user chưa tùy biến. `GET/PUT/DELETE /layout`, mọi user đăng nhập.
 
 #### `domainpolicy` — Phân tách môi trường theo domain
-`filter/DomainAccessPolicyFilter` — servlet filter trên `/*`, `dispatcher=REQUEST`. Cách đăng ký bám sát `WebContentAdvancedSearchPageFilter` (filter duy nhất trong module đã xác nhận chạy đúng trên server) — hai điểm bắt buộc:
+`filter/DomainAccessPolicyFilter` — servlet filter trên `/*`. Cách đăng ký bám sát `WebContentAdvancedSearchPageFilter` (filter duy nhất trong module đã xác nhận chạy đúng trên server) — ba điểm bắt buộc:
 - **`before-filter=Auto Login Filter`**, không dùng `after-filter`. Với `after-filter` thì component vẫn activate (log INFO vẫn ra) nhưng filter không bao giờ nằm trong chain, vì `InvokerFilterHelper` bỏ qua filter khi không phân giải được tên trong ràng buộc thứ tự. `HttpErrorAuditFilter` và `AdminNetworkPolicyFilter` đang dùng `after-filter` nên nhiều khả năng cũng chưa từng chạy.
 - **override `isFilterEnabled()` trả `true`**. `BaseFilter` lấy giá trị này từ init-param `filter-enabled`, vốn không được truyền vào filter đăng ký thuần OSGi.
+- **`dispatcher=FORWARD` bên cạnh `dispatcher=REQUEST`**. `VirtualHostFilter` đứng trước vị trí này trong chain và nó `forward()` `/` sang `/web/guest/...`; forward mở một dispatch mới nên filter chỉ khai báo `REQUEST` không bao giờ thấy request vào trang chủ — chỉ thấy các URL tường minh. Đổi lại filter có thể bị gọi nhiều lần cho cùng một request, nên có request attribute `#PROCESSED` bảo đảm chỉ xét đúng một lần, và `_redirect` kiểm tra `response.isCommitted()` trước khi `sendRedirect`.
 
 Hệ quả của việc chạy trước Auto Login Filter: người dùng vào bằng SSO/remember-me bị đẩy sang trang đăng nhập một nhịp rồi auto-login xử lý và đưa tiếp tới `redirect`. Cả 4 domain đều được nginx forward về cùng một Liferay instance, filter đọc host từ header `X-Forwarded-Host` (fallback `Host`, rồi `serverName`) rồi áp luật theo vai trò domain:
 
