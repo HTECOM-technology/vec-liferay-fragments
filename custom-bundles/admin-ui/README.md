@@ -96,7 +96,11 @@ Lưu cờ hiển thị (internet/intranet) cho từng camera theo tuyến cao t�
 Lưu thứ tự và danh sách card bị ẩn trên trang chủ dashboard của từng user (bảng `VEC_DashboardLayout`); có thứ tự mặc định khi user chưa tùy biến. `GET/PUT/DELETE /layout`, mọi user đăng nhập.
 
 #### `domainpolicy` — Phân tách môi trường theo domain
-`filter/DomainAccessPolicyFilter` — servlet filter trên `/*` (chạy sau `Auto Login Filter`), implement thẳng `javax.servlet.Filter` giống `HttpErrorAuditFilter` (**không** dùng `BaseFilter`/`TryFilter`: `BaseFilter.isFilterEnabled()` là cổng chặn phụ thuộc init-param `filter-enabled` vốn không được truyền vào filter đăng ký thuần OSGi). Cả 4 domain đều được nginx forward về cùng một Liferay instance, filter đọc host từ header `X-Forwarded-Host` (fallback `Host`, rồi `serverName`) rồi áp luật theo vai trò domain:
+`filter/DomainAccessPolicyFilter` — servlet filter trên `/*`, `dispatcher=REQUEST`. Cách đăng ký bám sát `WebContentAdvancedSearchPageFilter` (filter duy nhất trong module đã xác nhận chạy đúng trên server) — hai điểm bắt buộc:
+- **`before-filter=Auto Login Filter`**, không dùng `after-filter`. Với `after-filter` thì component vẫn activate (log INFO vẫn ra) nhưng filter không bao giờ nằm trong chain, vì `InvokerFilterHelper` bỏ qua filter khi không phân giải được tên trong ràng buộc thứ tự. `HttpErrorAuditFilter` và `AdminNetworkPolicyFilter` đang dùng `after-filter` nên nhiều khả năng cũng chưa từng chạy.
+- **override `isFilterEnabled()` trả `true`**. `BaseFilter` lấy giá trị này từ init-param `filter-enabled`, vốn không được truyền vào filter đăng ký thuần OSGi.
+
+Hệ quả của việc chạy trước Auto Login Filter: người dùng vào bằng SSO/remember-me bị đẩy sang trang đăng nhập một nhịp rồi auto-login xử lý và đưa tiếp tới `redirect`. Cả 4 domain đều được nginx forward về cùng một Liferay instance, filter đọc host từ header `X-Forwarded-Host` (fallback `Host`, rồi `serverName`) rồi áp luật theo vai trò domain:
 
 | Domain | Vai trò | Hành vi |
 | --- | --- | --- |
@@ -110,7 +114,8 @@ Danh sách domain và các đường dẫn đặc biệt nằm trong hằng số
 - Chỉ redirect request điều hướng trang: `GET`/`HEAD`, không phải AJAX (`X-Requested-With`), `Accept` chấp nhận HTML, và không thuộc nhóm tài nguyên (`/o/`, `/api/`, `/documents/`, `/image/`, `/combo`, `/html/`, `/tunnel-web/`, hoặc có đuôi file tĩnh). Nhờ vậy portlet action `POST`, REST API và asset không bị hỏng.
 - So khớp đường dẫn bỏ qua tiền tố locale (`/en`, `/vi`, `/en_US`, `/en-us`).
 - Mọi lỗi trong quá trình áp luật được log rồi cho request đi tiếp — không để filter chặn cả portal.
-- Khi component kích hoạt, filter ghi log `INFO`: `VEC Domain Access Policy Filter activated: ...`. Dùng dòng này để xác nhận module đã deploy và filter đã đăng ký. Bật `DEBUG` cho `vn.vec.custom.admin.domainpolicy` để xem từng lần redirect.
+- Khi component kích hoạt, filter ghi log `INFO`: `VEC Domain Access Policy Filter activated: ...` — chỉ chứng minh module đã deploy, **không** chứng minh filter nằm trong chain.
+- 50 request điều hướng trang đầu tiên sau mỗi lần activate được ghi `INFO` dạng `Domain access policy: host=..., role=..., path=..., signedIn=..., handled=...`. Đây mới là bằng chứng filter thực sự chạy. Hết hạn mức thì bật `DEBUG` cho `vn.vec.custom.admin.domainpolicy` để xem tiếp.
 
 #### `ldap/organization` — Đồng bộ AD OU → Organization
 Scheduler chạy theo cron (mặc định 5 phút/lần, cấu hình qua `ADOUOrganizationSyncConfiguration`: enabled, cronExpression, batchSize, dryRun). Đọc Distinguished Name (AD) của từng user, parse cây OU và đảm bảo user thuộc đúng cây Organization tương ứng trong Liferay.
