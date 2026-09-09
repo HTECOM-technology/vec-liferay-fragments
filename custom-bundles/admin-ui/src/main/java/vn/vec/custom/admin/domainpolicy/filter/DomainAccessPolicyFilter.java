@@ -35,7 +35,7 @@ import vn.vec.custom.admin.networkpolicy.service.AdminNetworkPolicyPermission;
  * đăng xuất.</li>
  * <li>{@code portal.tctvec.vn} — cổng nội bộ: bắt buộc đăng nhập, mọi trang đều
  * đưa về {@code /web/guest/intranet}.</li>
- * <li>{@code portal-admin.tctvec.vn} — cổng quản trị: bắt buộc đăng nhập, trang
+ * <li>{@code admin-portal.tctvec.vn} — cổng quản trị: bắt buộc đăng nhập, trang
  * mở đầu đưa về {@code /group/control_panel/manage}.</li>
  * </ul>
  *

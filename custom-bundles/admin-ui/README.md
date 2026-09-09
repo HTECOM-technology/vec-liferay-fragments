@@ -107,7 +107,7 @@ Hệ quả của việc chạy trước Auto Login Filter: người dùng vào b
 | --- | --- | --- |
 | `duongcaotoc.com.vn`, `expressway.com.vn` (kể cả subdomain và `www.`) | `PUBLIC_SITE` | Xem tự do như hiện tại. Mọi đường dẫn đăng nhập (`/c/portal/login`, `create_account`, `forgot_password`, `reset_password`, path kết thúc bằng `/login` hoặc `/sign-in`) bị redirect về `/`. Nếu phiên đang đăng nhập thì bị đẩy sang `/c/portal/logout`. |
 | `portal.tctvec.vn` | `INTRANET` | Chưa đăng nhập → `/c/portal/login?redirect=/web/guest/intranet`. Đã đăng nhập → **mọi** request trang đều redirect về `/web/guest/intranet`, trừ các path thuộc intranet (`/web/guest/intranet`, `/web/intranet`, `/intranet` và path con). |
-| `portal-admin.tctvec.vn` | `ADMIN` | Chưa đăng nhập → `/c/portal/login?redirect=/group/control_panel/manage`. Đã đăng nhập → trang mở đầu (`/`, `/home`, `/web/guest`, `/web/guest/home`, `/web/guest/intranet`, `/web/intranet`, `/intranet`) redirect về `/group/control_panel/manage`. |
+| `admin-portal.tctvec.vn` | `ADMIN` | Chưa đăng nhập → `/c/portal/login?redirect=/group/control_panel/manage`. Đã đăng nhập → trang mở đầu (`/`, `/home`, `/web/guest`, `/web/guest/home`, `/web/guest/intranet`, `/web/intranet`, `/intranet`) redirect về `/group/control_panel/manage`. |
 | Host khác (IP nội bộ, localhost, health check) | `UNKNOWN` | Filter bỏ qua hoàn toàn, giữ nguyên hành vi mặc định. |
 
 Danh sách domain và các đường dẫn đặc biệt nằm trong hằng số của `filter/DomainPolicyRules` (hardcode có chủ đích — đổi domain phải build lại module). Các quy tắc chung:
