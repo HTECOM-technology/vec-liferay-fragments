@@ -4,6 +4,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.BaseFilter;
 import com.liferay.portal.kernel.servlet.TryFilter;
+import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.io.UnsupportedEncodingException;
 
@@ -131,10 +132,17 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 
 	@Activate
 	protected void activate() {
+		try {
+			_nodeName = PortalUtil.getComputerName();
+		}
+		catch (Exception exception) {
+			_nodeName = "unknown";
+		}
+
 		_log.info(
-			"VEC Domain Access Policy Filter activated: intranet=" +
-				DomainPolicyRules.INTRANET_LANDING_PATH + ", admin=" +
-					DomainPolicyRules.ADMIN_LANDING_PATH +
+			"VEC Domain Access Policy Filter activated on node " + _nodeName +
+				": intranet=" + DomainPolicyRules.INTRANET_LANDING_PATH +
+					", admin=" + DomainPolicyRules.ADMIN_LANDING_PATH +
 						". Diagnostic INFO logging for the next " +
 							_DIAGNOSTIC_LOG_LIMIT + " page requests.");
 	}
@@ -289,7 +297,13 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			return;
 		}
 
-		if (DomainPolicyRules.isResourceRequest(path)) {
+		// Bỏ qua nhiễu: asset tĩnh và các lời gọi giữ phiên (
+		// /c/portal/extend_session chạy mỗi giây từ mọi tab đang mở) sẽ ăn hết
+		// hạn mức trước khi bắt được request cần xem.
+
+		if (DomainPolicyRules.isResourceRequest(path) ||
+			DomainPolicyRules.isAuthPath(path)) {
+
 			return;
 		}
 
@@ -298,7 +312,8 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		}
 
 		String message =
-			"Domain access policy: host=" + host + ", role=" + domainRole +
+			"Domain access policy: node=" + _nodeName + ", host=" + host +
+				", role=" + domainRole +
 				", method=" + httpServletRequest.getMethod() + ", path=" +
 					path + ", xForwardedHost=" +
 						httpServletRequest.getHeader("X-Forwarded-Host") +
@@ -338,10 +353,12 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		return true;
 	}
 
-	private static final int _DIAGNOSTIC_LOG_LIMIT = 50;
+	private static final int _DIAGNOSTIC_LOG_LIMIT = 200;
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DomainAccessPolicyFilter.class);
+
+	private volatile String _nodeName = "unknown";
 
 	private final AtomicInteger _diagnosticLogBudget = new AtomicInteger(
 		_DIAGNOSTIC_LOG_LIMIT);
