@@ -111,7 +111,8 @@ Hệ quả của việc chạy trước Auto Login Filter: người dùng vào b
 | Host khác (IP nội bộ, localhost, health check) | `UNKNOWN` | Filter bỏ qua hoàn toàn, giữ nguyên hành vi mặc định. |
 
 Danh sách domain và các đường dẫn đặc biệt nằm trong hằng số của `filter/DomainPolicyRules` (hardcode có chủ đích — đổi domain phải build lại module). Các quy tắc chung:
-- Đường dẫn xác thực (`/c/portal/login`, `logout`, `update_password`, `update_terms_of_use`, `verify_email_address`, `extend_session`...) luôn đi qua trên `INTRANET`/`ADMIN`, nếu không sẽ tạo vòng lặp redirect.
+- Đường dẫn xác thực (`/c/portal/login`, `logout`, `update_password`, `update_terms_of_use`, `verify_email_address`, `extend_session`...) luôn đi qua trên `INTRANET`/`ADMIN`, nếu không sẽ tạo vòng lặp redirect. Ngoài path, filter còn nhận diện giao diện đăng nhập qua query string chứa `LoginPortlet` — Liferay có thể bounce trang đăng nhập sang một trang thường mang theo portlet này thay vì một friendly URL kết thúc bằng `/login`.
+- **Cầu dao chống vòng lặp**: sau 3 lần chuyển hướng sang đăng nhập liên tiếp mà phiên vẫn chưa chạm được giao diện đăng nhập, filter mở cổng cho request đi tiếp và ghi `WARN` kèm path gây lặp. Đây là fail-open có chủ đích — mất hiệu lực chính sách cho một phiên còn hơn làm chết cả portal. Bộ đếm nằm trong session và được xoá ngay khi chạm được trang đăng nhập hoặc khi đã đăng nhập.
 - Chỉ redirect request điều hướng trang: `GET`/`HEAD`, không phải AJAX (`X-Requested-With`), `Accept` chấp nhận HTML, và không thuộc nhóm tài nguyên (`/o/`, `/api/`, `/documents/`, `/image/`, `/combo`, `/html/`, `/tunnel-web/`, hoặc có đuôi file tĩnh). Nhờ vậy portlet action `POST`, REST API và asset không bị hỏng.
 - So khớp đường dẫn bỏ qua tiền tố locale (`/en`, `/vi`, `/en_US`, `/en-us`).
 - Mọi lỗi trong quá trình áp luật được log rồi cho request đi tiếp — không để filter chặn cả portal.

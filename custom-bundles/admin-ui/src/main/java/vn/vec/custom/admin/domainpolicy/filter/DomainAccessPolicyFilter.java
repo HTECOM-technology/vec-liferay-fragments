@@ -16,6 +16,7 @@ import javax.servlet.Filter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -182,14 +183,20 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			HttpServletResponse httpServletResponse, String path)
 		throws Exception {
 
-		if (DomainPolicyRules.isAuthPath(path)) {
+		if (DomainPolicyRules.isAuthRequest(
+				path, httpServletRequest.getQueryString())) {
+
+			_resetLoginBounces(httpServletRequest);
+
 			return false;
 		}
 
 		boolean pageRequest = _isPageRequest(httpServletRequest, path);
 
 		if (!_isSignedIn(httpServletRequest)) {
-			if (!pageRequest) {
+			if (!pageRequest ||
+				!_shouldBounceToLogin(httpServletRequest, path)) {
+
 				return false;
 			}
 
@@ -197,6 +204,8 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 				httpServletResponse, path,
 				_loginUrl(DomainPolicyRules.ADMIN_LANDING_PATH));
 		}
+
+		_resetLoginBounces(httpServletRequest);
 
 		if (pageRequest && DomainPolicyRules.isAdminLandingPath(path)) {
 			return _redirect(
@@ -212,7 +221,11 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			HttpServletResponse httpServletResponse, String path)
 		throws Exception {
 
-		if (DomainPolicyRules.isAuthPath(path)) {
+		if (DomainPolicyRules.isAuthRequest(
+				path, httpServletRequest.getQueryString())) {
+
+			_resetLoginBounces(httpServletRequest);
+
 			return false;
 		}
 
@@ -221,10 +234,16 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		}
 
 		if (!_isSignedIn(httpServletRequest)) {
+			if (!_shouldBounceToLogin(httpServletRequest, path)) {
+				return false;
+			}
+
 			return _redirect(
 				httpServletResponse, path,
 				_loginUrl(DomainPolicyRules.INTRANET_LANDING_PATH));
 		}
+
+		_resetLoginBounces(httpServletRequest);
 
 		if (DomainPolicyRules.isIntranetPath(path)) {
 			return false;
@@ -253,6 +272,51 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		}
 
 		return false;
+	}
+
+	private void _resetLoginBounces(HttpServletRequest httpServletRequest) {
+		HttpSession httpSession = httpServletRequest.getSession(false);
+
+		if ((httpSession != null) &&
+			(httpSession.getAttribute(_SESSION_LOGIN_BOUNCES) != null)) {
+
+			httpSession.removeAttribute(_SESSION_LOGIN_BOUNCES);
+		}
+	}
+
+	/**
+	 * Cầu dao chống vòng lặp. Nếu Liferay bounce trang đăng nhập sang một URL
+	 * mà filter lại đá ngược về đăng nhập, cả portal sẽ không dùng được. Sau
+	 * {@link #_MAX_LOGIN_BOUNCES} lần chuyển hướng liên tiếp mà phiên vẫn chưa
+	 * chạm được giao diện đăng nhập, filter mở cổng cho request đi tiếp và ghi
+	 * {@code WARN} kèm URL gây lặp.
+	 *
+	 * <p>Đây là fail-open có chủ đích: mất hiệu lực chính sách cho phiên đó còn
+	 * hơn làm chết cả portal. Dòng {@code WARN} cho biết chính xác path nào cần
+	 * thêm vào danh sách auth path.</p>
+	 *
+	 * @return {@code true} nếu được phép chuyển hướng sang trang đăng nhập
+	 */
+	private boolean _shouldBounceToLogin(
+		HttpServletRequest httpServletRequest, String path) {
+
+		HttpSession httpSession = httpServletRequest.getSession();
+
+		Object value = httpSession.getAttribute(_SESSION_LOGIN_BOUNCES);
+		int bounces = (value instanceof Integer) ? (Integer)value : 0;
+
+		if (bounces >= _MAX_LOGIN_BOUNCES) {
+			_log.warn(
+				"Login redirect loop detected at " + path +
+					"; letting the request through. Add this path to " +
+						"DomainPolicyRules auth paths.");
+
+			return false;
+		}
+
+		httpSession.setAttribute(_SESSION_LOGIN_BOUNCES, bounces + 1);
+
+		return true;
 	}
 
 	/**
@@ -332,7 +396,8 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 				", role=" + domainRole +
 				", dispatcher=" + httpServletRequest.getDispatcherType() +
 				", method=" + httpServletRequest.getMethod() + ", path=" +
-					path + ", xForwardedHost=" +
+					path + ", query=" + httpServletRequest.getQueryString() +
+						", xForwardedHost=" +
 						httpServletRequest.getHeader("X-Forwarded-Host") +
 							", hostHeader=" +
 								httpServletRequest.getHeader("Host") +
@@ -385,6 +450,11 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		DomainAccessPolicyFilter.class.getName() + "#PROCESSED";
 
 	private static final int _DIAGNOSTIC_LOG_LIMIT = 200;
+
+	private static final int _MAX_LOGIN_BOUNCES = 3;
+
+	private static final String _SESSION_LOGIN_BOUNCES =
+		DomainAccessPolicyFilter.class.getName() + "#LOGIN_BOUNCES";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DomainAccessPolicyFilter.class);

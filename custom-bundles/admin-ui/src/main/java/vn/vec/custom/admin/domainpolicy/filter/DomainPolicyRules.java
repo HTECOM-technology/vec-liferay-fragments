@@ -196,6 +196,23 @@ public class DomainPolicyRules {
 	}
 
 	/**
+	 * Request đang hiển thị chính giao diện đăng nhập, kể cả khi Liferay bounce
+	 * sang một trang thường mang theo LoginPortlet trên query string thay vì
+	 * một friendly URL kết thúc bằng {@code /login}.
+	 */
+	public static boolean isAuthRequest(String path, String queryString) {
+		if (isAuthPath(path)) {
+			return true;
+		}
+
+		if (queryString == null) {
+			return false;
+		}
+
+		return queryString.contains("LoginPortlet");
+	}
+
+	/**
 	 * Trang thuộc phạm vi intranet, không bị đưa về {@link
 	 * #INTRANET_LANDING_PATH}.
 	 */
