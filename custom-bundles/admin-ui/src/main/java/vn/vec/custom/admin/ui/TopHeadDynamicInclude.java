@@ -13,6 +13,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 
+import vn.vec.custom.admin.domainpolicy.filter.DomainPolicyRules;
+import vn.vec.custom.admin.domainpolicy.model.DomainRole;
+
 @Component(service = DynamicInclude.class)
 public class TopHeadDynamicInclude implements DynamicInclude {
 
@@ -27,6 +30,13 @@ public class TopHeadDynamicInclude implements DynamicInclude {
       String requestURI = request.getRequestURI();
       if (requestURI != null && requestURI.startsWith("/o/vec-custom-admin-ui/")) {
         return;
+      }
+
+      DomainRole domainRole = DomainPolicyRules.resolveRole(
+        DomainPolicyRules.resolveHost(request));
+
+      if (domainRole == DomainRole.PUBLIC_SITE) {
+        writer.println("<link rel=\"stylesheet\" href=\"/o/vec-custom-admin-ui/domain-policy/public-domain.css\">");
       }
 
       writer.println("<link rel=\"stylesheet\" href=\"/o/vec-custom-admin-ui/custom_admin.css\">");

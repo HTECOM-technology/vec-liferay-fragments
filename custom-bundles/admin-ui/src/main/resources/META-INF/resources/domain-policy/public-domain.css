@@ -1,0 +1,18 @@
+/*
+ * Cổng công khai (duongcaotoc.com.vn, expressway.com.vn): không đăng nhập và
+ * không thể đăng nhập.
+ *
+ * DomainAccessPolicyFilter đã chặn ở phía server; file này chỉ ẩn lối vào đăng
+ * nhập trên giao diện để người dùng không bấm vào rồi bị đá về trang chủ.
+ */
+
+.sign-in,
+.sign-in-link,
+.user-personal-bar,
+a[href*="/c/portal/login"],
+a[href*="/c/portal/create_account"],
+a[href*="/c/portal/forgot_password"],
+a[href$="/login"],
+a[href*="/login?"] {
+	display: none !important;
+}
