@@ -32,7 +32,9 @@ import vn.vec.custom.admin.networkpolicy.service.AdminNetworkPolicyPermission;
  * <ul>
  * <li>{@code duongcaotoc.com.vn}, {@code expressway.com.vn} — cổng công khai:
  * xem tự do, chặn mọi đường dẫn đăng nhập; nếu phiên đang đăng nhập thì buộc
- * đăng xuất.</li>
+ * đăng xuất. Riêng {@code duongcaotoc.com.vn} (kể cả {@code www.}) cho phép
+ * đăng nhập quản trị nếu {@code VEC_DUONGCAOTOC_ADMIN_ENABLED=true}, đồng thời
+ * giữ nguyên việc xem trang public.</li>
  * <li>{@code portal.tctvec.vn} — cổng nội bộ: bắt buộc đăng nhập, mọi trang đều
  * đưa về {@code /web/guest/intranet}.</li>
  * <li>{@code admin-portal.tctvec.vn} — cổng quản trị: bắt buộc đăng nhập, trang
@@ -104,6 +106,10 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 				handled = _handlePublicSite(
 					httpServletRequest, httpServletResponse, path);
 			}
+			else if (domainRole == DomainRole.PUBLIC_ADMIN) {
+				handled = _handlePublicAdmin(
+					httpServletRequest, httpServletResponse, path);
+			}
 			else if (domainRole == DomainRole.INTRANET) {
 				handled = _handleIntranet(
 					httpServletRequest, httpServletResponse, path);
@@ -160,6 +166,8 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			"VEC Domain Access Policy Filter activated on node " + _nodeName +
 				": intranet=" + DomainPolicyRules.INTRANET_LANDING_PATH +
 					", admin=" + DomainPolicyRules.ADMIN_LANDING_PATH +
+						", duongCaoTocAdminEnabled=" +
+							DomainPolicyRules.isDuongCaoTocAdminEnabled() +
 						". Diagnostic INFO logging for the next " +
 							_DIAGNOSTIC_LOG_LIMIT + " page requests.");
 	}
@@ -252,6 +260,30 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		return _redirect(
 			httpServletResponse, path,
 			DomainPolicyRules.INTRANET_LANDING_PATH);
+	}
+
+	private boolean _handlePublicAdmin(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, String path)
+		throws Exception {
+
+		if (DomainPolicyRules.isAuthRequest(
+				path, httpServletRequest.getQueryString())) {
+
+			_resetLoginBounces(httpServletRequest);
+
+			return false;
+		}
+
+		if (_isPageRequest(httpServletRequest, path) &&
+			DomainPolicyRules.isIntranetPath(path)) {
+
+			return _redirect(httpServletResponse, path, "/");
+		}
+
+		// Liferay xử lý đăng nhập và kiểm tra quyền Control Panel như bình
+		// thường; không ép khách đăng nhập khi đang xem trang public.
+		return false;
 	}
 
 	private boolean _handlePublicSite(

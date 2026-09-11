@@ -106,12 +106,32 @@ Hệ quả của việc chạy trước Auto Login Filter: người dùng vào b
 | Domain | Vai trò | Hành vi |
 | --- | --- | --- |
 | `duongcaotoc.com.vn`, `expressway.com.vn` (kể cả subdomain và `www.`) | `PUBLIC_SITE` | Xem tự do như hiện tại. Mọi đường dẫn đăng nhập (`/c/portal/login`, `create_account`, `forgot_password`, `reset_password`, path kết thúc bằng `/login` hoặc `/sign-in`) bị redirect về `/`. Nếu phiên đang đăng nhập thì bị đẩy sang `/c/portal/logout`. |
+| Riêng `duongcaotoc.com.vn` và `www.duongcaotoc.com.vn` khi `VEC_DUONGCAOTOC_ADMIN_ENABLED=true` | `PUBLIC_ADMIN` | Trang public vẫn xem được trước/sau đăng nhập. Cho phép đăng nhập, đổi mật khẩu, đăng xuất và vào Control Panel theo quyền Liferay; không ép khách vào trang đăng nhập khi đang xem public. Các trang intranet redirect về `/`. Subdomain khác vẫn là `PUBLIC_SITE`. |
 | `portal.tctvec.vn` | `INTRANET` | Chưa đăng nhập → `/c/portal/login?redirect=/web/guest/intranet`. Đã đăng nhập → **mọi** request trang đều redirect về `/web/guest/intranet`, trừ các path thuộc intranet (`/web/guest/intranet`, `/web/intranet`, `/intranet` và path con). |
 | `admin-portal.tctvec.vn` | `ADMIN` | Chưa đăng nhập → `/c/portal/login?redirect=/group/control_panel/manage`. Đã đăng nhập → trang mở đầu (`/`, `/home`, `/web/guest`, `/web/guest/home`, `/web/guest/intranet`, `/web/intranet`, `/intranet`) redirect về `/group/control_panel/manage`. |
 | Host khác (IP nội bộ, localhost, health check) | `UNKNOWN` | Filter bỏ qua hoàn toàn, giữ nguyên hành vi mặc định. |
 
-Danh sách domain và các đường dẫn đặc biệt nằm trong hằng số của `filter/DomainPolicyRules` (hardcode có chủ đích — đổi domain phải build lại module). Các quy tắc chung:
-- Đường dẫn xác thực (`/c/portal/login`, `logout`, `update_password`, `update_terms_of_use`, `verify_email_address`, `extend_session`...) luôn đi qua trên `INTRANET`/`ADMIN`, nếu không sẽ tạo vòng lặp redirect. Ngoài path, filter còn nhận diện giao diện đăng nhập qua query string chứa `LoginPortlet` — Liferay có thể bounce trang đăng nhập sang một trang thường mang theo portlet này thay vì một friendly URL kết thúc bằng `/login`.
+Danh sách domain và các đường dẫn đặc biệt nằm trong hằng số của `filter/DomainPolicyRules` (đổi domain phải build lại module). Riêng quyền đăng nhập admin trên `duongcaotoc.com.vn` đọc từ biến môi trường **của tiến trình Liferay**, mặc định tắt. Để bật, thêm dòng sau vào `$LIFERAY_HOME/tomcat/bin/setenv.sh` đang dùng trên server (đường dẫn thực tế: `/home/vecadmin/vec/bundles/tomcat/bin/setenv.sh`):
+
+```bash
+export VEC_DUONGCAOTOC_ADMIN_ENABLED=true
+```
+
+Sau khi deploy JAR có hỗ trợ biến này, restart Liferay trên từng node để nhận môi trường mới. Nếu khởi động qua systemd/container và quản lý env tại đó, khai báo biến trong cấu hình khởi động tương ứng. Đổi thành `false` hoặc bỏ biến để tắt; chỉ giá trị `true` (không phân biệt hoa/thường, bỏ khoảng trắng hai đầu) mới bật. Những lần đổi env sau không cần build lại JAR. `.env` React ở thư mục gốc và `custom-bundles/.env` phục vụ build/deploy, không tự cập nhật môi trường JVM trên server.
+
+Mở `https://duongcaotoc.com.vn/group/control_panel/manage` để vào quản trị hoặc `https://duongcaotoc.com.vn/c/portal/login` để đăng nhập. Liferay vẫn kiểm tra quyền tài khoản, và `AdminNetworkPolicyFilter` vẫn áp chính sách IP hiện có. Log activate có `duongCaoTocAdminEnabled=true/false` để kiểm tra giá trị trên từng node.
+
+Self-test filter và CSS ẩn đăng nhập, bao gồm khách/phiên đăng nhập, public/admin/intranet, auth POST và 5 giá trị env, không cần Liferay server:
+
+```bash
+bash build-custom-bundles.sh 1
+bash build-custom-bundles.sh --shell
+# Trong container:
+bash custom-bundles/admin-ui/test-domain-policy.sh
+```
+
+Các quy tắc chung:
+- Đường dẫn xác thực (`/c/portal/login`, `logout`, `update_password`, `update_terms_of_use`, `verify_email_address`, `extend_session`...) luôn đi qua trên `INTRANET`/`ADMIN`/`PUBLIC_ADMIN`, nếu không sẽ tạo vòng lặp redirect. Ngoài path, filter còn nhận diện giao diện đăng nhập qua query string chứa `LoginPortlet` — Liferay có thể bounce trang đăng nhập sang một trang thường mang theo portlet này thay vì một friendly URL kết thúc bằng `/login`.
 - **Cầu dao chống vòng lặp**: sau 3 lần chuyển hướng sang đăng nhập liên tiếp mà phiên vẫn chưa chạm được giao diện đăng nhập, filter mở cổng cho request đi tiếp và ghi `WARN` kèm path gây lặp. Đây là fail-open có chủ đích — mất hiệu lực chính sách cho một phiên còn hơn làm chết cả portal. Bộ đếm nằm trong session và được xoá ngay khi chạm được trang đăng nhập hoặc khi đã đăng nhập.
 - Chỉ redirect request điều hướng trang: `GET`/`HEAD`, không phải AJAX (`X-Requested-With`), `Accept` chấp nhận HTML, và không thuộc nhóm tài nguyên (`/o/`, `/api/`, `/documents/`, `/image/`, `/combo`, `/html/`, `/tunnel-web/`, hoặc có đuôi file tĩnh). Nhờ vậy portlet action `POST`, REST API và asset không bị hỏng.
 - So khớp đường dẫn bỏ qua tiền tố locale (`/en`, `/vi`, `/en_US`, `/en-us`).

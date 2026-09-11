@@ -181,6 +181,7 @@ Các nhóm chức năng lớn trong `custom-bundles/admin-ui`:
 
 - `audit`: nhật ký kiểm tra thay đổi hệ thống, gồm REST API, model, repository, service, listener và service wrapper cho Layout/Journal/Fragment/Permission/Preferences.
 - `networkpolicy`: quản lý chính sách truy cập admin theo mạng/IP, gồm filter, portlet, REST resource, repository và cache.
+- `domainpolicy`: phân vai domain; `duongcaotoc.com.vn` (kể cả `www.`) có vai trò `PUBLIC_ADMIN` khi môi trường tiến trình Liferay đặt `VEC_DUONGCAOTOC_ADMIN_ENABLED=true`. Cho phép xem public và đăng nhập/admin theo quyền Liferay, trang intranet redirect về `/`. Mặc định tắt (`PUBLIC_SITE`); không mở cho subdomain khác hoặc `expressway.com.vn`. Đổi env cần restart Liferay trên từng node, không cần build lại JAR; `.env` local/build không tự truyền vào JVM trên server. Self-test: `DomainAccessPolicySelfTest`.
 - `modulemanager`: portlet và REST resource quản lý/truy vấn module hệ thống.
 - `webcontent/advancedsearch`: tìm kiếm nâng cao web content.
 - `webcontent/statistics`: thống kê và export Excel web content.

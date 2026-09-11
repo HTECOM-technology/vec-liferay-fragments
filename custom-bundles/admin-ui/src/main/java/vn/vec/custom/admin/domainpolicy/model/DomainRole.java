@@ -24,6 +24,11 @@ public enum DomainRole {
 	PUBLIC_SITE,
 
 	/**
+	 * Cổng công khai có thể đăng nhập quản trị; trang public vẫn xem tự do.
+	 */
+	PUBLIC_ADMIN,
+
+	/**
 	 * Host không nằm trong danh sách khai báo (IP nội bộ, localhost, health
 	 * check...). Filter bỏ qua hoàn toàn, giữ nguyên hành vi mặc định.
 	 */

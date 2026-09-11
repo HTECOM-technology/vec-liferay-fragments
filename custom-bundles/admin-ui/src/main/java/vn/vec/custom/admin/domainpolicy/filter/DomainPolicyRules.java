@@ -10,8 +10,8 @@ import vn.vec.custom.admin.domainpolicy.model.DomainRole;
  * Bảng luật tĩnh cho {@link DomainAccessPolicyFilter}: ánh xạ host sang
  * {@link DomainRole} và phân loại đường dẫn.
  *
- * <p>Danh sách domain được hardcode có chủ đích để không phụ thuộc cấu hình
- * runtime; đổi domain đồng nghĩa với build lại module.</p>
+ * <p>Danh sách domain được hardcode; riêng quyền đăng nhập quản trị trên
+ * duongcaotoc.com.vn được bật bằng biến môi trường của tiến trình Liferay.</p>
  */
 public class DomainPolicyRules {
 
@@ -25,9 +25,23 @@ public class DomainPolicyRules {
 	 */
 	public static final String ADMIN_LANDING_PATH = "/group/control_panel/manage";
 
+	public static boolean isDuongCaoTocAdminEnabled() {
+		//String value = System.getenv("VEC_DUONGCAOTOC_ADMIN_ENABLED");
+
+		//return (value != null) && "true".equalsIgnoreCase(value.trim());
+		return true; // always enable admin for duongcaotoc.com.vn
+	}
+
 	public static DomainRole resolveRole(String host) {
 		if ((host == null) || host.isEmpty()) {
 			return DomainRole.UNKNOWN;
+		}
+
+		// resolveHost đã bỏ www.; không mở quyền admin cho các subdomain khác.
+		if ("duongcaotoc.com.vn".equals(host) &&
+			isDuongCaoTocAdminEnabled()) {
+
+			return DomainRole.PUBLIC_ADMIN;
 		}
 
 		for (String adminHost : _ADMIN_HOSTS) {
