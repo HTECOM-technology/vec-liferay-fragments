@@ -38,10 +38,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly files("${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib/portal-kernel.jar")
-    compileOnly files("${liferayHome}/tomcat/lib/servlet-api.jar")
-    compileOnly files("${rootDir}/../libs/osgi-annotations.jar")
-    compileOnly files("${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib/com.liferay.petra.function.jar")
+    // Chỉ đưa JAR local có thật vào classpath. Khi build Docker bằng user thường,
+    // đường dẫn fallback dưới /root không truy cập được; Gradle không thể snapshot
+    // classpath và báo "Changes are not tracked" dù đã có dependency Maven.
+    compileOnly files(
+        "${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib/portal-kernel.jar",
+        "${liferayHome}/tomcat/lib/servlet-api.jar",
+        "${rootDir}/../libs/osgi-annotations.jar",
+        "${liferayHome}/tomcat/webapps/ROOT/WEB-INF/shielded-container-lib/com.liferay.petra.function.jar"
+    ).filter { it.isFile() }
 
     // Cho phép compile local khi không có full Liferay bundle. Trên server vẫn
     // ưu tiên đúng các JAR trong LIFERAY_HOME như trước.

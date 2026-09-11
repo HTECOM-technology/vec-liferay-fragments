@@ -34,7 +34,8 @@ admin-ui/
 
 ## Build và deploy
 
-- Build bằng Liferay Gradle plugin (`com.liferay.plugin`). Hầu hết dependency ở dạng `compileOnly`, được resolve trực tiếp từ các JAR trong Liferay bundle tại `LIFERAY_HOME` (mặc định `/root/vec/bundles`) — vì vậy **build phải chạy trên server có Liferay bundle**, không build ở máy local.
+- Build bằng Liferay Gradle plugin (`com.liferay.plugin`). Dependency `compileOnly` ưu tiên JAR local có thật trong `LIFERAY_HOME` (mặc định `/root/vec/bundles`); khi không có bundle, dùng dependency Maven với `release.portal.api:7.4.3.132`.
+- Build local bằng Docker: chạy `bash build-custom-bundles.sh 1` từ thư mục gốc, JAR ra ở `custom-bundles/dist/vn.vec.custom.admin.ui-1.0.1.jar`. Không cần cài JDK/Gradle/Liferay bundle trên máy.
 - Deploy bằng script [../deploy-admin-ui.sh](../deploy-admin-ui.sh) (xem chi tiết ở [README của custom-bundles](../README.md)): rsync mã nguồn lên server, build, copy JAR vào `$LIFERAY_HOME/osgi/modules/`.
 - Task `buildCSS`/`copyCSS` bị tắt — CSS được viết tay, không qua SASS.
 

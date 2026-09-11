@@ -104,6 +104,7 @@ Cách hoạt động:
 - Container **không** set `LIFERAY_HOME`, nên các `build.gradle` tự đi nhánh fallback Maven `com.liferay.portal:release.portal.api:7.4.3.132`. Artifact này chứa đủ `portal-kernel`, `javax.portlet`, các app API (journal, message-boards, application-list) và OSGi annotations. Trên server có `LIFERAY_HOME` thì vẫn ưu tiên JAR thật — build trên server không đổi hành vi.
 - Logic build nằm trong `build-custom-bundles.sh` và được mount cùng repo, nên sửa script **không** cần rebuild image. Chỉ rebuild khi sửa Dockerfile: `--rebuild-image`.
 - Cache Gradle ở `.gradle-docker/` trong repo (gitignore) để build lại nhanh (~1-3 giây/module) và file sinh ra thuộc đúng user, không bị root-owned.
+- Với dependency JAR local khai báo bằng `files(...)`, lọc `it.isFile()` trước khi đưa vào classpath như `admin-ui/build.gradle`. Nếu giữ đường dẫn không truy cập được dưới `/root/vec/bundles` khi Docker chạy bằng user thường, Gradle 7.6.4 có thể báo `Changes are not tracked, unable determine incremental changes`. Chạy Gradle với `--info --stacktrace` sẽ thấy nguyên nhân `Could not stat file ... permission denied`; xoá cache hoặc clean build không xử lý được nguyên nhân này.
 
 ### BẮT BUỘC: pin version trong bnd.bnd
 
