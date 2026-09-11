@@ -324,7 +324,7 @@ public class DomainPolicyRules {
 		return normalizedHost;
 	}
 
-	private static final String[] _ADMIN_HOSTS = {"admin-portal.tctvec.vn", "duongcaotoc.com.vn"};
+	private static final String[] _ADMIN_HOSTS = {"admin-portal.tctvec.vn"};
 
 	private static final String[] _INTRANET_HOSTS = {"portal.tctvec.vn"};
 
