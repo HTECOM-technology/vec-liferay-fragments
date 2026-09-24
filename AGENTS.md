@@ -181,7 +181,7 @@ Các nhóm chức năng lớn trong `custom-bundles/admin-ui`:
 
 - `audit`: nhật ký kiểm tra thay đổi hệ thống, gồm REST API, model, repository, service, listener và service wrapper cho Layout/Journal/Fragment/Permission/Preferences.
 - `networkpolicy`: quản lý chính sách truy cập admin theo mạng/IP, gồm filter, portlet, REST resource, repository và cache.
-- `domainpolicy`: phân vai domain; `duongcaotoc.com.vn` (kể cả `www.`) có vai trò `PUBLIC_ADMIN` khi môi trường tiến trình Liferay đặt `VEC_DUONGCAOTOC_ADMIN_ENABLED=true`. Cho phép xem public và đăng nhập/admin theo quyền Liferay, trang intranet redirect về `/`. Mặc định tắt (`PUBLIC_SITE`); không mở cho subdomain khác hoặc `expressway.com.vn`. Đổi env cần restart Liferay trên từng node, không cần build lại JAR; `.env` local/build không tự truyền vào JVM trên server. Self-test: `DomainAccessPolicySelfTest`.
+- `domainpolicy`: phân vai domain. `duongcaotoc.com.vn`, `expressway.com.vn` là `PUBLIC_SITE` (chặn đăng nhập, đã bỏ `PUBLIC_ADMIN`/`VEC_DUONGCAOTOC_ADMIN_ENABLED`); `portal.tctvec.vn` là intranet; chỉ `admin-portal.tctvec.vn` vào quản trị. Sau đăng nhập trên admin-portal, trang mở đầu và Control Panel trống (không có `p_p_id`) redirect vào Site Administration của site `/guest` (`ADMIN_DEFAULT_SITE_FRIENDLY_URL`), ứng dụng đầu tiên user có quyền qua `PanelCategoryHelper.getFirstPortletId`. Self-test: `DomainAccessPolicySelfTest` (`test-domain-policy.sh`).
 - `modulemanager`: portlet và REST resource quản lý/truy vấn module hệ thống.
 - `webcontent/advancedsearch`: tìm kiếm nâng cao web content.
 - `webcontent/statistics`: thống kê và export Excel web content.

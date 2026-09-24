@@ -3,6 +3,7 @@ package vn.vec.custom.admin.domainpolicy.filter;
 import com.liferay.portal.kernel.log.Jdk14LogFactoryImpl;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.GroupLocalService;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -27,83 +28,66 @@ import vn.vec.custom.admin.ui.TopHeadDynamicInclude;
 public class DomainAccessPolicySelfTest {
 
 	public static void main(String[] args) throws Exception {
-		boolean enabled = Boolean.parseBoolean(args[0]);
 		LogFactoryUtil.setLogFactory(new Jdk14LogFactoryImpl());
 
 		_assertEquals(
-			enabled, DomainPolicyRules.isDuongCaoTocAdminEnabled(),
-			"Đọc biến môi trường runtime");
-		_assertEquals(
-			enabled ? DomainRole.PUBLIC_ADMIN : DomainRole.PUBLIC_SITE,
+			DomainRole.PUBLIC_SITE,
 			DomainPolicyRules.resolveRole("duongcaotoc.com.vn"),
 			"Vai trò duongcaotoc.com.vn");
 		_assertEquals(
 			DomainRole.PUBLIC_SITE,
 			DomainPolicyRules.resolveRole("news.duongcaotoc.com.vn"),
-			"Không mở admin cho subdomain khác");
+			"Vai trò subdomain duongcaotoc.com.vn");
 		_assertEquals(
 			DomainRole.UNKNOWN,
 			DomainPolicyRules.resolveRole("duongcaotoc.com.vn.attacker.invalid"),
 			"Không nhận nhầm host có hậu tố khác");
-		_checkHead("duongcaotoc.com.vn", !enabled);
-		_checkHead("www.duongcaotoc.com.vn", !enabled);
+		_checkHead("duongcaotoc.com.vn", true);
+		_checkHead("www.duongcaotoc.com.vn", true);
 		_checkHead("expressway.com.vn", true);
 		_checkHead("news.duongcaotoc.com.vn", true);
+		_checkHead("admin-portal.tctvec.vn", false);
 
+		// Cổng công khai: không đăng nhập được, phiên đăng nhập bị đăng xuất.
 		for (String host : new String[] {
-				"duongcaotoc.com.vn", "WWW.DUONGCAOTOC.COM.VN.:443"}) {
+				"duongcaotoc.com.vn", "WWW.DUONGCAOTOC.COM.VN.:443",
+				"expressway.com.vn", "www.expressway.com.vn",
+				"news.duongcaotoc.com.vn"}) {
 
 			for (boolean signedIn : new boolean[] {false, true}) {
 				for (String path : new String[] {"/", "/web/guest/home", "/vi/tin-tuc"}) {
 					_check(host, path, null, "GET", signedIn,
-						(!enabled && signedIn) ? "/c/portal/logout" : null);
+						signedIn ? "/c/portal/logout" : null);
 				}
 
 				for (String path : new String[] {
 						"/c/portal/login", "/web/guest/login", "/vi/sign-in",
 						"/c/portal/forgot_password", "/c/portal/reset_password"}) {
 
-					_check(host, path, null, "GET", signedIn, enabled ? null : "/");
+					_check(host, path, null, "GET", signedIn, "/");
 				}
 
 				_check(host, "/c/portal/logout", null, "GET", signedIn, null);
-
-				if (enabled) {
-					_check(host, "/web/guest/home", "p_p_id=com_liferay_login_web_portlet_LoginPortlet",
-						"GET", signedIn, null);
-					_check(host, "/c/portal/login", null, "POST", signedIn, null);
-					_check(host, "/c/portal/update_password", null, "POST", signedIn, null);
-					_check(host, "/c/portal/update_terms_of_use", null, "GET", signedIn, null);
-					_check(host, "/group/control_panel/manage", null, "GET", signedIn, null);
-					_check(host, "/group/guest/~/control_panel/manage", null, "POST", signedIn, null);
-					_check(host, "/o/vec-custom-admin-ui/main.js", null, "GET", signedIn, null);
-					_check(host, "/api/jsonws", null, "POST", signedIn, null);
-					_check(host, "/documents/123/file.pdf", null, "GET", signedIn, null);
-
-					for (String path : new String[] {
-							"/web/guest/intranet", "/vi/web/guest/intranet/news",
-							"/intranet", "/web/intranet"}) {
-
-						_check(host, path, null, "GET", signedIn, "/");
-					}
-				}
 			}
-		}
-
-		// Các domain còn lại giữ hành vi hiện có, bất kể giá trị biến môi trường.
-		for (String host : new String[] {
-				"expressway.com.vn", "www.expressway.com.vn", "news.duongcaotoc.com.vn"}) {
-
-			_check(host, "/", null, "GET", false, null);
-			_check(host, "/c/portal/login", null, "GET", false, "/");
-			_check(host, "/", null, "GET", true, "/c/portal/logout");
 		}
 
 		_check("admin-portal.tctvec.vn", "/", null, "GET", false,
 			"/c/portal/login?redirect=%2Fgroup%2Fcontrol_panel%2Fmanage");
+
+		// Không tìm thấy site internet thì quay về Control Panel, không lặp.
 		_check("admin-portal.tctvec.vn", "/", null, "GET", true,
 			DomainPolicyRules.ADMIN_LANDING_PATH);
 		_check("admin-portal.tctvec.vn", "/group/control_panel/manage", null, "GET", true, null);
+		_check("admin-portal.tctvec.vn", "/group/control_panel/manage",
+			"p_p_id=com_liferay_users_admin_web_portlet_UsersAdminPortlet", "GET", true, null);
+		_check("admin-portal.tctvec.vn", "/group/guest/~/control_panel/manage", null, "GET", true, null);
+		_assertEquals(true, DomainPolicyRules.isEmptyControlPanelRequest(
+			"/group/control_panel/manage", null), "Control Panel trống");
+		_assertEquals(true, DomainPolicyRules.isEmptyControlPanelRequest(
+			"/vi/group/control_panel/manage", "p_p_id=&refererPlid=1"), "Control Panel p_p_id rỗng");
+		_assertEquals(false, DomainPolicyRules.isEmptyControlPanelRequest(
+			"/group/control_panel/manage", "a=1&p_p_id=x"), "Control Panel đã chọn ứng dụng");
+
 		_check("portal.tctvec.vn", "/", null, "GET", false,
 			"/c/portal/login?redirect=%2Fweb%2Fguest%2Fintranet");
 		_check("portal.tctvec.vn", "/group/control_panel/manage", null, "GET", true,
@@ -112,7 +96,7 @@ public class DomainAccessPolicySelfTest {
 		_check("localhost", "/", null, "GET", false, null);
 		_check("duongcaotoc.com.vn.attacker.invalid", "/", null, "GET", true, null);
 
-		System.out.println("DomainAccessPolicySelfTest OK: enabled=" + enabled);
+		System.out.println("DomainAccessPolicySelfTest OK");
 	}
 
 	private static void _check(
@@ -152,7 +136,8 @@ public class DomainAccessPolicySelfTest {
 			return null;
 		});
 
-		User user = signedIn ? _proxy(User.class, (proxy, called, args) -> null) : null;
+		User user = signedIn ? _proxy(User.class, (proxy, called, args) ->
+			"getCompanyId".equals(called.getName()) ? 20097L : null) : null;
 		DomainAccessPolicyFilter filter = new DomainAccessPolicyFilter();
 		Field permission = DomainAccessPolicyFilter.class.getDeclaredField("_permission");
 		permission.setAccessible(true);
@@ -162,6 +147,10 @@ public class DomainAccessPolicySelfTest {
 				return user;
 			}
 		});
+		Field groupLocalService = DomainAccessPolicyFilter.class.getDeclaredField(
+			"_groupLocalService");
+		groupLocalService.setAccessible(true);
+		groupLocalService.set(filter, _proxy(GroupLocalService.class, (proxy, called, args) -> null));
 
 		String label = host + " " + method + " " + path + " signedIn=" + signedIn;
 		_assertEquals(expectedRedirect == null, filter.doFilterTry(request, response), label);

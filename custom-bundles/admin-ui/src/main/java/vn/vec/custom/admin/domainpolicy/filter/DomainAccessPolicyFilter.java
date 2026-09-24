@@ -1,7 +1,15 @@
 package vn.vec.custom.admin.domainpolicy.filter;
 
+import com.liferay.application.list.PanelAppRegistry;
+import com.liferay.application.list.constants.PanelCategoryKeys;
+import com.liferay.application.list.display.context.logic.PanelCategoryHelper;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.servlet.BaseFilter;
 import com.liferay.portal.kernel.servlet.TryFilter;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -32,13 +40,12 @@ import vn.vec.custom.admin.networkpolicy.service.AdminNetworkPolicyPermission;
  * <ul>
  * <li>{@code duongcaotoc.com.vn}, {@code expressway.com.vn} — cổng công khai:
  * xem tự do, chặn mọi đường dẫn đăng nhập; nếu phiên đang đăng nhập thì buộc
- * đăng xuất. Riêng {@code duongcaotoc.com.vn} (kể cả {@code www.}) cho phép
- * đăng nhập quản trị nếu {@code VEC_DUONGCAOTOC_ADMIN_ENABLED=true}, đồng thời
- * giữ nguyên việc xem trang public.</li>
+ * đăng xuất.</li>
  * <li>{@code portal.tctvec.vn} — cổng nội bộ: bắt buộc đăng nhập, mọi trang đều
  * đưa về {@code /web/guest/intranet}.</li>
  * <li>{@code admin-portal.tctvec.vn} — cổng quản trị: bắt buộc đăng nhập, trang
- * mở đầu đưa về {@code /group/control_panel/manage}.</li>
+ * mở đầu và Control Panel trống đưa về Site Administration của site internet,
+ * mở sẵn ứng dụng đầu tiên mà người dùng có quyền.</li>
  * </ul>
  *
  * <p>Cách đăng ký bám sát {@code WebContentAdvancedSearchPageFilter} — filter
@@ -106,10 +113,6 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 				handled = _handlePublicSite(
 					httpServletRequest, httpServletResponse, path);
 			}
-			else if (domainRole == DomainRole.PUBLIC_ADMIN) {
-				handled = _handlePublicAdmin(
-					httpServletRequest, httpServletResponse, path);
-			}
 			else if (domainRole == DomainRole.INTRANET) {
 				handled = _handleIntranet(
 					httpServletRequest, httpServletResponse, path);
@@ -166,8 +169,8 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			"VEC Domain Access Policy Filter activated on node " + _nodeName +
 				": intranet=" + DomainPolicyRules.INTRANET_LANDING_PATH +
 					", admin=" + DomainPolicyRules.ADMIN_LANDING_PATH +
-						", duongCaoTocAdminEnabled=" +
-							DomainPolicyRules.isDuongCaoTocAdminEnabled() +
+						", adminSite=" +
+							DomainPolicyRules.ADMIN_DEFAULT_SITE_FRIENDLY_URL +
 						". Diagnostic INFO logging for the next " +
 							_DIAGNOSTIC_LOG_LIMIT + " page requests.");
 	}
@@ -215,13 +218,72 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 
 		_resetLoginBounces(httpServletRequest);
 
-		if (pageRequest && DomainPolicyRules.isAdminLandingPath(path)) {
+		if (pageRequest &&
+			(DomainPolicyRules.isAdminLandingPath(path) ||
+			 DomainPolicyRules.isEmptyControlPanelRequest(
+				 path, httpServletRequest.getQueryString()))) {
+
 			return _redirect(
 				httpServletResponse, path,
-				DomainPolicyRules.ADMIN_LANDING_PATH);
+				_getAdminLandingURL(httpServletRequest));
 		}
 
 		return false;
+	}
+
+	/**
+	 * Site Administration của site internet, mở ứng dụng đầu tiên trong menu
+	 * mà người dùng có quyền — cùng logic Liferay dùng khi bấm vào một site
+	 * trên product menu. Không xác định được thì quay về Control Panel.
+	 *
+	 * <p>Filter chạy trước {@code ServicePreAction} nên chưa có
+	 * {@code ThemeDisplay} hay permission checker của request; phải tự tạo từ
+	 * user đăng nhập.</p>
+	 */
+	private String _getAdminLandingURL(HttpServletRequest httpServletRequest) {
+		try {
+			User user = _permission.getSignedInUser(httpServletRequest);
+
+			if (user == null) {
+				return DomainPolicyRules.ADMIN_LANDING_PATH;
+			}
+
+			Group group = _groupLocalService.fetchFriendlyURLGroup(
+				user.getCompanyId(),
+				DomainPolicyRules.ADMIN_DEFAULT_SITE_FRIENDLY_URL);
+
+			if (group == null) {
+				_log.warn(
+					"Admin landing site " +
+						DomainPolicyRules.ADMIN_DEFAULT_SITE_FRIENDLY_URL +
+							" not found in company " + user.getCompanyId());
+
+				return DomainPolicyRules.ADMIN_LANDING_PATH;
+			}
+
+			PermissionChecker permissionChecker =
+				PermissionCheckerFactoryUtil.create(user);
+
+			PanelCategoryHelper panelCategoryHelper = new PanelCategoryHelper(
+				_panelAppRegistry);
+
+			String portletId = panelCategoryHelper.getFirstPortletId(
+				PanelCategoryKeys.SITE_ADMINISTRATION, permissionChecker,
+				group);
+
+			if ((portletId == null) || portletId.isEmpty()) {
+				return DomainPolicyRules.ADMIN_LANDING_PATH;
+			}
+
+			return "/group" + group.getFriendlyURL() +
+				"/~/control_panel/manage?p_p_id=" + _encode(portletId) +
+					"&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view";
+		}
+		catch (Exception exception) {
+			_log.error("Unable to resolve admin landing URL", exception);
+
+			return DomainPolicyRules.ADMIN_LANDING_PATH;
+		}
 	}
 
 	private boolean _handleIntranet(
@@ -260,30 +322,6 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		return _redirect(
 			httpServletResponse, path,
 			DomainPolicyRules.INTRANET_LANDING_PATH);
-	}
-
-	private boolean _handlePublicAdmin(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, String path)
-		throws Exception {
-
-		if (DomainPolicyRules.isAuthRequest(
-				path, httpServletRequest.getQueryString())) {
-
-			_resetLoginBounces(httpServletRequest);
-
-			return false;
-		}
-
-		if (_isPageRequest(httpServletRequest, path) &&
-			DomainPolicyRules.isIntranetPath(path)) {
-
-			return _redirect(httpServletResponse, path, "/");
-		}
-
-		// Liferay xử lý đăng nhập và kiểm tra quyền Control Panel như bình
-		// thường; không ép khách đăng nhập khi đang xem trang public.
-		return false;
 	}
 
 	private boolean _handlePublicSite(
@@ -495,6 +533,12 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 
 	private final AtomicInteger _diagnosticLogBudget = new AtomicInteger(
 		_DIAGNOSTIC_LOG_LIMIT);
+
+	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private PanelAppRegistry _panelAppRegistry;
 
 	@Reference
 	private AdminNetworkPolicyPermission _permission;

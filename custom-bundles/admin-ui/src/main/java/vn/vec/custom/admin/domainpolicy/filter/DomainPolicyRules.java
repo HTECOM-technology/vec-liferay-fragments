@@ -10,8 +10,7 @@ import vn.vec.custom.admin.domainpolicy.model.DomainRole;
  * Bảng luật tĩnh cho {@link DomainAccessPolicyFilter}: ánh xạ host sang
  * {@link DomainRole} và phân loại đường dẫn.
  *
- * <p>Danh sách domain được hardcode; riêng quyền đăng nhập quản trị trên
- * duongcaotoc.com.vn được bật bằng biến môi trường của tiến trình Liferay.</p>
+ * <p>Danh sách domain được hardcode, đổi domain phải build lại module.</p>
  */
 public class DomainPolicyRules {
 
@@ -25,23 +24,16 @@ public class DomainPolicyRules {
 	 */
 	public static final String ADMIN_LANDING_PATH = "/group/control_panel/manage";
 
-	public static boolean isDuongCaoTocAdminEnabled() {
-		//String value = System.getenv("VEC_DUONGCAOTOC_ADMIN_ENABLED");
-
-		//return (value != null) && "true".equalsIgnoreCase(value.trim());
-		return true; // always enable admin for duongcaotoc.com.vn
-	}
+	/**
+	 * Friendly URL của site internet. Sau khi đăng nhập trên cổng quản trị,
+	 * người dùng được đưa vào Site Administration của site này, mở sẵn ứng
+	 * dụng đầu tiên trong menu thay vì Control Panel trống.
+	 */
+	public static final String ADMIN_DEFAULT_SITE_FRIENDLY_URL = "/guest";
 
 	public static DomainRole resolveRole(String host) {
 		if ((host == null) || host.isEmpty()) {
 			return DomainRole.UNKNOWN;
-		}
-
-		// resolveHost đã bỏ www.; không mở quyền admin cho các subdomain khác.
-		if ("duongcaotoc.com.vn".equals(host) &&
-			isDuongCaoTocAdminEnabled()) {
-
-			return DomainRole.PUBLIC_ADMIN;
 		}
 
 		for (String adminHost : _ADMIN_HOSTS) {
@@ -258,6 +250,33 @@ public class DomainPolicyRules {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Control Panel chưa chọn ứng dụng nào ({@code /group/control_panel/manage}
+	 * không có {@code p_p_id}): Liferay chỉ hiện "Chọn một Site" và "Lựa chọn
+	 * ứng dụng từ danh sách bên trái".
+	 */
+	public static boolean isEmptyControlPanelRequest(
+		String path, String queryString) {
+
+		if (!ADMIN_LANDING_PATH.equals(stripLocale(path))) {
+			return false;
+		}
+
+		if ((queryString == null) || queryString.isEmpty()) {
+			return true;
+		}
+
+		for (String parameter : queryString.split("&")) {
+			if (parameter.startsWith("p_p_id=") &&
+				(parameter.length() > "p_p_id=".length())) {
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static String _firstValue(String headerValue) {

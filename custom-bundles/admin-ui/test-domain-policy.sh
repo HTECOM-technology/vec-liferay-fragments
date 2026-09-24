@@ -27,8 +27,4 @@ javac -cp "$classpath" -d "$test_dir" \
 
 # Thư viện Liferay dùng reflection vào java.lang.invoke trên Java 17.
 java_args=(--add-opens java.base/java.lang.invoke=ALL-UNNAMED -cp "$classpath" "$main_class")
-env -u VEC_DUONGCAOTOC_ADMIN_ENABLED java "${java_args[@]}" false
-VEC_DUONGCAOTOC_ADMIN_ENABLED=false java "${java_args[@]}" false
-VEC_DUONGCAOTOC_ADMIN_ENABLED=true java "${java_args[@]}" true
-VEC_DUONGCAOTOC_ADMIN_ENABLED=' TRUE ' java "${java_args[@]}" true
-VEC_DUONGCAOTOC_ADMIN_ENABLED=invalid java "${java_args[@]}" false
+java "${java_args[@]}"
