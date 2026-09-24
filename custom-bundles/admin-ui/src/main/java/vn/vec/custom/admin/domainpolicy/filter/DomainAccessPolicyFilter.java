@@ -304,7 +304,14 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		}
 
 		if (!_isSignedIn(httpServletRequest)) {
-			if (!_shouldBounceToLogin(httpServletRequest, path)) {
+
+			// Trang intranet đang là public layout nên filter là lớp bảo vệ
+			// duy nhất; không bao giờ mở cầu dao cho nó. Vòng lặp đăng nhập
+			// thật không rơi vào đây vì trang đăng nhập không thuộc intranet.
+
+			if (!DomainPolicyRules.isIntranetPath(path) &&
+				!_shouldBounceToLogin(httpServletRequest, path)) {
+
 				return false;
 			}
 
@@ -358,13 +365,15 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 	/**
 	 * Cầu dao chống vòng lặp. Nếu Liferay bounce trang đăng nhập sang một URL
 	 * mà filter lại đá ngược về đăng nhập, cả portal sẽ không dùng được. Vòng
-	 * lặp thật luôn quay về <em>cùng một path</em>, nên chỉ khi cùng path bị
+	 * lặp thật luôn quay về <em>cùng một URL</em> (path và query), nên chỉ khi
+	 * cùng URL bị
 	 * chuyển hướng {@link #_MAX_LOGIN_BOUNCES} lần liên tiếp mà phiên vẫn chưa
 	 * chạm được giao diện đăng nhập, filter mới cho đúng request đó đi tiếp,
 	 * ghi {@code WARN} kèm URL gây lặp và đặt lại bộ đếm.
 	 *
 	 * <p>Client giữ cookie nhưng không theo redirect (crawler, bot xem trước
-	 * link) mở lần lượt nhiều trang khác nhau thì bộ đếm luôn bắt đầu lại, nên
+	 * link) mở lần lượt nhiều trang khác nhau — kể cả cùng path với query
+	 * {@code redirect=} lồng nhau khác nhau — thì bộ đếm luôn bắt đầu lại, nên
 	 * không bao giờ lọt qua. Bản cũ đếm theo session và không đặt lại, khiến
 	 * một phiên như vậy đi được mọi trang mà không cần đăng nhập.</p>
 	 *
@@ -382,12 +391,17 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		Object value = httpSession.getAttribute(_SESSION_LOGIN_BOUNCES);
 		int bounces = (value instanceof Integer) ? (Integer)value : 0;
 
-		if (!path.equals(
-				httpSession.getAttribute(_SESSION_LOGIN_BOUNCE_PATH))) {
+		String url = path;
+		String queryString = httpServletRequest.getQueryString();
 
+		if ((queryString != null) && !queryString.isEmpty()) {
+			url = path + "?" + queryString;
+		}
+
+		if (!url.equals(httpSession.getAttribute(_SESSION_LOGIN_BOUNCE_PATH))) {
 			bounces = 0;
 
-			httpSession.setAttribute(_SESSION_LOGIN_BOUNCE_PATH, path);
+			httpSession.setAttribute(_SESSION_LOGIN_BOUNCE_PATH, url);
 		}
 
 		if (bounces >= _MAX_LOGIN_BOUNCES) {

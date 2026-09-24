@@ -109,7 +109,23 @@ public class DomainAccessPolicySelfTest {
 				intranetLogin, crawlerSession);
 		}
 
-		// Vòng lặp thật trên cùng một path: cho qua đúng một request rồi đếm lại.
+		// Cùng path, query redirect= lồng nhau khác nhau (log crawler thật).
+		Map<String, Object> nestedSession = new HashMap<>();
+
+		for (int i = 0; i < 10; i++) {
+			_check("portal.tctvec.vn", "/web/guest/w/quy-hoach-thu-do", "redirect=%2Fw%2Fbai-" + i,
+				"GET", false, intranetLogin, nestedSession);
+		}
+
+		// Trang intranet không bao giờ mở cầu dao, kể cả cùng URL lặp lại.
+		Map<String, Object> intranetSession = new HashMap<>();
+
+		for (int i = 0; i < 10; i++) {
+			_check("portal.tctvec.vn", "/web/guest/intranet", null, "GET", false,
+				intranetLogin, intranetSession);
+		}
+
+		// Vòng lặp thật trên cùng một URL: cho qua đúng một request rồi đếm lại.
 		Map<String, Object> loopSession = new HashMap<>();
 
 		for (int round = 0; round < 2; round++) {
