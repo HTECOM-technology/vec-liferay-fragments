@@ -351,19 +351,26 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 			(httpSession.getAttribute(_SESSION_LOGIN_BOUNCES) != null)) {
 
 			httpSession.removeAttribute(_SESSION_LOGIN_BOUNCES);
+			httpSession.removeAttribute(_SESSION_LOGIN_BOUNCE_PATH);
 		}
 	}
 
 	/**
 	 * Cầu dao chống vòng lặp. Nếu Liferay bounce trang đăng nhập sang một URL
-	 * mà filter lại đá ngược về đăng nhập, cả portal sẽ không dùng được. Sau
-	 * {@link #_MAX_LOGIN_BOUNCES} lần chuyển hướng liên tiếp mà phiên vẫn chưa
-	 * chạm được giao diện đăng nhập, filter mở cổng cho request đi tiếp và ghi
-	 * {@code WARN} kèm URL gây lặp.
+	 * mà filter lại đá ngược về đăng nhập, cả portal sẽ không dùng được. Vòng
+	 * lặp thật luôn quay về <em>cùng một path</em>, nên chỉ khi cùng path bị
+	 * chuyển hướng {@link #_MAX_LOGIN_BOUNCES} lần liên tiếp mà phiên vẫn chưa
+	 * chạm được giao diện đăng nhập, filter mới cho đúng request đó đi tiếp,
+	 * ghi {@code WARN} kèm URL gây lặp và đặt lại bộ đếm.
 	 *
-	 * <p>Đây là fail-open có chủ đích: mất hiệu lực chính sách cho phiên đó còn
-	 * hơn làm chết cả portal. Dòng {@code WARN} cho biết chính xác path nào cần
-	 * thêm vào danh sách auth path.</p>
+	 * <p>Client giữ cookie nhưng không theo redirect (crawler, bot xem trước
+	 * link) mở lần lượt nhiều trang khác nhau thì bộ đếm luôn bắt đầu lại, nên
+	 * không bao giờ lọt qua. Bản cũ đếm theo session và không đặt lại, khiến
+	 * một phiên như vậy đi được mọi trang mà không cần đăng nhập.</p>
+	 *
+	 * <p>Đây là fail-open có chủ đích cho vòng lặp thật: cho một request đi
+	 * tiếp còn hơn làm chết cả portal. Dòng {@code WARN} cho biết chính xác
+	 * path nào cần thêm vào danh sách auth path.</p>
 	 *
 	 * @return {@code true} nếu được phép chuyển hướng sang trang đăng nhập
 	 */
@@ -375,11 +382,28 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 		Object value = httpSession.getAttribute(_SESSION_LOGIN_BOUNCES);
 		int bounces = (value instanceof Integer) ? (Integer)value : 0;
 
+		if (!path.equals(
+				httpSession.getAttribute(_SESSION_LOGIN_BOUNCE_PATH))) {
+
+			bounces = 0;
+
+			httpSession.setAttribute(_SESSION_LOGIN_BOUNCE_PATH, path);
+		}
+
 		if (bounces >= _MAX_LOGIN_BOUNCES) {
 			_log.warn(
-				"Login redirect loop detected at " + path +
-					"; letting the request through. Add this path to " +
-						"DomainPolicyRules auth paths.");
+				"Login redirect loop detected at " + path + " (host=" +
+					DomainPolicyRules.resolveHost(httpServletRequest) +
+						", bounces=" + bounces + ", referer=" +
+							httpServletRequest.getHeader("Referer") +
+								", userAgent=" +
+									httpServletRequest.getHeader("User-Agent") +
+										"); letting the request through. Add " +
+											"this path to DomainPolicyRules " +
+												"auth paths.");
+
+			httpSession.removeAttribute(_SESSION_LOGIN_BOUNCES);
+			httpSession.removeAttribute(_SESSION_LOGIN_BOUNCE_PATH);
 
 			return false;
 		}
@@ -522,6 +546,9 @@ public class DomainAccessPolicyFilter extends BaseFilter implements TryFilter {
 	private static final int _DIAGNOSTIC_LOG_LIMIT = 200;
 
 	private static final int _MAX_LOGIN_BOUNCES = 3;
+
+	private static final String _SESSION_LOGIN_BOUNCE_PATH =
+		DomainAccessPolicyFilter.class.getName() + "#LOGIN_BOUNCE_PATH";
 
 	private static final String _SESSION_LOGIN_BOUNCES =
 		DomainAccessPolicyFilter.class.getName() + "#LOGIN_BOUNCES";

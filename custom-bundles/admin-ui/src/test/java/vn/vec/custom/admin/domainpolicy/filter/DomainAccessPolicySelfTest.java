@@ -96,6 +96,44 @@ public class DomainAccessPolicySelfTest {
 		_check("localhost", "/", null, "GET", false, null);
 		_check("duongcaotoc.com.vn.attacker.invalid", "/", null, "GET", true, null);
 
+		String intranetLogin = "/c/portal/login?redirect=%2Fweb%2Fguest%2Fintranet";
+
+		// Client giữ cookie nhưng không theo redirect, mở lần lượt nhiều trang
+		// khác nhau: không bao giờ được cho qua.
+		Map<String, Object> crawlerSession = new HashMap<>();
+
+		for (int i = 0; i < 10; i++) {
+			_check("portal.tctvec.vn", "/web/guest/w/bai-" + i, null, "GET", false,
+				intranetLogin, crawlerSession);
+			_check("portal.tctvec.vn", "/web/guest/intranet", null, "GET", false,
+				intranetLogin, crawlerSession);
+		}
+
+		// Vòng lặp thật trên cùng một path: cho qua đúng một request rồi đếm lại.
+		Map<String, Object> loopSession = new HashMap<>();
+
+		for (int round = 0; round < 2; round++) {
+			for (int i = 0; i < 3; i++) {
+				_check("portal.tctvec.vn", "/web/guest/sso-landing", null, "GET", false,
+					intranetLogin, loopSession);
+			}
+
+			_check("portal.tctvec.vn", "/web/guest/sso-landing", null, "GET", false,
+				null, loopSession);
+		}
+
+		// Chạm trang đăng nhập thì bộ đếm được xoá.
+		Map<String, Object> resetSession = new HashMap<>();
+
+		for (int i = 0; i < 3; i++) {
+			_check("portal.tctvec.vn", "/web/guest/sso-landing", null, "GET", false,
+				intranetLogin, resetSession);
+		}
+
+		_check("portal.tctvec.vn", "/c/portal/login", null, "GET", false, null, resetSession);
+		_check("portal.tctvec.vn", "/web/guest/sso-landing", null, "GET", false,
+			intranetLogin, resetSession);
+
 		System.out.println("DomainAccessPolicySelfTest OK");
 	}
 
@@ -103,8 +141,15 @@ public class DomainAccessPolicySelfTest {
 		String host, String path, String query, String method, boolean signedIn,
 		String expectedRedirect) throws Exception {
 
+		_check(host, path, query, method, signedIn, expectedRedirect, new HashMap<>());
+	}
+
+	private static void _check(
+		String host, String path, String query, String method, boolean signedIn,
+		String expectedRedirect, Map<String, Object> sessionAttributes)
+		throws Exception {
+
 		Map<String, Object> attributes = new HashMap<>();
-		Map<String, Object> sessionAttributes = new HashMap<>();
 		HttpSession session = _proxy(HttpSession.class, (proxy, called, args) -> {
 			switch (called.getName()) {
 				case "getAttribute": return sessionAttributes.get(args[0]);
