@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -214,9 +215,27 @@ public class DomainAccessPolicySelfTest {
 		groupLocalService.set(filter, _proxy(GroupLocalService.class, (proxy, called, args) -> null));
 
 		String label = host + " " + method + " " + path + " signedIn=" + signedIn;
+		Map<String, Object> sessionBefore = new HashMap<>(sessionAttributes);
 		_assertEquals(expectedRedirect == null, filter.doFilterTry(request, response), label);
 		_assertEquals(expectedRedirect, redirect[0], label);
 		_assertEquals(true, filter.doFilterTry(request, response), label + " dispatch tiếp theo");
+
+		// Qua processFilter như Liferay gọi thật: đã redirect thì chain phải
+		// dừng, nếu không Liferay render tiếp và ném IllegalStateException.
+		Map<String, Object> sessionAfter = new HashMap<>(sessionAttributes);
+		sessionAttributes.clear();
+		sessionAttributes.putAll(sessionBefore);
+		attributes.clear();
+		redirect[0] = null;
+		boolean[] chainCalled = {false};
+		FilterChain chain = _proxy(FilterChain.class, (proxy, called, args) -> {
+			chainCalled[0] = true;
+			return null;
+		});
+		filter.processFilter(request, response, chain);
+		_assertEquals(expectedRedirect == null, chainCalled[0], label + " chain tiếp tục");
+		_assertEquals(expectedRedirect, redirect[0], label + " processFilter redirect");
+		_assertEquals(sessionAfter, sessionAttributes, label + " processFilter session");
 	}
 
 	private static void _checkHead(String host, boolean hideLogin) throws Exception {

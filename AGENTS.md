@@ -213,6 +213,7 @@ Khi sửa Java trong custom bundle:
 - Audit code phải không được làm hỏng thao tác chính của Liferay. Nếu audit lỗi, nên log và fail mềm khi phù hợp.
 - Với `ServiceContext`, `HttpServletRequest` có thể null trong một số flow nội bộ/background của Liferay. Luôn guard null trước khi đọc request, session, user agent, remote address.
 - Khi thêm endpoint REST, kiểm tra permission, companyId, groupId và user context.
+- **Servlet filter: KHÔNG dùng `TryFilter` để chặn request.** `InvokerFilterChain.processDirectCallFilter` (7.4.3.132) bỏ qua giá trị trả về của `doFilterTry` và luôn chạy tiếp chain, nên redirect/403 xong Liferay vẫn render trang phía sau (log `IllegalStateException: Cannot forward after response has been committed` từ `FriendlyURLServlet`; với 403 thì trang admin vẫn bị ghi tiếp vào body). Override `BaseFilter.processFilter(request, response, filterChain)` và chỉ gọi `processFilter(X.class.getName(), ...)` khi cho đi tiếp — pattern đang dùng trong 4 filter hiện có.
 - Khi thay đổi schema SQL trong `custom-bundles/admin-ui/sql/`, cập nhật repository/model tương ứng.
 
 ## Custom Bundle Comment Management

@@ -97,7 +97,8 @@ Lưu cờ hiển thị (internet/intranet) cho từng camera theo tuyến cao t�
 Lưu thứ tự và danh sách card bị ẩn trên trang chủ dashboard của từng user (bảng `VEC_DashboardLayout`); có thứ tự mặc định khi user chưa tùy biến. `GET/PUT/DELETE /layout`, mọi user đăng nhập.
 
 #### `domainpolicy` — Phân tách môi trường theo domain
-`filter/DomainAccessPolicyFilter` — servlet filter trên `/*`. Cách đăng ký bám sát `WebContentAdvancedSearchPageFilter` (filter duy nhất trong module đã xác nhận chạy đúng trên server) — ba điểm bắt buộc:
+`filter/DomainAccessPolicyFilter` — servlet filter trên `/*`. Cách đăng ký bám sát `WebContentAdvancedSearchPageFilter` (filter duy nhất trong module đã xác nhận chạy đúng trên server) — các điểm bắt buộc:
+- **không implement `TryFilter`**: Liferay bỏ qua giá trị trả về của `doFilterTry` và luôn chạy tiếp chain. Filter override `processFilter(...)` và chỉ gọi tiếp chain khi `doFilterTry` không trả `false`; nếu không, sau redirect Liferay vẫn render trang và ném `IllegalStateException: Cannot forward after response has been committed`.
 - **override `isFilterEnabled()` trả `true`** — đây là điều kiện đã xác nhận. `BaseFilter` lấy giá trị này từ init-param `filter-enabled`, vốn không được truyền vào filter đăng ký thuần OSGi; thiếu nó thì component vẫn activate (log INFO vẫn ra) nhưng filter không xử lý request nào.
 - **`dispatcher=FORWARD` bên cạnh `dispatcher=REQUEST`**. `VirtualHostFilter` đứng trước vị trí này trong chain và nó `forward()` `/` sang `/web/guest/...`; forward mở một dispatch mới nên filter chỉ khai báo `REQUEST` không bao giờ thấy request vào trang chủ — chỉ thấy các URL tường minh. Đổi lại filter có thể bị gọi nhiều lần cho cùng một request, nên có request attribute `#PROCESSED` bảo đảm chỉ xét đúng một lần, và `_redirect` kiểm tra `response.isCommitted()` trước khi `sendRedirect`.
 

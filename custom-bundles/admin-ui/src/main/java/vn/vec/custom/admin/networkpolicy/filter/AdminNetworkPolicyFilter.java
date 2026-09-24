@@ -4,13 +4,13 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.servlet.BaseFilter;
-import com.liferay.portal.kernel.servlet.TryFilter;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.Filter;
+import javax.servlet.FilterChain;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +37,7 @@ import vn.vec.custom.admin.networkpolicy.util.IPv4NetworkUtil;
 	},
 	service = Filter.class
 )
-public class AdminNetworkPolicyFilter extends BaseFilter implements TryFilter {
+public class AdminNetworkPolicyFilter extends BaseFilter {
 
 	@Activate
 	@Modified
@@ -46,7 +46,35 @@ public class AdminNetworkPolicyFilter extends BaseFilter implements TryFilter {
 			properties);
 	}
 
+	/**
+	 * Không dùng {@code TryFilter}: {@code InvokerFilterChain} bỏ qua giá trị
+	 * trả về của {@code doFilterTry} và luôn chạy tiếp chain, nên redirect hay
+	 * 403 xong Liferay vẫn render trang phía sau (gây
+	 * {@code IllegalStateException: Cannot forward after response has been
+	 * committed}). Ở đây chỉ gọi tiếp chain khi {@link #doFilterTry} không trả
+	 * {@code false}.
+	 */
 	@Override
+	protected void processFilter(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, FilterChain filterChain)
+		throws Exception {
+
+		if (Boolean.FALSE.equals(
+				doFilterTry(httpServletRequest, httpServletResponse))) {
+
+			return;
+		}
+
+		processFilter(
+			AdminNetworkPolicyFilter.class.getName(), httpServletRequest, httpServletResponse,
+			filterChain);
+	}
+
+	/**
+	 * @return {@code false} nếu filter đã tự trả response (redirect, 403) và
+	 *         chain phải dừng; giá trị khác thì request đi tiếp
+	 */
 	public Object doFilterTry(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)

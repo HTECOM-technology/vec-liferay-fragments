@@ -7,7 +7,6 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.BaseFilter;
-import com.liferay.portal.kernel.servlet.TryFilter;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.util.Map;
@@ -15,6 +14,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 import javax.servlet.Filter;
+import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -57,7 +57,7 @@ import vn.vec.custom.admin.password.util.PasswordExpirationUtil;
 	},
 	service = Filter.class
 )
-public class ForcePasswordChangeFilter extends BaseFilter implements TryFilter {
+public class ForcePasswordChangeFilter extends BaseFilter {
 
 	@Activate
 	@Modified
@@ -66,7 +66,35 @@ public class ForcePasswordChangeFilter extends BaseFilter implements TryFilter {
 			ForcePasswordChangeConfiguration.fromProperties(properties);
 	}
 
+	/**
+	 * Không dùng {@code TryFilter}: {@code InvokerFilterChain} bỏ qua giá trị
+	 * trả về của {@code doFilterTry} và luôn chạy tiếp chain, nên redirect hay
+	 * 403 xong Liferay vẫn render trang phía sau (gây
+	 * {@code IllegalStateException: Cannot forward after response has been
+	 * committed}). Ở đây chỉ gọi tiếp chain khi {@link #doFilterTry} không trả
+	 * {@code false}.
+	 */
 	@Override
+	protected void processFilter(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, FilterChain filterChain)
+		throws Exception {
+
+		if (Boolean.FALSE.equals(
+				doFilterTry(httpServletRequest, httpServletResponse))) {
+
+			return;
+		}
+
+		processFilter(
+			ForcePasswordChangeFilter.class.getName(), httpServletRequest, httpServletResponse,
+			filterChain);
+	}
+
+	/**
+	 * @return {@code false} nếu filter đã tự trả response (redirect, 403) và
+	 *         chain phải dừng; giá trị khác thì request đi tiếp
+	 */
 	public Object doFilterTry(
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse)
