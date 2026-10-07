@@ -1,0 +1,59 @@
+import com.liferay.journal.model.JournalArticle
+import com.liferay.journal.service.JournalArticleLocalServiceUtil
+import com.liferay.portal.kernel.dao.jdbc.DataAccess
+import com.liferay.portal.kernel.log.LogFactoryUtil
+import com.liferay.portal.kernel.search.IndexerRegistryUtil
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal
+
+final long companyId = 92605711380992L
+final long sleepMs   = 50L                    // nghỉ giữa mỗi bài; tăng lên nếu CPU vẫn cao
+final String STOP    = "vec.reindex.stop"
+
+System.clearProperty(STOP)
+
+Thread.start("vec-journal-reindex") {
+    def log = LogFactoryUtil.getLog("JOURNAL_REINDEX")
+    def indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class.getName())
+    CompanyThreadLocal.setCompanyId(companyId)
+
+    List<Long> keys = []
+    def conn = null, ps = null, rs = null
+    try {
+        conn = DataAccess.getConnection()
+        ps = conn.prepareStatement(
+            "SELECT DISTINCT resourcePrimKey FROM JournalArticle WHERE companyId = ? ORDER BY resourcePrimKey")
+        ps.setLong(1, companyId)
+        rs = ps.executeQuery()
+        while (rs.next()) keys << rs.getLong(1)
+    }
+    finally {
+        DataAccess.cleanUp(conn, ps, rs)
+    }
+
+    log.info("START total=" + keys.size())
+    int i = 0, ok = 0, fail = 0
+    long t0 = System.currentTimeMillis()
+
+    for (Long rpk : keys) {
+        if (Boolean.getBoolean(STOP)) { log.warn("STOPPED at " + i + "/" + keys.size()); break }
+        i++
+        try {
+            JournalArticle a = JournalArticleLocalServiceUtil.fetchLatestArticle(rpk)
+            if (a != null) { indexer.reindex(a); ok++ }
+        }
+        catch (Throwable t) {
+            fail++
+            log.error("FAIL resourcePrimKey=" + rpk + "; " + t.getClass().getName() + ": " + t.getMessage(), t)
+        }
+        if (i % 200 == 0) {
+            log.info("PROGRESS " + i + "/" + keys.size() + " ok=" + ok + " fail=" + fail +
+                     " elapsed=" + ((System.currentTimeMillis() - t0) / 1000) + "s")
+        }
+        if (sleepMs > 0) Thread.sleep(sleepMs)
+    }
+
+    log.info("DONE processed=" + i + " ok=" + ok + " fail=" + fail +
+             " elapsed=" + ((System.currentTimeMillis() - t0) / 1000) + "s")
+}
+
+out.println("Đã khởi chạy thread nền vec-journal-reindex. Theo dõi log JOURNAL_REINDEX.")

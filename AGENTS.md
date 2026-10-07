@@ -280,6 +280,13 @@ awk "/^CREATE TABLE \`$t\` /,/^\) ENGINE/" custom-bundles/admin-ui/db_structure.
 
 Nhớ `docker rm -f lrcheck` khi xong.
 
+## Classic Theme (WAR)
+
+- `classic-theme/` là bản bung của `classic-theme/classic-theme.war` (theme Classic của Liferay đã custom).
+- Sửa CSS ở `classic-theme/css/custom.css` (CSS thuần, nạp qua `templates/init_custom.ftl`). Các file `*.scss` không được compile khi deploy; `main.css`/`clay.css` là bản compile sẵn.
+- Đóng gói lại: `bash build-classic-theme.sh` (Docker, image `eclipse-temurin:17-jdk`) hoặc `--local` (dùng `jar` trên máy). Output `classic-theme/dist/classic-theme.war` (gitignore). WAR gốc và `dist/` không bị đưa vào gói.
+- Deploy: copy WAR vào `$LIFERAY_HOME/deploy/`, theo dõi `catalina.out`.
+
 ## Internet Fragment Backup
 
 - `internet-fragment/` chứa bản backup code fragment được lấy từ giao diện chỉnh sửa internet của Liferay.

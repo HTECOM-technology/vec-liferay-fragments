@@ -54,3 +54,6 @@ custom-bundles/.env
 # JAR build ra và cache Gradle của container (xem build-custom-bundles.sh)
 .gradle-docker/
 .gradle/
+
+# WAR build ra từ classic-theme/ (xem build-classic-theme.sh)
+classic-theme/dist/
